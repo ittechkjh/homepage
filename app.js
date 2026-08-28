@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Tab Switching
 // ----------------------------------------------------
 function switchTab(tabId) {
-  const tabs = ['market', 'forum', 'chat', 'news'];
+  const tabs = ['market', 'forum', 'chat', 'news', 'analyzer'];
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     const navBtn = document.getElementById(`nav-${t}`);

@@ -48,6 +48,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/analyzer.css">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -101,6 +102,10 @@
           <i data-lucide="message-circle" class="w-4 h-4"></i> 실시간 채팅
           <span class="w-2 h-2 rounded-full bg-crypto-green animate-ping"></span>
         </button>
+        
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i data-lucide="calculator" class="w-4 h-4"></i> 거래내역 분석기
+        </button>
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
           <i data-lucide="newspaper" class="w-4 h-4"></i> 주요 속보
         </button>
@@ -132,6 +137,10 @@
     </button>
     <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
       <i data-lucide="message-circle" class="w-5 h-5"></i> 채팅
+    </button>
+    
+    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
+      <i data-lucide="calculator" class="w-5 h-5"></i> 내역분석
     </button>
     <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
       <i data-lucide="newspaper" class="w-5 h-5"></i> 뉴스
@@ -502,6 +511,678 @@
       </div>
     </section>
 
+  
+    <!-- ============================================== -->
+    <!-- TAB 5: CRYPTO TRADE ANALYZER (PER-USER ISOLATION) -->
+    <!-- ============================================== -->
+    <section id="tab-analyzer" class="tab-content hidden space-y-6">
+
+<div class="analyzer-card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 bg-gradient-to-r from-navy-900 to-navy-850 border border-cyan-500/30">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg font-bold">
+      <i data-lucide="shield-check" class="w-6 h-6"></i>
+    </div>
+    <div>
+      <div class="flex items-center gap-2">
+        <h2 class="text-base font-bold text-white flex items-center gap-1.5">
+          업비트 & 빗썸 코인 거래내역 독립 분석기
+        </h2>
+        <span id="analyzerUserModeBadge" class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold">👤 회원 전용 저장소</span>
+      </div>
+      <p class="text-xs text-slate-400 mt-0.5">
+        🔒 <strong>사용자별 100% 로컬 독립 격리 보관</strong>: 업로드된 모든 거래 내역 및 엑셀 데이터는 외부 서버로 전송되지 않으며, 사용자 본인의 브라우저 로컬 저장소에만 개별 저장됩니다.
+      </p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 text-xs shrink-0">
+    <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
+    <button onclick="App.clearData()" class="px-3 py-1.5 rounded-lg bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1" title="현재 사용자 데이터 초기화">
+      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 데이터 초기화
+    </button>
+  </div>
+</div>
+
+<div class="app-container">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="logo-group">
+                <div class="app-logo-badge">UB</div>
+                <div class="header-titles">
+                    <h1>업비트 & 빗썸 코인 거래내역 정리 & 손익 분석기</h1>
+                    <div class="header-subtitle">Upbit & Bithumb Trade Analyzer • 트레이딩뷰 캔들스틱 매매타점/손익/평단가/입출금/스테이킹 종합 대시보드</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <!-- 거래소 선택 필터 -->
+                <select id="globalExchangeSelect" class="select-control" style="font-weight: 700; background: var(--bg-card); border-color: var(--brand-primary);">
+                    <option value="ALL">🌐 전체 거래소 (업비트 + 빗썸)</option>
+                    <option value="UPBIT">🔵 업비트 (Upbit)</option>
+                    <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
+                </select>
+                <button class="btn btn-outline btn-sm" id="refreshTickerBtn" title="실시간 시세 갱신">
+                    🔄 시세 갱신
+                </button>
+                <button class="btn btn-outline btn-sm" id="quickUploadBtn">
+                    📁 파일 추가
+                </button>
+                <button class="btn btn-outline btn-sm" id="exportExcelBtn">
+                    📊 엑셀 다운로드
+                </button>
+                <button class="btn btn-outline btn-sm" id="themeToggleBtn">
+                    ☀️ 라이트 모드
+                </button>
+            </div>
+        </header>
+
+        <!-- File Upload Drag & Drop Zone -->
+        <section class="upload-card" id="dropZone">
+            <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
+            <div class="upload-icon">📂</div>
+            <div class="upload-title">업비트 및 빗썸 거래내역/입출금 엑셀 또는 CSV 파일을 끌어다 놓으세요</div>
+            <div class="upload-desc">
+                업비트(투자내역 > 거래내역/입출금) 및 빗썸(자산현황 > 거래내역/입출금)에서 다운로드한 엑셀/CSV 파일을 올리면 거래소와 내역 종류를 자동 분류하여 통합 분석합니다.
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click(); event.stopPropagation();">
+                    파일 선택하기
+                </button>
+            </div>
+            <div class="upload-sample-links" onclick="event.stopPropagation();">
+                <span class="upload-sample-link" id="loadAllSampleBtn">💡 [업비트 + 빗썸 통합 샘플]</span>
+                <span class="upload-sample-link" id="loadUpbitSampleBtn">💡 [업비트 전용 샘플]</span>
+                <span class="upload-sample-link" id="loadBithumbSampleBtn">💡 [빗썸 전용 샘플]</span>
+            </div>
+        </section>
+
+        <!-- Top Summary Stat Cards -->
+        <section class="stats-grid">
+            <!-- 1. 총 실현손익 -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span class="stat-title">누적 실현손익</span>
+                    <span class="stat-badge" id="cardRealizedRoi">0.00%</span>
+                </div>
+                <div class="stat-value" id="cardRealizedProfit">0원</div>
+                <div class="stat-footer">매도 완료된 코인의 순수익 (수수료 차감 후)</div>
+            </div>
+
+            <!-- 2. 실시간 평가손익 -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span class="stat-title">실시간 평가손익 (미실현)</span>
+                    <span class="stat-badge" id="cardUnrealizedRoi">0.00%</span>
+                </div>
+                <div class="stat-value" id="cardUnrealizedProfit">0원</div>
+                <div class="stat-footer" id="lastTickerUpdateTime">현재 보유 중인 코인의 실시간 평가</div>
+            </div>
+
+            <!-- 3. 원금 세분화 -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span class="stat-title">현재 보유 코인 매수원금</span>
+                    <span class="stat-badge" title="현재 남아있는 코인의 실제 매수원금">보유원금</span>
+                </div>
+                <div class="stat-value" id="cardCurrentHoldingCost">0원</div>
+                <div class="stat-footer">
+                    순 투입 원금(입-출): <strong id="cardNetDeposit">0원</strong><br>
+                    역대 누적 매수대금: <strong id="cardCumulativeBuy">0원</strong>
+                </div>
+            </div>
+
+            <!-- 4. 총 수수료 & 승률 -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span class="stat-title">총 거래 수수료</span>
+                </div>
+                <div class="stat-value" id="cardTotalFees">0원</div>
+                <div class="stat-footer">매매 승률: <strong id="cardWinRate">0% (0승 0패)</strong></div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="analyzer-subnav">
+            <button class="analyzer-subtab active" data-tab="dashboard">
+                📊 종합 대시보드
+            </button>
+            <button class="analyzer-subtab" data-tab="tradePoints">
+                🎯 매수/매도 캔들 타점 차트
+            </button>
+            <button class="analyzer-subtab" data-tab="coins">
+                🪙 코인별 손익 & 잔고
+            </button>
+            <button class="analyzer-subtab" data-tab="transfers">
+                💳 원화/코인 입출금
+            </button>
+            <button class="analyzer-subtab" data-tab="staking">
+                🌱 스테이킹 현황
+            </button>
+            <button class="analyzer-subtab" data-tab="allActivities">
+                📜 전체 통합 내역 (전체 타임라인)
+            </button>
+            <button class="analyzer-subtab" data-tab="monthly">
+                📅 월별 통계
+            </button>
+            <button class="analyzer-subtab" data-tab="settings">
+                ⚙️ 계산 설정 및 관리
+            </button>
+        </nav>
+
+        <!-- TAB 1: 종합 대시보드 & 차트 -->
+        <div class="analyzer-tab-pane active" id="dashboardTab">
+            <div class="charts-grid">
+                <!-- 누적 손익 추이 -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <span class="chart-title">📈 누적 실현손익 추이</span>
+                        <span class="text-xs text-muted">매도 체결 시점별 누적 손익 변동</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="cumulativeProfitChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 월별 실현손익 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">📅 월별 실현손익</span>
+                        <span class="text-xs text-muted">월별 수익/손실 비교</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyProfitChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 코인 갯수 늘리기 (Coin Stacking) 랭킹 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">🪙 트레이딩으로 늘린 코인 수량 증가율 상위</span>
+                        <span class="text-xs text-muted">매매 수익 기준 환산 수량</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="coinStackingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 코인별 손익 랭킹 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">🏆 코인별 실현손익 상위</span>
+                        <span class="text-xs text-muted">종목별 순수익 기여도</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="coinProfitChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 포트폴리오 보유 비중 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-title">💼 현재 보유 자산 비중</span>
+                        <span class="text-xs text-muted">실시간 평가금액 기준</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="portfolioDoughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: ★ 트레이딩뷰 스타일 다이나믹 캔들스틱 매수/매도 타점 차트 -->
+        <div class="analyzer-tab-pane" id="tradePointsTab">
+            <!-- 타점 차트 제어 툴바 -->
+            <div class="table-card" style="margin-bottom: 16px; padding: 16px 20px;">
+                <div class="table-toolbar" style="margin-bottom: 0;">
+                    <div class="flex-center-gap" style="flex-wrap: wrap;">
+                        <span class="font-bold text-sm">코인 선택:</span>
+                        <select id="pointsMarketSelect" class="select-control" style="font-weight: 700; min-width: 180px;">
+                            <option value="">코인 선택...</option>
+                        </select>
+
+                        <span class="font-bold text-sm" style="margin-left: 12px;">시간 주기:</span>
+                        <!-- 주요 빠른 선택 버튼 -->
+                        <div class="btn-group-period" id="candlePeriodGroup">
+                            <button class="btn btn-sm btn-period" data-period="minutes/1">1분</button>
+                            <button class="btn btn-sm btn-period" data-period="minutes/5">5분</button>
+                            <button class="btn btn-sm btn-period" data-period="minutes/15">15분</button>
+                            <button class="btn btn-sm btn-period" data-period="minutes/60">1시간</button>
+                            <button class="btn btn-sm btn-period" data-period="minutes/240">4시간</button>
+                            <button class="btn btn-sm btn-period active" data-period="days">일봉</button>
+                            <button class="btn btn-sm btn-period" data-period="weeks">주봉</button>
+                        </div>
+
+                        <!-- 전체 주기 상세 드롭다운 -->
+                        <select id="pointsPeriodSelect" class="select-control" style="font-size: 0.8rem;">
+                            <option value="minutes/1">1분봉 (1min)</option>
+                            <option value="minutes/3">3분봉 (3min)</option>
+                            <option value="minutes/5">5분봉 (5min)</option>
+                            <option value="minutes/10">10분봉 (10min)</option>
+                            <option value="minutes/15">15분봉 (15min)</option>
+                            <option value="minutes/30">30분봉 (30min)</option>
+                            <option value="minutes/60">60분봉 / 1시간 (1h)</option>
+                            <option value="minutes/240">240분봉 / 4시간 (4h)</option>
+                            <option value="days" selected>일봉 (Day)</option>
+                            <option value="weeks">주봉 (Week)</option>
+                            <option value="months">월봉 (Month)</option>
+                        </select>
+                    </div>
+
+                    <!-- 트레이딩뷰 컨트롤 플로팅 버튼들 -->
+                    <div class="flex-center-gap" style="flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-primary" id="focusPointsBtn" title="내 매수/매도 체결 위치로 즉시 이동">
+                            🎯 타점 포커스
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="resetPointsViewBtn" title="가장 최근 시세 뷰로 이동">
+                            ⟲ 최근 시세
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="zoomInPointsBtn" title="차트 확대">➕</button>
+                        <button class="btn btn-sm btn-outline" id="zoomOutPointsBtn" title="차트 축소">➖</button>
+                        <button class="btn btn-sm btn-outline" id="refreshPointsChartBtn">🔄 새로고침</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 선택된 코인 매매 요약 카드 -->
+            <div class="stats-grid" id="pointsSummaryCards" style="margin-bottom: 16px;">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">매수 체결 내역</span>
+                        <span class="badge badge-buy" id="pointsBuyCount">0건</span>
+                    </div>
+                    <div class="stat-value" id="pointsAvgBuyPrice">0원</div>
+                    <div class="stat-footer">평균 매수단가 (총 매수: <span id="pointsTotalBuyAmt">0원</span>)</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">매도 체결 내역</span>
+                        <span class="badge badge-sell" id="pointsSellCount">0건</span>
+                    </div>
+                    <div class="stat-value" id="pointsAvgSellPrice">0원</div>
+                    <div class="stat-footer">평균 매도단가 (총 매도: <span id="pointsTotalSellAmt">0원</span>)</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">해당 코인 실현손익</span>
+                        <span class="stat-badge" id="pointsRealizedRoi">0.00%</span>
+                    </div>
+                    <div class="stat-value" id="pointsRealizedProfit">0원</div>
+                    <div class="stat-footer">매매 승률: <strong id="pointsWinRate">0%</strong></div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">현재 보유 잔고</span>
+                        <span class="stat-badge" id="pointsHoldingBadge">보유중</span>
+                    </div>
+                    <div class="stat-value" id="pointsHoldingQty">0</div>
+                    <div class="stat-footer">평가금액: <span id="pointsHoldingValue">0원</span> (평가손익: <span id="pointsUnrealized">0원</span>)</div>
+                </div>
+            </div>
+
+            <!-- 대형 트레이딩뷰 캔들스틱 타점 차트 캔버스 -->
+            <div class="chart-card" style="margin-bottom: 20px;">
+                <div class="chart-header">
+                    <div class="flex-center-gap">
+                        <span class="chart-title" id="pointsChartTitle">🎯 코인 트레이딩뷰 스타일 다이나믹 캔들 차트</span>
+                        <span class="badge badge-buy" style="margin-left: 8px;">🔴 ▲ 매수 (BUY)</span>
+                        <span class="badge badge-sell">🔵 ▼ 매도 (SELL)</span>
+                    </div>
+                    <div class="text-xs text-muted">
+                        💡 <strong>[우측 Y축 드래그]</strong>: 세로 늘림/줄임 | <strong>[더블클릭]</strong>: 자동맞춤(Auto-Fit) | <strong>[하단 X축 드래그]</strong>: 가로 조절 | <strong>[중앙 드래그]</strong>: 시세 이동
+                    </div>
+                </div>
+                <div class="chart-wrapper tv-canvas-container" style="height: 440px; position: relative;">
+                    <canvas id="tradePointsChartCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- 하단 타점 히스토리 테이블 -->
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="font-bold text-sm">📋 해당 코인 매수/매도 타점 히스토리 목록</div>
+                    <div class="flex-center-gap" id="pointsHistoryColDropdownContainer"></div>
+                </div>
+                <div class="table-responsive">
+                    <table id="tradePointsHistoryTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="exchange">거래소 ⬍</th>
+                                <th data-sort="time">체결일시 ⬍</th>
+                                <th data-sort="type">구분 ⬍</th>
+                                <th class="text-right" data-sort="price">체결단가 ⬍</th>
+                                <th class="text-right" data-sort="quantity">체결수량 ⬍</th>
+                                <th class="text-right" data-sort="amount">거래금액 ⬍</th>
+                                <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                                <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="8" class="text-center py-6 text-muted">선택된 코인의 거래 내역이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: 코인별 손익 & 수량 증감 요약 (전 컬럼 정렬 & 컬럼 숨기기) -->
+        <div class="analyzer-tab-pane" id="coinsTab">
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="font-bold text-sm">코인별 실현 손익, 잔고 및 트레이딩 수량 증감 현황</div>
+                    <div class="flex-center-gap">
+                        <div id="coinsColDropdownContainer"></div>
+                        <label class="text-xs flex-center-gap cursor-pointer" style="margin-left: 8px;">
+                            <input type="checkbox" id="autoTickerCheck"> 실시간 시세 30초 자동 갱신
+                        </label>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="coinsTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="coin">코인명 / 거래소 ⬍</th>
+                                <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
+                                <th class="text-right" data-sort="gainedCoin">늘린 코인수량 (환산) ⬍</th>
+                                <th class="text-right" data-sort="holdingQty">보유수량 (보유원금) ⬍</th>
+                                <th class="text-right" data-sort="avgBuyPrice">매수 평단가 ⬍</th>
+                                <th class="text-right" data-sort="currentPrice">실시간 현재가 ⬍</th>
+                                <th class="text-right" data-sort="unrealizedProfit">평가손익 (평가수익률) ⬍</th>
+                                <th class="text-right" data-sort="totalBuyAmount">총 매수금액 ⬍</th>
+                                <th class="text-right" data-sort="totalSellAmount">총 매도금액 ⬍</th>
+                                <th class="text-right" data-sort="totalFee">수수료 ⬍</th>
+                                <th class="text-center" data-sort="winRate">승률 / 타점 ⬍</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="11" class="text-center py-6 text-muted">데이터를 불러오는 중입니다...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: 원화/코인 입출금 내역 (전 컬럼 정렬 & 컬럼 숨기기) -->
+        <div class="analyzer-tab-pane" id="transfersTab">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">총 원화(KRW) 입금액</span>
+                        <span class="stat-badge">입금</span>
+                    </div>
+                    <div class="stat-value" id="transferTotalKrwDeposit">0원</div>
+                    <div class="stat-footer">거래소 계좌로 입금된 총 원화</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">총 원화(KRW) 출금액</span>
+                        <span class="stat-badge">출금</span>
+                    </div>
+                    <div class="stat-value" id="transferTotalKrwWithdraw">0원</div>
+                    <div class="stat-footer">내 통장으로 출금된 총 원화</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">순 투입 원금 (Net Deposit)</span>
+                        <span class="stat-badge">순입금</span>
+                    </div>
+                    <div class="stat-value" id="transferNetKrwDeposit">0원</div>
+                    <div class="stat-footer">총 원화 입금액 - 총 원화 출금액</div>
+                </div>
+            </div>
+
+            <div class="table-card" style="margin-bottom: 20px;">
+                <div class="font-bold text-sm" style="margin-bottom: 12px;">🪙 가상자산(코인) 외부 입출금 요약</div>
+                <div class="stats-grid" id="coinTransferSummaryContainer" style="margin-bottom: 0;">
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="search-input-group">
+                        <input type="text" id="transferSearchInput" class="input-control" placeholder="자산/코인명 검색..." style="width: 200px;">
+                        <select id="transferTypeFilter" class="select-control">
+                            <option value="ALL">전체 입출금</option>
+                            <option value="원화입금">원화입금</option>
+                            <option value="원화출금">원화출금</option>
+                            <option value="코인입금">코인입금</option>
+                            <option value="코인출금">코인출금</option>
+                        </select>
+                    </div>
+                    <div class="flex-center-gap" id="transfersColDropdownContainer"></div>
+                </div>
+                <div class="table-responsive">
+                    <table id="transfersTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="exchange">거래소 ⬍</th>
+                                <th data-sort="time">일시 ⬍</th>
+                                <th data-sort="type">구분 ⬍</th>
+                                <th data-sort="asset">자산 ⬍</th>
+                                <th class="text-right" data-sort="quantity">수량 / 금액 ⬍</th>
+                                <th class="text-right" data-sort="price">단가 ⬍</th>
+                                <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                                <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="8" class="text-center py-6 text-muted">입출금 내역이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-container" id="transfersPagination">
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: 스테이킹 현황 (전 컬럼 정렬 & 컬럼 숨기기) -->
+        <div class="analyzer-tab-pane" id="stakingTab">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">스테이킹 총 평가금액</span>
+                        <span class="stat-badge">실시간</span>
+                    </div>
+                    <div class="stat-value" id="stakingTotalValue">0원</div>
+                    <div class="stat-footer">현재 시세 기준 스테이킹 자산 가치</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">예상 연간 보상액</span>
+                        <span class="stat-badge">APY 기준</span>
+                    </div>
+                    <div class="stat-value color-profit-global" id="stakingAnnualReward">0원</div>
+                    <div class="stat-footer">예상 연간 이자 보상금액</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-title">스테이킹 참여 종목</span>
+                    </div>
+                    <div class="stat-value" id="stakingCoinsCount">0 종목</div>
+                    <div class="stat-footer">ETH, SOL, ADA, ATOM 등</div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="font-bold text-sm">스테이킹 중인 코인 목록 및 보상 현황</div>
+                    <div class="flex-center-gap">
+                        <div id="stakingColDropdownContainer"></div>
+                        <button class="btn btn-sm btn-primary" id="openStakingModalBtn">
+                            ➕ 스테이킹 추가 / 관리
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="stakingTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="coin">코인명 / 거래소 ⬍</th>
+                                <th class="text-right" data-sort="stakedQty">스테이킹 수량 ⬍</th>
+                                <th class="text-right" data-sort="currentPrice">실시간 현재가 ⬍</th>
+                                <th class="text-right" data-sort="currentValue">현재 평가금액 ⬍</th>
+                                <th class="text-center" data-sort="apy">연이율 (APY) ⬍</th>
+                                <th class="text-right" data-sort="totalReward">누적 보상수량 (원금) ⬍</th>
+                                <th class="text-right" data-sort="annualReward">예상 연간 보상 ⬍</th>
+                                <th class="text-center">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="8" class="text-center py-6 text-muted">스테이킹 중인 코인이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: 전체 통합 활동 내역 (전 컬럼 정렬 & 컬럼 숨기기) -->
+        <div class="analyzer-tab-pane" id="allActivitiesTab">
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="search-input-group">
+                        <input type="text" id="activitySearchInput" class="input-control" placeholder="코인명/심볼 검색 (예: BTC, 비트코인)..." style="width: 220px;">
+                        <select id="activityTypeFilter" class="select-control">
+                            <option value="ALL">🌐 전체 모든 내역 (매매 + 입출금 + 스테이킹)</option>
+                            <option value="TRADE_ALL">📈 매매 전체 (매수 + 매도)</option>
+                            <option value="매수">🔴 매수만</option>
+                            <option value="매도">🔵 매도만</option>
+                            <option value="TRANSFER_ALL">💳 입출금 전체 (원화 + 코인)</option>
+                            <option value="원화입금">🟢 원화입금만</option>
+                            <option value="원화출금">🟣 원화출금만</option>
+                            <option value="코인입금">🔵 코인입금만</option>
+                            <option value="코인출금">🟠 코인출금만</option>
+                            <option value="STAKING_ALL">🌱 스테이킹 및 보상</option>
+                        </select>
+                        <select id="activityCoinFilter" class="select-control">
+                            <option value="ALL">전체 코인</option>
+                        </select>
+                        <input type="date" id="startDateInput" class="input-control" title="시작일">
+                        <span class="text-muted text-xs">~</span>
+                        <input type="date" id="endDateInput" class="input-control" title="종료일">
+                    </div>
+                    <div class="flex-center-gap">
+                        <div id="activitiesColDropdownContainer"></div>
+                        <button class="btn btn-sm btn-outline" id="exportCSVBtn">
+                            📥 CSV 내보내기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="allActivitiesTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="exchange">거래소 ⬍</th>
+                                <th data-sort="time">체결/처리시간 ⬍</th>
+                                <th data-sort="asset">코인/자산 ⬍</th>
+                                <th data-sort="type">구분 ⬍</th>
+                                <th class="text-right" data-sort="quantity">수량 ⬍</th>
+                                <th class="text-right" data-sort="price">단가 ⬍</th>
+                                <th class="text-right" data-sort="amount">거래/입출금액 ⬍</th>
+                                <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                                <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                                <th class="text-right" data-sort="realizedProfit">해당거래 실현손익 ⬍</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="10" class="text-center py-6 text-muted">거래 또는 입출금 내역이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container" id="allActivitiesPagination">
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: 월별 통계 (전 컬럼 정렬 & 컬럼 숨기기) -->
+        <div class="analyzer-tab-pane" id="monthlyTab">
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <div class="font-bold text-sm">월별 실현손익 및 거래대금 집계</div>
+                    <div class="flex-center-gap" id="monthlyColDropdownContainer"></div>
+                </div>
+                <div class="table-responsive">
+                    <table id="monthlyTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="period">년월 ⬍</th>
+                                <th class="text-right" data-sort="realizedProfit">실현손익 ⬍</th>
+                                <th class="text-right" data-sort="buyVolume">총 매수대금 ⬍</th>
+                                <th class="text-right" data-sort="sellVolume">총 매도대금 ⬍</th>
+                                <th class="text-right" data-sort="totalVolume">총 거래대금 ⬍</th>
+                                <th class="text-right" data-sort="totalFees">수수료 합계 ⬍</th>
+                                <th class="text-center" data-sort="winRate">승률 (승/패/총거래) ⬍</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center py-6 text-muted">월별 데이터가 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: 계산 설정 및 데이터 관리 -->
+        <div class="analyzer-tab-pane" id="settingsTab">
+            <div class="settings-grid">
+                <div class="setting-card">
+                    <div class="setting-card-title">⚙️ 손익 계산 방식 설정</div>
+                    <div class="setting-card-desc">
+                        가상자산 세무 및 투자 분석 시 사용할 원가 산정 방식을 선택합니다.
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label class="text-xs text-muted" style="display: block; margin-bottom: 6px;">계산 알고리즘</label>
+                        <select id="calcMethodSelect" class="select-control" style="width: 100%;">
+                            <option value="fifo">선입선출법 (FIFO) - 먼저 매수한 코인부터 매도 매칭 (세무 표준)</option>
+                            <option value="moving_avg">이동평균법 (Moving Average) - 평균 매수단가 기준 매도 매칭</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-muted" style="display: block; margin-bottom: 6px;">수익/손실 색상 표기 기준</label>
+                        <select id="colorConventionSelect" class="select-control" style="width: 100%;">
+                            <option value="korean">한국 표준 (🔴 빨강 = 수익/상승, 🔵 파랑 = 손실/하락)</option>
+                            <option value="global">글로벌 표준 (🟢 초록 = 수익/상승, 🔴 빨강 = 손실/하락)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-card-title">📑 보고서 내보내기 & 인쇄</div>
+                    <div class="setting-card-desc">
+                        정리된 분석 보고서(업비트 & 빗썸 통합)를 엑셀 또는 인쇄용 PDF 포맷으로 저장할 수 있습니다.
+                    </div>
+                    <div class="flex-center-gap" style="flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="Exporter.exportExcelReport(App.state.reportData)">
+                            📊 종합 분석 보고서 엑셀(.xlsx) 다운로드
+                        </button>
+                        <button class="btn btn-outline" id="printReportBtn">
+                            🖨️ 인쇄 / PDF 저장
+                        </button>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-card-title">🗑️ 데이터 관리 및 초기화</div>
+                    <div class="setting-card-desc">
+                        업로드한 모든 거래 및 스테이킹 내역은 사용자의 브라우저 로컬 저장소에만 안전하게 보관됩니다.<br>
+                        새로운 데이터로 처음부터 시작하려면 초기화 버튼을 누르세요.
+                    </div>
+                    <div>
+                        <button class="btn btn-outline" id="clearDataBtn" style="color: #ef4444; border-color: rgba(239,68,68,0.4);">
+                            ⚠️ 저장된 거래/스테이킹 데이터 전체 삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Staking Add Modal -->
+    
+    </section>
+
   </main>
 
   <!-- ==============================================
@@ -721,6 +1402,65 @@
       </div>
     </div>
   </footer>
+<div class="modal-backdrop" id="stakingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🌱 스테이킹 코인 직접 등록</div>
+                <button class="toast-close" id="closeStakingModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="stakingExchangeSelect">거래소</label>
+                    <select id="stakingExchangeSelect" class="select-control">
+                        <option value="UPBIT">업비트 (Upbit)</option>
+                        <option value="BITHUMB">빗썸 (Bithumb)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="stakingSymbolInput">코인 심볼 (예: ETH, SOL, ADA, ATOM)</label>
+                    <input type="text" id="stakingSymbolInput" class="input-control" placeholder="예: ETH">
+                </div>
+                <div class="form-group">
+                    <label for="stakingQtyInput">스테이킹 수량</label>
+                    <input type="number" step="any" id="stakingQtyInput" class="input-control" placeholder="예: 1.5">
+                </div>
+                <div class="form-group">
+                    <label for="stakingApyInput">예상 연이율 (APY %)</label>
+                    <input type="number" step="0.1" id="stakingApyInput" class="input-control" placeholder="예: 3.5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="document.getElementById('stakingModal').style.display='none'">취소</button>
+                <button class="btn btn-primary" id="saveStakingBtn">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loader Overlay -->
+    <div class="global-loader" id="globalLoader">
+        <div class="spinner"></div>
+        <div class="loader-text">데이터 처리 중...</div>
+    </div>
+
+    <!-- Application Script Modules -->
+    
+
+  
+  <!-- SheetJS Excel Library -->
+  <script src="lib/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === "undefined") {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+  <!-- Analyzer Core Modules -->
+  <script src="js/parser.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/upbit-api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/sample-data.js"></script>
+  <script src="js/analyzer-app.js"></script>
 
   <script src="app.js"></script>
 </body>
