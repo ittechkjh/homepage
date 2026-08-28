@@ -328,6 +328,23 @@ let chatMessages = [
 // Initialization
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Self-healing: Clear any corrupted mojibake from older sessions in localStorage
+  try {
+    const forumPostsRaw = localStorage.getItem('coinhub_forum_posts');
+    if (forumPostsRaw && (forumPostsRaw.includes('\ufffd') || forumPostsRaw.includes('李') || forumPostsRaw.includes('蹂') || forumPostsRaw.includes('鍮꾪듃'))) {
+      localStorage.removeItem('coinhub_forum_posts');
+    }
+    const userRaw = localStorage.getItem('coinhub_user');
+    if (userRaw && (userRaw.includes('\ufffd') || userRaw.includes('룊') || userRaw.includes('뙋') || userRaw.includes('젏'))) {
+      const u = JSON.parse(userRaw);
+      u.rank = 'PRO';
+      u.reputation = 150;
+      localStorage.setItem('coinhub_user', JSON.stringify(u));
+      currentUser = u;
+    }
+  } catch (e) {}
+
   // Initialize LocalStorage for forum if empty
   if (!localStorage.getItem('coinhub_forum_posts')) {
     localStorage.setItem('coinhub_forum_posts', JSON.stringify(INITIAL_FORUM_POSTS));

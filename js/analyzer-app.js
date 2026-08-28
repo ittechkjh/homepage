@@ -227,6 +227,24 @@ const App = {
     },
 
     init: async function () {
+
+  // Reset any corrupt hidden column caches
+  try {
+    ['coinsTable', 'transfersTable', 'allActivitiesTable', 'monthlyTable'].forEach(tId => {
+      const saved = localStorage.getItem('coinhub_hidden_cols_' + tId);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (!Array.isArray(parsed) || parsed.length > 5) {
+            localStorage.removeItem('coinhub_hidden_cols_' + tId);
+          }
+        } catch (e) {
+          localStorage.removeItem('coinhub_hidden_cols_' + tId);
+        }
+      }
+    });
+  } catch (e) {}
+
         try {
             this.initColumnDropdowns();
             this.bindEvents();
