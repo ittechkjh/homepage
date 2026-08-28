@@ -62,7 +62,7 @@ const ColumnManager = {
             { id: 'coin', name: '코인명 / 거래소', default: true },
             { id: 'realizedProfit', name: '실현손익 (수익률)', default: true },
             { id: 'gainedCoin', name: '늘린 코인수량 (환산)', default: true },
-            { id: 'holdingQty', name: '보유수량 (매수원금)', default: true },
+            { id: 'holdingQty', name: '보유수량 (보유원금)', default: true },
             { id: 'avgBuyPrice', name: '매수 평단가', default: true },
             { id: 'currentPrice', name: '실시간 현재가', default: true },
             { id: 'unrealizedProfit', name: '평가손익 (평가수익률)', default: true },
@@ -107,10 +107,14 @@ const ColumnManager = {
     getHiddenCols: function (tableId) {
         try {
             const saved = localStorage.getItem('coinhub_hidden_cols_' + tableId);
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            return [];
-        }
+            if (!saved) return [];
+            const parsed = JSON.parse(saved);
+            const colDefs = this.tables[tableId] || [];
+            if (Array.isArray(parsed) && parsed.length < colDefs.length) {
+                return parsed;
+            }
+        } catch (e) {}
+        return [];
     },
 
     setHiddenCols: function (tableId, hiddenCols) {
@@ -252,6 +256,7 @@ const App = {
             if (mainContent) mainContent.style.display = 'block';
             this.loadSavedTrades();
         }
+        this.updateUserBanner();
     },
 
     initColumnDropdowns: function () {
@@ -357,11 +362,7 @@ const App = {
 
         const exportCSVBtn = document.getElementById('exportCSVBtn');
         if (exportCSVBtn) {
-            exportCSVBtn.addEventListener('click', () => {
-                if (this.state.reportData) {
-                    Exporter.exportCSV(this.state.reportData.allActivities, 'trade_activities');
-                }
-            });
+            exportCSVBtn.addEventListener('click', () => this.exportCurrentActivitiesCSV());
         }
 
         const printReportBtn = document.getElementById('printReportBtn');
@@ -371,23 +372,7 @@ const App = {
 
         const clearDataBtn = document.getElementById('clearDataBtn');
         if (clearDataBtn) {
-            clearDataBtn.addEventListener('click', () => {
-                if (confirm('현재 로그인된 계정의 모든 거래 내역 데이터를 삭제하시겠습니까?')) {
-                    this.clearData();
-                }
-            });
-        }
-
-        // 손익 계산 알고리즘 선택
-        const calcMethodSelect = document.getElementById('calcMethodSelect');
-        if (calcMethodSelect) {
-            calcMethodSelect.value = this.state.method;
-            calcMethodSelect.addEventListener('change', (e) => {
-                this.state.method = e.target.value;
-                localStorage.setItem('coinhub_calc_method', e.target.value);
-                this.recalculate();
-                this.showToast('손익 계산 알고리즘이 ' + (e.target.value === 'fifo' ? '선입선출법(FIFO)' : '이동평균법(Moving Avg)') + '으로 변경되었습니다.', 'info');
-            });
+            clearDataBtn.addEventListener('click', () => this.clearDataWithConfirm());
         }
 
         // 테이블 정렬 헤더 이벤트 바인딩
@@ -443,6 +428,29 @@ const App = {
             this.state.transferFilter.page = 1;
             this.renderTransfersTable();
         });
+
+        this.updateCalcMethodUI();
+    },
+
+    setCalcMethod: function (method) {
+        this.state.method = method;
+        localStorage.setItem('coinhub_calc_method', method);
+        this.updateCalcMethodUI();
+        this.recalculate();
+        this.showToast('손익 계산 알고리즘이 ' + (method === 'fifo' ? '선입선출법 (FIFO)' : '이동평균법 (Moving Avg)') + '으로 변경되었습니다.', 'info');
+    },
+
+    updateCalcMethodUI: function () {
+        const isFifo = this.state.method === 'fifo';
+        const optFifo = document.getElementById('opt-fifo');
+        const optMoving = document.getElementById('opt-moving-avg');
+        const radioFifo = document.getElementById('radio-fifo');
+        const radioMoving = document.getElementById('radio-moving-avg');
+
+        if (optFifo) optFifo.classList.toggle('active', isFifo);
+        if (optMoving) optMoving.classList.toggle('active', !isFifo);
+        if (radioFifo) radioFifo.checked = isFifo;
+        if (radioMoving) radioMoving.checked = !isFifo;
     },
 
     bindTableSorting: function (tableId) {
@@ -490,6 +498,9 @@ const App = {
             this.renderAllActivitiesTable();
         } else if (tabId === "monthly") {
             this.renderMonthlyTable();
+        } else if (tabId === "settings") {
+            this.updateUserBanner();
+            this.updateCalcMethodUI();
         }
     },
     switchTab: function (tabId) { this.switchSubTab(tabId); },
@@ -721,8 +732,10 @@ const App = {
         if (!tbody) return;
 
         let coins = this.state.reportData ? [...this.state.reportData.coinSummaries] : [];
+        coins = coins.filter(c => c.market !== 'KRW' && c.market !== 'KRW-KRW' && c.coinSymbol !== 'KRW' && !c.coinSymbol.includes('입금') && !c.coinSymbol.includes('출금'));
+
         if (coins.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-muted">등록된 코인 거래 내역이 없습니다. 엑셀 파일을 업로드해 주세요.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">등록된 코인 거래 내역이 없습니다. 상단에서 엑셀 파일을 업로드해 주세요.</td></tr>';
             return;
         }
 
@@ -773,8 +786,10 @@ const App = {
         if (!select) return;
 
         const coins = this.state.reportData ? this.state.reportData.coinSummaries : [];
+        const cleanCoins = coins.filter(c => c.market !== 'KRW' && c.market !== 'KRW-KRW' && c.coinSymbol !== 'KRW' && !c.coinSymbol.includes('입금') && !c.coinSymbol.includes('출금'));
+        
         let html = '<option value="ALL">전체 코인</option>';
-        coins.forEach(c => {
+        cleanCoins.forEach(c => {
             const name = c.koreanName || c.coinSymbol;
             html += '<option value="' + c.market + '">' + name + ' (' + c.coinSymbol + ')</option>';
         });
@@ -798,7 +813,7 @@ const App = {
 
         const coinContainer = document.getElementById('coinTransferSummaryContainer');
         if (coinContainer) {
-            if (transfers.coinTransfers.length === 0) {
+            if (!transfers.coinTransfers || transfers.coinTransfers.length === 0) {
                 coinContainer.innerHTML = '<span class="text-xs text-muted">코인 입출금 내역이 없습니다. (입출금 엑셀 파일을 추가로 업로드하시면 자동 집계됩니다)</span>';
             } else {
                 let cHtml = '';
@@ -849,7 +864,7 @@ const App = {
         const pageItems = items.slice(startIndex, startIndex + f.pageSize);
 
         if (pageItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-muted">입출금 내역이 없습니다. (투자내역의 입출금 엑셀을 업로드하면 표시됩니다)</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-muted">입출금 내역이 없습니다. (투자내역의 입출금 엑셀을 업로드하면 표시됩니다)</td></tr>';
             this.renderTransfersPagination(0, 1, 1);
             return;
         }
@@ -936,10 +951,12 @@ const App = {
         }
 
         if (f.startDate) {
-            items = items.filter(it => it.date >= f.startDate);
+            const cleanStart = f.startDate.replace(/[\.\/]/g, '-');
+            items = items.filter(it => (it.date || '').replace(/[\.\/]/g, '-') >= cleanStart);
         }
         if (f.endDate) {
-            items = items.filter(it => it.date <= f.endDate);
+            const cleanEnd = f.endDate.replace(/[\.\/]/g, '-');
+            items = items.filter(it => (it.date || '').replace(/[\.\/]/g, '-') <= cleanEnd);
         }
 
         const sort = this.state.sortStates.allActivitiesTable;
@@ -958,7 +975,7 @@ const App = {
         const pageItems = items.slice(startIndex, startIndex + f.pageSize);
 
         if (pageItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-6 text-muted">조건에 일치하는 내역이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-muted">조건에 일치하는 내역이 없습니다.</td></tr>';
             this.renderActivitiesPagination(0, 1, 1);
             return;
         }
@@ -1042,7 +1059,7 @@ const App = {
 
         let months = this.state.reportData ? [...this.state.reportData.monthlyStats] : [];
         if (months.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-muted">월별 거래 데이터가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-muted">월별 거래 데이터가 없습니다.</td></tr>';
             return;
         }
 
@@ -1109,13 +1126,23 @@ const App = {
         this.updateUserBanner();
     },
 
-    clearData: function () {
-        this.state.rawTrades = [];
-        this.state.reportData = null;
-        AnalyzerStorage.clearUserData();
-        this.recalculate();
-        this.updateUserBanner();
-        this.showToast('현재 계정의 모든 거래 데이터가 삭제되었습니다.', 'info');
+    clearDataWithConfirm: function () {
+        if (confirm('현재 계정의 저장된 모든 거래 내역 데이터를 삭제하시겠습니까?\\n삭제 후 복구할 수 없습니다.')) {
+            this.state.rawTrades = [];
+            this.state.reportData = null;
+            AnalyzerStorage.clearUserData();
+            this.recalculate();
+            this.updateUserBanner();
+            this.showToast('현재 계정의 모든 거래 데이터가 깨끗하게 초기화되었습니다.', 'info');
+        }
+    },
+
+    exportCurrentActivitiesCSV: function () {
+        if (this.state.reportData && this.state.reportData.allActivities) {
+            Exporter.exportCSV(this.state.reportData.allActivities);
+        } else {
+            this.showToast('내보낼 거래 내역이 없습니다.', 'error');
+        }
     },
 
     updateUserBanner: function () {
@@ -1123,14 +1150,18 @@ const App = {
         const nameEl = document.getElementById('analyzerCurrentUserName');
         const badgeEl = document.getElementById('analyzerUserModeBadge');
         const countEl = document.getElementById('analyzerSavedCountBadge');
+        const settingsNameEl = document.getElementById('settingsUsernameDisplay');
+        const settingsCountEl = document.getElementById('settingsSavedCountDisplay');
+
+        const countText = '저장된 거래: ' + (this.state.rawTrades ? this.state.rawTrades.length : 0) + '건';
 
         if (u && u.username) {
             if (nameEl) nameEl.textContent = u.username;
             if (badgeEl) badgeEl.textContent = '👤 ' + u.username + ' 님 전용 격리 저장소';
+            if (settingsNameEl) settingsNameEl.textContent = u.username;
         }
-        if (countEl) {
-            countEl.textContent = '저장된 거래: ' + (this.state.rawTrades ? this.state.rawTrades.length : 0) + '건';
-        }
+        if (countEl) countEl.textContent = countText;
+        if (settingsCountEl) settingsCountEl.textContent = countText;
     },
 
     switchUser: function (user) {

@@ -583,3 +583,213 @@ input[type="date"] {
 .toast-close:hover {
     color: var(--text-primary);
 }
+
+
+/* Settings Tab High-End Fintech UI */
+.settings-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 22px 26px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.settings-card:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.settings-card-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.settings-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.settings-card-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Calculation Method Selector Grid */
+.calc-method-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 640px) {
+    .calc-method-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calc-method-option {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.calc-method-option:hover {
+    border-color: rgba(6, 182, 212, 0.5);
+    background: rgba(6, 182, 212, 0.04);
+}
+
+.calc-method-option.active {
+    border-color: #06b6d4 !important;
+    background: rgba(6, 182, 212, 0.1) !important;
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.calc-method-badge {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    background: rgba(6, 182, 212, 0.2);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.calc-method-radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.calc-method-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
+/* Action Buttons Grid */
+.action-buttons-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+}
+
+.settings-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.settings-action-btn.btn-excel {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+.settings-action-btn.btn-excel:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.settings-action-btn.btn-csv {
+    border-color: rgba(6, 182, 212, 0.3);
+}
+.settings-action-btn.btn-csv:hover {
+    border-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.08);
+}
+
+.settings-action-btn.btn-print {
+    border-color: rgba(148, 163, 184, 0.3);
+}
+.settings-action-btn.btn-print:hover {
+    border-color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.btn-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.btn-main-text {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.btn-sub-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Danger Button */
+.settings-danger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    width: 100%;
+}
+
+.settings-danger-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}

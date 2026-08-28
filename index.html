@@ -1,518 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoinHub - 대한민국 1위 암호화폐 커뮤니티 & 실시간 시세</title>
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            navy: {
-              950: '#07090e',
-              900: '#0b0f19',
-              850: '#0f172a',
-              800: '#131d38',
-              700: '#1e294b',
-              600: '#2d3b66',
-            },
-            crypto: {
-              green: '#10b981',
-              red: '#f43f5e',
-              cyan: '#06b6d4',
-              gold: '#f59e0b',
-              purple: '#8b5cf6',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="css/analyzer.css">
-</head>
-<body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
-
-  <!-- Top Live Price Ticker Bar -->
-  <div class="bg-navy-900/90 backdrop-blur border-b border-navy-800 text-xs py-2 px-4 overflow-x-auto no-scrollbar sticky top-0 z-40">
-    <div class="container mx-auto flex items-center justify-between gap-6">
-      <div class="flex items-center gap-2 text-cyan-400 font-semibold shrink-0">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-        </span>
-        <span class="tracking-wide">LIVE MARKET</span>
-      </div>
-      <div id="ticker-bar" class="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-slate-300 font-mono">
-        <span class="animate-pulse text-slate-500">실시간 시세 로딩 중...</span>
-      </div>
-      <div class="hidden lg:flex items-center gap-4 text-slate-400 shrink-0 text-[11px]">
-        <span>글로벌 시가총액: <strong class="text-slate-200 font-mono" id="global-mcap">$2.68T</strong></span>
-        <span>24h 거래량: <strong class="text-slate-200 font-mono" id="global-vol">$84.2B</strong></span>
-        <span>BTC 점유율: <strong class="text-slate-200 font-mono">56.4%</strong></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Navigation Header -->
-  <header class="bg-navy-900/80 backdrop-blur-md border-b border-navy-800/80 sticky top-[37px] z-30">
-    <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-      <!-- Logo -->
-      <a href="#" onclick="switchTab('market')" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-          <i data-lucide="coins" class="w-6 h-6 text-white"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-1.5">
-            <span class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-cyan-400">CoinHub</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">PRO</span>
-          </div>
-          <p class="text-[10px] text-slate-400 tracking-wider">CRYPTO COMMUNITY PLATFORM</p>
-        </div>
-      </a>
-
-      <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800">
-        <button onclick="switchTab('market')" id="nav-market" class="nav-tab active px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="trending-up" class="w-4 h-4"></i> 시세 & 분석
-        </button>
-        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="messages-square" class="w-4 h-4"></i> 커뮤니티 포럼
-        </button>
-        <button onclick="switchTab('chat')" id="nav-chat" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="message-circle" class="w-4 h-4"></i> 실시간 채팅
-          <span class="w-2 h-2 rounded-full bg-crypto-green animate-ping"></span>
-        </button>
-        
-        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="calculator" class="w-4 h-4"></i> 거래내역 분석기
-        </button>
-        <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="newspaper" class="w-4 h-4"></i> 주요 속보
-        </button>
-      </nav>
-
-      <!-- Right Actions: Search & Auth Profile -->
-      <div class="flex items-center gap-3">
-        <div class="relative hidden sm:block">
-          <input type="text" id="coin-search" oninput="handleSearch(this.value)" placeholder="코인/토큰 검색..." class="bg-navy-950 border border-navy-800 text-xs rounded-lg pl-8 pr-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-44 focus:w-60 transition-all">
-          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
-        </div>
-
-        <div id="auth-section">
-          <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
-            <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Mobile Bottom Navigation Bar -->
-  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur border-t border-navy-800 z-40 flex justify-around py-2">
-    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-1 text-cyan-400 text-[11px] font-medium">
-      <i data-lucide="trending-up" class="w-5 h-5"></i> 시세
-    </button>
-    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
-      <i data-lucide="messages-square" class="w-5 h-5"></i> 포럼
-    </button>
-    <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
-      <i data-lucide="message-circle" class="w-5 h-5"></i> 채팅
-    </button>
-    
-    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
-      <i data-lucide="calculator" class="w-5 h-5"></i> 내역분석
-    </button>
-    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
-      <i data-lucide="newspaper" class="w-5 h-5"></i> 뉴스
-    </button>
-  </div>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 container mx-auto px-4 py-6 mb-16 md:mb-6">
-
-    <!-- ==============================================
-         TAB 1: MARKET DATA & OVERVIEW
-         ============================================== -->
-    <section id="tab-market" class="tab-content block space-y-6">
-      
-      <!-- Market Hero Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Card 1: BTC Quick Card -->
-        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-cyan-500/40 transition relative overflow-hidden group cursor-pointer" onclick="selectCoinForChart('bitcoin', 'Bitcoin', 'BTC')">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-3">
-              <img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC" class="w-8 h-8 rounded-full">
-              <div>
-                <h3 class="font-bold text-sm text-slate-100">Bitcoin</h3>
-                <span class="text-xs text-slate-400 font-mono">BTC</span>
-              </div>
-            </div>
-            <span id="btc-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+2.45%</span>
-          </div>
-          <div class="mt-4">
-            <div id="btc-price" class="text-2xl font-black font-mono text-white">$64,820.00</div>
-            <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$28.4B</span></div>
-          </div>
-          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition"></div>
-        </div>
-
-        <!-- Card 2: ETH Quick Card -->
-        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-indigo-500/40 transition relative overflow-hidden group cursor-pointer" onclick="selectCoinForChart('ethereum', 'Ethereum', 'ETH')">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-3">
-              <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="ETH" class="w-8 h-8 rounded-full">
-              <div>
-                <h3 class="font-bold text-sm text-slate-100">Ethereum</h3>
-                <span class="text-xs text-slate-400 font-mono">ETH</span>
-              </div>
-            </div>
-            <span id="eth-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+1.82%</span>
-          </div>
-          <div class="mt-4">
-            <div id="eth-price" class="text-2xl font-black font-mono text-white">$3,490.50</div>
-            <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$15.2B</span></div>
-          </div>
-          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
-        </div>
-
-        <!-- Card 3: Top Gainer Card -->
-        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-crypto-green/40 transition relative overflow-hidden cursor-pointer" onclick="selectCoinForChart('solana', 'Solana', 'SOL')">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-xs text-crypto-green font-semibold uppercase tracking-wider flex items-center gap-1">
-                <i data-lucide="flame" class="w-3.5 h-3.5"></i> 오늘의 급등 코인
-              </span>
-              <h3 class="font-bold text-base text-slate-100 mt-1" id="gainer-name">Solana (SOL)</h3>
-            </div>
-            <span id="gainer-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+8.94%</span>
-          </div>
-          <div class="mt-3 flex items-baseline justify-between">
-            <div id="gainer-price" class="text-xl font-bold font-mono text-crypto-green">$154.20</div>
-            <span class="text-[11px] text-slate-400">커뮤니티 주목도 1위</span>
-          </div>
-        </div>
-
-        <!-- Card 4: Market Sentiment Card -->
-        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-cyan-500/40 transition">
-          <div class="flex justify-between items-start">
-            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
-              <i data-lucide="gauge" class="w-3.5 h-3.5 text-cyan-400"></i> 공포 & 탐욕 지수
-            </span>
-            <span class="text-xs text-cyan-400 font-mono">실시간</span>
-          </div>
-          <div class="mt-3 flex items-center justify-between">
-            <div>
-              <div class="text-2xl font-black text-crypto-green font-mono">72 <span class="text-sm font-normal text-slate-300">/ 100</span></div>
-              <span class="text-xs font-semibold text-crypto-green">탐욕 (Greed) 상태</span>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-crypto-green/10 border-2 border-crypto-green flex items-center justify-center">
-              <i data-lucide="trending-up" class="w-6 h-6 text-crypto-green"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Market Table & Featured Chart -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Live Market Price Table (2 Cols) -->
-        <div class="lg:col-span-2 bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-            <div>
-              <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <i data-lucide="bar-chart-3" class="w-5 h-5 text-cyan-400"></i> 주요 암호화폐 실시간 시세
-              </h2>
-              <p class="text-xs text-slate-400">CoinGecko 글로벌 실시간 마켓 데이터 연동</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="fetchMarketData()" class="p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 transition flex items-center gap-1 text-xs" title="새로고침">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refresh-icon"></i> 새로고침
-              </button>
-            </div>
-          </div>
-
-          <!-- Table Container -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr class="border-b border-navy-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                  <th class="py-3 px-3">#</th>
-                  <th class="py-3 px-3">자산명</th>
-                  <th class="py-3 px-3 text-right">현재가 (USD)</th>
-                  <th class="py-3 px-3 text-right">24시간 변동</th>
-                  <th class="py-3 px-3 text-right hidden sm:table-cell">24시간 거래대금</th>
-                  <th class="py-3 px-3 text-center">차트 분석</th>
-                </tr>
-              </thead>
-              <tbody id="crypto-table-body" class="divide-y divide-navy-800/60 font-mono">
-                <tr>
-                  <td colspan="6" class="text-center py-8 text-slate-500 font-sans">
-                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-cyan-400 mb-2"></i>
-                    암호화폐 시장 데이터를 불러오는 중입니다...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Featured Interactive Chart & Quick Trade View (1 Col) -->
-        <div class="space-y-6">
-          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg">
-            <div class="flex justify-between items-center mb-3">
-              <div>
-                <span class="text-[11px] text-slate-400">인터랙티브 가격 차트</span>
-                <h3 class="text-base font-bold text-white flex items-center gap-1.5" id="selected-chart-title">
-                  <span id="chart-coin-name">Bitcoin</span> (<span id="chart-coin-symbol">BTC</span>)
-                </h3>
-              </div>
-              <div class="flex gap-1 bg-navy-950 p-1 rounded-lg border border-navy-800 text-[11px] font-medium" id="timeframe-buttons">
-                <button onclick="changeChartTimeframe('24h')" class="tf-btn px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400">24H</button>
-                <button onclick="changeChartTimeframe('7d')" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">7D</button>
-                <button onclick="changeChartTimeframe('1m')" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1M</button>
-              </div>
-            </div>
-
-            <!-- Canvas Container -->
-            <div class="h-48 relative">
-              <canvas id="priceChart"></canvas>
-            </div>
-
-            <div class="mt-4 pt-4 border-t border-navy-800 grid grid-cols-2 gap-3 text-xs">
-              <div class="bg-navy-950 p-2.5 rounded-xl border border-navy-800/80">
-                <div class="text-slate-400">기간 최고가</div>
-                <div class="font-mono font-bold text-slate-200 mt-0.5" id="chart-high">$65,240</div>
-              </div>
-              <div class="bg-navy-950 p-2.5 rounded-xl border border-navy-800/80">
-                <div class="text-slate-400">기간 최저가</div>
-                <div class="font-mono font-bold text-slate-200 mt-0.5" id="chart-low">$63,110</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Community Spotlight -->
-          <div class="bg-gradient-to-br from-navy-900 to-navy-850 border border-navy-800 rounded-2xl p-5 shadow-lg">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-3">
-              <i data-lucide="zap" class="w-4 h-4 text-crypto-gold"></i> 포럼 인기 토론글
-            </h3>
-            <ul class="space-y-2.5 text-xs">
-              <li>
-                <a href="#" onclick="switchTab('forum'); filterForum('market');" class="block p-2.5 rounded-xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition">
-                  <div class="text-slate-200 font-medium truncate">비트코인 반감기 이후 도미넌스 패턴 분석 및 목표가</div>
-                  <div class="flex items-center gap-3 text-slate-400 mt-1 text-[11px]">
-                    <span class="text-cyan-400 font-semibold">#차트분석</span>
-                    <span>댓글 24개</span>
-                    <span>추천 52</span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a href="#" onclick="switchTab('forum'); filterForum('altcoin');" class="block p-2.5 rounded-xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition">
-                  <div class="text-slate-200 font-medium truncate">솔라나 생태계 AI x DePIN 유망 알트코인 3선 정리</div>
-                  <div class="flex items-center gap-3 text-slate-400 mt-1 text-[11px]">
-                    <span class="text-crypto-purple font-semibold">#알트분석</span>
-                    <span>댓글 38개</span>
-                    <span>추천 87</span>
-                  </div>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ==============================================
-         TAB 2: COMMUNITY FORUM
-         ============================================== -->
-    <section id="tab-forum" class="tab-content hidden space-y-6">
-      
-      <!-- Forum Header & Controls -->
-      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
-            <i data-lucide="messages-square" class="w-6 h-6 text-cyan-400"></i> 코인 토론 포럼
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">투자자들과 자유롭게 매매 전략, 차트 분석, 알트코인 정보 및 인사이트를 공유하세요.</p>
-        </div>
-        <button onclick="openNewPostModal()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 shrink-0">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> 새 게시글 작성
-        </button>
-      </div>
-
-      <!-- Categories & Filters -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-1.5" id="forum-category-filters">
-          <button onclick="filterForum('all')" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="all">전체보기</button>
-          <button onclick="filterForum('general')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="general">💬 자유 토론</button>
-          <button onclick="filterForum('market')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="market">📊 차트/기술적 분석</button>
-          <button onclick="filterForum('altcoin')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="altcoin">🚀 알트코인 분석</button>
-          <button onclick="filterForum('ico')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="ico">🪙 ICO / 신규 토큰</button>
-          <button onclick="filterForum('qna')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="qna">❓ 초보 Q&A</button>
-        </div>
-
-        <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-400">정렬:</span>
-          <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-900 border border-navy-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-500">
-            <option value="latest">최신순</option>
-            <option value="popular">인기순 (추천 많은순)</option>
-            <option value="comments">댓글 많은순</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Post List Container -->
-      <div class="space-y-3" id="forum-posts-list">
-        <!-- Posts will be rendered by JS -->
-      </div>
-    </section>
-
-    <!-- ==============================================
-         TAB 3: REAL-TIME CHAT
-         ============================================== -->
-    <section id="tab-chat" class="tab-content hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-230px)] min-h-[550px]">
-        
-        <div class="hidden lg:flex flex-col bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-lg overflow-hidden">
-          <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
-            <span class="flex items-center gap-2">
-              <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
-            </span>
-            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">142명 접속 중</span>
-          </div>
-
-          <div class="mt-3 space-y-1">
-            <button class="w-full text-left px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold flex items-center justify-between">
-              <span># 메인 광장 채팅방</span>
-              <span class="w-2 h-2 rounded-full bg-crypto-green"></span>
-            </button>
-            <button class="w-full text-left px-3 py-2 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
-              <span># 선물/마진 토론방</span>
-              <span class="text-[10px] text-slate-500">58명</span>
-            </button>
-            <button class="w-full text-left px-3 py-2 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
-              <span># 밈코인 & 알트방</span>
-              <span class="text-[10px] text-slate-500">84명</span>
-            </button>
-          </div>
-
-          <div class="mt-auto pt-4 border-t border-navy-800">
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">활성 트레이더</div>
-            <div class="space-y-2 text-xs">
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-[10px]">K</div>
-                <span class="text-slate-200">CryptoWhale</span>
-                <span class="text-[9px] px-1 py-0.2 bg-crypto-gold/20 text-crypto-gold rounded ml-auto">VIP</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-[10px]">S</div>
-                <span class="text-slate-200">Satoshi_Fan</span>
-                <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto">PRO</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="lg:col-span-3 bg-navy-900 border border-navy-800 rounded-2xl shadow-lg flex flex-col overflow-hidden">
-          
-          <div class="p-4 border-b border-navy-800 bg-navy-850 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <div class="w-3 h-3 rounded-full bg-crypto-green animate-pulse"></div>
-              <div>
-                <h3 class="font-bold text-sm text-white"># 메인 광장 채팅방 (Global Crypto Chat)</h3>
-                <p class="text-[11px] text-slate-400">실시간 시장 반응과 트레이딩 아이디어를 나눠보세요</p>
-              </div>
-            </div>
-            <div class="text-xs text-slate-400">
-              규칙: 욕설 및 허위정보 금지
-            </div>
-          </div>
-
-          <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans">
-            <!-- Messages inserted by JS -->
-          </div>
-
-          <div class="p-3 bg-navy-850 border-t border-navy-800">
-            <form id="chat-form" onsubmit="handleSendChat(event)" class="flex gap-2">
-              <input type="text" id="chat-input" placeholder="메시지를 입력하세요 (익명 닉네임 자동 부여)..." class="flex-1 bg-navy-950 border border-navy-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
-              <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-md shadow-cyan-500/20">
-                <i data-lucide="send" class="w-4 h-4"></i> 전송
-              </button>
-            </form>
-          </div>
-
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ==============================================
-         TAB 4: NEWS AGGREGATOR
-         ============================================== -->
-    <section id="tab-news" class="tab-content hidden space-y-6">
-      
-      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div class="flex items-center gap-2.5">
-            <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
-              <i data-lucide="newspaper" class="w-6 h-6 text-cyan-400"></i> 글로벌 암호화폐 실시간 속보
-            </h2>
-            <span class="px-2 py-0.5 rounded-full bg-crypto-red/20 text-crypto-red border border-crypto-red/30 text-[10px] font-bold animate-pulse flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-crypto-red"></span> LIVE 피드
-            </span>
-          </div>
-          <p class="text-xs text-slate-400 mt-1">주요 블록체인 미디어 및 금융 속보를 30초 주기로 자동 수집·업데이트합니다.</p>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="text-xs text-slate-400 font-mono hidden sm:flex items-center gap-1.5 bg-navy-950 px-3 py-1.5 rounded-xl border border-navy-800">
-            <span>다음 자동 갱신:</span>
-            <span id="news-countdown" class="text-cyan-400 font-bold">30s</span>
-          </div>
-          <button onclick="fetchLatestNews(true)" class="p-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
-            <i data-lucide="refresh-cw" class="w-4 h-4" id="news-refresh-icon"></i> 속보 즉시 갱신
-          </button>
-        </div>
-      </div>
-
-      <!-- News Category Filter Pills -->
-      <div class="flex flex-wrap items-center gap-1.5" id="news-category-filters">
-        <button onclick="filterNews('ALL')" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="ALL">전체 속보</button>
-        <button onclick="filterNews('MARKET')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="MARKET">📈 비트코인/시장</button>
-        <button onclick="filterNews('TECH')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="TECH">⚡ 기술/DeFi</button>
-        <button onclick="filterNews('REGULATION')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="REGULATION">🏛️ 규제/정책</button>
-        <button onclick="filterNews('ALTCOIN')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="ALTCOIN">🚀 알트코인</button>
-      </div>
-
-      <!-- News Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="news-grid">
-        <!-- News cards generated by JS -->
-      </div>
-    </section>
-
-  
-            <!-- ============================================== -->
+    <!-- ============================================== -->
     <!-- TAB 5: CRYPTO TRADE ANALYZER (MEMBER ONLY & STRICT PER-USER ISOLATION) -->
     <!-- ============================================== -->
     <section id="tab-analyzer" class="tab-content hidden space-y-6">
@@ -565,7 +51,7 @@
           </div>
           <div class="flex items-center gap-2 text-xs shrink-0 whitespace-nowrap">
             <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
-            <button onclick="App.clearData()" class="px-3 py-1.5 rounded-lg bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1" title="현재 사용자 데이터 전체 삭제">
+            <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-lg bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1" title="현재 사용자 데이터 전체 삭제">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 데이터 초기화
             </button>
           </div>
@@ -617,6 +103,433 @@
               <span class="upload-sample-link" id="loadBithumbSampleBtn">💡 [빗썸 전용 샘플]</span>
             </div>
           </section>
+
+          <!-- Top Summary Stat Cards -->
+          <section class="stats-grid">
+            <!-- 1. 총 실현손익 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">누적 실현손익</span>
+                <span class="stat-badge" id="cardRealizedRoi">0.00%</span>
+              </div>
+              <div class="stat-value" id="cardRealizedProfit">0원</div>
+              <div class="stat-footer">매도 완료된 코인의 순수익 (수수료 차감 후)</div>
+            </div>
+
+            <!-- 2. 실시간 평가손익 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">실시간 평가손익 (미실현)</span>
+                <span class="stat-badge" id="cardUnrealizedRoi">0.00%</span>
+              </div>
+              <div class="stat-value" id="cardUnrealizedProfit">0원</div>
+              <div class="stat-footer" id="lastTickerUpdateTime">현재 보유 중인 코인의 실시간 평가</div>
+            </div>
+
+            <!-- 3. 원금 세분화 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">현재 보유 코인 매수원금</span>
+                <span class="stat-badge">보유원금</span>
+              </div>
+              <div class="stat-value" id="cardCurrentHoldingCost">0원</div>
+              <div class="stat-footer">
+                순 투입 원금(입-출): <strong id="cardNetDeposit">0원</strong><br>
+                역대 누적 매수대금: <strong id="cardCumulativeBuy">0원</strong>
+              </div>
+            </div>
+
+            <!-- 4. 총 수수료 & 승률 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">총 거래 수수료</span>
+              </div>
+              <div class="stat-value" id="cardTotalFees">0원</div>
+              <div class="stat-footer">매매 승률: <strong id="cardWinRate">0% (0승 0패)</strong></div>
+            </div>
+          </section>
+
+          <!-- Navigation Sub Tabs -->
+          <nav class="analyzer-subnav">
+            <button class="analyzer-subtab active" data-tab="dashboard">
+              📊 종합 대시보드
+            </button>
+            <button class="analyzer-subtab" data-tab="coins">
+              🪙 코인별 손익 & 잔고
+            </button>
+            <button class="analyzer-subtab" data-tab="transfers">
+              💳 원화/코인 입출금
+            </button>
+            <button class="analyzer-subtab" data-tab="allActivities">
+              📜 전체 통합 내역 (전체 타임라인)
+            </button>
+            <button class="analyzer-subtab" data-tab="monthly">
+              📅 월별 통계
+            </button>
+            <button class="analyzer-subtab" data-tab="settings">
+              ⚙️ 계산 설정 및 관리
+            </button>
+          </nav>
+
+          <!-- TAB 1: 종합 대시보드 & 차트 -->
+          <div class="analyzer-tab-pane active" id="dashboardTab">
+            <div class="charts-grid">
+              <!-- 누적 손익 추이 -->
+              <div class="chart-card full-width">
+                <div class="chart-header">
+                  <span class="chart-title">📈 누적 실현손익 추이</span>
+                  <span class="text-xs text-muted">매도 체결 시점별 누적 손익 변동</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="cumulativeProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 월별 실현손익 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">📅 월별 실현손익</span>
+                  <span class="text-xs text-muted">월별 수익/손실 비교</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="monthlyProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 코인 갯수 늘리기 (Coin Stacking) 랭킹 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">🪙 트레이딩으로 늘린 코인 수량 증가율 상위</span>
+                  <span class="text-xs text-muted">매매 수익 기준 환산 수량</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="coinStackingChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 코인별 손익 랭킹 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">🏆 코인별 실현손익 상위</span>
+                  <span class="text-xs text-muted">종목별 순수익 기여도</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="coinProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 포트폴리오 보유 비중 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">💼 현재 보유 자산 비중</span>
+                  <span class="text-xs text-muted">실시간 평가금액 기준</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="portfolioDoughnutChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: 코인별 손익 & 잔고 테이블 -->
+          <div class="analyzer-tab-pane" id="coinsTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="font-bold text-sm">코인별 실현 손익, 잔고 및 트레이딩 수량 증감 현황</div>
+                <div class="flex-center-gap" id="coinsColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="coinsTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="coin">코인명 / 거래소 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
+                      <th class="text-right" data-sort="gainedCoin">늘린 코인수량 (환산) ⬍</th>
+                      <th class="text-right" data-sort="holdingQty">보유수량 (보유원금) ⬍</th>
+                      <th class="text-right" data-sort="avgBuyPrice">매수 평단가 ⬍</th>
+                      <th class="text-right" data-sort="currentPrice">실시간 현재가 ⬍</th>
+                      <th class="text-right" data-sort="unrealizedProfit">평가손익 (평가수익률) ⬍</th>
+                      <th class="text-right" data-sort="totalBuyAmount">총 매수금액 ⬍</th>
+                      <th class="text-right" data-sort="totalSellAmount">총 매도금액 ⬍</th>
+                      <th class="text-right" data-sort="totalFee">수수료 ⬍</th>
+                      <th class="text-center" data-sort="winRate">승률 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="11" class="text-center py-8 text-muted">등록된 코인 거래 내역이 없습니다. 상단에서 엑셀 파일을 업로드해 주세요.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: 원화/코인 입출금 관리 -->
+          <div class="analyzer-tab-pane" id="transfersTab">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">총 원화(KRW) 입금액</span>
+                  <span class="badge badge-deposit-krw">입금</span>
+                </div>
+                <div class="stat-value" id="transferTotalKrwDeposit">0원</div>
+                <div class="stat-footer">거래소 계좌로 입금된 총 원화</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">총 원화(KRW) 출금액</span>
+                  <span class="badge badge-withdraw-krw">출금</span>
+                </div>
+                <div class="stat-value" id="transferTotalKrwWithdraw">0원</div>
+                <div class="stat-footer">내 통장으로 출금된 총 원화</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">순 투입 원금 (NET DEPOSIT)</span>
+                  <span class="badge badge-deposit-coin">순입금</span>
+                </div>
+                <div class="stat-value" id="transferNetKrwDeposit">0원</div>
+                <div class="stat-footer">총 원화 입금액 - 총 원화 출금액</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <div class="font-bold text-sm mb-3">🪙 가상자산(코인) 외부 입출금 요약</div>
+              <div class="stats-grid" id="coinTransferSummaryContainer">
+                <div class="stat-card p-4 text-xs text-muted">코인 입출금 내역이 없습니다.</div>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="flex-center-gap flex-wrap">
+                  <input type="text" id="transferSearchInput" class="input-control" placeholder="코인명 검색 (예: BTC, ETH)">
+                  <select id="transferTypeFilter" class="select-control">
+                    <option value="ALL">전체 입출금</option>
+                    <option value="원화입금">원화 입금만</option>
+                    <option value="원화출금">원화 출금만</option>
+                    <option value="코인입금">코인 입금만</option>
+                    <option value="코인출금">코인 출금만</option>
+                  </select>
+                </div>
+                <div class="flex-center-gap" id="transfersColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="transfersTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="exchange">거래소 ⬍</th>
+                      <th data-sort="time">일시 ⬍</th>
+                      <th data-sort="type">구분 ⬍</th>
+                      <th data-sort="asset">자산 ⬍</th>
+                      <th class="text-right" data-sort="quantity">수량 / 금액 ⬍</th>
+                      <th class="text-right" data-sort="price">단가 ⬍</th>
+                      <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                      <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="8" class="text-center py-8 text-muted">입출금 내역이 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pagination-container" id="transfersPagination"></div>
+            </div>
+          </div>
+
+          <!-- TAB 4: 전체 통합 내역 (전체 타임라인) -->
+          <div class="analyzer-tab-pane" id="allActivitiesTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="flex-center-gap flex-wrap">
+                  <input type="text" id="activitySearchInput" class="input-control" placeholder="코인명/심볼 검색 (예: BTC, 비트코인)">
+                  <select id="activityTypeFilter" class="select-control">
+                    <option value="ALL">전체 모든 내역 (매매 + 입출금)</option>
+                    <option value="TRADE_ALL">📈 매매(매수+매도)만</option>
+                    <option value="매수">🔴 매수만</option>
+                    <option value="매도">🔵 매도만</option>
+                    <option value="TRANSFER_ALL">💳 입출금 전체</option>
+                    <option value="원화입금">🟢 원화입금만</option>
+                    <option value="원화출금">🟣 원화출금만</option>
+                    <option value="코인입금">🔵 코인입금만</option>
+                    <option value="코인출금">🟠 코인출금만</option>
+                  </select>
+                  <select id="activityCoinFilter" class="select-control">
+                    <option value="ALL">전체 코인</option>
+                  </select>
+                  <div class="flex items-center gap-1">
+                    <input type="date" id="startDateInput" class="input-control">
+                    <span class="text-muted text-xs">~</span>
+                    <input type="date" id="endDateInput" class="input-control">
+                  </div>
+                </div>
+                <div class="flex-center-gap">
+                  <div id="activitiesColDropdownContainer"></div>
+                  <button class="btn btn-sm btn-outline" id="exportCSVBtn">
+                    📥 CSV 내보내기
+                  </button>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table id="allActivitiesTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="exchange">거래소 ⬍</th>
+                      <th data-sort="time">체결/처리시간 ⬍</th>
+                      <th data-sort="asset">코인/자산 ⬍</th>
+                      <th data-sort="type">구분 ⬍</th>
+                      <th class="text-right" data-sort="quantity">수량 ⬍</th>
+                      <th class="text-right" data-sort="price">단가 ⬍</th>
+                      <th class="text-right" data-sort="amount">거래/입출금액 ⬍</th>
+                      <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                      <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">해당거래 실현손익 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="10" class="text-center py-8 text-muted">조건에 일치하는 내역이 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pagination-container" id="allActivitiesPagination"></div>
+            </div>
+          </div>
+
+          <!-- TAB 5: 월별 통계 -->
+          <div class="analyzer-tab-pane" id="monthlyTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="font-bold text-sm">월별 실현손익 및 거래대금 집계</div>
+                <div class="flex-center-gap" id="monthlyColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="monthlyTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="period">년월 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">실현손익 ⬍</th>
+                      <th class="text-right" data-sort="buyVolume">총 매수대금 ⬍</th>
+                      <th class="text-right" data-sort="sellVolume">총 매도대금 ⬍</th>
+                      <th class="text-right" data-sort="totalVolume">총 거래대금 ⬍</th>
+                      <th class="text-right" data-sort="totalFees">수수료 합계 ⬍</th>
+                      <th class="text-center" data-sort="winRate">승률 (승/패/총거래) ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center py-8 text-muted">월별 데이터가 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: 계산 설정 및 관리 (BEAUTIFUL FINTECH REDESIGN) -->
+          <div class="analyzer-tab-pane" id="settingsTab">
+            <div class="settings-container">
+              
+              <!-- CARD 1: 손익 계산 방식 설정 -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">⚙️</div>
+                  <div>
+                    <h3 class="settings-card-title">손익 계산 알고리즘 (원가 산정 방식)</h3>
+                    <p class="settings-card-desc">가상자산 세무 신고 및 투자 수익률 산정 시 사용할 원가 매칭 알고리즘을 선택합니다.</p>
+                  </div>
+                </div>
+                
+                <div class="calc-method-grid">
+                  <div class="calc-method-option active" id="opt-fifo" onclick="App.setCalcMethod('fifo')">
+                    <div class="calc-method-badge">세무 표준 권장</div>
+                    <div class="calc-method-radio">
+                      <input type="radio" name="calcMethod" id="radio-fifo" value="fifo" checked>
+                      <label for="radio-fifo" class="font-bold text-white text-sm cursor-pointer">선입선출법 (FIFO)</label>
+                    </div>
+                    <p class="calc-method-text">
+                      먼저 매수한 코인부터 순차적으로 매도 매칭합니다. 대한민국 국세청 가상자산 소득세 표준 계산 방식입니다.
+                    </p>
+                  </div>
+
+                  <div class="calc-method-option" id="opt-moving-avg" onclick="App.setCalcMethod('moving_avg')">
+                    <div class="calc-method-badge">보조 지표</div>
+                    <div class="calc-method-radio">
+                      <input type="radio" name="calcMethod" id="radio-moving-avg" value="moving_avg">
+                      <label for="radio-moving-avg" class="font-bold text-white text-sm cursor-pointer">이동평균법 (Moving Average)</label>
+                    </div>
+                    <p class="calc-method-text">
+                      매수 시점마다 가중 평균 매수단가를 갱신하여 매도 시점의 평균단가 기준으로 손익을 산정합니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 2: 보고서 내보내기 & 인쇄 -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">📊</div>
+                  <div>
+                    <h3 class="settings-card-title">분석 보고서 내보내기 및 인쇄</h3>
+                    <p class="settings-card-desc">정리된 업비트 & 빗썸 종합 분석 데이터를 엑셀, CSV 또는 인쇄용 포맷으로 즉시 저장할 수 있습니다.</p>
+                  </div>
+                </div>
+
+                <div class="action-buttons-grid">
+                  <button class="settings-action-btn btn-excel" onclick="Exporter.exportExcelReport(App.state.reportData)">
+                    <div class="btn-icon">📥</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">종합 분석 보고서 엑셀(.xlsx) 다운로드</div>
+                      <div class="btn-sub-text">코인별 손익 + 월별 통계 + 입출금 + 상세 매매내역 4개 시트 통합 저장</div>
+                    </div>
+                  </button>
+
+                  <button class="settings-action-btn btn-csv" onclick="App.exportCurrentActivitiesCSV()">
+                    <div class="btn-icon">📋</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">전체 거래내역 CSV 파일 내보내기</div>
+                      <div class="btn-sub-text">시간순 정제된 모든 매매 및 입출금 타임라인 데이터(.csv)</div>
+                    </div>
+                  </button>
+
+                  <button class="settings-action-btn btn-print" onclick="window.print()">
+                    <div class="btn-icon">🖨️</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">분석 보고서 인쇄 및 PDF 저장</div>
+                      <div class="btn-sub-text">대시보드 차트와 요약 통계를 깔끔한 인쇄용 PDF 형식으로 출력</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- CARD 3: 개인정보 보호 & 데이터 관리 -->
+              <div class="settings-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">🔒</div>
+                  <div>
+                    <h3 class="settings-card-title">데이터 보안 및 계정별 보관함 관리</h3>
+                    <p class="settings-card-desc">업로드된 거래 내역은 외부 서버로 일체 전송되지 않으며, 사용자 브라우저의 전용 격리 저장소에만 보관됩니다.</p>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-navy-950/80 border border-navy-800 text-xs text-slate-300 space-y-2 mb-4">
+                  <div class="flex items-center justify-between">
+                    <span>현재 로그인 계정: <strong class="text-cyan-400" id="settingsUsernameDisplay">회원</strong></span>
+                    <span class="text-slate-400" id="settingsSavedCountDisplay">저장된 거래: 0건</span>
+                  </div>
+                  <div class="text-slate-400">• 새로운 엑셀 파일로 처음부터 다시 분석하고 싶으실 때 아래 초기화 버튼을 누르시면 안전하게 삭제됩니다.</div>
+                </div>
+
+                <div>
+                  <button class="settings-danger-btn" onclick="App.clearDataWithConfirm()">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> 현재 계정의 모든 거래 데이터 초기화 및 삭제
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
 
           <!-- Top Summary Stat Cards -->
           <section class="stats-grid">

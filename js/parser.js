@@ -630,7 +630,11 @@ const UpbitParser = {
         if (!str) return 'KRW';
         let s = str.trim();
         
-        if (s === 'KRW' || s === '원화' || s === '대한민국 원' || s === 'KRW-KRW') return 'KRW';
+        if (s === 'KRW' || s === '원화' || s === '대한민국 원' || s === 'KRW-KRW' || 
+            s === '입금' || s === '출금' || s === '원화입금' || s === '원화출금' || 
+            s === '코인입금' || s === '코인출금' || s === '매수' || s === '매도') {
+            return 'KRW';
+        }
 
         const match = s.match(/\((.*?)\)/);
         if (match && match[1]) {

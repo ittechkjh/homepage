@@ -20,7 +20,11 @@ const ProfitCalculator = {
         }
 
         // 카테고리별 분리
-        const tradeItems = filteredItems.filter(it => it.category === 'trade' || it.type === '매수' || it.type === '매도');
+        const tradeItems = filteredItems.filter(it => 
+      (it.category === 'trade' || it.type === '매수' || it.type === '매도') &&
+      it.market !== 'KRW' && it.market !== 'KRW-KRW' && it.coinSymbol !== 'KRW' &&
+      it.coinSymbol !== '입금' && it.coinSymbol !== '출금' && it.coinSymbol !== '매수' && it.coinSymbol !== '매도'
+  );
         const transferItems = filteredItems.filter(it => it.category === 'transfer' || it.type.includes('입금') || it.type.includes('출금'));
         const stakingItems = filteredItems.filter(it => it.category === 'staking' || it.type.includes('스테이킹'));
 
