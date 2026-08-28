@@ -759,7 +759,7 @@ const App = {
         if (!tbody) return;
 
         let coins = this.state.reportData ? [...this.state.reportData.coinSummaries] : [];
-        coins = coins.filter(c => c.market !== 'KRW' && c.market !== 'KRW-KRW' && c.coinSymbol !== 'KRW' && !c.coinSymbol.includes('입금') && !c.coinSymbol.includes('출금'));
+        coins = coins.filter(c => c.market !== 'KRW' && c.market !== 'KRW-KRW' && c.coinSymbol !== 'KRW' && (!c.coinSymbol || (!c.coinSymbol.includes('입금') && !c.coinSymbol.includes('출금'))));
 
         if (coins.length === 0) {
             tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">등록된 코인 거래 내역이 없습니다. 상단에서 엑셀 파일을 업로드해 주세요.</td></tr>';
@@ -776,31 +776,33 @@ const App = {
 
         let html = '';
         coins.forEach(coin => {
-            const coinName = coin.koreanName || UpbitAPI.getKoreanName(coin.market);
+            const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
             const profitClass = this.getProfitColorClass(coin.realizedProfit);
             const unprofitClass = this.getProfitColorClass(coin.unrealizedProfit || 0);
             const stackingClass = this.getProfitColorClass(coin.gainedCoinQty || 0);
             const isBithumb = coin.exchange === 'BITHUMB';
 
             const gainedQtyStr = coin.gainedCoinQty !== undefined 
-                ? (coin.gainedCoinQty > 0 ? '+' : '') + coin.gainedCoinQty.toLocaleString(undefined, { maximumFractionDigits: 6 }) + ' ' + coin.coinSymbol
+                ? (coin.gainedCoinQty > 0 ? '+' : '') + Number(coin.gainedCoinQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) + ' ' + (coin.coinSymbol || '')
                 : '-';
             const gainedRoiStr = coin.gainedCoinRoi !== undefined 
-                ? (coin.gainedCoinRoi > 0 ? '+' : '') + coin.gainedCoinRoi.toFixed(2) + '%'
+                ? (coin.gainedCoinRoi > 0 ? '+' : '') + Number(coin.gainedCoinRoi).toFixed(2) + '%'
                 : '';
+            const changeStr = coin.change24h !== undefined ? '<div class="text-xs ' + this.getProfitColorClass(coin.change24h) + '">' + (coin.change24h > 0 ? '+' : '') + Number(coin.change24h).toFixed(2) + '%</div>' : '';
+            const winRateStr = (coin.winRate || 0).toFixed(0);
 
             html += '<tr>' +
-                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + coin.coinSymbol + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (coin.exchange || 'UPBIT') + '</span></div><div class="coin-market-code">' + coin.market + '</div></div></div></td>' +
-                '<td class="text-right ' + profitClass + '"><div class="font-bold">' + this.formatCurrency(coin.realizedProfit) + '</div><div class="text-xs">' + (coin.realizedRoi > 0 ? '+' : '') + coin.realizedRoi.toFixed(2) + '%</div></td>' +
+                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + (coin.coinSymbol || '-') + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (coin.exchange || 'UPBIT') + '</span></div><div class="coin-market-code">' + (coin.market || '-') + '</div></div></div></td>' +
+                '<td class="text-right ' + profitClass + '"><div class="font-bold">' + this.formatCurrency(coin.realizedProfit) + '</div><div class="text-xs">' + (coin.realizedRoi > 0 ? '+' : '') + (coin.realizedRoi || 0).toFixed(2) + '%</div></td>' +
                 '<td class="text-right ' + stackingClass + '"><div class="font-bold">' + gainedQtyStr + '</div><div class="text-xs">' + gainedRoiStr + '</div></td>' +
-                '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? coin.holdingQty.toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
+                '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
                 '<td class="text-right"><div>' + (coin.avgBuyPrice > 0 ? this.formatCurrency(coin.avgBuyPrice) : '-') + '</div></td>' +
-                '<td class="text-right"><div>' + (coin.currentPrice > 0 ? this.formatCurrency(coin.currentPrice) : '-') + '</div>' + (coin.change24h ? '<div class="text-xs ' + this.getProfitColorClass(coin.change24h) + '">' + (coin.change24h > 0 ? '+' : '') + coin.change24h.toFixed(2) + '%</div>' : '') + '</td>' +
+                '<td class="text-right"><div>' + (coin.currentPrice > 0 ? this.formatCurrency(coin.currentPrice) : '-') + '</div>' + changeStr + '</td>' +
                 '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + this.formatCurrency(coin.unrealizedProfit || 0) + '</div><div class="text-xs">' + (coin.unrealizedRoi > 0 ? '+' : '') + (coin.unrealizedRoi || 0).toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalBuyAmount) + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalSellAmount) + '</td>' +
                 '<td class="text-right text-muted">' + this.formatCurrency(coin.totalFee) + '</td>' +
-                '<td class="text-center font-bold">' + coin.winRate.toFixed(0) + '% <span class="text-xs text-muted font-normal">(' + coin.winTrades + '승 ' + coin.lossTrades + '패)</span></td>' +
+                '<td class="text-center font-bold">' + winRateStr + '% <span class="text-xs text-muted font-normal">(' + (coin.winTrades || 0) + '승 ' + (coin.lossTrades || 0) + '패)</span></td>' +
             '</tr>';
         });
 
@@ -899,11 +901,12 @@ const App = {
         let html = '';
         pageItems.forEach(t => {
             const isBithumb = t.exchange === 'BITHUMB';
-            const isKrw = t.type.includes('원화') || t.coinSymbol === 'KRW';
-            const badgeClass = t.type.includes('입금') ? (isKrw ? 'badge-deposit-krw' : 'badge-deposit-coin') : (isKrw ? 'badge-withdraw-krw' : 'badge-withdraw-coin');
-            const name = UpbitAPI.getKoreanName(t.market || t.coinSymbol);
+            const typeStr = t.type || '';
+            const isKrw = typeStr.includes('원화') || t.coinSymbol === 'KRW';
+            const badgeClass = typeStr.includes('입금') ? (isKrw ? 'badge-deposit-krw' : 'badge-deposit-coin') : (isKrw ? 'badge-withdraw-krw' : 'badge-withdraw-coin');
+            const name = typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(t.market || t.coinSymbol) : (t.market || t.coinSymbol || '');
 
-            const qtyStr = isKrw ? this.formatCurrency(t.amount || t.quantity) : t.quantity.toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol;
+            const qtyStr = isKrw ? this.formatCurrency(t.amount || t.quantity) : Number(t.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol;
             const feeStr = t.fee > 0 ? (isKrw ? this.formatCurrency(t.fee) : t.fee + ' ' + t.coinSymbol) : (isKrw ? '0원' : '0 ' + t.coinSymbol);
             const settlementStr = isKrw ? this.formatCurrency(t.settlement || t.amount) : (t.settlement || t.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol;
 
@@ -1012,12 +1015,12 @@ const App = {
             const isBithumb = it.exchange === 'BITHUMB';
             const badgeClass = this.getActivityBadgeClass(it.type);
             const profitClass = this.getProfitColorClass(it.realizedProfit || 0);
-            const name = UpbitAPI.getKoreanName(it.market || it.coinSymbol);
-            const isKrw = it.type.includes('원화') || it.coinSymbol === 'KRW';
+            const name = typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(it.market || it.coinSymbol) : (it.market || it.coinSymbol || '');
+            const isKrw = (it.type && it.type.includes('원화')) || it.coinSymbol === 'KRW';
 
             const qtyStr = isKrw 
                 ? this.formatCurrency(it.amount || it.quantity) 
-                : (it.quantity ? it.quantity.toLocaleString(undefined, { maximumFractionDigits: 8 }) : '-') + ' ' + (it.coinSymbol !== 'KRW' ? it.coinSymbol : '');
+                : (it.quantity ? Number(it.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) : '-') + ' ' + (it.coinSymbol !== 'KRW' ? it.coinSymbol : '');
             const feeStr = it.fee > 0 
                 ? (isKrw ? this.formatCurrency(it.fee) : it.fee + ' ' + it.coinSymbol) 
                 : (isKrw ? '0원' : '0 ' + (it.coinSymbol !== 'KRW' ? it.coinSymbol : '원'));
