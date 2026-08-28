@@ -60,7 +60,7 @@ const INITIAL_FORUM_POSTS = [
     time: '4시간 전',
     timestamp: Date.now() - 4 * 3600 * 1000,
     comments: [
-      { id: 104, author: 'ittechkjh', text: '멘탈 관리에 정말 큰 도움 되는 글입니다. 감사합니다!', time: '3시간 전' },
+      { id: 104, author: 'CryptoMaster', text: '멘탈 관리에 정말 큰 도움 되는 글입니다. 감사합니다!', time: '3시간 전' },
       { id: 105, author: 'Hodl_Forever', text: '1번과 4번이 제일 지키기 어렵지만 핵심이네요.', time: '2시간 전' }
     ]
   },
