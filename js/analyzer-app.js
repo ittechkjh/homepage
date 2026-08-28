@@ -1,23 +1,30 @@
 /**
  * analyzer-app.js
- * 업비트 & 빗썸 코인 거래내역 분석기 (사용자별 로컬 독립 보관 엔진)
+ * 업비트 & 빗썸 코인 거래내역 분석기 (로그인 회원 전용 100% 로컬 독립 보관 엔진)
  */
 
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
             const u = window.currentUser || JSON.parse(localStorage.getItem('coinhub_user'));
-            if (u && u.username) return String(u.username).trim().toLowerCase();
+            if (u && u.username) {
+                return 'user_' + String(u.username).trim().toLowerCase();
+            }
         } catch (e) {}
-        return 'guest';
+        return null;
     },
+    
     getKey: function (key) {
         const uid = this.getCurrentUserId();
+        if (!uid) return null;
         return 'coinhub_' + uid + '_' + key;
     },
+
     getTrades: function () {
+        const storageKey = this.getKey('trades');
+        if (!storageKey) return [];
         try {
-            const saved = localStorage.getItem(this.getKey('trades'));
+            const saved = localStorage.getItem(storageKey);
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) return parsed;
@@ -27,15 +34,25 @@ const AnalyzerStorage = {
         }
         return [];
     },
+
     saveTrades: function (trades) {
+        const storageKey = this.getKey('trades');
+        if (!storageKey) {
+            console.warn('비로그인 상태에서는 거래 데이터를 저장할 수 없습니다.');
+            return;
+        }
         try {
-            localStorage.setItem(this.getKey('trades'), JSON.stringify(trades));
+            localStorage.setItem(storageKey, JSON.stringify(trades));
         } catch (e) {
-            console.warn('거래 내역 저장 오류:', e);
+            console.warn('로컬 저장소 용량 초과:', e);
         }
     },
+
     clearUserData: function () {
-        localStorage.removeItem(this.getKey('trades'));
+        const storageKey = this.getKey('trades');
+        if (storageKey) {
+            localStorage.removeItem(storageKey);
+        }
     }
 };
 
@@ -44,7 +61,7 @@ const ColumnManager = {
         coinsTable: [
             { id: 'coin', name: '코인명 / 거래소', default: true },
             { id: 'realizedProfit', name: '실현손익 (수익률)', default: true },
-            { id: 'gainedCoin', name: '늘린 코인수량', default: true },
+            { id: 'gainedCoin', name: '늘린 코인수량 (환산)', default: true },
             { id: 'holdingQty', name: '보유수량 (매수원금)', default: true },
             { id: 'avgBuyPrice', name: '매수 평단가', default: true },
             { id: 'currentPrice', name: '실시간 현재가', default: true },
@@ -52,7 +69,7 @@ const ColumnManager = {
             { id: 'totalBuyAmount', name: '총 매수금액', default: true },
             { id: 'totalSellAmount', name: '총 매도금액', default: true },
             { id: 'totalFee', name: '수수료', default: true },
-            { id: 'winRate', name: '승률 / 타점', default: true }
+            { id: 'winRate', name: '승률', default: true }
         ],
         transfersTable: [
             { id: 'exchange', name: '거래소', default: true },
@@ -84,16 +101,6 @@ const ColumnManager = {
             { id: 'totalVolume', name: '총 거래대금', default: true },
             { id: 'totalFees', name: '수수료 합계', default: true },
             { id: 'winRate', name: '승률', default: true }
-        ],
-        tradePointsHistoryTable: [
-            { id: 'exchange', name: '거래소', default: true },
-            { id: 'time', name: '체결일시', default: true },
-            { id: 'type', name: '구분', default: true },
-            { id: 'price', name: '체결단가', default: true },
-            { id: 'quantity', name: '체결수량', default: true },
-            { id: 'amount', name: '거래금액', default: true },
-            { id: 'fee', name: '수수료', default: true },
-            { id: 'realizedProfit', name: '실현손익', default: true }
         ]
     },
 
@@ -161,25 +168,27 @@ const ColumnManager = {
         const btn = container.querySelector('.col-dropdown-btn');
         const menu = container.querySelector('.col-dropdown-menu');
 
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('show');
-        });
-
-        container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-            chk.addEventListener('change', (e) => {
-                const tId = e.target.dataset.table;
-                const cId = e.target.dataset.col;
-                const isHidden = !e.target.checked;
-                ColumnManager.toggleCol(tId, cId, isHidden);
+        if (btn && menu) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('show');
             });
-        });
 
-        document.addEventListener('click', (e) => {
-            if (!container.contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        });
+            container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                chk.addEventListener('change', (e) => {
+                    const tId = e.target.dataset.table;
+                    const cId = e.target.dataset.col;
+                    const isHidden = !e.target.checked;
+                    ColumnManager.toggleCol(tId, cId, isHidden);
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!container.contains(e.target)) {
+                    menu.classList.remove('show');
+                }
+            });
+        }
     }
 };
 
@@ -188,20 +197,13 @@ const App = {
         rawTrades: [],
         reportData: null,
         method: localStorage.getItem('coinhub_calc_method') || 'fifo',
-        theme: 'dark',
-        colorConvention: 'korean',
         exchangeFilter: 'ALL',
-        autoRefreshTicker: false,
-        tickerTimer: null,
         activeTab: 'dashboard',
-        selectedPointsMarket: '',
-        selectedCandlePeriod: 'days',
         sortStates: {
             coinsTable: { col: 'realizedProfit', asc: false },
             transfersTable: { col: 'time', asc: false },
             allActivitiesTable: { col: 'time', asc: false },
-            monthlyTable: { col: 'period', asc: false },
-            tradePointsHistoryTable: { col: 'time', asc: false }
+            monthlyTable: { col: 'period', asc: false }
         },
         activityFilter: {
             search: '',
@@ -229,14 +231,26 @@ const App = {
                 await UpbitAPI.initMarketInfo();
             }
             
-            this.loadSavedTrades();
-            
-            if (!this.state.rawTrades || this.state.rawTrades.length === 0) {
-                await this.loadSampleData('ALL');
-            }
+            this.checkAuthStatus();
         } catch (err) {
             console.error('App 초기화 오류:', err);
-            this.recalculate();
+        }
+    },
+
+    checkAuthStatus: function () {
+        const u = window.currentUser || (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
+        const authGuard = document.getElementById('analyzer-auth-guard');
+        const mainContent = document.getElementById('analyzer-main-content');
+
+        if (!u) {
+            if (authGuard) authGuard.style.display = 'block';
+            if (mainContent) mainContent.style.display = 'none';
+            this.state.rawTrades = [];
+            this.state.reportData = null;
+        } else {
+            if (authGuard) authGuard.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'block';
+            this.loadSavedTrades();
         }
     },
 
@@ -245,7 +259,6 @@ const App = {
         ColumnManager.renderColumnDropdown('transfersTable', 'transfersColDropdownContainer');
         ColumnManager.renderColumnDropdown('allActivitiesTable', 'activitiesColDropdownContainer');
         ColumnManager.renderColumnDropdown('monthlyTable', 'monthlyColDropdownContainer');
-        ColumnManager.renderColumnDropdown('tradePointsHistoryTable', 'pointsHistoryColDropdownContainer');
     },
 
     bindEvents: function () {
@@ -273,7 +286,13 @@ const App = {
         const fileInput = document.getElementById('fileInput');
 
         if (dropZone && fileInput) {
-            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('click', () => {
+                if (!AnalyzerStorage.getCurrentUserId()) {
+                    openAuthModal('login');
+                    return;
+                }
+                fileInput.click();
+            });
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dropZone.classList.add('dragover');
@@ -282,6 +301,10 @@ const App = {
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
+                if (!AnalyzerStorage.getCurrentUserId()) {
+                    openAuthModal('login');
+                    return;
+                }
                 if (e.dataTransfer.files.length > 0) {
                     this.handleFiles(e.dataTransfer.files);
                 }
@@ -296,7 +319,13 @@ const App = {
 
         const quickUploadBtn = document.getElementById('quickUploadBtn');
         if (quickUploadBtn && fileInput) {
-            quickUploadBtn.addEventListener('click', () => fileInput.click());
+            quickUploadBtn.addEventListener('click', () => {
+                if (!AnalyzerStorage.getCurrentUserId()) {
+                    openAuthModal('login');
+                    return;
+                }
+                fileInput.click();
+            });
         }
 
         // 샘플 데이터 버튼들
@@ -343,7 +372,7 @@ const App = {
         const clearDataBtn = document.getElementById('clearDataBtn');
         if (clearDataBtn) {
             clearDataBtn.addEventListener('click', () => {
-                if (confirm('저장된 모든 거래 내역 데이터를 삭제하시겠습니까?')) {
+                if (confirm('현재 로그인된 계정의 모든 거래 내역 데이터를 삭제하시겠습니까?')) {
                     this.clearData();
                 }
             });
@@ -366,7 +395,6 @@ const App = {
         this.bindTableSorting('transfersTable');
         this.bindTableSorting('allActivitiesTable');
         this.bindTableSorting('monthlyTable');
-        this.bindTableSorting('tradePointsHistoryTable');
 
         // 필터 이벤트 바인딩
         const actSearch = document.getElementById('activitySearchInput');
@@ -415,38 +443,6 @@ const App = {
             this.state.transferFilter.page = 1;
             this.renderTransfersTable();
         });
-
-        // 타점 차트 코인 선택
-        const pointsMarketSelect = document.getElementById('pointsMarketSelect');
-        if (pointsMarketSelect) {
-            pointsMarketSelect.addEventListener('change', (e) => {
-                this.state.selectedPointsMarket = e.target.value;
-                this.loadAndRenderTradePointsChart();
-            });
-        }
-
-        // 타점 주기 선택 버튼들
-        document.querySelectorAll('#candlePeriodGroup .btn-period').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('#candlePeriodGroup .btn-period').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.state.selectedCandlePeriod = e.target.dataset.period;
-                this.loadAndRenderTradePointsChart();
-            });
-        });
-
-        // 타점 차트 조작 버튼들
-        const focusPointsBtn = document.getElementById('focusPointsBtn');
-        const resetPointsViewBtn = document.getElementById('resetPointsViewBtn');
-        const zoomInPointsBtn = document.getElementById('zoomInPointsBtn');
-        const zoomOutPointsBtn = document.getElementById('zoomOutPointsBtn');
-        const refreshPointsChartBtn = document.getElementById('refreshPointsChartBtn');
-
-        if (focusPointsBtn) focusPointsBtn.addEventListener('click', () => ChartManager.focusOnTradePoints());
-        if (resetPointsViewBtn) resetPointsViewBtn.addEventListener('click', () => ChartManager.resetCandleChartView());
-        if (zoomInPointsBtn) zoomInPointsBtn.addEventListener('click', () => ChartManager.zoomCandleChart(-0.2));
-        if (zoomOutPointsBtn) zoomOutPointsBtn.addEventListener('click', () => ChartManager.zoomCandleChart(0.2));
-        if (refreshPointsChartBtn) refreshPointsChartBtn.addEventListener('click', () => this.loadAndRenderTradePointsChart());
     },
 
     bindTableSorting: function (tableId) {
@@ -468,10 +464,6 @@ const App = {
                 else if (tableId === 'transfersTable') this.renderTransfersTable();
                 else if (tableId === 'allActivitiesTable') this.renderAllActivitiesTable();
                 else if (tableId === 'monthlyTable') this.renderMonthlyTable();
-                else if (tableId === 'tradePointsHistoryTable') {
-                    const coinTrades = this.state.reportData ? this.state.reportData.trades.filter(t => t.market === this.state.selectedPointsMarket) : [];
-                    this.renderTradePointsHistoryTable(coinTrades);
-                }
             });
         });
     },
@@ -488,11 +480,8 @@ const App = {
             content.style.display = isActive ? "block" : "none";
         });
 
-        // 탭 전환 시 화면 및 데이터 즉시 렌더링
         if (tabId === "dashboard" && this.state.reportData) {
             setTimeout(() => ChartManager.renderAllCharts(this.state.reportData), 50);
-        } else if (tabId === "tradePoints" && this.state.reportData) {
-            setTimeout(() => this.loadAndRenderTradePointsChart(), 50);
         } else if (tabId === "coins") {
             this.renderCoinsTable();
         } else if (tabId === "transfers") {
@@ -505,14 +494,12 @@ const App = {
     },
     switchTab: function (tabId) { this.switchSubTab(tabId); },
 
-    viewCoinTradePoints: function (market) {
-        this.state.selectedPointsMarket = market;
-        const select = document.getElementById('pointsMarketSelect');
-        if (select) select.value = market;
-        this.switchSubTab('tradePoints');
-    },
-
     handleFiles: async function (fileList) {
+        if (!AnalyzerStorage.getCurrentUserId()) {
+            openAuthModal('login');
+            return;
+        }
+
         this.showLoading(true, '파일 파싱 및 분석 중...');
         let newItems = [];
         let lastError = null;
@@ -593,6 +580,11 @@ const App = {
     },
 
     loadSampleData: async function (type = 'ALL') {
+        if (!AnalyzerStorage.getCurrentUserId()) {
+            openAuthModal('login');
+            return;
+        }
+
         this.showLoading(true, '샘플 데이터 로딩 중...');
         try {
             let sampleRows = [];
@@ -637,7 +629,6 @@ const App = {
         });
 
         this.updateCoinFilterOptions();
-        this.updatePointsMarketSelectOptions();
         this.renderAll();
     },
 
@@ -731,7 +722,7 @@ const App = {
 
         let coins = this.state.reportData ? [...this.state.reportData.coinSummaries] : [];
         if (coins.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-muted">등록된 코인 거래 내역이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-muted">등록된 코인 거래 내역이 없습니다. 엑셀 파일을 업로드해 주세요.</td></tr>';
             return;
         }
 
@@ -769,160 +760,12 @@ const App = {
                 '<td class="text-right">' + this.formatCurrency(coin.totalBuyAmount) + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalSellAmount) + '</td>' +
                 '<td class="text-right text-muted">' + this.formatCurrency(coin.totalFee) + '</td>' +
-                '<td class="text-center"><div class="flex-center-gap" style="justify-content: center;"><span class="text-xs font-bold">' + coin.winRate.toFixed(0) + '%</span><button class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.72rem; color: #06b6d4; border-color: #06b6d4;" onclick="App.viewCoinTradePoints(\'' + coin.market + '\')">🎯 타점</button></div></td>' +
+                '<td class="text-center font-bold">' + coin.winRate.toFixed(0) + '% <span class="text-xs text-muted font-normal">(' + coin.winTrades + '승 ' + coin.lossTrades + '패)</span></td>' +
             '</tr>';
         });
 
         tbody.innerHTML = html;
         ColumnManager.applyVisibility('coinsTable');
-    },
-
-    loadAndRenderTradePointsChart: async function () {
-        if (!this.state.reportData) return;
-
-        const coins = this.state.reportData.coinSummaries;
-        if (!coins || coins.length === 0) return;
-
-        if (!this.state.selectedPointsMarket || !coins.some(c => c.market === this.state.selectedPointsMarket)) {
-            this.state.selectedPointsMarket = coins[0].market;
-        }
-
-        const rawMarket = this.state.selectedPointsMarket;
-        const { symbol, market } = UpbitAPI.getStandardMarketInfo(rawMarket);
-        const period = this.state.selectedCandlePeriod || 'days';
-
-        const coinTrades = this.state.reportData.trades.filter(t => t.market === rawMarket || t.market === market || t.coinSymbol === symbol);
-        const coinSummary = this.state.reportData.coinSummaries.find(c => c.market === rawMarket || c.market === market || c.coinSymbol === symbol) || coins[0];
-        const coinName = coinSummary ? (coinSummary.koreanName || coinSummary.coinSymbol) : UpbitAPI.getKoreanName(market);
-
-        const titleEl = document.getElementById('pointsChartTitle');
-        if (titleEl) {
-            titleEl.textContent = '🎯 ' + coinName + ' (' + symbol + ' / ' + market + ') 트레이딩뷰 스타일 다이나믹 캔들 차트';
-        }
-
-        if (coinSummary) {
-            const buyCntEl = document.getElementById('pointsBuyCount');
-            const avgBuyEl = document.getElementById('pointsAvgBuyPrice');
-            const totalBuyAmtEl = document.getElementById('pointsTotalBuyAmt');
-            const sellCntEl = document.getElementById('pointsSellCount');
-            const avgSellEl = document.getElementById('pointsAvgSellPrice');
-            const totalSellAmtEl = document.getElementById('pointsTotalSellAmt');
-            const profitEl = document.getElementById('pointsRealizedProfit');
-            const roiEl = document.getElementById('pointsRealizedRoi');
-            const winRateEl = document.getElementById('pointsWinRate');
-            const holdQtyEl = document.getElementById('pointsHoldingQty');
-            const holdValEl = document.getElementById('pointsHoldingValue');
-            const unrlEl = document.getElementById('pointsUnrealized');
-
-            if (buyCntEl) buyCntEl.textContent = coinSummary.totalBuyCount + '회';
-            if (avgBuyEl) avgBuyEl.textContent = this.formatCurrency(coinSummary.avgBuyPrice);
-            if (totalBuyAmtEl) totalBuyAmtEl.textContent = this.formatCurrency(coinSummary.totalBuyAmount);
-            if (sellCntEl) sellCntEl.textContent = coinSummary.totalSellCount + '회';
-            if (avgSellEl) avgSellEl.textContent = this.formatCurrency(coinSummary.avgSellPrice);
-            if (totalSellAmtEl) totalSellAmtEl.textContent = this.formatCurrency(coinSummary.totalSellAmount);
-            
-            if (profitEl) {
-                profitEl.textContent = this.formatCurrency(coinSummary.realizedProfit);
-                profitEl.className = 'stat-value ' + this.getProfitColorClass(coinSummary.realizedProfit);
-            }
-            if (roiEl) {
-                roiEl.textContent = (coinSummary.realizedRoi > 0 ? '+' : '') + coinSummary.realizedRoi.toFixed(2) + '%';
-                roiEl.className = 'stat-badge ' + this.getProfitColorClass(coinSummary.realizedProfit);
-            }
-            if (winRateEl) winRateEl.textContent = coinSummary.winRate.toFixed(1) + '% (' + coinSummary.winTrades + '승 ' + coinSummary.lossTrades + '패)';
-
-            if (holdQtyEl) holdQtyEl.textContent = coinSummary.holdingQty > 0 ? coinSummary.holdingQty.toLocaleString(undefined, { maximumFractionDigits: 6 }) + ' ' + coinSummary.coinSymbol : '잔고 없음';
-            if (holdValEl) holdValEl.textContent = this.formatCurrency(coinSummary.currentValue || coinSummary.holdingCost);
-            if (unrlEl) {
-                const unProfit = coinSummary.unrealizedProfit || 0;
-                unrlEl.textContent = this.formatCurrency(unProfit);
-                unrlEl.className = this.getProfitColorClass(unProfit);
-            }
-        }
-
-        let candles = await UpbitAPI.fetchCandles(market, period, 200);
-
-        if (!candles || candles.length === 0) {
-            candles = coinTrades.map(t => ({
-                time: t.time,
-                date: t.date,
-                close: t.price,
-                price: t.price,
-                open: t.price * (t.type === '매수' ? 0.99 : 1.01),
-                high: t.price * 1.02,
-                low: t.price * 0.98,
-                volume: t.quantity,
-                timestamp: new Date(t.time).getTime()
-            }));
-        }
-
-        ChartManager.initCandleChartEngine(market, period, candles, coinTrades);
-        this.renderTradePointsHistoryTable(coinTrades);
-    },
-
-    renderTradePointsHistoryTable: function (trades) {
-        const tbody = document.querySelector('#tradePointsHistoryTable tbody');
-        if (!tbody) return;
-
-        if (!trades || trades.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-muted">체결 타점 내역이 없습니다.</td></tr>';
-            return;
-        }
-
-        let sorted = [...trades];
-        const sort = this.state.sortStates.tradePointsHistoryTable;
-        sorted.sort((a, b) => {
-            let valA = a[sort.col] || 0;
-            let valB = b[sort.col] || 0;
-            if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            return sort.asc ? valA - valB : valB - valA;
-        });
-
-        let html = '';
-        sorted.forEach(t => {
-            const isBuy = t.type === '매수';
-            const isBithumb = t.exchange === 'BITHUMB';
-            const profitClass = this.getProfitColorClass(t.realizedProfit || 0);
-
-            html += '<tr>' +
-                '<td><span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (t.exchange || 'UPBIT') + '</span></td>' +
-                '<td class="text-xs text-muted">' + t.time + '</td>' +
-                '<td><span class="badge ' + (isBuy ? 'badge-buy' : 'badge-sell') + '">' + t.type + '</span></td>' +
-                '<td class="text-right font-bold">' + this.formatCurrency(t.price) + '</td>' +
-                '<td class="text-right font-medium">' + t.quantity.toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol + '</td>' +
-                '<td class="text-right font-medium">' + this.formatCurrency(t.amount) + '</td>' +
-                '<td class="text-right text-muted">' + this.formatCurrency(t.fee) + '</td>' +
-                '<td class="text-right ' + (t.type === '매도' ? profitClass : 'text-muted') + '">' +
-                    (t.type === '매도' && t.realizedProfit !== undefined ? '<span class="font-bold">' + (t.realizedProfit > 0 ? '+' : '') + this.formatCurrency(t.realizedProfit) + '</span> <span class="text-xs">(' + (t.realizedRoi > 0 ? '+' : '') + t.realizedRoi.toFixed(2) + '%)</span>' : '-') +
-                '</td>' +
-            '</tr>';
-        });
-
-        tbody.innerHTML = html;
-        ColumnManager.applyVisibility('tradePointsHistoryTable');
-    },
-
-    updatePointsMarketSelectOptions: function () {
-        const select = document.getElementById('pointsMarketSelect');
-        if (!select) return;
-
-        const coins = this.state.reportData ? this.state.reportData.coinSummaries : [];
-        if (coins.length === 0) {
-            select.innerHTML = '<option value="">등록된 코인 없음</option>';
-            return;
-        }
-
-        let html = '';
-        coins.forEach(c => {
-            const name = c.koreanName || c.coinSymbol;
-            html += '<option value="' + c.market + '">' + name + ' (' + c.coinSymbol + ' / ' + (c.exchange || 'UPBIT') + ')</option>';
-        });
-
-        select.innerHTML = html;
-        if (!this.state.selectedPointsMarket || !coins.some(c => c.market === this.state.selectedPointsMarket)) {
-            this.state.selectedPointsMarket = coins[0].market;
-        }
-        select.value = this.state.selectedPointsMarket;
     },
 
     updateCoinFilterOptions: function () {
@@ -1247,6 +1090,13 @@ const App = {
     },
 
     loadSavedTrades: function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (!uid) {
+            this.state.rawTrades = [];
+            this.recalculate();
+            return;
+        }
+
         const saved = AnalyzerStorage.getTrades();
         if (Array.isArray(saved) && saved.length > 0) {
             this.state.rawTrades = saved;
@@ -1265,22 +1115,18 @@ const App = {
         AnalyzerStorage.clearUserData();
         this.recalculate();
         this.updateUserBanner();
-        this.showToast('현재 사용자의 모든 거래 데이터가 초기화되었습니다.', 'info');
+        this.showToast('현재 계정의 모든 거래 데이터가 삭제되었습니다.', 'info');
     },
 
     updateUserBanner: function () {
-        const uid = AnalyzerStorage.getCurrentUserId();
-        const isGuest = uid === 'guest';
         const u = window.currentUser || (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
-        const displayName = isGuest ? '게스트' : (u && u.username ? u.username : uid);
-
         const nameEl = document.getElementById('analyzerCurrentUserName');
         const badgeEl = document.getElementById('analyzerUserModeBadge');
         const countEl = document.getElementById('analyzerSavedCountBadge');
 
-        if (nameEl) nameEl.textContent = displayName;
-        if (badgeEl) {
-            badgeEl.textContent = isGuest ? '🔒 게스트 독립 보관함' : '👤 ' + displayName + ' 회원 전용 보관함';
+        if (u && u.username) {
+            if (nameEl) nameEl.textContent = u.username;
+            if (badgeEl) badgeEl.textContent = '👤 ' + u.username + ' 님 전용 격리 저장소';
         }
         if (countEl) {
             countEl.textContent = '저장된 거래: ' + (this.state.rawTrades ? this.state.rawTrades.length : 0) + '건';
@@ -1288,10 +1134,10 @@ const App = {
     },
 
     switchUser: function (user) {
-        this.loadSavedTrades();
-        this.updateUserBanner();
-        const name = user && user.username ? user.username : '게스트';
-        this.showToast(name + ' 님의 개인 거래 데이터 보관함으로 전환되었습니다.', 'info');
+        this.checkAuthStatus();
+        if (user && user.username) {
+            this.showToast(user.username + ' 님의 개인 거래 데이터 보관함으로 전환되었습니다.', 'info');
+        }
     },
 
     showLoading: function (show, text = '처리 중...') {
@@ -1326,15 +1172,21 @@ const App = {
     }
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { App.init(); });
-} else {
-    App.init();
+if (typeof window !== 'undefined') {
+    window.AnalyzerStorage = AnalyzerStorage;
+    window.ColumnManager = ColumnManager;
+    window.AnalyzerApp = App;
+    window.App = App;
+}
+
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => { App.init(); });
+    } else {
+        App.init();
+    }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = App;
+    module.exports = { AnalyzerStorage, ColumnManager, App };
 }
-
-window.AnalyzerApp = App;
-window.App = App;

@@ -1,11 +1,15 @@
 /**
  * exporter.js
  * 분석 결과 엑셀(.xlsx) / CSV 내보내기 및 인쇄 모듈
- * (업비트 & 빗썸 매매 손익, 입출금, 스테이킹, 코인 수량 증감 포함)
+ * (업비트 & 빗썸 매매 손익, 입출금, 코인 수량 증감 포함)
  */
 
 const Exporter = {
     exportExcelReport: function (reportData) {
+        if (!reportData) {
+            alert('내보낼 분석 데이터가 없습니다.');
+            return;
+        }
         if (typeof XLSX === 'undefined') {
             alert('SheetJS(XLSX) 라이브러리를 불러올 수 없습니다.');
             return;
@@ -144,33 +148,7 @@ const Exporter = {
             XLSX.utils.book_append_sheet(wb, wsTransfers, '입출금_내역');
         }
 
-        // 4. 스테이킹 현황 시트
-        if (reportData.staking && reportData.staking.records && reportData.staking.records.length > 0) {
-            const stakingRows = [
-                ['스테이킹 자산 현황 및 보상 집계'],
-                [],
-                ['거래소', '코인명', '심볼', '스테이킹 수량', '현재 평가금액(원)', '연이율(APY %)', '누적 보상수량', '누적 보상금액(원)', '보상수령 횟수']
-            ];
-
-            reportData.staking.records.forEach(st => {
-                stakingRows.push([
-                    st.exchange || 'UPBIT',
-                    st.koreanName || st.coinSymbol,
-                    st.coinSymbol,
-                    st.currentStakedQty,
-                    Math.round(st.currentValue || 0),
-                    st.apy || '-',
-                    st.totalRewardQty,
-                    Math.round(st.totalRewardKrw),
-                    st.rewardCount
-                ]);
-            });
-
-            const wsStaking = XLSX.utils.aoa_to_sheet(stakingRows);
-            XLSX.utils.book_append_sheet(wb, wsStaking, '스테이킹_현황');
-        }
-
-        // 5. 상세 거래 내역 시트
+        // 4. 상세 거래 내역 시트
         const tradeRows = [
             [
                 '거래소', '체결일시', '마켓', '코인', '거래종류', '거래수량', 
@@ -247,13 +225,11 @@ const Exporter = {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    },
-
-    printReport: function () {
-        window.print();
     }
 };
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Exporter;
 }
+
+window.Exporter = Exporter;
