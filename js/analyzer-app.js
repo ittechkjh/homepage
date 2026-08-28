@@ -448,6 +448,15 @@ const App = {
         });
 
         this.updateCalcMethodUI();
+
+        // Bind calcMethodSelect dropdown (old settings tab)
+        const calcMethodSel = document.getElementById('calcMethodSelect');
+        if (calcMethodSel) {
+            calcMethodSel.value = this.state.method;
+            calcMethodSel.addEventListener('change', (e) => {
+                this.setCalcMethod(e.target.value);
+            });
+        }
     },
 
     setCalcMethod: function (method) {

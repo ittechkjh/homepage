@@ -406,6 +406,16 @@ function switchTab(tabId) {
   });
 
   lucide.createIcons();
+
+  // Initialize analyzer when user switches to analyzer tab
+  if (tabId === 'analyzer' && typeof App !== 'undefined') {
+    if (!App._initialized) {
+      App.init();
+      App._initialized = true;
+    } else {
+      App.checkAuthStatus();
+    }
+  }
 }
 
 // ----------------------------------------------------
