@@ -103,7 +103,7 @@
           <span class="w-2 h-2 rounded-full bg-crypto-green animate-ping"></span>
         </button>
         
-        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="calculator" class="w-4 h-4"></i> 거래내역 분석기
         </button>
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
@@ -549,7 +549,7 @@
                 <div class="app-logo-badge">UB</div>
                 <div class="header-titles">
                     <h1>업비트 & 빗썸 코인 거래내역 정리 & 손익 분석기</h1>
-                    <div class="header-subtitle">Upbit & Bithumb Trade Analyzer • 트레이딩뷰 캔들스틱 매매타점/손익/평단가/입출금/스테이킹 종합 대시보드</div>
+                    <div class="header-subtitle">Upbit & Bithumb Trade Analyzer • 트레이딩뷰 캔들스틱 매매타점/손익/평단가/입출금 종합 대시보드</div>
                 </div>
             </div>
             <div class="header-actions">
@@ -653,9 +653,7 @@
             <button class="analyzer-subtab" data-tab="transfers">
                 💳 원화/코인 입출금
             </button>
-            <button class="analyzer-subtab" data-tab="staking">
-                🌱 스테이킹 현황
-            </button>
+            
             <button class="analyzer-subtab" data-tab="allActivities">
                 📜 전체 통합 내역 (전체 타임라인)
             </button>
@@ -975,66 +973,7 @@
             </div>
         </div>
 
-        <!-- TAB 5: 스테이킹 현황 (전 컬럼 정렬 & 컬럼 숨기기) -->
-        <div class="analyzer-tab-pane" id="stakingTab">
-            <div class="stats-grid" style="margin-bottom: 20px;">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-title">스테이킹 총 평가금액</span>
-                        <span class="stat-badge">실시간</span>
-                    </div>
-                    <div class="stat-value" id="stakingTotalValue">0원</div>
-                    <div class="stat-footer">현재 시세 기준 스테이킹 자산 가치</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-title">예상 연간 보상액</span>
-                        <span class="stat-badge">APY 기준</span>
-                    </div>
-                    <div class="stat-value color-profit-global" id="stakingAnnualReward">0원</div>
-                    <div class="stat-footer">예상 연간 이자 보상금액</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-title">스테이킹 참여 종목</span>
-                    </div>
-                    <div class="stat-value" id="stakingCoinsCount">0 종목</div>
-                    <div class="stat-footer">ETH, SOL, ADA, ATOM 등</div>
-                </div>
-            </div>
-
-            <div class="table-card">
-                <div class="table-toolbar">
-                    <div class="font-bold text-sm">스테이킹 중인 코인 목록 및 보상 현황</div>
-                    <div class="flex-center-gap">
-                        <div id="stakingColDropdownContainer"></div>
-                        <button class="btn btn-sm btn-primary" id="openStakingModalBtn">
-                            ➕ 스테이킹 추가 / 관리
-                        </button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table id="stakingTable">
-                        <thead>
-                            <tr>
-                                <th data-sort="coin">코인명 / 거래소 ⬍</th>
-                                <th class="text-right" data-sort="stakedQty">스테이킹 수량 ⬍</th>
-                                <th class="text-right" data-sort="currentPrice">실시간 현재가 ⬍</th>
-                                <th class="text-right" data-sort="currentValue">현재 평가금액 ⬍</th>
-                                <th class="text-center" data-sort="apy">연이율 (APY) ⬍</th>
-                                <th class="text-right" data-sort="totalReward">누적 보상수량 (원금) ⬍</th>
-                                <th class="text-right" data-sort="annualReward">예상 연간 보상 ⬍</th>
-                                <th class="text-center">관리</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="8" class="text-center py-6 text-muted">스테이킹 중인 코인이 없습니다.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
+        
         <!-- TAB 6: 전체 통합 활동 내역 (전 컬럼 정렬 & 컬럼 숨기기) -->
         <div class="analyzer-tab-pane" id="allActivitiesTab">
             <div class="table-card">
@@ -1042,7 +981,7 @@
                     <div class="search-input-group">
                         <input type="text" id="activitySearchInput" class="input-control" placeholder="코인명/심볼 검색 (예: BTC, 비트코인)..." style="width: 220px;">
                         <select id="activityTypeFilter" class="select-control">
-                            <option value="ALL">🌐 전체 모든 내역 (매매 + 입출금 + 스테이킹)</option>
+                            <option value="ALL">🌐 전체 모든 내역 (매매 + 입출금)</option>
                             <option value="TRADE_ALL">📈 매매 전체 (매수 + 매도)</option>
                             <option value="매수">🔴 매수만</option>
                             <option value="매도">🔵 매도만</option>
@@ -1051,7 +990,7 @@
                             <option value="원화출금">🟣 원화출금만</option>
                             <option value="코인입금">🔵 코인입금만</option>
                             <option value="코인출금">🟠 코인출금만</option>
-                            <option value="STAKING_ALL">🌱 스테이킹 및 보상</option>
+                            
                         </select>
                         <select id="activityCoinFilter" class="select-control">
                             <option value="ALL">전체 코인</option>
@@ -1165,12 +1104,12 @@
                 <div class="setting-card">
                     <div class="setting-card-title">🗑️ 데이터 관리 및 초기화</div>
                     <div class="setting-card-desc">
-                        업로드한 모든 거래 및 스테이킹 내역은 사용자의 브라우저 로컬 저장소에만 안전하게 보관됩니다.<br>
+                        업로드한 모든 거래 및 입출금 내역은 사용자의 브라우저 로컬 저장소에만 안전하게 보관됩니다.<br>
                         새로운 데이터로 처음부터 시작하려면 초기화 버튼을 누르세요.
                     </div>
                     <div>
                         <button class="btn btn-outline" id="clearDataBtn" style="color: #ef4444; border-color: rgba(239,68,68,0.4);">
-                            ⚠️ 저장된 거래/스테이킹 데이터 전체 삭제
+                            ⚠️ 저장된 거래 데이터 전체 삭제
                         </button>
                     </div>
                 </div>
@@ -1402,39 +1341,7 @@
       </div>
     </div>
   </footer>
-<div class="modal-backdrop" id="stakingModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">🌱 스테이킹 코인 직접 등록</div>
-                <button class="toast-close" id="closeStakingModalBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="stakingExchangeSelect">거래소</label>
-                    <select id="stakingExchangeSelect" class="select-control">
-                        <option value="UPBIT">업비트 (Upbit)</option>
-                        <option value="BITHUMB">빗썸 (Bithumb)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="stakingSymbolInput">코인 심볼 (예: ETH, SOL, ADA, ATOM)</label>
-                    <input type="text" id="stakingSymbolInput" class="input-control" placeholder="예: ETH">
-                </div>
-                <div class="form-group">
-                    <label for="stakingQtyInput">스테이킹 수량</label>
-                    <input type="number" step="any" id="stakingQtyInput" class="input-control" placeholder="예: 1.5">
-                </div>
-                <div class="form-group">
-                    <label for="stakingApyInput">예상 연이율 (APY %)</label>
-                    <input type="number" step="0.1" id="stakingApyInput" class="input-control" placeholder="예: 3.5">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="document.getElementById('stakingModal').style.display='none'">취소</button>
-                <button class="btn btn-primary" id="saveStakingBtn">저장하기</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Global Loader Overlay -->
     <div class="global-loader" id="globalLoader">
