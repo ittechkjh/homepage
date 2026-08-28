@@ -408,7 +408,7 @@ body {
     line-height: 1.5;
 }
 
-.tabs-nav-container {
+.analyzer-subnav {
     display: flex;
     gap: 8px;
     border-bottom: 1px solid var(--border-color);
@@ -416,7 +416,7 @@ body {
     overflow-x: auto;
 }
 
-.nav-tab {
+.analyzer-subtab {
     padding: 12px 18px;
     font-size: 0.9rem;
     font-weight: 600;
@@ -432,20 +432,20 @@ body {
     white-space: nowrap;
 }
 
-.nav-tab:hover {
+.analyzer-subtab:hover {
     color: var(--text-primary);
 }
 
-.nav-tab.active {
+.analyzer-subtab.active {
     color: var(--brand-primary);
     border-bottom-color: var(--brand-primary);
 }
 
-.tab-content {
+.analyzer-tab-pane {
     display: none;
 }
 
-.tab-content.active {
+.analyzer-tab-pane.active {
     display: block;
     animation: fadeIn 0.2s ease-in-out;
 }
@@ -939,11 +939,11 @@ tbody tr:hover {
         background: #fff !important;
         color: #000 !important;
     }
-    .app-header, .upload-card, .tabs-nav-container, .table-toolbar, 
+    .app-header, .upload-card, .analyzer-subnav, .table-toolbar, 
     .pagination-container, .header-actions, .no-print, .col-dropdown {
         display: none !important;
     }
-    .tab-content {
+    .analyzer-tab-pane {
         display: block !important;
     }
     .chart-card, .table-card, .stat-card {
@@ -968,4 +968,48 @@ tbody tr:hover {
         width: 100%;
         justify-content: flex-start;
     }
+}
+
+
+.analyzer-subnav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.analyzer-subtab {
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.analyzer-subtab:hover {
+    color: var(--text-primary);
+}
+
+.analyzer-subtab.active {
+    color: #06b6d4 !important;
+    border-bottom-color: #06b6d4 !important;
+    font-weight: 700;
+}
+
+.analyzer-tab-pane {
+    display: none;
+}
+
+.analyzer-tab-pane.active {
+    display: block !important;
+    animation: fadeIn 0.2s ease-in-out;
 }

@@ -1,47 +1,54 @@
+
+/**
+ * analyzer-app.js
+ * 업비트 & 빗썸 코인 거래내역 분석기 (사용자별 로컬 독립 격리 보관 엔진)
+ */
+
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
-            const u = window.currentUser || JSON.parse(localStorage.getItem("coinhub_user"));
+            const u = window.currentUser || JSON.parse(localStorage.getItem('coinhub_user'));
             if (u && u.username) return String(u.username).trim().toLowerCase();
         } catch (e) {}
-        return "guest";
+        return 'guest';
     },
     getKey: function (key) {
-        return "coinhub_" + this.getCurrentUserId() + "_" + key;
+        const uid = this.getCurrentUserId();
+        return 'coinhub_' + uid + '_' + key;
     },
     getTrades: function () {
         try {
-            const saved = localStorage.getItem(this.getKey("trades"));
+            const saved = localStorage.getItem(this.getKey('trades'));
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) return parsed;
             }
         } catch (e) {
-            console.error("거래 내역 로드 실패:", e);
+            console.error('거래 내역 로드 실패:', e);
         }
         return [];
     },
     saveTrades: function (trades) {
         try {
-            localStorage.setItem(this.getKey("trades"), JSON.stringify(trades));
+            localStorage.setItem(this.getKey('trades'), JSON.stringify(trades));
         } catch (e) {
-            console.warn("거래 내역 저장 오류/용량 초과:", e);
+            console.warn('거래 내역 저장 오류/용량 초과:', e);
         }
     },
     getStaking: function () {
         try {
-            const saved = localStorage.getItem(this.getKey("custom_staking"));
+            const saved = localStorage.getItem(this.getKey('custom_staking'));
             return saved ? JSON.parse(saved) : [];
         } catch (e) { return []; }
     },
     saveStaking: function (staking) {
         try {
-            localStorage.setItem(this.getKey("custom_staking"), JSON.stringify(staking));
+            localStorage.setItem(this.getKey('custom_staking'), JSON.stringify(staking));
         } catch (e) {}
     },
     clearUserData: function () {
-        localStorage.removeItem(this.getKey("trades"));
-        localStorage.removeItem(this.getKey("custom_staking"));
+        localStorage.removeItem(this.getKey('trades'));
+        localStorage.removeItem(this.getKey('custom_staking'));
     }
 };
 
@@ -319,10 +326,10 @@ const App = {
 
     bindEvents: function () {
         // 탭 네비게이션
-        document.querySelectorAll(".analyzer-subtab").forEach(tab => {
+        document.querySelectorAll('.analyzer-subtab').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 const targetTab = e.currentTarget.dataset.subtab || e.currentTarget.dataset.tab;
-                this.switchTab(targetTab);
+                this.switchSubTab(targetTab);
             });
         });
 
@@ -650,27 +657,14 @@ const App = {
 
     switchSubTab: function (tabId) {
         this.state.activeTab = tabId;
-        document.querySelectorAll(".analyzer-subtab").forEach(tab => {
-            tab.classList.toggle("active", (tab.dataset.subtab || tab.dataset.tab) === tabId);
+        document.querySelectorAll('.analyzer-subtab').forEach(tab => {
+            const t = tab.dataset.subtab || tab.dataset.tab;
+            tab.classList.toggle('active', t === tabId);
         });
-        document.querySelectorAll(".analyzer-tab-pane").forEach(content => {
-            content.classList.toggle("active", content.id === tabId + "Tab");
-            content.style.display = (content.id === tabId + "Tab") ? "block" : "none";
-        });
-
-        if (tabId === "dashboard" && this.state.reportData) {
-            setTimeout(() => ChartManager.renderAllCharts(this.state.reportData), 50);
-        } else if (tabId === "tradePoints" && this.state.reportData) {
-            setTimeout(() => this.loadAndRenderTradePointsChart(), 50);
-        }
-    },
-    switchTab: function (tabId) { this.switchSubTab(tabId); },
-        this.state.activeTab = tabId;
-        document.querySelectorAll(".analyzer-subtab").forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabId);
-        });
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.toggle('active', content.id === `${tabId}Tab`);
+        document.querySelectorAll('.analyzer-tab-pane').forEach(content => {
+            const isActive = content.id === tabId + 'Tab';
+            content.classList.toggle('active', isActive);
+            content.style.display = isActive ? 'block' : 'none';
         });
 
         if (tabId === 'dashboard' && this.state.reportData) {
@@ -678,6 +672,9 @@ const App = {
         } else if (tabId === 'tradePoints' && this.state.reportData) {
             setTimeout(() => this.loadAndRenderTradePointsChart(), 50);
         }
+    },
+    switchTab: function (tabId) {
+        this.switchSubTab(tabId);
     },
 
     viewCoinTradePoints: function (market) {
@@ -1819,36 +1816,36 @@ const App = {
         AnalyzerStorage.clearUserData();
         this.recalculate();
         this.updateUserBanner();
-        this.showToast("현재 사용자의 모든 거래 및 스테이킹 데이터가 초기화되었습니다.", "info");
+        this.showToast('현재 사용자의 모든 거래 및 스테이킹 데이터가 초기화되었습니다.', 'info');
     },
 
     updateUserBanner: function () {
         const uid = AnalyzerStorage.getCurrentUserId();
-        const isGuest = uid === "guest";
-        const u = window.currentUser || (function() { try { return JSON.parse(localStorage.getItem("coinhub_user")); } catch(e){ return null; } })();
-        const displayName = isGuest ? "게스트 (방문자)" : (u && u.username ? u.username : uid);
+        const isGuest = uid === 'guest';
+        const u = window.currentUser || (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
+        const displayName = isGuest ? '게스트 (방문자)' : (u && u.username ? u.username : uid);
 
-        const nameEl = document.getElementById("analyzerCurrentUserName");
-        const badgeEl = document.getElementById("analyzerUserModeBadge");
-        const countEl = document.getElementById("analyzerSavedCountBadge");
+        const nameEl = document.getElementById('analyzerCurrentUserName');
+        const badgeEl = document.getElementById('analyzerUserModeBadge');
+        const countEl = document.getElementById('analyzerSavedCountBadge');
 
         if (nameEl) nameEl.textContent = displayName;
         if (badgeEl) {
-            badgeEl.textContent = isGuest ? "🔒 게스트 독립 보관함" : "👤 " + displayName + " 회원 전용 보관함";
-            badgeEl.className = isGuest
-                ? "px-2 py-0.5 rounded bg-navy-950 border border-slate-700 text-slate-400 font-mono text-[11px]"
-                : "px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold";
+            badgeEl.textContent = isGuest ? '🔒 게스트 독립 보관함' : '👤 ' + displayName + ' 회원 전용 보관함';
+            badgeEl.className = isGuest 
+                ? 'px-2 py-0.5 rounded bg-navy-950 border border-slate-700 text-slate-400 font-mono text-[11px]'
+                : 'px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold';
         }
         if (countEl) {
-            countEl.textContent = "저장된 거래: " + (this.state.rawTrades ? this.state.rawTrades.length : 0) + "건";
+            countEl.textContent = '저장된 거래: ' + (this.state.rawTrades ? this.state.rawTrades.length : 0) + '건';
         }
     },
 
     switchUser: function (user) {
         this.loadSavedTrades();
         this.updateUserBanner();
-        const name = user && user.username ? user.username : "게스트";
-        this.showToast(name + " 님의 개인 거래 데이터 보관함으로 전환되었습니다.", "info");
+        const name = user && user.username ? user.username : '게스트';
+        this.showToast(name + ' 님의 개인 거래 데이터 보관함으로 전환되었습니다.', 'info');
     },
 
     showLoading: function (show, text = '처리 중...') {
@@ -1897,3 +1894,4 @@ if (typeof module !== 'undefined' && module.exports) {
 
 
 window.AnalyzerApp = App;
+window.App = App;
