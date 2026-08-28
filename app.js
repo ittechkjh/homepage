@@ -965,6 +965,13 @@ function filterNews(category) {
   renderNews();
 }
 
+function getNewsExternalUrl(item) {
+  if (item.sourceUrl && item.sourceUrl.length > 5 && !item.sourceUrl.endsWith('#')) {
+    return item.sourceUrl;
+  }
+  return `https://www.google.com/search?q=${encodeURIComponent(item.title + ' ' + (item.source || ''))}`;
+}
+
 function renderNews() {
   const container = document.getElementById('news-grid');
   if (!container) return;
@@ -985,29 +992,36 @@ function renderNews() {
     return;
   }
 
-  container.innerHTML = items.map(item => `
-    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition flex flex-col justify-between group cursor-pointer animate-in" onclick="openNewsDetailModal('${item.id}')">
-      <div>
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-2.5">
-          <div class="flex items-center gap-1.5">
-            <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono font-bold text-[10px] border border-cyan-500/20">${item.category}</span>
-            ${item.isBreaking ? '<span class="px-1.5 py-0.2 rounded bg-crypto-red/20 text-crypto-red text-[9px] font-bold animate-pulse border border-crypto-red/30">🔥 NEW 속보</span>' : ''}
+  container.innerHTML = items.map(item => {
+    const externalUrl = getNewsExternalUrl(item);
+
+    return `
+      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition flex flex-col justify-between group cursor-pointer animate-in" onclick="openNewsDetailModal('${item.id}')">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2.5">
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono font-bold text-[10px] border border-cyan-500/20">${item.category}</span>
+              ${item.isBreaking ? '<span class="px-1.5 py-0.2 rounded bg-crypto-red/20 text-crypto-red text-[9px] font-bold animate-pulse border border-crypto-red/30">🔥 NEW 속보</span>' : ''}
+            </div>
+            <span class="text-slate-400 font-medium text-[11px]">${item.source} • ${item.time}</span>
           </div>
-          <span class="text-slate-400 font-medium text-[11px]">${item.source} • ${item.time}</span>
+          <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition leading-snug mb-2">${escapeHtml(item.title)}</h3>
+          <p class="text-xs text-slate-400 leading-relaxed line-clamp-3">${escapeHtml(item.summary)}</p>
         </div>
-        <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition leading-snug mb-2">${escapeHtml(item.title)}</h3>
-        <p class="text-xs text-slate-400 leading-relaxed line-clamp-3">${escapeHtml(item.summary)}</p>
-      </div>
-      
-      <div class="mt-4 pt-3 border-t border-navy-800/80 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-        <span class="group-hover:underline">전문 읽기</span>
-        <div class="flex items-center gap-1">
-          <span class="text-[11px] text-slate-500 group-hover:text-cyan-400 transition">전체 기사 보기</span>
-          <i data-lucide="arrow-up-right" class="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+        
+        <div class="mt-4 pt-3 border-t border-navy-800/80 flex items-center justify-between text-xs gap-2">
+          <button type="button" onclick="openNewsDetailModal('${item.id}'); event.stopPropagation();" class="text-slate-400 hover:text-cyan-400 font-semibold flex items-center gap-1 transition text-xs">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 요약 & 분석
+          </button>
+          
+          <a href="${externalUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition group/btn text-xs">
+            <span>전문 읽기</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"></i>
+          </a>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   lucide.createIcons();
 }
@@ -1056,7 +1070,10 @@ function openNewsDetailModal(newsId) {
   // Source original link
   const linkEl = document.getElementById('modal-news-original-link');
   if (linkEl) {
-    linkEl.href = item.sourceUrl || `https://www.google.com/search?q=${encodeURIComponent(item.title)}`;
+    const externalUrl = getNewsExternalUrl(item);
+    linkEl.href = externalUrl;
+    linkEl.setAttribute('target', '_blank');
+    linkEl.setAttribute('rel', 'noopener noreferrer');
   }
 
   document.getElementById('news-detail-modal').classList.remove('hidden');
