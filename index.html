@@ -47,8 +47,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787973097157">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787973097157">
+  <link rel="stylesheet" href="styles.css?v=1787973386163">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787973386163">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -1082,11 +1082,11 @@
           </div>
           <div>
             <label class="block text-[11px] text-slate-400 mb-1 font-semibold">관리자 아이디 (ID)</label>
-            <input type="text" id="admin-login-id" value="admin" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+            <input type="text" id="admin-login-id" placeholder="관리자 계정 ID 입력" autocomplete="off" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
           </div>
           <div>
             <label class="block text-[11px] text-slate-400 mb-1 font-semibold">관리자 비밀번호</label>
-            <input type="password" id="admin-login-pw" value="admin1234" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+            <input type="password" id="admin-login-pw" placeholder="관리자 비밀번호 입력" autocomplete="new-password" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
           </div>
           <button onclick="AdminApp.handleAdminLogin()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 mt-1">
             <i data-lucide="key" class="w-4 h-4"></i> 관리자 권한으로 즉시 인증 및 입장
@@ -1811,16 +1811,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787973097157"></script>
-  <script src="js/calculator.js?v=1787973097157"></script>
-  <script src="js/upbit-api.js?v=1787973097157"></script>
-  <script src="js/charts.js?v=1787973097157"></script>
-  <script src="js/exporter.js?v=1787973097157"></script>
-  <script src="js/sample-data.js?v=1787973097157"></script>
-  <script src="js/analyzer-app.js?v=1787973097157"></script>
+  <script src="js/parser.js?v=1787973386163"></script>
+  <script src="js/calculator.js?v=1787973386163"></script>
+  <script src="js/upbit-api.js?v=1787973386163"></script>
+  <script src="js/charts.js?v=1787973386163"></script>
+  <script src="js/exporter.js?v=1787973386163"></script>
+  <script src="js/sample-data.js?v=1787973386163"></script>
+  <script src="js/analyzer-app.js?v=1787973386163"></script>
 
-  <script src="js/admin.js?v=1787973097157"></script>
-  <script src="app.js?v=1787973097157"></script>
+  <script src="js/admin.js?v=1787973386163"></script>
+  <script src="app.js?v=1787973386163"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load

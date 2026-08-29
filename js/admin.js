@@ -392,12 +392,24 @@ const AdminApp = {
     handleAdminLogin: function () {
         const idInput = document.getElementById('admin-login-id');
         const pwInput = document.getElementById('admin-login-pw');
-        const id = idInput ? idInput.value.trim() : 'admin';
+        const id = idInput ? idInput.value.trim() : '';
         const pw = pwInput ? pwInput.value.trim() : '';
         const currentAdminPw = this.getAdminPassword();
 
+        if (!id) {
+            alert('관리자 계정 ID를 입력해 주세요.');
+            if (idInput) idInput.focus();
+            return;
+        }
+
+        if (!pw) {
+            alert('관리자 비밀번호를 입력해 주세요.');
+            if (pwInput) pwInput.focus();
+            return;
+        }
+
         if (id.toLowerCase() === 'admin' || id === '성공' || id.toLowerCase().includes('admin')) {
-            if (pw === currentAdminPw || pw === 'admin1234' || pw === '7777') {
+            if (pw === currentAdminPw || (currentAdminPw === 'admin1234' && pw === 'admin1234') || pw === '7777') {
                 const adminUser = {
                     username: id || 'admin',
                     email: 'admin@coinhub.kr',
@@ -417,7 +429,7 @@ const AdminApp = {
             }
         }
         
-        alert('관리자 인증 정보가 일치하지 않습니다. 올바른 관리자 비밀번호를 입력하세요.');
+        alert('관리자 인증 정보가 일치하지 않습니다. 올바른 비밀번호를 입력하세요.');
     },
 
     switchSubTab: function (tabId) {
