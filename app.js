@@ -1,3 +1,38 @@
+// ====================================================
+// CoinHub Core Global State & Default Market Data
+// ====================================================
+const DEFAULT_COINS = [
+  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { id: 'solana', symbol: 'sol', name: 'Solana', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+  { id: 'ripple', symbol: 'xrp', name: 'XRP', current_price: 0.584, price_change_percentage_24h: -0.45, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+  { id: 'binancecoin', symbol: 'bnb', name: 'BNB', current_price: 588.30, price_change_percentage_24h: 0.95, total_volume: 980000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+  { id: 'cardano', symbol: 'ada', name: 'Cardano', current_price: 0.382, price_change_percentage_24h: 3.12, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
+  { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', current_price: 0.124, price_change_percentage_24h: 5.60, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+  { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', current_price: 26.70, price_change_percentage_24h: -1.20, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' }
+];
+
+let marketCoins = [...DEFAULT_COINS];
+let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820 };
+let priceChart = null;
+let currentChartTimeframe = '24h';
+let currentNewsFilter = 'ALL';
+let currentUser = (function() {
+  try {
+    const u = JSON.parse(localStorage.getItem('coinhub_user'));
+    if (u && u.username) return u;
+  } catch(e) {}
+  return null;
+})();
+
+let signupGeneratedOTP = null;
+let signupEmailVerified = false;
+let signupOTPTimerInterval = null;
+
+let resetGeneratedOTP = null;
+let resetEmailVerified = false;
+let resetOTPTimerInterval = null;
+
 
 // ====================================================
 
@@ -923,13 +958,6 @@ function copyNewsLink() {
 // User Authentication, Email OTP Verification & Password Reset
 // ----------------------------------------------------
 let currentAuthMode = 'login';
-let signupGeneratedOTP = null;
-let signupOTPTimerInterval = null;
-let signupEmailVerified = false;
-
-let resetGeneratedOTP = null;
-let resetOTPTimerInterval = null;
-let resetEmailVerified = false;
 let resetTargetEmail = '';
 
 function openAuthModal(mode = 'login') {
