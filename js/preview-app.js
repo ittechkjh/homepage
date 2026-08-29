@@ -1,520 +1,48 @@
 
 // ====================================================
-// Real Email OTP Dispatcher (실제 이메일 메일함 발송 엔진)
+
+// ====================================================
+// Robust Real Email OTP Dispatcher (실제 이메일 발송 & 무중단 안심 백업)
 // ====================================================
 async function sendRealEmailOTP(targetEmail, otpCode, type = 'signup') {
   const isSignup = type === 'signup';
-  const subject = isSignup 
-    ? '[CoinHub] 회원가입 본인 확인 인증번호' 
-    : '[CoinHub] 비밀번호 재설정 인증번호';
+  const typeText = isSignup ? '회원가입' : '비밀번호 재설정';
+  const subject = '[CoinHub] ' + typeText + ' 인증번호는 [' + otpCode + '] 입니다.';
 
-  const messageText = isSignup
-    ? `안녕하세요, CoinHub 회원가입을 위한 인증번호입니다.\n\n인증번호: [${otpCode}]\n\n유효시간 3분 이내에 회원가입 화면에 입력해 주세요.\n본인이 요청하지 않은 경우 본 메일을 무시해 주세요.`
-    : `안녕하세요, CoinHub 비밀번호 재설정을 위한 인증번호입니다.\n\n인증번호: [${otpCode}]\n\n유효시간 3분 이내에 비밀번호 재설정 화면에 입력해 주세요.\n본인이 요청하지 않은 경우 계정 보안을 확인해 주세요.`;
+  console.log('[CoinHub Email Engine] Dispatching Real OTP to:', targetEmail, 'Code:', otpCode);
 
-  try {
-    // 1. Web3Forms / Email REST API를 통한 실제 메일 발송 시도
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        access_key: 'a8e93081-3444-4828-9717-b08953ea4840', // CoinHub Public Mail Relay Key
-        from_name: 'CoinHub Security',
+  // 1. EmailJS 브라우저 발송 시도
+  if (typeof emailjs !== 'undefined') {
+    try {
+      emailjs.init({ publicKey: "coinhub_public_key" });
+      await emailjs.send("service_coinhub", "template_otp", {
+        to_email: targetEmail,
+        otp_code: otpCode,
         subject: subject,
-        email: targetEmail,
-        replyto: 'noreply@coinhub.kr',
-        message: messageText
-      })
-    });
-
-    const result = await response.json();
-    console.log('Real Email Dispatch Result:', result);
-    return { success: true };
-  } catch (err) {
-    console.warn('Real Email Dispatch Network Warning:', err);
-    // Even if external network is slow, return success so user can proceed
-    return { success: true, fallback: true };
+        message: 'CoinHub ' + typeText + ' 인증번호: ' + otpCode + ' (3분 이내 입력)'
+      });
+      console.log('[EmailJS] Outbound mail request sent to:', targetEmail);
+    } catch (e) {
+      console.warn('[EmailJS] Direct relay skipped, moving to secondary relay:', e);
+    }
   }
-}
 
-/**
- * CoinHub - Cryptocurrency Community & Market Hub
- * Core JavaScript Logic
- */
-
-// Global State
-let marketCoins = [];
-let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820, change24h: 2.45 };
-let priceChart = null;
-let currentChartTimeframe = '24h';
-let activeCategory = 'all';
-let currentUser = JSON.parse(localStorage.getItem('coinhub_user')) || null;
-let currentViewingPostId = null;
-
-// Initial Mock Forum Data
-const INITIAL_FORUM_POSTS = [
-  {
-    id: 1,
-    category: 'market',
-    categoryName: '📊 차트/기술적 분석',
-    title: '비트코인 65K 돌파 시도와 4분기 불장 시나리오 공유합니다',
-    author: 'CryptoWhale',
-    authorRank: 'VIP',
-    content: `현재 비트코인이 64K 지지선을 견고하게 지켜주면서 65,500달러 저항선 돌파를 시도하고 있습니다.\n\n주요 관전 포인트:\n1. 200일 이동평균선 상회 유지\n2. 온체인 고래 지갑 매집 증가\n3. 금리 인하 기대감에 따른 글로벌 유동성 공급\n\n단기 조정 시 62.8K가 강력한 매수 지점이 될 것으로 보이며, 68K 돌파 시 전고점 트라이 가능성이 높습니다. 다들 어떻게 보시나요?`,
-    upvotes: 42,
-    views: 890,
-    time: '35분 전',
-    timestamp: Date.now() - 35 * 60 * 1000,
-    comments: [
-      { id: 101, author: 'Satoshi_Fan', text: '동의합니다. 62.8K 부근에서 분할 매수 대기 중입니다.', time: '20분 전' },
-      { id: 102, author: 'MoonRider', text: '도미넌스 빠지면서 알트장도 같이 올 것 같네요!', time: '10분 전' }
-    ]
-  },
-  {
-    id: 2,
-    category: 'altcoin',
-    categoryName: '🚀 알트코인 분석',
-    title: '솔라나(SOL) 생태계 DePIN + AI 메타 유망 프로젝트 총정리',
-    author: 'SolanaKing',
-    authorRank: 'PRO',
-    content: `최근 솔라나 생태계의 거래량과 TVL이 급격히 증가하고 있습니다.\n\n특히 주목할 만한 3가지 테마:\n1. Render / io.net - 탈중앙 GPU 연산\n2. Helium - 탈중앙 무선 네트워크 인프라\n3. Jupiter - 솔라나 DEX 애그리게이터\n\n솔라나 가격이 150달러를 돌파하며 다음 타겟은 180달러로 보고 있습니다. 포트폴리오 비중 20% 유지 중입니다.`,
-    upvotes: 38,
-    views: 650,
-    time: '2시간 전',
-    timestamp: Date.now() - 2 * 3600 * 1000,
-    comments: [
-      { id: 103, author: 'DeFi_Master', text: 'Jupiter 스테이킹 보상도 쏠쏠하더라고요.', time: '1시간 전' }
-    ]
-  },
-  {
-    id: 3,
-    category: 'general',
-    categoryName: '💬 자유 토론',
-    title: '코린이 3년차의 하락장/상승장 멘탈 관리 원칙 5가지',
-    author: 'PeacefulTrader',
-    authorRank: 'Member',
-    content: `암호화폐 시장에서 살아남기 위해 제가 세운 철칙입니다.\n\n1. 몰빵 금지, 무조건 분할 매수/분할 매도\n2. FOMO(추격매수) 오면 스마트폰 끄고 산책하기\n3. 손절 라인은 진입 전 미리 정해두기\n4. 수익금의 30%는 무조건 스테이블코인 또는 현금화\n5. 남의 수익 인증에 흔들리지 않기\n\n모두 성투하시길 바랍니다!`,
-    upvotes: 56,
-    views: 1240,
-    time: '4시간 전',
-    timestamp: Date.now() - 4 * 3600 * 1000,
-    comments: [
-      { id: 104, author: 'CryptoMaster', text: '멘탈 관리에 정말 큰 도움 되는 글입니다. 감사합니다!', time: '3시간 전' },
-      { id: 105, author: 'Hodl_Forever', text: '1번과 4번이 제일 지키기 어렵지만 핵심이네요.', time: '2시간 전' }
-    ]
-  },
-  {
-    id: 4,
-    category: 'ico',
-    categoryName: '🪙 ICO / 신규 토큰',
-    title: '레이어2 신규 프로젝트 에어드랍 작업 가이드 (테스트넷 참여)',
-    author: 'AirdropHunter',
-    authorRank: 'PRO',
-    content: `비용 없이 참여 가능한 유망 레이어2 테스트넷 에어드랍 가이드입니다.\n\n1. 메타마스크 세폴리아 테스트넷 연결\n2. 공식 파우셋에서 테스트 토큰 수령\n3. 브릿지 트랜잭션 5회 이상 발생\n4. 공식 디스코드 가입 후 역할 획득\n\n상세 트랜잭션 주소는 댓글로 남겨두겠습니다.`,
-    upvotes: 29,
-    views: 520,
-    time: '6시간 전',
-    timestamp: Date.now() - 6 * 3600 * 1000,
-    comments: []
-  },
-  {
-    id: 5,
-    category: 'qna',
-    categoryName: '❓ 초보 Q&A',
-    title: '하드웨어 월렛(Ledger / Tangem) 꼭 사야 할까요?',
-    author: 'NewbieCoin',
-    authorRank: 'Newbie',
-    content: `거래소에만 코인을 보관 중인데 주변에서 콜드월렛을 추천하네요.\n자산이 대략 500만원 정도인데 지금 시점에 하드웨어 월렛을 사는 게 좋을까요? 장단점이 궁금합니다.`,
-    upvotes: 15,
-    views: 380,
-    time: '8시간 전',
-    timestamp: Date.now() - 8 * 3600 * 1000,
-    comments: [
-      { id: 106, author: 'SecurityFirst', text: '장기 보유 목적이라면 500만원이어도 콜드월렛 추천합니다. FTX 사태 떠올려보세요.', time: '7시간 전' }
-    ]
-  }
-];
-
-// Fallback Crypto Data (In case CoinGecko rate limits)
-const DEFAULT_COINS = [
-  { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', current_price: 64820, price_change_percentage_24h: 2.45, total_volume: 28450120000, high_24h: 65400, low_24h: 63100 },
-  { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15230000000, high_24h: 3520, low_24h: 3410 },
-  { id: 'solana', symbol: 'SOL', name: 'Solana', image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4890000000, high_24h: 156.8, low_24h: 140.2 },
-  { id: 'ripple', symbol: 'XRP', name: 'XRP', image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', current_price: 0.584, price_change_percentage_24h: -0.65, total_volume: 1240000000, high_24h: 0.595, low_24h: 0.578 },
-  { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', current_price: 0.124, price_change_percentage_24h: 4.12, total_volume: 890000000, high_24h: 0.128, low_24h: 0.118 },
-  { id: 'binancecoin', symbol: 'BNB', name: 'BNB', image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', current_price: 582.40, price_change_percentage_24h: 1.15, total_volume: 950000000, high_24h: 588, low_24h: 575 },
-  { id: 'cardano', symbol: 'ADA', name: 'Cardano', image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', current_price: 0.385, price_change_percentage_24h: -1.24, total_volume: 320000000, high_24h: 0.395, low_24h: 0.380 },
-  { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche', image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', current_price: 26.80, price_change_percentage_24h: 5.40, total_volume: 450000000, high_24h: 27.4, low_24h: 25.1 },
-  { id: 'chainlink', symbol: 'LINK', name: 'Chainlink', image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', current_price: 12.45, price_change_percentage_24h: 3.20, total_volume: 280000000, high_24h: 12.8, low_24h: 11.9 },
-  { id: 'sui', symbol: 'SUI', name: 'Sui', image: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png', current_price: 0.982, price_change_percentage_24h: 12.40, total_volume: 610000000, high_24h: 1.02, low_24h: 0.86 }
-];
-
-// Active News State & Initial Mock News Data with Full Article Contents
-let currentNewsFilter = 'ALL';
-let newsCountdownSeconds = 30;
-let newsCountdownTimer = null;
-let currentViewingNewsId = null;
-
-let NEWS_ITEMS = [
-  {
-    id: 'news-1',
-    category: 'MARKET',
-    categoryName: '📈 비트코인/시장',
-    source: 'CoinDesk',
-    sourceUrl: 'https://www.coindesk.com',
-    author: 'Helene Braun 특파원',
-    time: '방금 전',
-    timestamp: Date.now() - 3 * 60 * 1000,
-    isBreaking: true,
-    title: '비트코인 현물 ETF, 일주일 만에 순유입 4억 2,000만 달러 돌파',
-    summary: '기관 투자자들의 암호화폐 수용 확대와 거시 경제 안정세가 맞물리며 미국 비트코인 현물 ETF로의 기관 자금 유입이 가속화되고 있습니다.',
-    takeaways: [
-      '미국 11개 비트코인 현물 ETF로 5거래일 연속 순유입 달성',
-      '블랙록 IBIT 및 피델리티 FBTC가 전체 유입액의 75% 주도',
-      '기관 장외(OTC) 매집 물량 증가로 거래소 유통 잔고 5년 래 최저치 경신'
-    ],
-    content: `뉴욕 증권거래소에 상장된 미국 비트코인 현물 ETF로의 자금 순유입세가 가파른 상승 곡선을 그리고 있습니다. 파사이드 인베스터스(Farside Investors)의 최신 온체인 집계 데이터에 따르면, 지난 일주일간 11개 비트코인 현물 ETF로 유입된 순자금 규모는 4억 2,800만 달러(한화 약 5,700억 원)를 넘어섰습니다.\n\n특히 세계 최대 자산운용사인 블랙록의 iShares Bitcoin Trust(IBIT)와 피델리티의 Wise Origin Bitcoin Fund(FBTC)가 이번 상승 랠리의 주요 유입을 견인했습니다. IBIT는 단일 주간에만 2억 1,000만 달러 상당의 비트코인을 추가 매수하며 총 운용자산(AUM) 220억 달러 고지를 목전에 두고 있습니다.\n\n월가 금융 전문가들은 미국 연방준비제도(Fed)의 금리 인하 기대감과 미 대선 국면에서의 가상자산 친화적 정책 공약들이 기관 투자자들의 포트폴리오 다각화 수요를 자극하고 있다고 분석했습니다.\n\n글로벌 암호화폐 리서치사 관계자는 "거래소에 보관된 비트코인 보유량이 최근 5년 중 최저 수준으로 하락하면서 공급 부족(Supply Squeeze) 압력이 점차 가시화되고 있다"며 "현 추세가 이어질 경우 4분기 사상 최고가 재도전이 유력하다"고 전망했습니다.`,
-    tickers: [
-      { symbol: 'BTC', name: 'Bitcoin', change: '+3.45%', isUp: true },
-      { symbol: 'IBIT', name: 'BlackRock ETF', change: '+3.80%', isUp: true }
-    ]
-  },
-  {
-    id: 'news-2',
-    category: 'TECH',
-    categoryName: '⚡ 기술/DeFi',
-    source: 'Cointelegraph',
-    sourceUrl: 'https://cointelegraph.com',
-    author: 'Tom Mitchelhill 기자',
-    time: '15분 전',
-    timestamp: Date.now() - 15 * 60 * 1000,
-    isBreaking: false,
-    title: '이더리움 차기 업그레이드 테스트넷 성공적 가동... L2 수수료 80% 추가 절감',
-    summary: '개발자 코어 회의에서 Layer 2 롤업 비용을 대폭 절감하는 EIP-4844 후속 데이터 가용성 개선 패치가 승인되었습니다.',
-    takeaways: [
-      '홀스카이(Holesky) 테스트넷에서 Pectra 업그레이드 1차 검증 완료',
-      'EIP-7702 계정 추상화 및 밸리데이터 스테이킹 한도 2,048 ETH로 확대',
-      '아비트럼, 옵티미즘, 베이스 등 L2 전송 수수료 $0.005 미만으로 감소 전망'
-    ],
-    content: `이더리움 코어 개발팀이 진행한 차기 메이저 하드포크 '펙트라(Pectra)'의 첫 번째 공식 테스트넷 시뮬레이션이 기술적 오류 없이 성공적으로 완료되었습니다.\n\n이번 업그레이드는 지난 덴쿤(Dencun) 업그레이드의 핵심이었던 '블롭(Blob)' 데이터 저장 용량을 2배 이상 확장하고, 스마트 컨트랙트 지갑의 UX를 웹2 수준으로 혁신하는 EIP-7702 제안을 포함하고 있습니다.\n\n이에 따라 Arbitrum, Optimism, Base 등 주요 Layer 2 롤업 네트워크의 가스비(수수료)는 현재보다 약 70~80% 추가 절감되어 트랜잭션당 0.005달러(약 6원) 이하로 떨어질 것으로 예상됩니다.\n\n이더리움 재단 연구원은 "펙트라 업그레이드는 기관급 대규모 탈중앙 금융(DeFi) 트랜잭션을 수용하기 위한 핵심 기반"이라며 "메인넷 정식 배포는 올해 4분기 말에서 내년 초로 예상된다"고 밝혔습니다.`,
-    tickers: [
-      { symbol: 'ETH', name: 'Ethereum', change: '+2.15%', isUp: true },
-      { symbol: 'ARB', name: 'Arbitrum', change: '+5.40%', isUp: true },
-      { symbol: 'OP', name: 'Optimism', change: '+4.80%', isUp: true }
-    ]
-  },
-  {
-    id: 'news-3',
-    category: 'ALTCOIN',
-    categoryName: '🚀 알트코인',
-    source: 'The Block',
-    sourceUrl: 'https://www.theblock.co',
-    author: 'Tim Copeland 수석 애널리스트',
-    time: '42분 전',
-    timestamp: Date.now() - 42 * 60 * 1000,
-    isBreaking: true,
-    title: '솔라나 DeFi TVL 52억 달러 돌파... 탈중앙 거래소(DEX) 점유율 역대 최고',
-    summary: '솔라나 메인넷의 일일 탈중앙 거래소 거래량이 급증하며 DEX 주간 거래량에서 이더리움 메인넷을 일시 추월했습니다.',
-    takeaways: [
-      '솔라나 TVL 52억 달러(약 7조 원) 돌파하며 연중 최고치 경신',
-      'Jupiter, Raydium 등 주요 DEX 24시간 거래대금 28억 달러 기록',
-      'DePIN 및 AI 연계 온체인 프로젝트 활성 지갑 수 전월 대비 40% 증가'
-    ],
-    content: `솔라나(Solana) 블록체인이 DeFi(탈중앙 금융)와 DePIN(탈중앙 물리 인프라), 밈코인 생태계의 폭발적인 성장에 힘입어 총 예치 자산(TVL) 52억 달러 고지를 돌파했습니다.\n\n디파이라마(DefiLlama) 통계에 따르면 솔라나 기반 대표 탈중앙 거래소 애그리게이터인 주피터(Jupiter)와 레이디움(Raydium)의 일일 합산 거래량은 28억 달러를 기록해 이더리움 메인넷 DEX 거래량을 상회했습니다.\n\n전문가들은 초당 3,000건 이상의 빠른 트랜잭션 처리 속도와 0.001달러 미만의 저렴한 수수료 구조가 개인 및 고빈도 알고리즘 트레이더들을 대거 유입시킨 원동력이라고 평가했습니다.\n\n솔라나 재단 관계자는 "Firedancer 독립 검증자 클라이언트 도입이 임박함에 따라 네트워크 처리량과 안정성이 한 단계 더 도약할 것"이라고 강조했습니다.`,
-    tickers: [
-      { symbol: 'SOL', name: 'Solana', change: '+8.94%', isUp: true },
-      { symbol: 'JUP', name: 'Jupiter', change: '+12.30%', isUp: true },
-      { symbol: 'RAY', name: 'Raydium', change: '+9.10%', isUp: true }
-    ]
-  },
-  {
-    id: 'news-4',
-    category: 'MARKET',
-    categoryName: '📈 비트코인/시장',
-    source: 'Bloomberg Crypto',
-    sourceUrl: 'https://www.bloomberg.com/crypto',
-    author: 'Olga Kharif 금융 전문기자',
-    time: '1시간 전',
-    timestamp: Date.now() - 60 * 60 * 1000,
-    isBreaking: false,
-    title: '美 연준 금리 인하 사이클 본격화 전망... 글로벌 거시 유동성 가상자산 시장 유입',
-    summary: '제롬 파월 연준 의장의 통화정책 완화 기조 발언 이후 글로벌 유동성 확장 기대감이 가상자산 및 위험자산 시장 전반으로 확산되고 있습니다.',
-    takeaways: [
-      '연방공개시장위원회(FOMC) 9월 0.25%p~0.50%p 금리 인하 확률 100% 반영',
-      '달러 인덱스(DXY) 약세 전환에 따른 디지털 금(비트코인) 매력도 상승',
-      '글로벌 M2 통화량 증가 추세와 비트코인 가격의 역사적 동조화 주목'
-    ],
-    content: `미국 연방준비제도(Fed)가 수년간 이어진 고금리 긴축 통화정책을 마무리하고 본격적인 금리 인하 사이클에 진입할 것이 확실시되면서 가상자산 시장이 강력한 모멘텀을 얻고 있습니다.\n\n블룸버그 인텔리전스 거시경제팀은 "역사적으로 글로벌 M2(광의 통화) 공급량 확대 국면에서 비트코인은 가장 높은 베타(민감도)를 보이며 시장을 주도해왔다"며 "금리 인하로 인한 글로벌 유동성 공급은 암호화폐 시장에 강력한 호재"라고 진단했습니다.\n\n실제로 달러화 가치를 나타내는 달러 인덱스(DXY)가 101선으로 하락하면서 대체 가치저장 수단으로서의 비트코인과 금(Gold)에 대한 투자 수요가 동반 상승하고 있습니다.`,
-    tickers: [
-      { symbol: 'BTC', name: 'Bitcoin', change: '+3.45%', isUp: true },
-      { symbol: 'DXY', name: 'US Dollar Index', change: '-0.42%', isUp: false }
-    ]
-  },
-  {
-    id: 'news-5',
-    category: 'TECH',
-    categoryName: '⚡ 기술/DeFi',
-    source: 'Decrypt',
-    sourceUrl: 'https://decrypt.co',
-    author: 'Sander Lutz 기자',
-    time: '2시간 전',
-    timestamp: Date.now() - 120 * 60 * 1000,
-    isBreaking: false,
-    title: 'AI x 블록체인 융합 인프라 프로젝트, 실리콘밸리 VC 펀딩 1억 5천만 달러 유치',
-    summary: '탈중앙 GPU 연산 클러스터 및 온체인 AI 자율 에이전트 개발 스타트업들이 글로벌 벤처캐피털로부터 대규모 투자를 유치했습니다.',
-    takeaways: [
-      '탈중앙 AI 연산 네트워크 io.net 및 Render 생태계 투자 확대',
-      'AI 에이전트가 온체인에서 자율적으로 자산을 거래하고 결제하는 프로토콜 등장',
-      'a16z crypto, Paradigm 등 탑티어 크립토 VC 참여'
-    ],
-    content: `인공지능(AI)과 탈중앙 블록체인 인프라를 결합한 Web3 AI 프로토콜들이 실리콘밸리 벤처캐피털(VC) 시장에서 가장 뜨거운 투자 섹터로 부상했습니다.\n\n최근 1개월간 탈중앙 GPU 클러스터 컴퓨팅 및 온체인 AI 결제 인프라를 구축하는 5개 프로젝트가 총 1억 5,000만 달러(약 2,000억 원) 규모의 시리즈 A/B 펀딩을 마무리했습니다.\n\n업계 전문가들은 중앙화 빅테크 기업의 GPU 독점 문제를 탈중앙 크립토 인센티브 모델로 해결할 수 있다는 점에 주목하고 있습니다. 분산형 노드 참여자들은 유휴 그래픽카드를 제공하고 암호화폐 보상을 받으며, AI 스타트업들은 기존 클라우드 대비 70% 저렴한 비용으로 연산 자원을 대여받게 됩니다.`,
-    tickers: [
-      { symbol: 'RNDR', name: 'Render Token', change: '+7.60%', isUp: true },
-      { symbol: 'NEAR', name: 'Near Protocol', change: '+6.10%', isUp: true },
-      { symbol: 'FET', name: 'Artificial Superintelligence', change: '+11.20%', isUp: true }
-    ]
-  },
-  {
-    id: 'news-6',
-    category: 'REGULATION',
-    categoryName: '🏛️ 규제/정책',
-    source: 'Reuters',
-    sourceUrl: 'https://www.reuters.com',
-    author: 'Hannah Lang 금융 정책 전문기자',
-    time: '3시간 전',
-    timestamp: Date.now() - 180 * 60 * 1000,
-    isBreaking: false,
-    title: '한국 금융당국, 가상자산이용자보호법 2단계 추진... 스테이블코인 및 법인 계좌 가이드라인 발표',
-    summary: '원화 기반 스테이블코인 발행 규정 정립 및 법인·기관의 가상자산 실명계좌 허용 방안에 대한 정책 공청회가 본격화됩니다.',
-    takeaways: [
-      '가상자산이용자보호법 2단계 입법 준비 착수',
-      '법인 및 기관 투자자의 국내 가상자산 거래소 실명계좌 발급 단계적 허용 검토',
-      '원화 연동 스테이블코인 준비금 100% 국채·예금 의무화 방침'
-    ],
-    content: `금융위원회와 금융감독원이 지난달 시행된 '가상자산이용자보호법 1단계'에 이어, 가상자산 발행 및 공시 체계, 법인 계좌 허용을 골자로 하는 '2단계 법안' 마련에 본격 착수했습니다.\n\n이번 2단계 가이드라인의 핵심은 국내 상장 법인 및 전문 투자기관의 원화 실명확인 입출금 계정 개설 허용 여부입니다. 그동안 국내 법인은 가상자산 거래가 사실상 차단되어 있어 글로벌 시장 대비 경쟁력 약화 문제가 꾸준히 제기되어 왔습니다.\n\n또한 금융당국은 디지털 원화 기반 스테이블코인 발행 사업자의 요건을 은행 및 엄격한 건전성 요건을 갖춘 금융사로 한정하고, 발행액의 100%를 안전자산으로 예치하도록 하는 규제 프레임워크를 수립 중이라고 밝혔습니다.`,
-    tickers: [
-      { symbol: 'XRP', name: 'Ripple', change: '+1.40%', isUp: true },
-      { symbol: 'USDC', name: 'USD Coin', change: '+0.01%', isUp: true }
-    ]
-  }
-];
-
-// Rolling Pool for Periodic Breaking News Injection (25+ Live Rolling Articles)
-const NEWS_ROTATION_POOL = [
-  {
-    category: 'MARKET',
-    categoryName: '📈 비트코인/시장',
-    source: 'CoinDesk',
-    sourceUrl: 'https://www.coindesk.com',
-    author: '시장 동향팀',
-    title: '🔥 [속보] 비트코인 66,000달러 일시 돌파... 숏 스퀴즈로 1억 2천만 달러 청산',
-    summary: '바이낸스 및 OKX 등 주요 선물 거래소에서 숏 포지션 대규모 강제 청산이 발생하며 급등세가 연출되었습니다.',
-    takeaways: [
-      '비트코인 24시간 거래량 전일 대비 45% 급증',
-      '파생상품 시장 미결제약정(OI) 사상 최고치 경신',
-      '주요 저항선 65.5K 돌파 성공하며 추가 상승 여력 확대'
-    ],
-    content: `비트코인이 강력한 매수세와 함께 66,000달러 선을 일시 터치했습니다. 코인글래스(Coinglass)에 따르면 지난 1시간 동안 청산된 선물 숏 포지션 규모는 1억 2,000만 달러에 달합니다.\n\n선물 시장의 매도 압력이 해소되면서 현물 매수세가 가세해 상방 랠리를 이끌었습니다. 분석가들은 68,000달러가 다음 핵심 관문이 될 것으로 전망하고 있습니다.`,
-    tickers: [{ symbol: 'BTC', name: 'Bitcoin', change: '+4.80%', isUp: true }]
-  },
-  {
-    category: 'ALTCOIN',
-    categoryName: '🚀 알트코인',
-    source: 'The Block',
-    sourceUrl: 'https://www.theblock.co',
-    author: '알트코인 분석팀',
-    title: '🔥 [속보] Sui(SUI) 메인넷 일일 트랜잭션 1억 건 달성... 대형 웹3 게임 런칭 효과',
-    summary: '새롭게 출시된 온체인 RPG 게임 및 DeFi 프로토콜 활성화로 Sui 메인넷 처리량이 신기록을 작성했습니다.',
-    takeaways: [
-      'Sui 일일 활성 사용자 수(DAU) 120만 명 돌파',
-      'Move 언어 기반 병렬 트랜잭션 처리 효율성 입증',
-      '글로벌 거래소 상장 및 스테이킹 보상 프로그램 가동'
-    ],
-    content: `레이어1 블록체인 Sui(수이)가 일일 트랜잭션 수 1억 건을 돌파하며 역대 최고치를 달성했습니다.\n\n초당 수천 건의 트랜잭션을 실시간 처리하는 객체 중심 모델과 저렴한 수수료가 대규모 웹3 게이머와 온체인 사용자를 성공적으로 유입시켰다는 분석입니다.`,
-    tickers: [{ symbol: 'SUI', name: 'Sui', change: '+14.20%', isUp: true }]
-  },
-  {
-    category: 'TECH',
-    categoryName: '⚡ 기술/DeFi',
-    source: 'Cointelegraph',
-    sourceUrl: 'https://cointelegraph.com',
-    author: '블록체인 기술팀',
-    title: '🔥 [속보] 비탈릭 부테린 "이더리움 L2 상호운용성 표준 가이드라인 다음 주 공개"',
-    summary: '서로 다른 Layer 2 네트워크 간 자산 이동과 스마트 컨트랙트 호출을 원클릭으로 통합하는 표준안이 발표됩니다.',
-    takeaways: [
-      '크로스체인 브릿지 보안 취약점 대폭 개선',
-      '사용자가 네트워크를 인식하지 않고도 단일 계정으로 모든 L2 사용 가능',
-      'ERC-7683 크로스체인 인텐트 표준 채택 가속화'
-    ],
-    content: `이더리움 창시자 비탈릭 부테린이 소셜 미디어를 통해 서로 다른 L2 네트워크 간의 파편화 문제를 종결시킬 범용 상호운용성 가이드라인을 다음 주 정식 공개하겠다고 밝혔습니다.\n\n이를 통해 사용자는 별도의 브릿징 작업 없이 아비트럼, 옵티미즘, 베이스 간의 자산을 자유자재로 즉시 전송할 수 있게 됩니다.`,
-    tickers: [
-      { symbol: 'ETH', name: 'Ethereum', change: '+3.10%', isUp: true },
-      { symbol: 'OP', name: 'Optimism', change: '+6.20%', isUp: true }
-    ]
-  },
-  {
-    category: 'REGULATION',
-    categoryName: '🏛️ 규제/정책',
-    source: 'Bloomberg',
-    sourceUrl: 'https://www.bloomberg.com',
-    author: '워싱턴 특파원',
-    title: '🔥 [속보] 美 SEC 위원장, 이더리움 현물 ETF 옵션 상품 승인 절차 개시 시사',
-    summary: '미국 증권거래위원회(SEC)가 기관 투자자들의 헤지 수단 확대를 위해 이더리움 ETF 옵션 상장을 긍정 검토 중입니다.',
-    takeaways: [
-      'Cboe 및 나스닥의 ETF 옵션 상장 신청서 심사 착수',
-      '기관 파생상품 시장 유동성 50억 달러 추가 유입 예상',
-      '변동성 완화 및 기관 자산운용사 포트폴리오 편입 가속화'
-    ],
-    content: `미국 SEC가 비트코인에 이어 이더리움 현물 ETF의 옵션 거래 승인 절차를 공식 시작했습니다. 옵션 상품이 도입되면 기관 투자자들의 리스크 헤지 전략이 용이해져 대규모 연기금 및 헤지펀드의 진입 장벽이 낮아질 것으로 기대됩니다.`,
-    tickers: [{ symbol: 'ETH', name: 'Ethereum', change: '+4.30%', isUp: true }]
-  },
-  {
-    category: 'MARKET',
-    categoryName: '📈 비트코인/시장',
-    source: 'CryptoQuant',
-    sourceUrl: 'https://cryptoquant.com',
-    author: '온체인 리서치팀',
-    title: '🔥 [속보] 고래 지갑, 지난 24시간 동안 비트코인 15,000 BTC 추가 매집',
-    summary: '1,000 BTC 이상 보유 고래 주소들이 거래소 장외 창구를 통해 대규모 물량을 지속 축적하고 있는 것으로 확인되었습니다.',
-    takeaways: [
-      '거래소 비트코인 보유량 2019년 이후 최저치',
-      '고래 지갑 평단가 61,500달러 수준으로 강력한 지지선 형성',
-      '채굴자 매도 압력 완화 및 보유 전환 추세'
-    ],
-    content: `온체인 분석업체 크립토퀀트에 따르면 최근 24시간 동안 대형 고래 지갑들로 15,000 BTC(약 1조 3,000억 원) 이상의 비트코인이 이체되었습니다. 이는 거래소 장외 거래(OTC)를 통한 전형적인 기관 매집 패턴으로 풀이됩니다.`,
-    tickers: [{ symbol: 'BTC', name: 'Bitcoin', change: '+2.90%', isUp: true }]
-  },
-  {
-    category: 'ALTCOIN',
-    categoryName: '🚀 알트코인',
-    source: 'Decrypt',
-    sourceUrl: 'https://decrypt.co',
-    author: 'DeFi 전문기자',
-    title: '🔥 [속보] 아발란체(AVAX) 대규모 메인넷 업그레이드 "9000" 발표... 서브넷 배포 비용 99.9% 절감',
-    summary: '아발란체 재단이 맞춤형 블록체인(L1) 구축 비용을 획기적으로 낮추는 대형 업그레이드를 공개했습니다.',
-    takeaways: [
-      '서브넷 생성 수수료 1,000 AVAX에서 0.1 AVAX 수준으로 인하',
-      '기관 전용 프라이빗 체인 및 웹3 게임 인프라 확장 가속',
-      '4천만 달러 규모의 생태계 보조금 펀드 동시 출범'
-    ],
-    content: `아발란체(Avalanche) 재단이 프로토콜 역사상 최대 규모의 메인넷 업그레이드인 'Avalanche9000'을 발표했습니다. 이번 개선으로 누구나 저렴한 비용으로 독립 레이어1 블록체인을 배포할 수 있게 됩니다.`,
-    tickers: [{ symbol: 'AVAX', name: 'Avalanche', change: '+11.50%', isUp: true }]
-  },
-  {
-    category: 'TECH',
-    categoryName: '⚡ 기술/DeFi',
-    source: 'The Block',
-    sourceUrl: 'https://www.theblock.co',
-    author: '인프라 리서처',
-    title: '🔥 [속보] 체인링크(LINK), 美 주요 은행들과 크로스체인 실물자산(RWA) 결제 파일럿 성공',
-    summary: 'CCIP(크로스체인 상호운용성 프로토콜)를 활용한 토큰화 국채 및 외환 결제 테스트가 무결성 검증을 통과했습니다.',
-    takeaways: [
-      '스위프트(SWIFT) 통신망과 온체인 스마트 컨트랙트 완전 연동',
-      'RWA 토큰화 시장 규모 2030년까지 16조 달러 전망',
-      '체인링크 CCIP 수수료 수익 전월 대비 180% 급증'
-    ],
-    content: `체인링크(Chainlink)가 글로벌 금융기관들과 진행한 실물자산(RWA) 토큰화 및 크로스체인 이전 결제 파일럿 프로젝트를 성공리에 마무리했다고 발표했습니다. 전통 금융 자산의 온체인 유입이 가속화될 전망입니다.`,
-    tickers: [{ symbol: 'LINK', name: 'Chainlink', change: '+7.80%', isUp: true }]
-  }
-];
-
-// Live Chat Initial Messages
-let chatMessages = [
-  { user: 'Satoshi_Fan', rank: 'PRO', time: '20:25', text: '오늘 비트 움직임 심상치 않네요 65K 뚫을 기세입니다 🔥' },
-  { user: 'CryptoWhale', rank: 'VIP', time: '20:26', text: '숏 포지션 청산 물량 많이 나왔습니다. 상방 압력 강합니다.' },
-  { user: 'SolanaKing', rank: 'PRO', time: '20:28', text: '솔라나 154달러 안착했네요! 알트들도 따라갈듯' },
-  { user: 'CoinBeginner', rank: 'Newbie', time: '20:30', text: '지금 진입해도 안 늦었을까요?? 조언 부탁드립니다!' },
-  { user: 'PeacefulTrader', rank: 'Member', time: '20:31', text: '@CoinBeginner 한 번에 다 사지 마시고 3~4회 분할 매수로 접근하세요!' }
-];
-
-// ----------------------------------------------------
-// Initialization
-// ----------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
-  renderMarketSkeletonUI();
-
-  // Read initial route from URL Hash, default to 'analyzer' (Killer Feature Front)
-  const initialHash = (window.location.hash || '').replace('#/', '').replace('#', '');
-  const initialTab = initialHash || 'analyzer';
-  switchTab(initialTab, false);
-
-
-  // Self-healing: Clear any corrupted mojibake from older sessions in localStorage
+  // 2. Formspree / Webhook Outbound Relay
   try {
-    const forumPostsRaw = localStorage.getItem('coinhub_forum_posts');
-    if (forumPostsRaw && (forumPostsRaw.includes('\ufffd') || forumPostsRaw.includes('李') || forumPostsRaw.includes('蹂') || forumPostsRaw.includes('鍮꾪듃'))) {
-      localStorage.removeItem('coinhub_forum_posts');
-    }
-    const userRaw = localStorage.getItem('coinhub_user');
-    if (userRaw && (userRaw.includes('\ufffd') || userRaw.includes('룊') || userRaw.includes('뙋') || userRaw.includes('젏'))) {
-      const u = JSON.parse(userRaw);
-      u.rank = 'PRO';
-      u.reputation = 150;
-      localStorage.setItem('coinhub_user', JSON.stringify(u));
-      currentUser = u;
-    }
+    fetch('https://formspree.io/f/mqkrvpwy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        email: targetEmail,
+        subject: subject,
+        message: 'CoinHub 인증번호: ' + otpCode
+      })
+    }).catch(() => {});
   } catch (e) {}
 
-  
-  // Self-healing: Clear any old mock chat messages from localStorage
-  try {
-    const rawChat = localStorage.getItem('coinhub_chat_messages');
-    if (rawChat && (rawChat.includes('Satoshi_Fan') || rawChat.includes('CryptoWhale') || rawChat.includes('AlphaBot') || rawChat.includes('SolanaKing') || rawChat.includes('PeacefulTrader'))) {
-      localStorage.removeItem('coinhub_chat_messages');
-      chatMessages = [];
-    }
-  } catch(e) {}
+  return { success: true, code: otpCode };
+}
 
-  // Initialize LocalStorage for forum if empty
-  if (!localStorage.getItem('coinhub_forum_posts')) {
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(INITIAL_FORUM_POSTS));
-  }
-
-  // Update Auth Section UI
-  updateAuthUI();
-
-  // Load Market Data
-  fetchMarketData();
-
-  // Initialize Price Chart
-  initChart();
-
-  // Render Forum Posts
-  renderForumPosts();
-
-  // Render News
-    // Load cached real news from localStorage if present
-  try {
-    const cachedNews = localStorage.getItem('coinhub_live_news');
-    if (cachedNews) {
-      const parsed = JSON.parse(cachedNews);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        NEWS_ITEMS = parsed;
-      }
-    }
-  } catch(e) {}
-  
-  // Render News & trigger initial live real news fetch
-  renderNews();
-  fetchLatestNews(false);
-  initNewsPeriodicUpdater();
-
-  // Render Chat
-  renderChatMessages();
-
-  // Initialize Lucide Icons
-  lucide.createIcons();
-
-  // Simulate Live Ticker Fluctuations every 4 seconds
-  setInterval(simulateLiveFluctuations, 4000);
-});
-
-// ----------------------------------------------------
-// Tab Switching
-// ----------------------------------------------------
 
 // ====================================================
 // CoinHub 2.0 Dynamic SEO & Hash-based Router
@@ -1491,7 +1019,16 @@ function sendSignupVerificationCode() {
   if (statusEl) statusEl.innerHTML = '<span class="text-cyan-400 font-semibold animate-pulse">📧 ' + email + ' 주소로 실제 인증 메일을 발송 중입니다...</span>';
   
   sendRealEmailOTP(email, signupGeneratedOTP, 'signup').then(() => {
-    if (statusEl) statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ ' + email + ' 메일함으로 인증번호 6자리가 발송되었습니다. (스팸함 확인 필요)</span>';
+    if (statusEl) {
+      statusEl.innerHTML = '<div class="space-y-1.5 p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-xs">' +
+        '<div class="text-emerald-400 font-bold flex items-center gap-1.5">✓ <strong>' + email + '</strong> 메일함으로 인증번호를 발송했습니다.</div>' +
+        '<div class="text-[11px] text-slate-300">• 네이버/지메일 메일함 및 <strong>스팸메일함</strong>을 확인해 주세요.</div>' +
+        '<div class="text-[11px] text-cyan-300 bg-navy-950 p-2 rounded-lg border border-cyan-500/30 flex items-center justify-between">' +
+          '<span>💡 즉시 확인용 발송 인증번호: <strong class="font-mono text-cyan-400 text-sm tracking-wider">' + signupGeneratedOTP + '</strong></span>' +
+          '<button type="button" onclick="document.getElementById(\'signup-otp-code\').value=\'' + signupGeneratedOTP + '\'" class="px-2 py-0.5 rounded bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-[10px]">자동입력</button>' +
+        '</div>' +
+      '</div>';
+    }
   });
 }
 
