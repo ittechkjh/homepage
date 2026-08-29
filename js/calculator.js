@@ -34,13 +34,14 @@ const ProfitCalculator = {
         // 스테이킹 집계
         const stakingSummary = this.calculateStaking(stakingItems, customStaking);
 
-        // 매매 손익 계산 (마켓별)
+        // 매매 손익 계산 (거래소별 + 마켓별 분리)
         const tradesByMarket = {};
         tradeItems.forEach(trade => {
-            if (!tradesByMarket[trade.market]) {
-                tradesByMarket[trade.market] = [];
+            const groupKey = `${trade.exchange || 'UPBIT'}:::${trade.market}`;
+            if (!tradesByMarket[groupKey]) {
+                tradesByMarket[groupKey] = [];
             }
-            tradesByMarket[trade.market].push(trade);
+            tradesByMarket[groupKey].push(trade);
         });
 
         const coinSummaries = {};
@@ -359,7 +360,7 @@ const ProfitCalculator = {
         };
     },
 
-    calculateMarketFIFO: function (market, trades) {
+    calculateMarketFIFO: function (marketKey, trades) {
         const buyQueue = [];
         const enrichedTrades = [];
         
@@ -374,8 +375,9 @@ const ProfitCalculator = {
         let totalBuyCount = 0;
         let totalSellCount = 0;
 
+        const market = marketKey.includes(':::') ? marketKey.split(':::')[1] : marketKey;
+        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT');
         const coinSymbol = market.includes('-') ? market.split('-')[1] : market;
-        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : 'UPBIT';
 
         trades.forEach(trade => {
             const enriched = { ...trade };
@@ -494,7 +496,7 @@ const ProfitCalculator = {
         };
     },
 
-    calculateMarketMovingAvg: function (market, trades) {
+    calculateMarketMovingAvg: function (marketKey, trades) {
         const enrichedTrades = [];
 
         let totalBuyAmount = 0;
@@ -512,8 +514,9 @@ const ProfitCalculator = {
         let holdingCost = 0;
         let avgBuyPrice = 0;
 
+        const market = marketKey.includes(':::') ? marketKey.split(':::')[1] : marketKey;
+        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT');
         const coinSymbol = market.includes('-') ? market.split('-')[1] : market;
-        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : 'UPBIT';
 
         trades.forEach(trade => {
             const enriched = { ...trade };

@@ -385,7 +385,7 @@ const App = {
 
         const printReportBtn = document.getElementById('printReportBtn');
         if (printReportBtn) {
-            printReportBtn.addEventListener('click', () => window.print());
+            printReportBtn.addEventListener('click', () => Exporter.printReport(this.state.reportData));
         }
 
         const clearDataBtn = document.getElementById('clearDataBtn');

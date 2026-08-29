@@ -260,7 +260,7 @@ let NEWS_ITEMS = [
   }
 ];
 
-// Rolling Pool for Periodic Breaking News Injection
+// Rolling Pool for Periodic Breaking News Injection (25+ Live Rolling Articles)
 const NEWS_ROTATION_POOL = [
   {
     category: 'MARKET',
@@ -312,6 +312,70 @@ const NEWS_ROTATION_POOL = [
       { symbol: 'ETH', name: 'Ethereum', change: '+3.10%', isUp: true },
       { symbol: 'OP', name: 'Optimism', change: '+6.20%', isUp: true }
     ]
+  },
+  {
+    category: 'REGULATION',
+    categoryName: '🏛️ 규제/정책',
+    source: 'Bloomberg',
+    sourceUrl: 'https://www.bloomberg.com',
+    author: '워싱턴 특파원',
+    title: '🔥 [속보] 美 SEC 위원장, 이더리움 현물 ETF 옵션 상품 승인 절차 개시 시사',
+    summary: '미국 증권거래위원회(SEC)가 기관 투자자들의 헤지 수단 확대를 위해 이더리움 ETF 옵션 상장을 긍정 검토 중입니다.',
+    takeaways: [
+      'Cboe 및 나스닥의 ETF 옵션 상장 신청서 심사 착수',
+      '기관 파생상품 시장 유동성 50억 달러 추가 유입 예상',
+      '변동성 완화 및 기관 자산운용사 포트폴리오 편입 가속화'
+    ],
+    content: `미국 SEC가 비트코인에 이어 이더리움 현물 ETF의 옵션 거래 승인 절차를 공식 시작했습니다. 옵션 상품이 도입되면 기관 투자자들의 리스크 헤지 전략이 용이해져 대규모 연기금 및 헤지펀드의 진입 장벽이 낮아질 것으로 기대됩니다.`,
+    tickers: [{ symbol: 'ETH', name: 'Ethereum', change: '+4.30%', isUp: true }]
+  },
+  {
+    category: 'MARKET',
+    categoryName: '📈 비트코인/시장',
+    source: 'CryptoQuant',
+    sourceUrl: 'https://cryptoquant.com',
+    author: '온체인 리서치팀',
+    title: '🔥 [속보] 고래 지갑, 지난 24시간 동안 비트코인 15,000 BTC 추가 매집',
+    summary: '1,000 BTC 이상 보유 고래 주소들이 거래소 장외 창구를 통해 대규모 물량을 지속 축적하고 있는 것으로 확인되었습니다.',
+    takeaways: [
+      '거래소 비트코인 보유량 2019년 이후 최저치',
+      '고래 지갑 평단가 61,500달러 수준으로 강력한 지지선 형성',
+      '채굴자 매도 압력 완화 및 보유 전환 추세'
+    ],
+    content: `온체인 분석업체 크립토퀀트에 따르면 최근 24시간 동안 대형 고래 지갑들로 15,000 BTC(약 1조 3,000억 원) 이상의 비트코인이 이체되었습니다. 이는 거래소 장외 거래(OTC)를 통한 전형적인 기관 매집 패턴으로 풀이됩니다.`,
+    tickers: [{ symbol: 'BTC', name: 'Bitcoin', change: '+2.90%', isUp: true }]
+  },
+  {
+    category: 'ALTCOIN',
+    categoryName: '🚀 알트코인',
+    source: 'Decrypt',
+    sourceUrl: 'https://decrypt.co',
+    author: 'DeFi 전문기자',
+    title: '🔥 [속보] 아발란체(AVAX) 대규모 메인넷 업그레이드 "9000" 발표... 서브넷 배포 비용 99.9% 절감',
+    summary: '아발란체 재단이 맞춤형 블록체인(L1) 구축 비용을 획기적으로 낮추는 대형 업그레이드를 공개했습니다.',
+    takeaways: [
+      '서브넷 생성 수수료 1,000 AVAX에서 0.1 AVAX 수준으로 인하',
+      '기관 전용 프라이빗 체인 및 웹3 게임 인프라 확장 가속',
+      '4천만 달러 규모의 생태계 보조금 펀드 동시 출범'
+    ],
+    content: `아발란체(Avalanche) 재단이 프로토콜 역사상 최대 규모의 메인넷 업그레이드인 'Avalanche9000'을 발표했습니다. 이번 개선으로 누구나 저렴한 비용으로 독립 레이어1 블록체인을 배포할 수 있게 됩니다.`,
+    tickers: [{ symbol: 'AVAX', name: 'Avalanche', change: '+11.50%', isUp: true }]
+  },
+  {
+    category: 'TECH',
+    categoryName: '⚡ 기술/DeFi',
+    source: 'The Block',
+    sourceUrl: 'https://www.theblock.co',
+    author: '인프라 리서처',
+    title: '🔥 [속보] 체인링크(LINK), 美 주요 은행들과 크로스체인 실물자산(RWA) 결제 파일럿 성공',
+    summary: 'CCIP(크로스체인 상호운용성 프로토콜)를 활용한 토큰화 국채 및 외환 결제 테스트가 무결성 검증을 통과했습니다.',
+    takeaways: [
+      '스위프트(SWIFT) 통신망과 온체인 스마트 컨트랙트 완전 연동',
+      'RWA 토큰화 시장 규모 2030년까지 16조 달러 전망',
+      '체인링크 CCIP 수수료 수익 전월 대비 180% 급증'
+    ],
+    content: `체인링크(Chainlink)가 글로벌 금융기관들과 진행한 실물자산(RWA) 토큰화 및 크로스체인 이전 결제 파일럿 프로젝트를 성공리에 마무리했다고 발표했습니다. 전통 금융 자산의 온체인 유입이 가속화될 전망입니다.`,
+    tickers: [{ symbol: 'LINK', name: 'Chainlink', change: '+7.80%', isUp: true }]
   }
 ];
 
@@ -1125,14 +1189,28 @@ function fetchLatestNews(isManual = false) {
   const refreshIcon = document.getElementById('news-refresh-icon');
   if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
-  // Inject a new breaking story from pool if available
+  // Inject breaking story from pool with endless recycling
   if (NEWS_ROTATION_POOL.length > 0) {
-    const nextItem = NEWS_ROTATION_POOL.shift();
+    const nextItem = { ...NEWS_ROTATION_POOL.shift() };
     nextItem.id = `news-${Date.now()}`;
     nextItem.time = '방금 전';
     nextItem.timestamp = Date.now();
     nextItem.isBreaking = true;
+    
+    // Add to top of active list
     NEWS_ITEMS.unshift(nextItem);
+
+    // Keep active list size controlled (up to 20 items) and recycle back to pool
+    if (NEWS_ITEMS.length > 20) {
+      const removed = NEWS_ITEMS.pop();
+      delete removed.id;
+      NEWS_ROTATION_POOL.push(removed);
+    }
+    
+    // Also recycle the used item to the end of pool
+    const recycled = { ...nextItem };
+    delete recycled.id;
+    NEWS_ROTATION_POOL.push(recycled);
   }
 
   // Update relative timestamps
@@ -1142,16 +1220,20 @@ function fetchLatestNews(isManual = false) {
     if (refreshIcon) refreshIcon.classList.remove('animate-spin');
     newsCountdownSeconds = 30;
     renderNews();
-    if (isManual) {
-      // Toast notice
-      const notice = document.createElement('div');
-      notice.className = 'fixed bottom-20 right-6 z-50 bg-cyan-500 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl animate-in flex items-center gap-2';
-      notice.innerHTML = `<i data-lucide="bell" class="w-4 h-4"></i> 최신 암호화폐 속보가 실시간 갱신되었습니다!`;
-      document.body.appendChild(notice);
-      lucide.createIcons();
-      setTimeout(() => notice.remove(), 3000);
-    }
-  }, 600);
+
+    // Show toast alert on update
+    const notice = document.createElement('div');
+    notice.className = 'fixed bottom-20 right-6 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl animate-in flex items-center gap-2 border border-cyan-300/40';
+    notice.innerHTML = `<i data-lucide="bell-ring" class="w-4 h-4 text-navy-950"></i> ${isManual ? '속보가 즉시 새로고침되었습니다!' : '⚡ 새로운 실시간 암호화폐 속보가 도착했습니다!'}`;
+    document.body.appendChild(notice);
+    lucide.createIcons();
+    setTimeout(() => {
+      notice.style.transition = 'opacity 0.4s, transform 0.4s';
+      notice.style.opacity = '0';
+      notice.style.transform = 'translateY(10px)';
+      setTimeout(() => notice.remove(), 400);
+    }, 2800);
+  }, 500);
 }
 
 function updateNewsRelativeTimes() {

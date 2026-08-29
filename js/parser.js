@@ -195,7 +195,7 @@ const UpbitParser = {
                 bestColumnMapping = mapping;
 
                 const rowStr = row.map(c => String(c).trim().toLowerCase()).join(' ');
-                if (rowStr.includes('가상자산') || rowStr.includes('체결단가') || rowStr.includes('빗썸')) {
+                if (rowStr.includes('가상자산') || rowStr.includes('체결단가') || rowStr.includes('체결금액') || rowStr.includes('실정산') || rowStr.includes('신청일시') || rowStr.includes('처리일시') || rowStr.includes('빗썸') || rowStr.includes('bithumb')) {
                     detectedExchange = 'BITHUMB';
                 }
             }
@@ -484,8 +484,21 @@ const UpbitParser = {
         const category = parsedTypeInfo ? parsedTypeInfo.category : 'trade';
 
         let exchange = defaultExchange;
-        if (rawMarket.includes('/KRW') || rawMarket.includes('비트코인(')) {
+        const rawMarketUpper = (rawMarket || '').toUpperCase();
+        const rawTypeUpper = (rawType || '').toUpperCase();
+
+        if (
+            rawMarket.includes('(') || 
+            rawMarket.includes('/KRW') || 
+            rawMarket.includes('_KRW') ||
+            (rawMarketUpper.endsWith('KRW') && !rawMarketUpper.startsWith('KRW-')) ||
+            (rawMarket && !rawMarketUpper.startsWith('KRW-') && !rawMarketUpper.startsWith('BTC-') && !rawMarketUpper.startsWith('USDT-') && rawMarketUpper !== 'KRW' && rawMarketUpper !== 'KRW-KRW')
+        ) {
             exchange = 'BITHUMB';
+        } else if (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-') || rawTypeUpper.includes('원화입금') || rawTypeUpper.includes('원화출금')) {
+            if (defaultExchange !== 'BITHUMB') {
+                exchange = 'UPBIT';
+            }
         }
 
         if (!rawMarket && (type === '원화입금' || type === '원화출금')) {
