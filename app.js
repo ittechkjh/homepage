@@ -434,6 +434,13 @@ let chatMessages = [
 // Initialization
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+  renderMarketSkeletonUI();
+
+  // Read initial route from URL Hash, default to 'analyzer' (Killer Feature Front)
+  const initialHash = (window.location.hash || '').replace('#/', '').replace('#', '');
+  const initialTab = initialHash || 'analyzer';
+  switchTab(initialTab, false);
+
 
   // Self-healing: Clear any corrupted mojibake from older sessions in localStorage
   try {
@@ -508,25 +515,84 @@ document.addEventListener('DOMContentLoaded', () => {
 // ----------------------------------------------------
 // Tab Switching
 // ----------------------------------------------------
-function switchTab(tabId) {
-  const tabs = ['market', 'forum', 'chat', 'news', 'analyzer', 'admin'];
+
+// ====================================================
+// CoinHub 2.0 Dynamic SEO & Hash-based Router
+// ====================================================
+const ROUTE_SEO_MAP = {
+  analyzer: {
+    title: "CoinHub 2.0 – 업비트·빗썸 엑셀 거래내역 실현손익 정밀 분석기",
+    desc: "1초 만에 확인하는 내 업비트·빗썸 실현손익, 평단가, 거래소별 수수료, 월별 통계. 서버 전송 없는 100% 로컬 암호화 계산기"
+  },
+  market: {
+    title: "CoinHub 2.0 – 가상자산 실시간 시세 및 트레이딩뷰 차트 분석",
+    desc: "비트코인, 이더리움, 주요 알트코인 실시간 시세, 24시간 변동률, 시가총액 순위 및 인터랙티브 인터벌 차트"
+  },
+  forum: {
+    title: "CoinHub 2.0 – 코인 토론 포럼 및 전문 트레이더 인사이트",
+    desc: "실시간 거래소 상장 공시, 차트 분석, 알트코인 전망 및 트레이더 커뮤니티 토론장"
+  },
+  chat: {
+    title: "CoinHub 2.0 – 실시간 글로벌 암호화폐 라이브 채팅방",
+    desc: "실시간 시장 반응과 트레이딩 아이디어를 나누는 라이브 채팅 및 텔레그램/디스코드 커뮤니티"
+  },
+  news: {
+    title: "CoinHub 2.0 – 실시간 가상자산 글로벌 속보 및 공시 피드",
+    desc: "주요 글로벌 블록체인 미디어 및 금융위 규제 속보를 30초 주기로 자동 수집·업데이트"
+  },
+  admin: {
+    title: "CoinHub 2.0 – 최고 관리자(Admin) 전용 센터",
+    desc: "코인허브 사이트 운영, 방문자 트래픽 모니터링 및 회원 관리 센터"
+  }
+};
+
+function updatePageSEO(tabId) {
+  const seo = ROUTE_SEO_MAP[tabId] || ROUTE_SEO_MAP.analyzer;
+  document.title = seo.title;
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', seo.desc);
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', seo.title);
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', seo.desc);
+}
+
+// Update switchTab to support URL Hash & Dynamic SEO
+function switchTab(tabId, updateHash = true) {
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'admin'];
+  if (!tabs.includes(tabId)) tabId = 'analyzer';
+
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     const navBtn = document.getElementById(`nav-${t}`);
     const mNavBtn = document.getElementById(`m-nav-${t}`);
 
     if (t === tabId) {
-      el.classList.remove('hidden');
-      el.classList.add('block');
-      if (navBtn) navBtn.classList.add('active');
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('block');
+      }
+      if (navBtn) {
+        navBtn.classList.add('active');
+        if (t === 'analyzer') {
+          navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400');
+        }
+      }
       if (mNavBtn) {
         mNavBtn.classList.add('text-cyan-400');
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
-      el.classList.remove('block');
-      el.classList.add('hidden');
-      if (navBtn) navBtn.classList.remove('active');
+      if (el) {
+        el.classList.remove('block');
+        el.classList.add('hidden');
+      }
+      if (navBtn) {
+        navBtn.classList.remove('active');
+        if (t === 'analyzer') {
+          navBtn.classList.remove('bg-cyan-500/10', 'border-cyan-500/30');
+        }
+      }
       if (mNavBtn) {
         mNavBtn.classList.remove('text-cyan-400');
         mNavBtn.classList.add('text-slate-400');
@@ -534,7 +600,12 @@ function switchTab(tabId) {
     }
   });
 
-  lucide.createIcons();
+  if (updateHash && window.location.hash !== `#/${tabId}`) {
+    history.replaceState(null, '', `#/${tabId}`);
+  }
+
+  updatePageSEO(tabId);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 
   // Initialize analyzer when user switches to analyzer tab
   if (tabId === 'analyzer' && typeof App !== 'undefined') {
@@ -545,9 +616,22 @@ function switchTab(tabId) {
       App.checkAuthStatus();
     }
   }
+
+  // Check admin access when switching to admin tab
+  if (tabId === 'admin' && typeof AdminApp !== 'undefined') {
+    AdminApp.checkAdminAccess();
+  }
 }
 
-// ----------------------------------------------------
+// Listen to Hash Changes
+window.addEventListener('hashchange', () => {
+  const hash = (window.location.hash || '').replace('#/', '').replace('#', '');
+  if (hash) {
+    switchTab(hash, false);
+  }
+});
+
+
 // Market Data & Ticker Logic
 // ----------------------------------------------------
 async function fetchMarketData() {
@@ -567,6 +651,23 @@ async function fetchMarketData() {
   } finally {
     if (refreshIcon) refreshIcon.classList.remove('animate-spin');
     renderMarketUI();
+  }
+}
+
+
+function renderMarketSkeletonUI() {
+  const tableBody = document.getElementById('market-table-body');
+  if (tableBody) {
+    tableBody.innerHTML = Array(6).fill(0).map(() => `
+      <tr class="animate-pulse border-b border-navy-800/40">
+        <td class="p-3.5"><div class="h-4 bg-navy-800 rounded w-4"></div></td>
+        <td class="p-3.5"><div class="flex items-center gap-2"><div class="w-7 h-7 bg-navy-800 rounded-full"></div><div class="h-4 bg-navy-800 rounded w-20"></div></div></td>
+        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-16 ml-auto"></div></td>
+        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-12 ml-auto"></div></td>
+        <td class="p-3.5 text-right hidden md:table-cell"><div class="h-4 bg-navy-800 rounded w-24 ml-auto"></div></td>
+        <td class="p-3.5 text-right hidden lg:table-cell"><div class="h-4 bg-navy-800 rounded w-20 ml-auto"></div></td>
+      </tr>
+    `).join('');
   }
 }
 

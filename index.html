@@ -6,7 +6,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>CoinHub – 업비트·빗썸 거래 내역 분석기</title>
+    <title>CoinHub 2.0 – 업비트·빗썸 엑셀 거래내역 손익 정밀 계산기 | 실시간 시세 & 커뮤니티</title>
+  <meta name="description" content="업비트 및 빗썸 거래내역 엑셀/CSV 파일을 1초 만에 분석하여 실현손익, 평단가, 수수료, 월별 통계를 100% 로컬에서 무료로 계산해 드립니다.">
+  <meta property="og:title" content="CoinHub 2.0 – 1초 만에 확인하는 내 업비트·빗썸 실현손익">
+  <meta property="og:description" content="서버 전송 0%! 인터넷 연결 없이도 브라우저에서 100% 안전하게 동작하는 가상자산 손익 분석기">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,10 +56,26 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787985818253">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787985818253">
+  <link rel="stylesheet" href="styles.css?v=1787986454980">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787986454980">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
+  <!-- ==============================================
+       COINHUB 2.0 PREVIEW BANNER (TEST MODE)
+       ============================================== -->
+  <div class="bg-gradient-to-r from-navy-950 via-cyan-950/80 to-navy-950 border-b border-cyan-500/40 px-4 py-2.5 text-center text-xs text-slate-200 sticky top-0 z-50 backdrop-blur-md shadow-lg flex flex-wrap items-center justify-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="px-2 py-0.5 rounded-full bg-cyan-500 text-navy-950 font-black text-[10px] uppercase tracking-wider animate-pulse">PREVIEW 2.0</span>
+      <span class="font-semibold text-slate-200">CoinHub 2.0 신규 혁신 기능 검토용 전용 테스트 페이지입니다.</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-slate-400 text-[11px] hidden sm:inline">(기존 실서비스는 안전하게 유지 중)</span>
+      <a href="index.html" class="px-3 py-1 rounded-lg bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold border border-navy-700 text-xs transition flex items-center gap-1">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 기존 사이트(index.html)
+      </a>
+    </div>
+  </div>
+
 
   <!-- Top Live Price Ticker Bar -->
   <div class="bg-navy-900/90 backdrop-blur border-b border-navy-800 text-xs py-2 px-4 overflow-x-auto no-scrollbar sticky top-0 z-40">
@@ -446,6 +468,22 @@
         <!-- Right Main Chat Window -->
         <div class="lg:col-span-3 bg-navy-900 border border-navy-800 rounded-2xl shadow-lg flex flex-col overflow-hidden min-h-[500px]">
           
+          <!-- Community Launch Bridge (Telegram & Discord) -->
+          <div class="p-3 bg-gradient-to-r from-navy-950 via-cyan-950/50 to-navy-950 border-b border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>🚀 <strong>CoinHub 공식 실시간 커뮤니티</strong>에 합류하여 더 빠른 속보와 트레이딩 시그널을 공유하세요!</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://t.me/" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#229ED9]/20 hover:bg-[#229ED9]/30 text-[#229ED9] border border-[#229ED9]/40 font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>💬 텔레그램 공식방</span>
+              </a>
+              <a href="https://discord.com/" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#5865F2]/20 hover:bg-[#5865F2]/30 text-[#5865F2] border border-[#5865F2]/40 font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🎮 디스코드 룸</span>
+              </a>
+            </div>
+          </div>
+
           <div class="p-4 border-b border-navy-800 bg-navy-850 flex justify-between items-center">
             <div class="flex items-center gap-3">
               <div class="w-3 h-3 rounded-full bg-crypto-green animate-pulse"></div>
@@ -559,7 +597,50 @@
       <div id="analyzer-main-content" style="display: none;">
         
         <!-- User Privacy Status Top Banner -->
-        <div class="analyzer-card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 bg-gradient-to-r from-navy-900 to-navy-850 border border-cyan-500/30">
+        <!-- HERO SECTION & PRIVACY TRUST SHIELD (CoinHub 2.0 Killer Feature) -->
+        <div class="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-cyan-500/40 shadow-2xl relative overflow-hidden text-center">
+          <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="relative z-10 space-y-4 max-w-3xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>100% 무료 • 무제한 분석 • 완전 로컬 프라이버시 보장</span>
+            </div>
+
+            <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-snug">
+              1초 만에 확인하는 내 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">업비트·빗썸 실현손익</span> & 평단가
+            </h1>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              거래소에서 다운로드한 엑셀/CSV 파일을 올리면 복잡한 선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금 내역을 즉시 계산하여 보기 쉬운 통합 대시보드로 시각화합니다.
+            </p>
+
+            <!-- Privacy Trust Guarantee Seal -->
+            <div class="p-3.5 rounded-2xl bg-navy-950/90 border border-cyan-500/40 text-xs text-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3 text-left max-w-xl mx-auto shadow-inner">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div class="text-[11px] leading-tight">
+                <div class="font-bold text-cyan-300 flex items-center gap-1.5">
+                  <span>🔒 100% Client-Side Only (외부 서버 전송 0%)</span>
+                </div>
+                <div class="text-slate-400 mt-0.5">
+                  업로드 후 <strong>인터넷 랜선을 뽑거나 Wi-Fi를 꺼도 100% 정상 작동</strong>합니다. 모든 데이터는 본인 브라우저 내부에만 안전하게 보관됩니다.
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-center gap-2 text-xs flex-wrap">
+              <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
+              <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1.5" title="현재 사용자 데이터 전체 삭제">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 내 데이터 초기화
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="analyzer-card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 bg-gradient-to-r from-navy-900 to-navy-850 border border-cyan-500/30 hidden">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg font-bold">
               <i data-lucide="shield-check" class="w-6 h-6"></i>
@@ -1812,16 +1893,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787985818253"></script>
-  <script src="js/calculator.js?v=1787985818253"></script>
-  <script src="js/upbit-api.js?v=1787985818253"></script>
-  <script src="js/charts.js?v=1787985818253"></script>
-  <script src="js/exporter.js?v=1787985818253"></script>
-  <script src="js/sample-data.js?v=1787985818253"></script>
-  <script src="js/analyzer-app.js?v=1787985818253"></script>
+  <script src="js/parser.js?v=1787986454980"></script>
+  <script src="js/calculator.js?v=1787986454980"></script>
+  <script src="js/upbit-api.js?v=1787986454980"></script>
+  <script src="js/charts.js?v=1787986454980"></script>
+  <script src="js/exporter.js?v=1787986454980"></script>
+  <script src="js/sample-data.js?v=1787986454980"></script>
+  <script src="js/analyzer-app.js?v=1787986454980"></script>
 
-  <script src="js/admin.js?v=1787985818253"></script>
-  <script src="app.js?v=1787985818253"></script>
+  <script src="js/admin.js?v=1787986454980"></script>
+  <script src="app.js?v=1787986454980"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
