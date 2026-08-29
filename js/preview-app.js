@@ -1,3 +1,55 @@
+
+// ====================================================
+// Google 1-Click Authentication Handler
+// ====================================================
+function handleGoogleSignIn() {
+  const inputEmail = prompt('로그인 또는 가입할 Google Gmail 계정을 입력하세요 (예: user@gmail.com):', 'myaccount@gmail.com');
+  if (!inputEmail) return;
+
+  const email = inputEmail.trim();
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    alert('올바른 Gmail 이메일 형식을 입력해 주세요.');
+    return;
+  }
+
+  const username = email.split('@')[0];
+
+  // Register in AdminUserManager if not already registered
+  if (typeof AdminUserManager !== 'undefined') {
+    const users = AdminUserManager.getUsers();
+    const found = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    if (!found) {
+      AdminUserManager.addUser({
+        username: username,
+        email: email,
+        role: 'USER',
+        password: '',
+        memo: 'Google 1초 간편 로그인 가입'
+      });
+    }
+  }
+
+  currentUser = {
+    username: username,
+    email: email,
+    role: 'USER',
+    rank: 'PRO',
+    reputation: 150,
+    joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+    postsCount: 0,
+    isEmailVerified: true,
+    provider: 'GOOGLE'
+  };
+
+  localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
+  closeAuthModal();
+  updateAuthUI();
+  if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') {
+    App.checkAuthStatus();
+  }
+  alert('🎉 Google 계정(' + email + ')으로 1초 간편 로그인이 완료되었습니다!');
+}
+
 // ====================================================
 // CoinHub Core Global State & Default Market Data
 // ====================================================

@@ -57,8 +57,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787987249476">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787987249476">
+  <link rel="stylesheet" href="styles.css?v=1787987540817">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787987540817">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- ==============================================
@@ -1664,6 +1664,26 @@
 
       </form>
 
+      
+      <!-- Social Login Divider -->
+      <div class="relative flex py-3 items-center">
+        <div class="flex-grow border-t border-navy-800"></div>
+        <span class="flex-shrink mx-3 text-[11px] text-slate-500 font-semibold">또는 소셜 계정으로 계속</span>
+        <div class="flex-grow border-t border-navy-800"></div>
+      </div>
+
+      <!-- Google 1-Click Quick Login Button -->
+      <button type="button" onclick="handleGoogleSignIn()" class="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs sm:text-sm shadow-lg transition flex items-center justify-center gap-2.5 border border-slate-200 cursor-pointer active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+        </svg>
+        <span>Google 계정으로 1초 로그인 / 가입</span>
+      </button>
+  
+
       <!-- 2. SIGNUP FORM (WITH EMAIL VERIFICATION OTP) -->
       <form id="signup-form" onsubmit="handleSignupSubmit(event)" class="space-y-4 hidden">
         <div>
@@ -1892,16 +1912,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787987249476"></script>
-  <script src="js/calculator.js?v=1787987249476"></script>
-  <script src="js/upbit-api.js?v=1787987249476"></script>
-  <script src="js/charts.js?v=1787987249476"></script>
-  <script src="js/exporter.js?v=1787987249476"></script>
-  <script src="js/sample-data.js?v=1787987249476"></script>
-  <script src="js/analyzer-app.js?v=1787987249476"></script>
+  <script src="js/parser.js?v=1787987540817"></script>
+  <script src="js/calculator.js?v=1787987540817"></script>
+  <script src="js/upbit-api.js?v=1787987540817"></script>
+  <script src="js/charts.js?v=1787987540817"></script>
+  <script src="js/exporter.js?v=1787987540817"></script>
+  <script src="js/sample-data.js?v=1787987540817"></script>
+  <script src="js/analyzer-app.js?v=1787987540817"></script>
 
-  <script src="js/admin.js?v=1787987249476"></script>
-  <script src="app.js?v=1787987249476"></script>
+  <script src="js/admin.js?v=1787987540817"></script>
+  <script src="app.js?v=1787987540817"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
