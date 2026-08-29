@@ -167,14 +167,24 @@ async function fetchMarketData() {
   if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h'
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h',
+      { signal: controller.signal }
     );
+    clearTimeout(timeoutId);
+
     if (!response.ok) throw new Error('API Rate Limit or Network Error');
     const data = await response.json();
-    marketCoins = data;
+    if (Array.isArray(data) && data.length > 0) {
+      marketCoins = data;
+    } else {
+      marketCoins = DEFAULT_COINS;
+    }
   } catch (err) {
-    console.warn('Using default fallback crypto market data:', err);
+    console.warn('Using instant fallback crypto market data:', err);
     marketCoins = DEFAULT_COINS;
   } finally {
     if (refreshIcon) refreshIcon.classList.remove('animate-spin');
@@ -1014,22 +1024,32 @@ function sendSignupVerificationCode() {
     if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">인증번호 유효시간(3분)이 만료되었습니다. 재발송 버튼을 눌러주세요.</span>';
   });
 
-  // Dispatch real email to recipient inbox
   const statusEl = document.getElementById('signup-otp-status');
-  if (statusEl) statusEl.innerHTML = '<span class="text-cyan-400 font-semibold animate-pulse">📧 ' + email + ' 주소로 실제 인증 메일을 발송 중입니다...</span>';
-  
-  sendRealEmailOTP(email, signupGeneratedOTP, 'signup').then(() => {
-    if (statusEl) {
-      statusEl.innerHTML = '<div class="space-y-1.5 p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-xs">' +
-        '<div class="text-emerald-400 font-bold flex items-center gap-1.5">✓ <strong>' + email + '</strong> 메일함으로 인증번호를 발송했습니다.</div>' +
-        '<div class="text-[11px] text-slate-300">• 네이버/지메일 메일함 및 <strong>스팸메일함</strong>을 확인해 주세요.</div>' +
-        '<div class="text-[11px] text-cyan-300 bg-navy-950 p-2 rounded-lg border border-cyan-500/30 flex items-center justify-between">' +
-          '<span>💡 즉시 확인용 발송 인증번호: <strong class="font-mono text-cyan-400 text-sm tracking-wider">' + signupGeneratedOTP + '</strong></span>' +
-          '<button type="button" onclick="document.getElementById(\'signup-otp-code\').value=\'' + signupGeneratedOTP + '\'" class="px-2 py-0.5 rounded bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-[10px]">자동입력</button>' +
-        '</div>' +
-      '</div>';
-    }
-  });
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <div class="mt-2.5 p-3.5 rounded-2xl bg-gradient-to-r from-navy-950 to-cyan-950/70 border-2 border-cyan-400/80 text-xs space-y-2.5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-emerald-400 font-bold flex items-center gap-1.5"><i data-lucide="mail-check" class="w-4 h-4"></i> ${email} 인증코드 발송 완료</span>
+        </div>
+        <div class="text-[11px] text-slate-300">
+          입력하신 메일함(네이버/지메일/스팸함)을 확인해 주세요.
+        </div>
+        <div class="p-2.5 rounded-xl bg-navy-900 border border-cyan-500/40 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 block">발송된 인증번호 (6자리)</span>
+            <span class="text-lg font-black text-cyan-400 font-mono tracking-widest">${signupGeneratedOTP}</span>
+          </div>
+          <button type="button" onclick="document.getElementById('signup-otp-code').value='${signupGeneratedOTP}'; verifySignupOTP();" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs transition shadow-md shadow-cyan-500/20">
+            즉시 1클릭 인증
+          </button>
+        </div>
+      </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // Outbound background dispatch
+  sendRealEmailOTP(email, signupGeneratedOTP, 'signup');
 }
 
 function verifySignupOTP() {
@@ -1534,3 +1554,54 @@ function simulateLiveFluctuations() {
   const delta = (Math.random() - 0.49) * 0.003;
   targetCoin.current_price = Number((targetCoin.current_price * (1 + delta)).toFixed(2));
 }
+
+
+
+// ====================================================
+// CoinHub Core Initialization (DOMContentLoaded)
+// ====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Clear any corrupted legacy mojibake or mock chat from localStorage
+  try {
+    const rawChat = localStorage.getItem('coinhub_chat_messages');
+    if (rawChat && (rawChat.includes('Satoshi_Fan') || rawChat.includes('CryptoWhale') || rawChat.includes('AlphaBot') || rawChat.includes('SolanaKing') || rawChat.includes('PeacefulTrader'))) {
+      localStorage.removeItem('coinhub_chat_messages');
+      chatMessages = [];
+    }
+  } catch(e) {}
+
+  // 2. Initialize LocalStorage for forum if empty
+  if (!localStorage.getItem('coinhub_forum_posts')) {
+    localStorage.setItem('coinhub_forum_posts', JSON.stringify(INITIAL_FORUM_POSTS));
+  }
+
+  // 3. Update Auth Section UI
+  updateAuthUI();
+
+  // 4. Load Market Data & Live Ticker
+  renderMarketUI(); // render fallback immediately to avoid CLS
+  fetchMarketData();
+
+  // 5. Initialize Price Chart
+  initChart();
+
+  // 6. Render Forum Posts & News
+  renderForumPosts();
+  renderNews();
+  fetchLatestNews(false);
+  initNewsPeriodicUpdater();
+
+  // 7. Render Chat Messages
+  renderChatMessages();
+
+  // 8. Handle Initial Tab Route from Hash (Default to 'analyzer' or 'market')
+  const initialHash = (window.location.hash || '').replace('#/', '').replace('#', '');
+  const initialTab = initialHash || 'analyzer';
+  switchTab(initialTab, false);
+
+  // 9. Initialize Lucide Icons
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  // 10. Live ticker fluctuation simulation every 4 seconds
+  setInterval(simulateLiveFluctuations, 4000);
+});
