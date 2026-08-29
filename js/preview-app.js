@@ -68,33 +68,41 @@ const INITIAL_NEWS_ITEMS = [
 
 
 
+
 // ====================================================
 // Official Google OAuth 2.0 (Google Identity Services)
 // ====================================================
-const DEFAULT_GOOGLE_CLIENT_ID = '1088719266014-coinhub-oauth.apps.googleusercontent.com';
-
 function getGoogleClientId() {
-  return localStorage.getItem('coinhub_google_client_id') || DEFAULT_GOOGLE_CLIENT_ID;
+  return localStorage.getItem('coinhub_google_client_id') || '';
+}
+
+function setGoogleClientId(clientId) {
+  localStorage.setItem('coinhub_google_client_id', clientId.trim());
+  initGoogleAuthClient();
 }
 
 let googleTokenClient = null;
 
 function initGoogleAuthClient() {
   if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
-    console.log('[Google Auth] GIS SDK loading...');
+    return false;
+  }
+
+  const clientId = getGoogleClientId();
+  if (!clientId) {
     return false;
   }
 
   try {
     googleTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: getGoogleClientId(),
+      client_id: clientId,
       scope: 'email profile openid',
       callback: async (tokenResponse) => {
         if (tokenResponse && tokenResponse.access_token) {
           await handleGoogleAccessToken(tokenResponse.access_token);
         } else if (tokenResponse && tokenResponse.error) {
           console.warn('[Google Auth Error]:', tokenResponse.error);
-          alert('Google 로그인에 실패했습니다: ' + (tokenResponse.error_description || tokenResponse.error));
+          alert('Google 로그인 오류: ' + (tokenResponse.error_description || tokenResponse.error));
         }
       },
       error_callback: (err) => {
@@ -107,6 +115,117 @@ function initGoogleAuthClient() {
     return false;
   }
 }
+
+function handleGoogleSignIn() {
+  const currentClientId = getGoogleClientId();
+
+  // If Client ID is not configured yet, open quick 1-minute setup guide
+  if (!currentClientId || currentClientId.includes('placeholder') || currentClientId.includes('coinhub-oauth')) {
+    openGoogleOAuthSetupModal();
+    return;
+  }
+
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    alert('Google SDK를 불러오는 중입니다. 1~2초 후 다시 시도해 주세요.');
+    return;
+  }
+
+  if (!googleTokenClient) {
+    initGoogleAuthClient();
+  }
+
+  if (googleTokenClient) {
+    googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else {
+    openGoogleOAuthSetupModal();
+  }
+}
+
+function openGoogleOAuthSetupModal() {
+  const existing = document.getElementById('google-oauth-setup-modal');
+  if (existing) existing.remove();
+
+  const currentOrigin = window.location.origin;
+  const currentSaved = getGoogleClientId();
+
+  const modal = document.createElement('div');
+  modal.id = 'google-oauth-setup-modal';
+  modal.className = 'fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in';
+  modal.innerHTML = `
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 space-y-4 text-left">
+      <div class="flex justify-between items-start">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-white flex items-center justify-center p-2 shrink-0 shadow-md">
+            <svg class="w-6 h-6" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">Google Cloud OAuth 클라이언트 ID 설정</h3>
+            <p class="text-xs text-slate-400">구글의 보안 정책(Error 401: invalid_client) 방지를 위한 1회 등록</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('google-oauth-setup-modal').remove()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-navy-950 border border-navy-800 text-xs text-slate-300 space-y-2">
+        <div class="font-bold text-cyan-400">💡 1분 간편 연동 가이드:</div>
+        <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+          <li><strong><a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-cyan-400 underline font-semibold">Google Cloud Console (클릭)</a></strong>에 접속합니다.</li>
+          <li><strong>[사용자 인증 정보 만들기] ➡️ [OAuth 클라이언트 ID] ➡️ 웹 애플리케이션</strong> 선택</li>
+          <li><strong>[승인된 자바스크립트 원본]</strong>에 아래 주소를 복사하여 붙여넣습니다:
+            <div class="mt-1 p-2 rounded-lg bg-navy-900 border border-cyan-500/30 flex items-center justify-between font-mono text-cyan-300 select-all">
+              <span>${currentOrigin}</span>
+              <button type="button" onclick="navigator.clipboard.writeText('${currentOrigin}'); alert('복사되었습니다!');" class="px-2 py-0.5 rounded bg-cyan-500 text-navy-950 font-bold text-[10px]">복사</button>
+            </div>
+          </li>
+          <li>생성된 <strong>클라이언트 ID (xxxx.apps.googleusercontent.com)</strong>를 아래에 입력합니다.</li>
+        </ol>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-300">내 Google Client ID 입력</label>
+        <input type="text" id="google-client-id-input" value="${currentSaved}" placeholder="예: 123456789-abcdef.apps.googleusercontent.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="saveGoogleClientIdFromModal()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition">
+          저장하고 Google 로그인 실행
+        </button>
+        <button type="button" onclick="document.getElementById('google-oauth-setup-modal').remove()" class="px-4 py-3 rounded-xl bg-navy-800 text-slate-300 hover:text-white text-xs font-semibold">
+          닫기
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function saveGoogleClientIdFromModal() {
+  const input = document.getElementById('google-client-id-input');
+  const val = input ? input.value.trim() : '';
+  if (!val || !val.includes('.apps.googleusercontent.com')) {
+    alert('올바른 Google OAuth Client ID 형식(xxxx.apps.googleusercontent.com)을 입력해 주세요.');
+    return;
+  }
+
+  setGoogleClientId(val);
+  const modal = document.getElementById('google-oauth-setup-modal');
+  if (modal) modal.remove();
+
+  alert('Google Client ID가 성공적으로 저장되었습니다. 구글 로그인을 시작합니다!');
+  if (googleTokenClient) {
+    googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+  }
+}
+
 
 async function handleGoogleAccessToken(accessToken) {
   try {
