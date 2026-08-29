@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+    <title>CoinHub 2.0 – 업비트·빗썸 엑셀 거래내역 손익 정밀 계산기 | 실시간 시세 & 커뮤니티</title>
+  <meta name="description" content="업비트 및 빗썸 거래내역 엑셀/CSV 파일을 1초 만에 분석하여 실현손익, 평단가, 수수료, 월별 통계를 100% 로컬에서 무료로 계산해 드립니다.">
+  <meta property="og:title" content="CoinHub 2.0 – 1초 만에 확인하는 내 업비트·빗썸 실현손익">
+  <meta property="og:description" content="서버 전송 0%! 인터넷 연결 없이도 브라우저에서 100% 안전하게 동작하는 가상자산 손익 분석기">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              950: '#07090e',
+              900: '#0b0f19',
+              850: '#0f172a',
+              800: '#131d38',
+              700: '#1e294b',
+              600: '#2d3b66',
+            },
+            crypto: {
+              green: '#10b981',
+              red: '#f43f5e',
+              cyan: '#06b6d4',
+              gold: '#f59e0b',
+              purple: '#8b5cf6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <link rel="stylesheet" href="styles.css?v=1787982125050">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787982125050">
+</head>
+<body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
+  <!-- ==============================================
+       COINHUB 2.0 PREVIEW BANNER (TEST MODE)
+       ============================================== -->
+  <div class="bg-gradient-to-r from-navy-950 via-cyan-950/80 to-navy-950 border-b border-cyan-500/40 px-4 py-2.5 text-center text-xs text-slate-200 sticky top-0 z-50 backdrop-blur-md shadow-lg flex flex-wrap items-center justify-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="px-2 py-0.5 rounded-full bg-cyan-500 text-navy-950 font-black text-[10px] uppercase tracking-wider animate-pulse">PREVIEW 2.0</span>
+      <span class="font-semibold text-slate-200">CoinHub 2.0 신규 혁신 기능 검토용 전용 테스트 페이지입니다.</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-slate-400 text-[11px] hidden sm:inline">(기존 실서비스는 안전하게 유지 중)</span>
+      <a href="index.html" class="px-3 py-1 rounded-lg bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold border border-navy-700 text-xs transition flex items-center gap-1">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 기존 사이트(index.html)
+      </a>
+    </div>
+  </div>
+
+
+  <!-- Top Live Price Ticker Bar -->
+  <div class="bg-navy-900/90 backdrop-blur border-b border-navy-800 text-xs py-2 px-4 overflow-x-auto no-scrollbar sticky top-0 z-40">
+    <div class="container mx-auto flex items-center justify-between gap-6">
+      <div class="flex items-center gap-2 text-cyan-400 font-semibold shrink-0">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+        </span>
+        <span class="tracking-wide">LIVE MARKET</span>
+      </div>
+      <div id="ticker-bar" class="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-slate-300 font-mono">
+        <span class="animate-pulse text-slate-500">실시간 시세 로딩 중...</span>
+      </div>
+      <div class="hidden lg:flex items-center gap-4 text-slate-400 shrink-0 text-[11px]">
+        <span>글로벌 시가총액: <strong class="text-slate-200 font-mono" id="global-mcap">$2.68T</strong></span>
+        <span>24h 거래량: <strong class="text-slate-200 font-mono" id="global-vol">$84.2B</strong></span>
+        <span>BTC 점유율: <strong class="text-slate-200 font-mono">56.4%</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation Header -->
+  <header class="bg-navy-900/80 backdrop-blur-md border-b border-navy-800/80 sticky top-[37px] z-30">
+    <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" onclick="switchTab('market')" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="coins" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-cyan-400">CoinHub</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">PRO</span>
+          </div>
+          <p class="text-[10px] text-slate-400 tracking-wider">CRYPTO COMMUNITY PLATFORM</p>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800">
+        <button onclick="switchTab('market')" id="nav-market" class="nav-tab active px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i data-lucide="trending-up" class="w-4 h-4"></i> 시세 & 분석
+        </button>
+        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i data-lucide="messages-square" class="w-4 h-4"></i> 커뮤니티 포럼
+        </button>
+        <button onclick="switchTab('chat')" id="nav-chat" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> 실시간 채팅
+          <span class="w-2 h-2 rounded-full bg-crypto-green animate-ping"></span>
+        </button>
+        
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <i data-lucide="calculator" class="w-4 h-4"></i> 거래내역 분석기
+        </button>
+        <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i data-lucide="newspaper" class="w-4 h-4"></i> 주요 속보
+        </button>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
+          <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자 센터
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
+        </button>
+      </nav>
+
+      <!-- Right Actions: Search & Auth Profile -->
+      <div class="flex items-center gap-3">
+        <div class="relative hidden sm:block">
+          <input type="text" id="coin-search" oninput="handleSearch(this.value)" placeholder="코인/토큰 검색..." class="bg-navy-950 border border-navy-800 text-xs rounded-lg pl-8 pr-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-44 focus:w-60 transition-all">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
+        </div>
+
+        <div id="auth-section" class="flex items-center gap-2">
+          <button onclick="switchTab('admin')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-purple-950/60 border border-purple-500/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition shadow-sm">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i> 관리자 모드
+          </button>
+          <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
+            <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur border-t border-navy-800 z-40 flex justify-around py-2">
+    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-1 text-cyan-400 text-[11px] font-medium">
+      <i data-lucide="trending-up" class="w-5 h-5"></i> 시세
+    </button>
+    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
+      <i data-lucide="messages-square" class="w-5 h-5"></i> 포럼
+    </button>
+    <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
+      <i data-lucide="message-circle" class="w-5 h-5"></i> 채팅
+    </button>
+    
+    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
+      <i data-lucide="calculator" class="w-5 h-5"></i> 내역분석
+    </button>
+    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
+      <i data-lucide="newspaper" class="w-5 h-5"></i> 뉴스
+    </button>
+    <button onclick="switchTab('admin')" id="m-nav-admin" class="flex flex-col items-center gap-1 text-purple-400 text-[11px] font-bold">
+      <i data-lucide="shield-check" class="w-5 h-5 text-purple-400"></i> 관리자
+    </button>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 container mx-auto px-4 py-6 mb-16 md:mb-6">
+
+    <!-- ==============================================
+         TAB 1: MARKET DATA & OVERVIEW
+         ============================================== -->
+    <section id="tab-market" class="tab-content block space-y-6">
+      
+      <!-- Market Hero Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Card 1: BTC Quick Card -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-cyan-500/40 transition relative overflow-hidden group cursor-pointer" onclick="selectCoinForChart('bitcoin', 'Bitcoin', 'BTC')">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-3">
+              <img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="BTC" class="w-8 h-8 rounded-full">
+              <div>
+                <h3 class="font-bold text-sm text-slate-100">Bitcoin</h3>
+                <span class="text-xs text-slate-400 font-mono">BTC</span>
+              </div>
+            </div>
+            <span id="btc-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+2.45%</span>
+          </div>
+          <div class="mt-4">
+            <div id="btc-price" class="text-2xl font-black font-mono text-white">$64,820.00</div>
+            <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$28.4B</span></div>
+          </div>
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition"></div>
+        </div>
+
+        <!-- Card 2: ETH Quick Card -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-indigo-500/40 transition relative overflow-hidden group cursor-pointer" onclick="selectCoinForChart('ethereum', 'Ethereum', 'ETH')">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-3">
+              <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="ETH" class="w-8 h-8 rounded-full">
+              <div>
+                <h3 class="font-bold text-sm text-slate-100">Ethereum</h3>
+                <span class="text-xs text-slate-400 font-mono">ETH</span>
+              </div>
+            </div>
+            <span id="eth-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+1.82%</span>
+          </div>
+          <div class="mt-4">
+            <div id="eth-price" class="text-2xl font-black font-mono text-white">$3,490.50</div>
+            <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$15.2B</span></div>
+          </div>
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
+        </div>
+
+        <!-- Card 3: Top Gainer Card -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-crypto-green/40 transition relative overflow-hidden cursor-pointer" onclick="selectCoinForChart('solana', 'Solana', 'SOL')">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs text-crypto-green font-semibold uppercase tracking-wider flex items-center gap-1">
+                <i data-lucide="flame" class="w-3.5 h-3.5"></i> 오늘의 급등 코인
+              </span>
+              <h3 class="font-bold text-base text-slate-100 mt-1" id="gainer-name">Solana (SOL)</h3>
+            </div>
+            <span id="gainer-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+8.94%</span>
+          </div>
+          <div class="mt-3 flex items-baseline justify-between">
+            <div id="gainer-price" class="text-xl font-bold font-mono text-crypto-green">$154.20</div>
+            <span class="text-[11px] text-slate-400">커뮤니티 주목도 1위</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Market Sentiment Card -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm hover:border-cyan-500/40 transition">
+          <div class="flex justify-between items-start">
+            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="gauge" class="w-3.5 h-3.5 text-cyan-400"></i> 공포 & 탐욕 지수
+            </span>
+            <span class="text-xs text-cyan-400 font-mono">실시간</span>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <div>
+              <div class="text-2xl font-black text-crypto-green font-mono">72 <span class="text-sm font-normal text-slate-300">/ 100</span></div>
+              <span class="text-xs font-semibold text-crypto-green">탐욕 (Greed) 상태</span>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-crypto-green/10 border-2 border-crypto-green flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-6 h-6 text-crypto-green"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Market Table & Featured Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Live Market Price Table (2 Cols) -->
+        <div class="lg:col-span-2 bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 text-cyan-400"></i> 주요 암호화폐 실시간 시세
+              </h2>
+              <p class="text-xs text-slate-400">CoinGecko 글로벌 실시간 마켓 데이터 연동</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="fetchMarketData()" class="p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 transition flex items-center gap-1 text-xs" title="새로고침">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refresh-icon"></i> 새로고침
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-navy-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                  <th class="py-3 px-3">#</th>
+                  <th class="py-3 px-3">자산명</th>
+                  <th class="py-3 px-3 text-right">현재가 (USD)</th>
+                  <th class="py-3 px-3 text-right">24시간 변동</th>
+                  <th class="py-3 px-3 text-right hidden sm:table-cell">24시간 거래대금</th>
+                  <th class="py-3 px-3 text-center">차트 분석</th>
+                </tr>
+              </thead>
+              <tbody id="crypto-table-body" class="divide-y divide-navy-800/60 font-mono">
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-slate-500 font-sans">
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-cyan-400 mb-2"></i>
+                    암호화폐 시장 데이터를 불러오는 중입니다...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Featured Interactive Chart & Quick Trade View (1 Col) -->
+        <div class="space-y-6">
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <span class="text-[11px] text-slate-400">인터랙티브 가격 차트</span>
+                <h3 class="text-base font-bold text-white flex items-center gap-1.5" id="selected-chart-title">
+                  <span id="chart-coin-name">Bitcoin</span> (<span id="chart-coin-symbol">BTC</span>)
+                </h3>
+              </div>
+              <div class="flex gap-1 bg-navy-950 p-1 rounded-lg border border-navy-800 text-[11px] font-medium" id="timeframe-buttons">
+                <button onclick="changeChartTimeframe('24h')" class="tf-btn px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400">24H</button>
+                <button onclick="changeChartTimeframe('7d')" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">7D</button>
+                <button onclick="changeChartTimeframe('1m')" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1M</button>
+              </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="h-48 relative">
+              <canvas id="priceChart"></canvas>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-navy-800 grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-navy-950 p-2.5 rounded-xl border border-navy-800/80">
+                <div class="text-slate-400">기간 최고가</div>
+                <div class="font-mono font-bold text-slate-200 mt-0.5" id="chart-high">$65,240</div>
+              </div>
+              <div class="bg-navy-950 p-2.5 rounded-xl border border-navy-800/80">
+                <div class="text-slate-400">기간 최저가</div>
+                <div class="font-mono font-bold text-slate-200 mt-0.5" id="chart-low">$63,110</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Community Spotlight -->
+          <div class="bg-gradient-to-br from-navy-900 to-navy-850 border border-navy-800 rounded-2xl p-5 shadow-lg">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-3">
+              <i data-lucide="zap" class="w-4 h-4 text-crypto-gold"></i> 포럼 인기 토론글
+            </h3>
+            <ul class="space-y-2.5 text-xs">
+              <li>
+                <a href="#" onclick="switchTab('forum'); filterForum('market');" class="block p-2.5 rounded-xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition">
+                  <div class="text-slate-200 font-medium truncate">비트코인 반감기 이후 도미넌스 패턴 분석 및 목표가</div>
+                  <div class="flex items-center gap-3 text-slate-400 mt-1 text-[11px]">
+                    <span class="text-cyan-400 font-semibold">#차트분석</span>
+                    <span>댓글 24개</span>
+                    <span>추천 52</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a href="#" onclick="switchTab('forum'); filterForum('altcoin');" class="block p-2.5 rounded-xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition">
+                  <div class="text-slate-200 font-medium truncate">솔라나 생태계 AI x DePIN 유망 알트코인 3선 정리</div>
+                  <div class="flex items-center gap-3 text-slate-400 mt-1 text-[11px]">
+                    <span class="text-crypto-purple font-semibold">#알트분석</span>
+                    <span>댓글 38개</span>
+                    <span>추천 87</span>
+                  </div>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==============================================
+         TAB 2: COMMUNITY FORUM
+         ============================================== -->
+    <section id="tab-forum" class="tab-content hidden space-y-6">
+      
+      <!-- Forum Header & Controls -->
+      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="messages-square" class="w-6 h-6 text-cyan-400"></i> 코인 토론 포럼
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">투자자들과 자유롭게 매매 전략, 차트 분석, 알트코인 정보 및 인사이트를 공유하세요.</p>
+        </div>
+        <button onclick="openNewPostModal()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 shrink-0">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> 새 게시글 작성
+        </button>
+      </div>
+
+      <!-- Categories & Filters -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-1.5" id="forum-category-filters">
+          <button onclick="filterForum('all')" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="all">전체보기</button>
+          <button onclick="filterForum('general')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="general">💬 자유 토론</button>
+          <button onclick="filterForum('market')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="market">📊 차트/기술적 분석</button>
+          <button onclick="filterForum('altcoin')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="altcoin">🚀 알트코인 분석</button>
+          <button onclick="filterForum('ico')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="ico">🪙 ICO / 신규 토큰</button>
+          <button onclick="filterForum('qna')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="qna">❓ 초보 Q&A</button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-400">정렬:</span>
+          <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-900 border border-navy-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-500">
+            <option value="latest">최신순</option>
+            <option value="popular">인기순 (추천 많은순)</option>
+            <option value="comments">댓글 많은순</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Post List Container -->
+      <div class="space-y-3" id="forum-posts-list">
+        <!-- Posts will be rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ==============================================
+         TAB 3: REAL-TIME CHAT
+         ============================================== -->
+    <section id="tab-chat" class="tab-content hidden w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[550px] w-full">
+        
+        <!-- Left Sidebar: Channels & Online Users -->
+        <div class="hidden lg:flex flex-col bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-lg overflow-hidden h-full">
+          <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
+            <span class="flex items-center gap-2">
+              <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
+            </span>
+            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">1명 온라인</span>
+          </div>
+
+          <div class="mt-3 space-y-1.5 flex-1">
+            <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold flex items-center justify-between">
+              <span># 메인 광장 채팅방</span>
+              <span class="w-2 h-2 rounded-full bg-crypto-green animate-pulse"></span>
+            </button>
+            <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
+              <span># 선물/마진 토론방</span>
+              <span class="text-[10px] text-slate-500">실시간</span>
+            </button>
+            <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
+              <span># 밈코인 & 알트방</span>
+              <span class="text-[10px] text-slate-500">실시간</span>
+            </button>
+          </div>
+
+          <div class="pt-4 border-t border-navy-800 mt-auto">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">현재 접속자</div>
+            <div id="chat-active-users-list" class="space-y-2 text-xs">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-[10px] text-navy-950 font-mono">나</div>
+                <span class="text-slate-200 font-medium" id="chat-current-user-display">접속 중</span>
+                <span class="text-[9px] px-1.5 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto font-bold font-mono">LIVE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Main Chat Window -->
+        <div class="lg:col-span-3 bg-navy-900 border border-navy-800 rounded-2xl shadow-lg flex flex-col overflow-hidden min-h-[500px]">
+          
+          <!-- Community Launch Bridge (Telegram & Discord) -->
+          <div class="p-3 bg-gradient-to-r from-navy-950 via-cyan-950/50 to-navy-950 border-b border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>🚀 <strong>CoinHub 공식 실시간 커뮤니티</strong>에 합류하여 더 빠른 속보와 트레이딩 시그널을 공유하세요!</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://t.me/" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#229ED9]/20 hover:bg-[#229ED9]/30 text-[#229ED9] border border-[#229ED9]/40 font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>💬 텔레그램 공식방</span>
+              </a>
+              <a href="https://discord.com/" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#5865F2]/20 hover:bg-[#5865F2]/30 text-[#5865F2] border border-[#5865F2]/40 font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🎮 디스코드 룸</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="p-4 border-b border-navy-800 bg-navy-850 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded-full bg-crypto-green animate-pulse"></div>
+              <div>
+                <h3 class="font-bold text-sm text-white"># 메인 광장 채팅방 (Global Crypto Chat)</h3>
+                <p class="text-[11px] text-slate-400">실시간 시장 반응과 트레이딩 아이디어를 나눠보세요</p>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400">
+              규칙: 욕설 및 허위정보 금지
+            </div>
+          </div>
+
+          <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans min-h-[350px] max-h-[500px]">
+            <!-- Messages inserted by JS -->
+          </div>
+
+          <div class="p-3 bg-navy-850 border-t border-navy-800">
+            <form id="chat-form" onsubmit="handleSendChat(event)" class="flex gap-2">
+              <input type="text" id="chat-input" placeholder="메시지를 입력하세요 (익명 닉네임 자동 부여)..." class="flex-1 bg-navy-950 border border-navy-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+              <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-md shadow-cyan-500/20">
+                <i data-lucide="send" class="w-4 h-4"></i> 전송
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==============================================
+         TAB 4: NEWS AGGREGATOR
+         ============================================== -->
+    <section id="tab-news" class="tab-content hidden space-y-6">
+      
+      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
+              <i data-lucide="newspaper" class="w-6 h-6 text-cyan-400"></i> 글로벌 암호화폐 실시간 속보
+            </h2>
+            <span class="px-2 py-0.5 rounded-full bg-crypto-red/20 text-crypto-red border border-crypto-red/30 text-[10px] font-bold animate-pulse flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-crypto-red"></span> LIVE 피드
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">주요 블록체인 미디어 및 금융 속보를 30초 주기로 자동 수집·업데이트합니다.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-xs text-slate-400 font-mono hidden sm:flex items-center gap-1.5 bg-navy-950 px-3 py-1.5 rounded-xl border border-navy-800">
+            <span>다음 자동 갱신:</span>
+            <span id="news-countdown" class="text-cyan-400 font-bold">30s</span>
+          </div>
+          <button onclick="fetchLatestNews(true)" class="p-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
+            <i data-lucide="refresh-cw" class="w-4 h-4" id="news-refresh-icon"></i> 속보 즉시 갱신
+          </button>
+        </div>
+      </div>
+
+      <!-- News Category Filter Pills -->
+      <div class="flex flex-wrap items-center gap-1.5" id="news-category-filters">
+        <button onclick="filterNews('ALL')" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="ALL">전체 속보</button>
+        <button onclick="filterNews('MARKET')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="MARKET">📈 비트코인/시장</button>
+        <button onclick="filterNews('TECH')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="TECH">⚡ 기술/DeFi</button>
+        <button onclick="filterNews('REGULATION')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="REGULATION">🏛️ 규제/정책</button>
+        <button onclick="filterNews('ALTCOIN')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-news-cat="ALTCOIN">🚀 알트코인</button>
+      </div>
+
+      <!-- News Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="news-grid">
+        <!-- News cards generated by JS -->
+      </div>
+    </section>
+
+  
+            <!-- ============================================== -->
+    <!-- TAB 5: CRYPTO TRADE ANALYZER (MEMBER ONLY & STRICT PER-USER ISOLATION) -->
+    <!-- ============================================== -->
+    <!-- ============================================== -->
+    <!-- TAB 5: CRYPTO TRADE ANALYZER (MEMBER ONLY & STRICT PER-USER ISOLATION) -->
+    <!-- ============================================== -->
+    <section id="tab-analyzer" class="tab-content hidden space-y-6">
+
+      <!-- AUTH GUARD: 비로그인 시 노출되는 잠금 안내 화면 -->
+      <div id="analyzer-auth-guard" class="analyzer-card p-10 text-center bg-gradient-to-b from-navy-900 to-navy-950 border border-cyan-500/30 rounded-2xl max-w-2xl mx-auto my-12 shadow-2xl space-y-5">
+        <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-3xl mx-auto">
+          <i data-lucide="lock" class="w-8 h-8"></i>
+        </div>
+        <div class="space-y-2">
+          <h2 class="text-2xl font-bold text-white tracking-tight">🔒 로그인 회원 전용 분석 서비스</h2>
+          <p class="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+            거래내역 분석기는 사용자의 소중한 개인 금융 및 투자 데이터 보안을 위해 <strong>100% 회원별 독립 격리 로컬 저장소</strong>로 보호됩니다.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-navy-950/80 border border-navy-800 text-xs text-slate-300 max-w-md mx-auto text-left space-y-1.5">
+          <div class="flex items-center gap-2 text-cyan-400 font-bold">
+            <i data-lucide="shield-check" class="w-4 h-4"></i> 개인정보 & 엑셀 데이터 보호
+          </div>
+          <div>• 업로드하신 엑셀 데이터는 서버로 전송되지 않고 오직 본인 브라우저에만 안전하게 저장됩니다.</div>
+          <div>• 다른 사용자와 데이터가 절대 공유되거나 섞이지 않습니다.</div>
+        </div>
+        <div>
+          <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-cyan-500/25 transition transform hover:scale-105 inline-flex items-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> 로그인 / 회원가입하고 분석기 시작하기
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN ANALYZER DASHBOARD: 로그인 회원 전용 대시보드 -->
+      <div id="analyzer-main-content" style="display: none;">
+        
+        <!-- User Privacy Status Top Banner -->
+        <!-- HERO SECTION & PRIVACY TRUST SHIELD (CoinHub 2.0 Killer Feature) -->
+        <div class="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-cyan-500/40 shadow-2xl relative overflow-hidden text-center">
+          <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="relative z-10 space-y-4 max-w-3xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>100% 무료 • 무제한 분석 • 완전 로컬 프라이버시 보장</span>
+            </div>
+
+            <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-snug">
+              1초 만에 확인하는 내 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">업비트·빗썸 실현손익</span> & 평단가
+            </h1>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              거래소에서 다운로드한 엑셀/CSV 파일을 올리면 복잡한 선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금 내역을 즉시 계산하여 보기 쉬운 통합 대시보드로 시각화합니다.
+            </p>
+
+            <!-- Privacy Trust Guarantee Seal -->
+            <div class="p-3.5 rounded-2xl bg-navy-950/90 border border-cyan-500/40 text-xs text-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3 text-left max-w-xl mx-auto shadow-inner">
+              <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div class="text-[11px] leading-tight">
+                <div class="font-bold text-cyan-300 flex items-center gap-1.5">
+                  <span>🔒 100% Client-Side Only (외부 서버 전송 0%)</span>
+                </div>
+                <div class="text-slate-400 mt-0.5">
+                  업로드 후 <strong>인터넷 랜선을 뽑거나 Wi-Fi를 꺼도 100% 정상 작동</strong>합니다. 모든 데이터는 본인 브라우저 내부에만 안전하게 보관됩니다.
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-center gap-2 text-xs flex-wrap">
+              <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
+              <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1.5" title="현재 사용자 데이터 전체 삭제">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 내 데이터 초기화
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="analyzer-card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 bg-gradient-to-r from-navy-900 to-navy-850 border border-cyan-500/30 hidden">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg font-bold">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-base font-bold text-white flex items-center gap-1.5 whitespace-nowrap">
+                  업비트 & 빗썸 코인 거래내역 독립 분석기 (<span id="analyzerCurrentUserName" class="text-cyan-400">회원</span>)
+                </h2>
+                <span id="analyzerUserModeBadge" class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold whitespace-nowrap">👤 전용 격리 저장소</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5 whitespace-nowrap">
+                🔒 <strong>100% 로컬 독립 격리 보관</strong>: 업로드된 모든 거래 내역은 외부 서버로 전송되지 않으며, 현재 로그인 계정에만 개별 보관됩니다.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs shrink-0 whitespace-nowrap">
+            <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
+            <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-lg bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1" title="현재 사용자 데이터 전체 삭제">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 데이터 초기화
+            </button>
+          </div>
+        </div>
+
+        <div class="app-container">
+          <!-- App Header -->
+          <header class="app-header mb-4">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h1 class="text-lg font-bold text-white">업비트 & 빗썸 가상자산 거래내역 손익 정밀 분석</h1>
+                <div class="text-xs text-slate-400">Upbit & Bithumb Trade Analyzer • 실현손익/평단가/수수료/입출금/월별통계 종합 대시보드</div>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="globalExchangeSelect" class="select-control" style="font-weight: 700;">
+                  <option value="ALL">🌐 전체 거래소 (업비트 + 빗썸)</option>
+                  <option value="UPBIT">🔵 업비트 (Upbit)</option>
+                  <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
+                </select>
+                <button class="btn btn-outline btn-sm" id="refreshTickerBtn" title="실시간 시세 갱신">
+                  🔄 시세 갱신
+                </button>
+                <button class="btn btn-outline btn-sm" id="quickUploadBtn">
+                  📁 파일 추가
+                </button>
+                <button class="btn btn-outline btn-sm" id="exportExcelBtn">
+                  📊 엑셀 다운로드
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <!-- File Upload Drag & Drop Zone -->
+          <section class="upload-card" id="dropZone">
+            <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
+            <div class="upload-icon">📂</div>
+            <div class="upload-title">업비트 및 빗썸 거래내역/입출금 엑셀 또는 CSV 파일을 끌어다 놓으세요</div>
+            <div class="upload-desc">
+              업비트(투자내역 > 거래내역/입출금) 및 빗썸(자산현황 > 거래내역/입출금)에서 다운로드한 엑셀/CSV 파일을 올리면 자동으로 완벽 분류하여 통합 분석합니다.
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="document.getElementById('fileInput').click(); event.stopPropagation();">
+                파일 선택하기
+              </button>
+            </div>
+            <div class="upload-sample-links" onclick="event.stopPropagation();">
+              <span class="upload-sample-link" id="loadAllSampleBtn">💡 [업비트 + 빗썸 통합 샘플]</span>
+              <span class="upload-sample-link" id="loadUpbitSampleBtn">💡 [업비트 전용 샘플]</span>
+              <span class="upload-sample-link" id="loadBithumbSampleBtn">💡 [빗썸 전용 샘플]</span>
+            </div>
+          </section>
+
+          <!-- Top Summary Stat Cards -->
+          <section class="stats-grid">
+            <!-- 1. 총 실현손익 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">누적 실현손익</span>
+                <span class="stat-badge" id="cardRealizedRoi">0.00%</span>
+              </div>
+              <div class="stat-value" id="cardRealizedProfit">0원</div>
+              <div class="stat-footer">매도 완료된 코인의 순수익 (수수료 차감 후)</div>
+            </div>
+
+            <!-- 2. 실시간 평가손익 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">실시간 평가손익 (미실현)</span>
+                <span class="stat-badge" id="cardUnrealizedRoi">0.00%</span>
+              </div>
+              <div class="stat-value" id="cardUnrealizedProfit">0원</div>
+              <div class="stat-footer" id="lastTickerUpdateTime">현재 보유 중인 코인의 실시간 평가</div>
+            </div>
+
+            <!-- 3. 원금 세분화 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">현재 보유 코인 매수원금</span>
+                <span class="stat-badge">보유원금</span>
+              </div>
+              <div class="stat-value" id="cardCurrentHoldingCost">0원</div>
+              <div class="stat-footer">
+                순 투입 원금(입-출): <strong id="cardNetDeposit">0원</strong><br>
+                역대 누적 매수대금: <strong id="cardCumulativeBuy">0원</strong>
+              </div>
+            </div>
+
+            <!-- 4. 총 수수료 & 승률 -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">총 거래 수수료</span>
+              </div>
+              <div class="stat-value" id="cardTotalFees">0원</div>
+              <div class="stat-footer">매매 승률: <strong id="cardWinRate">0% (0승 0패)</strong></div>
+            </div>
+          </section>
+
+          <!-- Navigation Sub Tabs -->
+          <nav class="analyzer-subnav">
+            <button class="analyzer-subtab active" data-tab="dashboard">
+              📊 종합 대시보드
+            </button>
+            <button class="analyzer-subtab" data-tab="coins">
+              🪙 코인별 손익 & 잔고
+            </button>
+            <button class="analyzer-subtab" data-tab="transfers">
+              💳 원화/코인 입출금
+            </button>
+            <button class="analyzer-subtab" data-tab="allActivities">
+              📜 전체 통합 내역 (전체 타임라인)
+            </button>
+            <button class="analyzer-subtab" data-tab="monthly">
+              📅 월별 통계
+            </button>
+            <button class="analyzer-subtab" data-tab="settings">
+              ⚙️ 계산 설정 및 관리
+            </button>
+          </nav>
+
+          <!-- TAB 1: 종합 대시보드 & 차트 -->
+          <div class="analyzer-tab-pane active" id="dashboardTab">
+            <div class="charts-grid">
+              <!-- 누적 손익 추이 -->
+              <div class="chart-card full-width">
+                <div class="chart-header">
+                  <span class="chart-title">📈 누적 실현손익 추이</span>
+                  <span class="text-xs text-muted">매도 체결 시점별 누적 손익 변동</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="cumulativeProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 월별 실현손익 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">📅 월별 실현손익</span>
+                  <span class="text-xs text-muted">월별 수익/손실 비교</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="monthlyProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 코인 갯수 늘리기 (Coin Stacking) 랭킹 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">🪙 트레이딩으로 늘린 코인 수량 증가율 상위</span>
+                  <span class="text-xs text-muted">매매 수익 기준 환산 수량</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="coinStackingChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 코인별 손익 랭킹 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">🏆 코인별 실현손익 상위</span>
+                  <span class="text-xs text-muted">종목별 순수익 기여도</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="coinProfitChart"></canvas>
+                </div>
+              </div>
+
+              <!-- 포트폴리오 보유 비중 -->
+              <div class="chart-card">
+                <div class="chart-header">
+                  <span class="chart-title">💼 현재 보유 자산 비중</span>
+                  <span class="text-xs text-muted">실시간 평가금액 기준</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="portfolioDoughnutChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: 코인별 손익 & 잔고 테이블 -->
+          <div class="analyzer-tab-pane" id="coinsTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="font-bold text-sm">코인별 실현 손익, 잔고 및 트레이딩 수량 증감 현황</div>
+                <div class="flex-center-gap" id="coinsColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="coinsTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="coin">코인명 / 거래소 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
+                      <th class="text-right" data-sort="gainedCoin">늘린 코인수량 (환산) ⬍</th>
+                      <th class="text-right" data-sort="holdingQty">보유수량 (보유원금) ⬍</th>
+                      <th class="text-right" data-sort="avgBuyPrice">매수 평단가 ⬍</th>
+                      <th class="text-right" data-sort="currentPrice">실시간 현재가 ⬍</th>
+                      <th class="text-right" data-sort="unrealizedProfit">평가손익 (평가수익률) ⬍</th>
+                      <th class="text-right" data-sort="totalBuyAmount">총 매수금액 ⬍</th>
+                      <th class="text-right" data-sort="totalSellAmount">총 매도금액 ⬍</th>
+                      <th class="text-right" data-sort="totalFee">수수료 ⬍</th>
+                      <th class="text-center" data-sort="winRate">승률 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="11" class="text-center py-8 text-muted">등록된 코인 거래 내역이 없습니다. 상단에서 엑셀 파일을 업로드해 주세요.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: 원화/코인 입출금 관리 -->
+          <div class="analyzer-tab-pane" id="transfersTab">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">총 원화(KRW) 입금액</span>
+                  <span class="badge badge-deposit-krw">입금</span>
+                </div>
+                <div class="stat-value" id="transferTotalKrwDeposit">0원</div>
+                <div class="stat-footer">거래소 계좌로 입금된 총 원화</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">총 원화(KRW) 출금액</span>
+                  <span class="badge badge-withdraw-krw">출금</span>
+                </div>
+                <div class="stat-value" id="transferTotalKrwWithdraw">0원</div>
+                <div class="stat-footer">내 통장으로 출금된 총 원화</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <span class="stat-title">순 투입 원금 (NET DEPOSIT)</span>
+                  <span class="badge badge-deposit-coin">순입금</span>
+                </div>
+                <div class="stat-value" id="transferNetKrwDeposit">0원</div>
+                <div class="stat-footer">총 원화 입금액 - 총 원화 출금액</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <div class="font-bold text-sm mb-3">🪙 가상자산(코인) 외부 입출금 요약</div>
+              <div class="stats-grid" id="coinTransferSummaryContainer">
+                <div class="stat-card p-4 text-xs text-muted">코인 입출금 내역이 없습니다.</div>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="flex-center-gap flex-wrap">
+                  <input type="text" id="transferSearchInput" class="input-control" placeholder="코인명 검색 (예: BTC, ETH)">
+                  <select id="transferExchangeFilter" class="select-control">
+                    <option value="ALL">전체 거래소</option>
+                    <option value="UPBIT">업비트 (UPBIT)</option>
+                    <option value="BITHUMB">빗썸 (BITHUMB)</option>
+                  </select>
+                  <select id="transferTypeFilter" class="select-control">
+                    <option value="ALL">전체 입출금</option>
+                    <option value="원화입금">원화 입금만</option>
+                    <option value="원화출금">원화 출금만</option>
+                    <option value="코인입금">코인 입금만</option>
+                    <option value="코인출금">코인 출금만</option>
+                  </select>
+                </div>
+                <div class="flex-center-gap" id="transfersColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="transfersTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="exchange">거래소 ⬍</th>
+                      <th data-sort="time">일시 ⬍</th>
+                      <th data-sort="type">구분 ⬍</th>
+                      <th data-sort="asset">자산 ⬍</th>
+                      <th class="text-right" data-sort="quantity">수량 / 금액 ⬍</th>
+                      <th class="text-right" data-sort="price">단가 ⬍</th>
+                      <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                      <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="8" class="text-center py-8 text-muted">입출금 내역이 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pagination-container" id="transfersPagination"></div>
+            </div>
+          </div>
+
+          <!-- TAB 4: 전체 통합 내역 (전체 타임라인) -->
+          <div class="analyzer-tab-pane" id="allActivitiesTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="flex-center-gap flex-wrap">
+                  <input type="text" id="activitySearchInput" class="input-control" placeholder="코인명/심볼 검색 (예: BTC, 비트코인)">
+                  <select id="activityTypeFilter" class="select-control">
+                    <option value="ALL">전체 모든 내역 (매매 + 입출금)</option>
+                    <option value="TRADE_ALL">📈 매매(매수+매도)만</option>
+                    <option value="매수">🔴 매수만</option>
+                    <option value="매도">🔵 매도만</option>
+                    <option value="TRANSFER_ALL">💳 입출금 전체</option>
+                    <option value="원화입금">🟢 원화입금만</option>
+                    <option value="원화출금">🟣 원화출금만</option>
+                    <option value="코인입금">🔵 코인입금만</option>
+                    <option value="코인출금">🟠 코인출금만</option>
+                  </select>
+                  <select id="activityCoinFilter" class="select-control">
+                    <option value="ALL">전체 코인</option>
+                  </select>
+                  <div class="flex items-center gap-1">
+                    <input type="date" id="startDateInput" class="input-control">
+                    <span class="text-muted text-xs">~</span>
+                    <input type="date" id="endDateInput" class="input-control">
+                  </div>
+                </div>
+                <div class="flex-center-gap">
+                  <div id="activitiesColDropdownContainer"></div>
+                  <button class="btn btn-sm btn-outline" id="exportCSVBtn">
+                    📥 CSV 내보내기
+                  </button>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table id="allActivitiesTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="exchange">거래소 ⬍</th>
+                      <th data-sort="time">체결/처리시간 ⬍</th>
+                      <th data-sort="asset">코인/자산 ⬍</th>
+                      <th data-sort="type">구분 ⬍</th>
+                      <th class="text-right" data-sort="quantity">수량 ⬍</th>
+                      <th class="text-right" data-sort="price">단가 ⬍</th>
+                      <th class="text-right" data-sort="amount">거래/입출금액 ⬍</th>
+                      <th class="text-right" data-sort="fee">수수료 ⬍</th>
+                      <th class="text-right" data-sort="settlement">정산금액 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">해당거래 실현손익 ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="10" class="text-center py-8 text-muted">조건에 일치하는 내역이 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pagination-container" id="allActivitiesPagination"></div>
+            </div>
+          </div>
+
+          <!-- TAB 5: 월별 통계 -->
+          <div class="analyzer-tab-pane" id="monthlyTab">
+            <div class="table-card">
+              <div class="table-toolbar">
+                <div class="font-bold text-sm">월별 실현손익 및 거래대금 집계</div>
+                <div class="flex-center-gap" id="monthlyColDropdownContainer"></div>
+              </div>
+              <div class="table-responsive">
+                <table id="monthlyTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="period">년월 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">실현손익 ⬍</th>
+                      <th class="text-right" data-sort="buyVolume">총 매수대금 ⬍</th>
+                      <th class="text-right" data-sort="sellVolume">총 매도대금 ⬍</th>
+                      <th class="text-right" data-sort="totalVolume">총 거래대금 ⬍</th>
+                      <th class="text-right" data-sort="totalFees">수수료 합계 ⬍</th>
+                      <th class="text-center" data-sort="winRate">승률 (승/패/총거래) ⬍</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center py-8 text-muted">월별 데이터가 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: 계산 설정 및 관리 (BEAUTIFUL FINTECH REDESIGN) -->
+          <div class="analyzer-tab-pane" id="settingsTab">
+            <div class="settings-container">
+              
+              <!-- CARD 1: 손익 계산 방식 설정 -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">⚙️</div>
+                  <div>
+                    <h3 class="settings-card-title">손익 계산 알고리즘 (원가 산정 방식)</h3>
+                    <p class="settings-card-desc">가상자산 세무 신고 및 투자 수익률 산정 시 사용할 원가 매칭 알고리즘을 선택합니다.</p>
+                  </div>
+                </div>
+                
+                <div class="calc-method-grid">
+                  <div class="calc-method-option active" id="opt-fifo" onclick="App.setCalcMethod('fifo')">
+                    <div class="calc-method-badge">세무 표준 권장</div>
+                    <div class="calc-method-radio">
+                      <input type="radio" name="calcMethod" id="radio-fifo" value="fifo" checked>
+                      <label for="radio-fifo" class="font-bold text-white text-sm cursor-pointer">선입선출법 (FIFO)</label>
+                    </div>
+                    <p class="calc-method-text">
+                      먼저 매수한 코인부터 순차적으로 매도 매칭합니다. 대한민국 국세청 가상자산 소득세 표준 계산 방식입니다.
+                    </p>
+                  </div>
+
+                  <div class="calc-method-option" id="opt-moving-avg" onclick="App.setCalcMethod('moving_avg')">
+                    <div class="calc-method-badge">보조 지표</div>
+                    <div class="calc-method-radio">
+                      <input type="radio" name="calcMethod" id="radio-moving-avg" value="moving_avg">
+                      <label for="radio-moving-avg" class="font-bold text-white text-sm cursor-pointer">이동평균법 (Moving Average)</label>
+                    </div>
+                    <p class="calc-method-text">
+                      매수 시점마다 가중 평균 매수단가를 갱신하여 매도 시점의 평균단가 기준으로 손익을 산정합니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CARD 2: 보고서 내보내기 & 인쇄 -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon">📊</div>
+                  <div>
+                    <h3 class="settings-card-title">분석 보고서 내보내기 및 인쇄</h3>
+                    <p class="settings-card-desc">정리된 업비트 & 빗썸 종합 분석 데이터를 엑셀, CSV 또는 인쇄용 포맷으로 즉시 저장할 수 있습니다.</p>
+                  </div>
+                </div>
+
+                <div class="action-buttons-grid">
+                  <button class="settings-action-btn btn-excel" onclick="Exporter.exportExcelReport(App.state.reportData)">
+                    <div class="btn-icon">📥</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">종합 분석 보고서 엑셀(.xlsx) 다운로드</div>
+                      <div class="btn-sub-text">코인별 손익 + 월별 통계 + 입출금 + 상세 매매내역 4개 시트 통합 저장</div>
+                    </div>
+                  </button>
+
+                  <button class="settings-action-btn btn-csv" onclick="App.exportCurrentActivitiesCSV()">
+                    <div class="btn-icon">📋</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">전체 거래내역 CSV 파일 내보내기</div>
+                      <div class="btn-sub-text">시간순 정제된 모든 매매 및 입출금 타임라인 데이터(.csv)</div>
+                    </div>
+                  </button>
+
+                  <button class="settings-action-btn btn-print" onclick="Exporter.printReport(App.state.reportData)">
+                    <div class="btn-icon">🖨️</div>
+                    <div class="btn-text-group">
+                      <div class="btn-main-text">분석 보고서 인쇄 및 PDF 저장</div>
+                      <div class="btn-sub-text">대시보드 차트와 요약 통계를 깔끔한 인쇄용 PDF 형식으로 출력</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- CARD 3: 개인정보 보호 & 데이터 관리 -->
+              <div class="settings-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">🔒</div>
+                  <div>
+                    <h3 class="settings-card-title">데이터 보안 및 계정별 보관함 관리</h3>
+                    <p class="settings-card-desc">업로드된 거래 내역은 외부 서버로 일체 전송되지 않으며, 사용자 브라우저의 전용 격리 저장소에만 보관됩니다.</p>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-navy-950/80 border border-navy-800 text-xs text-slate-300 space-y-2 mb-4">
+                  <div class="flex items-center justify-between">
+                    <span>현재 로그인 계정: <strong class="text-cyan-400" id="settingsUsernameDisplay">회원</strong></span>
+                    <span class="text-slate-400" id="settingsSavedCountDisplay">저장된 거래: 0건</span>
+                  </div>
+                  <div class="text-slate-400">• 새로운 엑셀 파일로 처음부터 다시 분석하고 싶으실 때 아래 초기화 버튼을 누르시면 안전하게 삭제됩니다.</div>
+                </div>
+
+                <div>
+                  <button class="settings-danger-btn" onclick="App.clearDataWithConfirm()">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> 현재 계정의 모든 거래 데이터 초기화 및 삭제
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ==============================================
+         TAB 6: ADMIN OPERATIONS & SITE MANAGEMENT HUB
+         ============================================== -->
+    <section id="tab-admin" class="tab-content hidden space-y-6">
+
+      <!-- 1. ADMIN AUTH GUARD (비관리자 접근 시 노출되는 잠금/인증 화면) -->
+      <div id="admin-auth-guard" class="p-10 text-center bg-gradient-to-b from-navy-900 to-navy-950 border border-purple-500/30 rounded-2xl max-w-xl mx-auto my-8 shadow-2xl space-y-5">
+        <div class="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-3xl mx-auto shadow-lg shadow-purple-500/20">
+          🔒
+        </div>
+        <div class="space-y-2">
+          <h2 class="text-xl font-extrabold text-white">최고 관리자(Admin) 전용 보안 구역</h2>
+          <p class="text-xs text-slate-400 leading-relaxed max-w-md mx-auto">
+            본 페이지는 코인허브 사이트 운영 및 일일 방문자 트래픽 모니터링, 회원 계정 관리를 위한 관리자 전용 센터입니다. 관리자 계정으로 로그인해 주세요.
+          </p>
+        </div>
+        
+        <div class="bg-navy-950 p-5 rounded-2xl border border-navy-800 text-xs text-slate-300 space-y-3.5 text-left max-w-md mx-auto shadow-inner">
+          <div class="font-bold text-purple-400 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 관리자 빠른 로그인 / 인증</span>
+            <span class="text-[10px] text-slate-500 font-mono">보안 인증 v2.5</span>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1 font-semibold">관리자 아이디 (ID)</label>
+            <input type="text" id="admin-login-id" placeholder="관리자 계정 ID 입력" autocomplete="off" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1 font-semibold">관리자 비밀번호</label>
+            <input type="password" id="admin-login-pw" placeholder="관리자 비밀번호 입력" autocomplete="new-password" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+          </div>
+          <button onclick="AdminApp.handleAdminLogin()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 mt-1">
+            <i data-lucide="key" class="w-4 h-4"></i> 관리자 권한으로 즉시 인증 및 입장
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. ADMIN DASHBOARD CONTENT (관리자 인증 완료 시 전체 노출) -->
+      <div id="admin-dashboard-content" class="hidden space-y-6">
+
+      <!-- Admin Top Banner -->
+      <div class="bg-gradient-to-r from-navy-900 via-purple-950/40 to-navy-900 border border-purple-500/30 rounded-2xl p-6 shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xl font-bold shadow-lg shadow-purple-500/20">
+              🛡️
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
+                코인허브 통합 관리자 센터
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono font-bold">ADMIN v2.5</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">실시간 일일 방문자 트래픽 모니터링, 회원 계정 관리, 커뮤니티 정화 및 시스템 제어</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="AdminApp.openAddUserModal()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> 신규 회원 등록
+          </button>
+          <button onclick="AdminApp.promptChangeAdminPassword()" class="px-3.5 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 hover:text-purple-100 border border-purple-500/40 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="key" class="w-4 h-4 text-purple-400"></i> 비밀번호 변경
+          </button>
+          <button onclick="AdminApp.exportFullBackupJSON()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1.5">
+            <i data-lucide="download" class="w-4 h-4"></i> 전체 데이터 백업
+          </button>
+          <button onclick="AdminApp.renderAll()" class="p-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 transition" title="새로고침">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Sub-Navigation Pills -->
+      <div class="flex flex-wrap items-center gap-2 border-b border-navy-800 pb-3">
+        <button onclick="AdminApp.switchSubTab('analytics')" class="admin-subtab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="analytics">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i> 방문자 & 트래픽 분석
+        </button>
+        <button onclick="AdminApp.switchSubTab('users')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="users">
+          <i data-lucide="users" class="w-4 h-4 text-purple-400"></i> 회원 계정 관리 (<span id="admin-total-users-count">7명</span>)
+        </button>
+        <button onclick="AdminApp.switchSubTab('moderation')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="moderation">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i> 커뮤니티 & 채팅 관리
+        </button>
+        <button onclick="AdminApp.switchSubTab('system')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="system">
+          <i data-lucide="server" class="w-4 h-4 text-emerald-400"></i> 시스템 진단 & 스토리지
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 1: VISITOR & TRAFFIC ANALYTICS    -->
+      <!-- ============================================== -->
+      <div id="admin-tab-analytics" class="admin-tab-content space-y-6">
+
+        <!-- 4 Top KPI Analytics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Today Visitors -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">오늘 하루 방문자 수 (DAU)</span>
+              <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400"><i data-lucide="user-check" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-white" id="admin-today-visitors">1,780명</div>
+            <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center gap-1" id="admin-today-growth">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +5.4% vs 어제
+            </div>
+          </div>
+
+          <!-- Card 2: Live Active Users -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">실시간 현재 동시접속자</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
+            <div class="text-2xl font-extrabold text-emerald-400" id="admin-live-users">47명</div>
+            <div class="text-[11px] text-slate-400 mt-1">라이브 세션 활성 모니터링 중</div>
+          </div>
+
+          <!-- Card 3: Weekly Visitors -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">이번 주 누적 방문자 (WAU)</span>
+              <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="calendar" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-purple-300" id="admin-weekly-visitors">11,840명</div>
+            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 합계</div>
+          </div>
+
+          <!-- Card 4: Total Pageviews -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">누적 총 페이지뷰 (PV)</span>
+              <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="eye" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-amber-300" id="admin-total-pageviews">186,450 PV</div>
+            <div class="text-[11px] text-slate-400 mt-1">사용자당 평균 3.8회 탭 탐색</div>
+          </div>
+        </div>
+
+        <!-- 14-Day Visitor Trend Chart -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> 최근 14일간 일별 방문자 수 (DAU) 추이
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">매일 자정 기준으로 집계된 고유 방문자 및 페이지뷰 통계입니다.</p>
+            </div>
+            <span class="text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg font-mono">14-Day Analytics</span>
+          </div>
+
+          <div id="admin-visitor-chart" class="flex items-end gap-2 sm:gap-3 h-48 pt-6 border-b border-navy-800 pb-2">
+            <!-- Dynamically populated bars -->
+          </div>
+        </div>
+
+        <!-- Traffic Breakdown Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Popular Feature Usage -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 방문 점유율
+            </h3>
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>📊 거래내역 분석기 (Excel/FIFO)</span>
+                  <span class="text-cyan-400 font-bold">44%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 44%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>📈 가상자산 실시간 시세 & 차트</span>
+                  <span class="text-purple-400 font-bold">27%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 27%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>⚡ 글로벌 암호화폐 실시간 속보</span>
+                  <span class="text-amber-400 font-bold">18%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" style="width: 18%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>💬 커뮤니티 포럼 & 실시간 채팅</span>
+                  <span class="text-emerald-400 font-bold">11%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style="width: 11%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Device & Browser Stats -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i> 기기 및 브라우저 환경 분석
+            </h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
+                <div class="text-slate-400 text-xs font-semibold mb-1">📱 모바일 기기 (스마트폰)</div>
+                <div class="text-xl font-extrabold text-cyan-400">64.2%</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">iOS Safari & Android Chrome</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
+                <div class="text-slate-400 text-xs font-semibold mb-1">💻 데스크톱 (PC / Mac)</div>
+                <div class="text-xl font-extrabold text-purple-400">35.8%</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Windows & macOS 브라우저</div>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 pt-2 border-t border-navy-800 flex justify-between font-mono">
+              <span>Chrome: 66%</span>
+              <span>Safari: 21%</span>
+              <span>Samsung: 8%</span>
+              <span>Edge: 5%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 2: USER ACCOUNT MANAGEMENT        -->
+      <!-- ============================================== -->
+      <div id="admin-tab-users" class="admin-tab-content hidden space-y-4">
+        
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <div class="flex flex-1 items-center gap-3">
+            <div class="relative flex-1 max-w-md">
+              <input type="text" id="admin-user-search" placeholder="회원명, 이메일 검색..." class="w-full bg-navy-950 border border-navy-800 text-xs rounded-xl pl-9 pr-3 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <select id="admin-user-role-filter" class="bg-navy-950 border border-navy-800 text-xs rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none focus:border-purple-500">
+              <option value="ALL">전체 권한</option>
+              <option value="ADMIN">ADMIN (관리자)</option>
+              <option value="PRO">PRO 회원</option>
+              <option value="USER">일반 회원</option>
+            </select>
+          </div>
+
+          <button onclick="AdminApp.openAddUserModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> 신규 회원 등록
+          </button>
+        </div>
+
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-navy-950 text-slate-400 text-[11px] font-bold border-b border-navy-800 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">회원 계정명</th>
+                  <th class="py-3.5 px-4">이메일 주소</th>
+                  <th class="py-3.5 px-4">가입일</th>
+                  <th class="py-3.5 px-4">권한 등급</th>
+                  <th class="py-3.5 px-4">계정 상태</th>
+                  <th class="py-3.5 px-4 text-right">분석 거래건수</th>
+                  <th class="py-3.5 px-4">최근 활동</th>
+                  <th class="py-3.5 px-4 text-right">관리 조치</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body" class="divide-y divide-navy-800/60">
+                <!-- User rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 3: MODERATION & COMMUNITY CONTROL -->
+      <!-- ============================================== -->
+      <div id="admin-tab-moderation" class="admin-tab-content hidden space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Chat Moderation -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4 text-cyan-400"></i> 실시간 채팅방 모니터링 & 제어
+              </h3>
+              <div class="flex items-center gap-1.5">
+                <button onclick="AdminApp.broadcastAdminNotice()" class="px-2.5 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 rounded-lg text-xs font-bold transition">
+                  📢 공지 전송
+                </button>
+                <button onclick="AdminApp.clearAllChat()" class="px-2.5 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-bold transition">
+                  전체 초기화
+                </button>
+              </div>
+            </div>
+
+            <div id="admin-chat-preview" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Chat list rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Forum Moderation -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="messages-square" class="w-4 h-4 text-amber-400"></i> 커뮤니티 포럼 게시글 관리
+              </h3>
+              <span class="text-xs text-slate-400">불량 게시글 즉시 삭제</span>
+            </div>
+
+            <div id="admin-forum-preview" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Forum posts rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 4: SYSTEM HEALTH & STORAGE        -->
+      <!-- ============================================== -->
+      <div id="admin-tab-system" class="admin-tab-content hidden space-y-6">
+
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="hard-drive" class="w-4 h-4 text-emerald-400"></i> 로컬 스토리지 데이터 진단 및 사용량
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">브라우저 전용 격리 저장소에 저장된 사용자 거래 내역, 포럼 글 및 설정 데이터</p>
+            </div>
+            <span class="text-xs font-mono font-bold text-emerald-400" id="admin-storage-used">계산 중...</span>
+          </div>
+
+          <div id="admin-storage-keys-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto">
+            <!-- Storage keys list -->
+          </div>
+
+          <div class="pt-4 border-t border-navy-800 flex flex-wrap items-center justify-between gap-3">
+            <button onclick="AdminApp.exportFullBackupJSON()" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition flex items-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i> 전체 시스템 데이터 백업 (JSON 다운로드)
+            </button>
+            <button onclick="AdminAnalytics.recordVisit(); AdminApp.renderAnalytics(); alert('방문자 카운터가 수동으로 1회 집계되었습니다.');" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 text-xs font-semibold transition border border-navy-700">
+              방문자 수 수동 카운트 증가 (+1)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      </div>
+      <!-- END ADMIN DASHBOARD CONTENT -->
+
+    </section>
+
+  </main>
+
+  <!-- ==============================================
+       MODALS & DIALOGS
+       ============================================== -->
+
+  <!-- Modal 1: Post Detail & Comments Modal -->
+  <div id="post-detail-modal" class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center">
+        <span id="modal-post-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">카테고리</span>
+        <button onclick="closePostDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <h2 id="modal-post-title" class="text-xl font-bold text-white">게시글 제목</h2>
+        
+        <div class="flex items-center gap-3 text-xs text-slate-400 pb-4 border-b border-navy-800">
+          <span id="modal-post-author" class="font-semibold text-slate-200">작성자</span>
+          <span>•</span>
+          <span id="modal-post-time">방금 전</span>
+          <span>•</span>
+          <span>조회수 <span id="modal-post-views">128</span></span>
+        </div>
+
+        <div id="modal-post-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
+          본문 내용...
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-navy-800">
+          <button id="modal-upvote-btn" onclick="handleVoteInModal(1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500 text-xs font-bold text-slate-200 transition">
+            <i data-lucide="thumbs-up" class="w-4 h-4 text-cyan-400"></i> 추천 <span id="modal-post-upvotes" class="font-mono text-cyan-400">0</span>
+          </button>
+          <button onclick="handleVoteInModal(-1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-crypto-red text-xs font-bold text-slate-400 hover:text-crypto-red transition">
+            <i data-lucide="thumbs-down" class="w-4 h-4"></i> 비추천
+          </button>
+          <button onclick="alert('게시글 링크가 클립보드에 복사되었습니다!')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-slate-700 text-xs text-slate-300 transition ml-auto">
+            <i data-lucide="share-2" class="w-4 h-4"></i> 공유하기
+          </button>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-navy-800 space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="message-square" class="w-4 h-4 text-cyan-400"></i> 댓글 (<span id="modal-comments-count">0</span>)
+          </h3>
+
+          <div class="flex gap-2">
+            <input type="text" id="new-comment-input" placeholder="댓글을 남겨보세요..." class="flex-1 bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <button onclick="handleAddComment()" class="bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs px-4 py-2 rounded-xl transition">
+              등록
+            </button>
+          </div>
+
+          <div id="modal-comments-list" class="space-y-2.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Create New Post Modal -->
+  <div id="new-post-modal" class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-cyan-400"></i> 커뮤니티 게시글 작성
+        </h3>
+        <button onclick="closeNewPostModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreatePost(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">토론 카테고리</label>
+          <select id="post-category-select" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <option value="general">💬 자유 토론 (General Discussion)</option>
+            <option value="market">📊 차트/기술적 분석 (Technical Analysis)</option>
+            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
+            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
+            <option value="qna">❓ 초보 Q&A 코너</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">제목</label>
+          <input type="text" id="post-title-input" required placeholder="글 제목을 입력하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">내용</label>
+          <textarea id="post-content-input" required rows="6" placeholder="자신의 분석, 생각, 질문 내용을 자유롭게 작성하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeNewPostModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs hover:bg-navy-800 transition">취소</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition">등록하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Auth (Login / Signup with Email Verification / Password Reset) Modal -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden p-6 sm:p-7 relative animate-in">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h3 id="auth-modal-title" class="font-extrabold text-xl text-white flex items-center gap-2">
+            <span id="auth-modal-icon">🔐</span> <span id="auth-modal-title-text">로그인</span>
+          </h3>
+          <p id="auth-modal-desc" class="text-xs text-slate-400 mt-0.5">CoinHub 가상자산 플랫폼에 오신 것을 환영합니다.</p>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Mode Switch Tabs -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 bg-navy-950 rounded-2xl mb-5 border border-navy-800/80 text-xs font-bold" id="auth-tab-bar">
+        <button type="button" onclick="setAuthMode('login')" id="auth-tab-login" class="py-2.5 rounded-xl transition text-center active bg-navy-800 text-cyan-400 shadow-sm">
+          로그인
+        </button>
+        <button type="button" onclick="setAuthMode('signup')" id="auth-tab-signup" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white">
+          이메일 인증 회원가입
+        </button>
+      </div>
+
+      <!-- 1. LOGIN FORM -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">아이디 / 이메일</label>
+          <div class="relative">
+            <input type="text" id="login-identifier" required placeholder="아이디 또는 이메일 입력" autocomplete="off" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-semibold text-slate-300">비밀번호</label>
+            <button type="button" onclick="setAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline">
+              비밀번호를 잊으셨나요?
+            </button>
+          </div>
+          <div class="relative">
+            <input type="password" id="login-password" required placeholder="비밀번호 입력" autocomplete="new-password" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i> 로그인
+        </button>
+
+
+      </form>
+
+      <!-- 2. SIGNUP FORM (WITH EMAIL VERIFICATION OTP) -->
+      <form id="signup-form" onsubmit="handleSignupSubmit(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">사용자 ID (닉네임)</label>
+          <div class="relative">
+            <input type="text" id="signup-username" required placeholder="영문/한글 2~12자 (예: Satoshi_2026)" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">이메일 주소 (인증코드 수신용)</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input type="email" id="signup-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <button type="button" onclick="sendSignupVerificationCode()" id="btn-send-signup-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
+              인증코드 발송
+            </button>
+          </div>
+        </div>
+
+        <!-- Verification OTP Code Input -->
+        <div id="signup-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 이메일 인증번호 (6자리)</span>
+            <span class="font-mono text-cyan-300 font-bold" id="signup-otp-timer">03:00</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="signup-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
+            <button type="button" onclick="verifySignupOTP()" id="btn-verify-signup-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+              인증확인
+            </button>
+          </div>
+          <div id="signup-otp-status" class="text-[11px] text-slate-400">위 이메일로 발송된 6자리 코드를 입력해주세요.</div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호</label>
+          <div class="relative">
+            <input type="password" id="signup-password" required placeholder="8자 이상 영문, 숫자 조합" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호 확인</label>
+          <div class="relative">
+            <input type="password" id="signup-password-confirm" required placeholder="비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit-signup" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="user-check" class="w-4 h-4"></i> 이메일 인증 완료 및 회원가입
+        </button>
+      </form>
+
+      <!-- 3. FORGOT / RESET PASSWORD FORM (WITH EMAIL VERIFICATION OTP) -->
+      <form id="forgot-form" onsubmit="handleResetPasswordSubmit(event)" class="space-y-4 hidden">
+        <div class="p-3 rounded-xl bg-navy-950 border border-navy-800 text-xs text-slate-300">
+          가입 시 등록하신 이메일 주소로 본인 확인 인증번호를 발송하여 비밀번호를 안전하게 재설정합니다.
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">가입된 이메일 주소</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input type="email" id="forgot-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <button type="button" onclick="sendResetVerificationCode()" id="btn-send-reset-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
+              인증코드 발송
+            </button>
+          </div>
+        </div>
+
+        <!-- Reset OTP Code Input -->
+        <div id="reset-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 본인 확인 인증번호 (6자리)</span>
+            <span class="font-mono text-cyan-300 font-bold" id="reset-otp-timer">03:00</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="reset-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
+            <button type="button" onclick="verifyResetOTP()" id="btn-verify-reset-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+              인증확인
+            </button>
+          </div>
+          <div id="reset-otp-status" class="text-[11px] text-slate-400">이메일로 발송된 6자리 코드를 입력해주세요.</div>
+        </div>
+
+        <div id="reset-password-fields" class="hidden space-y-3 pt-2 border-t border-navy-800">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새로운 비밀번호</label>
+            <div class="relative">
+              <input type="password" id="reset-new-password" placeholder="8자 이상 새 비밀번호" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="key" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새 비밀번호 확인</label>
+            <div class="relative">
+              <input type="password" id="reset-new-password-confirm" placeholder="새 비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> 비밀번호 변경 및 즉시 로그인
+          </button>
+        </div>
+
+        <div class="pt-2 text-center">
+          <button type="button" onclick="setAuthMode('login')" class="text-xs text-slate-400 hover:text-white transition">
+            ← 로그인 화면으로 돌아가기
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Modal 4: News Detail & Full Article Modal -->
+  <div id="news-detail-modal" class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-850">
+        <div class="flex items-center gap-2">
+          <span id="modal-news-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">MARKET</span>
+          <span id="modal-news-source" class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-cyan-400"></i> CoinDesk
+          </span>
+          <span class="text-xs text-slate-400">•</span>
+          <span id="modal-news-time" class="text-xs text-slate-400">방금 전</span>
+        </div>
+        <button onclick="closeNewsDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1">
+        <h2 id="modal-news-title" class="text-xl font-bold text-white leading-snug">속보 기사 제목</h2>
+        
+        <!-- Key Takeaways Box -->
+        <div class="bg-navy-950 p-4 rounded-xl border border-cyan-500/30 space-y-2">
+          <div class="text-xs font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 핵심 요약 (Key Takeaways)
+          </div>
+          <ul id="modal-news-takeaways" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+            <!-- Dynamic bullets -->
+          </ul>
+        </div>
+
+        <!-- Full Article Body -->
+        <div id="modal-news-content" class="text-slate-200 text-sm leading-relaxed space-y-3 whitespace-pre-wrap">
+          <!-- Dynamic paragraphs -->
+        </div>
+
+        <!-- Market Impact & Related Tickers -->
+        <div class="pt-4 border-t border-navy-800 bg-navy-950/50 p-4 rounded-xl border border-navy-800">
+          <div class="text-xs font-bold text-slate-300 mb-2.5 flex items-center gap-1.5">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-crypto-green"></i> 시장 영향 분석 및 관련 자산
+          </div>
+          <div class="flex flex-wrap items-center gap-2" id="modal-news-tickers">
+            <!-- Dynamic tickers -->
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-navy-800">
+          <a id="modal-news-original-link" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition">
+            <span>원문 언론사 기사 전문 보기</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+
+          <div class="flex items-center gap-2">
+            <button onclick="copyNewsLink()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-slate-700 text-xs text-slate-300 transition">
+              <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 링크 복사
+            </button>
+            <button onclick="closeNewsDetailModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 hover:text-white text-xs transition">
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-navy-900 border-t border-navy-800 py-8 text-xs text-slate-400 mt-auto">
+    <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-xs">C</div>
+        <span class="font-bold text-slate-200">CoinHub Cryptocurrency Platform</span>
+        <span>© 2026 CoinHub. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-400">
+        <a href="#" class="hover:text-cyan-400 transition">이용약관</a>
+        <a href="#" class="hover:text-cyan-400 transition">개인정보처리방침</a>
+        <a href="#" class="hover:text-cyan-400 transition">CoinGecko API</a>
+        <a href="https://github.com/ittechkjh/homepage" target="_blank" class="hover:text-cyan-400 transition flex items-center gap-1">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub Repo
+        </a>
+      </div>
+    </div>
+  </footer>
+
+
+    <!-- Global Loader Overlay -->
+    <div class="global-loader" id="globalLoader">
+        <div class="spinner"></div>
+        <div class="loader-text">데이터 처리 중...</div>
+    </div>
+
+    <!-- Application Script Modules -->
+    
+
+  
+  <!-- SheetJS Excel Library -->
+  <script src="lib/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === "undefined") {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+  <!-- Analyzer Core Modules -->
+  <script src="js/parser.js?v=1787982125050"></script>
+  <script src="js/calculator.js?v=1787982125050"></script>
+  <script src="js/upbit-api.js?v=1787982125050"></script>
+  <script src="js/charts.js?v=1787982125050"></script>
+  <script src="js/exporter.js?v=1787982125050"></script>
+  <script src="js/sample-data.js?v=1787982125050"></script>
+  <script src="js/analyzer-app.js?v=1787982125050"></script>
+
+  <script src="js/admin.js?v=1787982125050"></script>
+  <script src="js/preview-app.js?v=1787982125050"></script>
+</body>
+  <script>
+    // Pre-initialize analyzer if user is already logged in on page load
+    window.addEventListener('load', function () {
+      if (typeof App !== 'undefined' && !App._initialized) {
+        try {
+          const stored = localStorage.getItem('coinhub_user');
+          if (stored) {
+            const u = JSON.parse(stored);
+            if (u && u.username) {
+              App.init();
+              App._initialized = true;
+            }
+          }
+        } catch (e) {}
+      }
+    });
+  </script>
+</html>
