@@ -437,26 +437,39 @@ const AdminApp = {
         alert('🔑 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 새 비밀번호를 사용하세요.');
     },
 
-    checkAdminAccess: function () {
-        const u = (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
-        const isAdmin = u && (u.role === 'ADMIN' || u.username === 'admin' || u.username === '성공' || u.email === 'admin@coinhub.kr');
+        checkAdminAccess: function () {
+        const u = (typeof currentUser !== 'undefined' && currentUser) 
+            ? currentUser 
+            : (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
+        
+        const isAdmin = u && (u.role === 'ADMIN' || u.username === 'admin' || u.username === '성공' || (u.email && u.email.toLowerCase().includes('admin')));
 
         const guardEl = document.getElementById('admin-auth-guard');
         const contentEl = document.getElementById('admin-dashboard-content');
 
         if (isAdmin) {
-            if (guardEl) guardEl.classList.add('hidden');
+            if (guardEl) {
+                guardEl.classList.add('hidden');
+                guardEl.classList.remove('block');
+                guardEl.style.display = 'none';
+            }
             if (contentEl) {
                 contentEl.classList.remove('hidden');
                 contentEl.classList.add('block');
+                contentEl.style.display = 'block';
             }
             this.renderAll();
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
-            if (guardEl) guardEl.classList.remove('hidden');
+            if (guardEl) {
+                guardEl.classList.remove('hidden');
+                guardEl.classList.add('block');
+                guardEl.style.display = 'block';
+            }
             if (contentEl) {
                 contentEl.classList.remove('block');
                 contentEl.classList.add('hidden');
+                contentEl.style.display = 'none';
             }
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }

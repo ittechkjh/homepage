@@ -1602,6 +1602,7 @@ function updateAuthUI() {
   }
 
   if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') App.checkAuthStatus();
+  if (typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') AdminApp.checkAdminAccess();
   if (!authSection) return;
 
   if (currentUser) {
