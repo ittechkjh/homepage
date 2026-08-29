@@ -995,15 +995,29 @@ function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
 
+  if (!chatMessages || chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-navy-850 border border-navy-800 flex items-center justify-center text-slate-400">
+          <i data-lucide="message-square-dashed" class="w-6 h-6"></i>
+        </div>
+        <p class="text-xs">현재 작성된 채팅 메시지가 없습니다.<br><span class="text-cyan-400 font-semibold">첫 번째 메시지를 전송</span>하여 실시간 대화를 시작해 보세요!</p>
+      </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    renderChatActiveUsers();
+    return;
+  }
+
   container.innerHTML = chatMessages.map(msg => `
     <div class="flex items-start gap-3 animate-in">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md">
-        ${msg.user.substring(0, 2).toUpperCase()}
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md font-mono">
+        ${(msg.user || 'U').substring(0, 2).toUpperCase()}
       </div>
       <div class="flex-1 bg-navy-950 p-3 rounded-2xl rounded-tl-none border border-navy-800/80">
         <div class="flex items-center gap-2 mb-1">
-          <span class="font-bold text-xs text-slate-200">${msg.user}</span>
-          <span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-900 border border-navy-800 text-cyan-400 font-mono">${msg.rank}</span>
+          <span class="font-bold text-xs text-slate-200">${escapeHtml(msg.user)}</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-900 border border-navy-800 text-cyan-400 font-mono">${msg.rank || 'USER'}</span>
           <span class="text-[10px] text-slate-500 ml-auto font-mono">${msg.time}</span>
         </div>
         <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(msg.text)}</p>
@@ -1012,45 +1026,52 @@ function renderChatMessages() {
   `).join('');
 
   container.scrollTop = container.scrollHeight;
+  renderChatActiveUsers();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderChatActiveUsers() {
+  const activeContainer = document.getElementById('chat-active-users-list');
+  if (!activeContainer) return;
+
+  const currentUName = currentUser ? currentUser.username : '게스트(나)';
+  const currentURank = currentUser ? (currentUser.role || 'USER') : 'GUEST';
+  
+  activeContainer.innerHTML = `
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-[10px] text-navy-950">
+        ${currentUName.substring(0, 1).toUpperCase()}
+      </div>
+      <span class="text-slate-200 font-medium truncate max-w-[100px]">${escapeHtml(currentUName)}</span>
+      <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto font-bold">${currentURank}</span>
+    </div>
+  `;
 }
 
 function handleSendChat(e) {
   e.preventDefault();
   const input = document.getElementById('chat-input');
-  const text = input.value.trim();
+  const text = input ? input.value.trim() : '';
   if (!text) return;
 
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  chatMessages.push({
+  const newMsg = {
     user: currentUser ? currentUser.username : '익명 트레이더',
-    rank: currentUser ? currentUser.rank : 'Member',
+    rank: currentUser ? (currentUser.role || 'USER') : 'GUEST',
     time: timeStr,
-    text
-  });
+    text: text
+  };
 
-  input.value = '';
+  chatMessages.push(newMsg);
+
+  try {
+    localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages.slice(-50)));
+  } catch(e) {}
+
+  if (input) input.value = '';
   renderChatMessages();
-
-  // Simulated auto-reply after 2 seconds
-  setTimeout(() => {
-    const botReplies = [
-      '오늘 장세는 분할 매수 관점이 유효해 보입니다!',
-      '미국 CPI 발표 전까지는 횡보 흐름 유지될 가능성이 큽니다.',
-      '알트 도미넌스 반등 오면 크게 튈 수 있는 자리네요.',
-      '수익 보신 분들 축하드립니다! 익절은 항상 옳습니다 🚀'
-    ];
-    const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)];
-    const replyNow = new Date();
-    chatMessages.push({
-      user: 'AlphaBot',
-      rank: 'PRO',
-      time: `${String(replyNow.getHours()).padStart(2, '0')}:${String(replyNow.getMinutes()).padStart(2, '0')}`,
-      text: randomReply
-    });
-    renderChatMessages();
-  }, 2500);
 }
 
 // ----------------------------------------------------

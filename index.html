@@ -47,8 +47,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787975858241">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787975858241">
+  <link rel="stylesheet" href="styles.css?v=1787976059293">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787976059293">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -408,37 +408,35 @@
           <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
             <span class="flex items-center gap-2">
               <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
+          <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
+            <span class="flex items-center gap-2">
+              <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
             </span>
-            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">142명 접속 중</span>
+            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">1명 온라인</span>
           </div>
 
           <div class="mt-3 space-y-1">
-            <button class="w-full text-left px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold flex items-center justify-between">
+            <button class="w-full text-left px-3 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold flex items-center justify-between">
               <span># 메인 광장 채팅방</span>
               <span class="w-2 h-2 rounded-full bg-crypto-green"></span>
             </button>
-            <button class="w-full text-left px-3 py-2 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
+            <button class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
               <span># 선물/마진 토론방</span>
-              <span class="text-[10px] text-slate-500">58명</span>
+              <span class="text-[10px] text-slate-500">실시간</span>
             </button>
-            <button class="w-full text-left px-3 py-2 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
+            <button class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:bg-navy-800/60 text-xs font-medium flex items-center justify-between transition">
               <span># 밈코인 & 알트방</span>
-              <span class="text-[10px] text-slate-500">84명</span>
+              <span class="text-[10px] text-slate-500">실시간</span>
             </button>
           </div>
 
           <div class="mt-auto pt-4 border-t border-navy-800">
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">활성 트레이더</div>
-            <div class="space-y-2 text-xs">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">현재 접속자</div>
+            <div id="chat-active-users-list" class="space-y-2 text-xs">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-[10px]">K</div>
-                <span class="text-slate-200">CryptoWhale</span>
-                <span class="text-[9px] px-1 py-0.2 bg-crypto-gold/20 text-crypto-gold rounded ml-auto">VIP</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-[10px]">S</div>
-                <span class="text-slate-200">Satoshi_Fan</span>
-                <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto">PRO</span>
+                <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-[10px] text-navy-950 font-mono">나</div>
+                <span class="text-slate-200 font-medium" id="chat-current-user-display">접속 중</span>
+                <span class="text-[9px] px-1.5 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto font-bold font-mono">LIVE</span>
               </div>
             </div>
           </div>
@@ -1816,16 +1814,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787975858241"></script>
-  <script src="js/calculator.js?v=1787975858241"></script>
-  <script src="js/upbit-api.js?v=1787975858241"></script>
-  <script src="js/charts.js?v=1787975858241"></script>
-  <script src="js/exporter.js?v=1787975858241"></script>
-  <script src="js/sample-data.js?v=1787975858241"></script>
-  <script src="js/analyzer-app.js?v=1787975858241"></script>
+  <script src="js/parser.js?v=1787976059293"></script>
+  <script src="js/calculator.js?v=1787976059293"></script>
+  <script src="js/upbit-api.js?v=1787976059293"></script>
+  <script src="js/charts.js?v=1787976059293"></script>
+  <script src="js/exporter.js?v=1787976059293"></script>
+  <script src="js/sample-data.js?v=1787976059293"></script>
+  <script src="js/analyzer-app.js?v=1787976059293"></script>
 
-  <script src="js/admin.js?v=1787975858241"></script>
-  <script src="app.js?v=1787975858241"></script>
+  <script src="js/admin.js?v=1787976059293"></script>
+  <script src="app.js?v=1787976059293"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
