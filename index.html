@@ -47,8 +47,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787966989711">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787966989711">
+  <link rel="stylesheet" href="styles.css?v=1787970171782">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787970171782">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -109,6 +109,10 @@
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
           <i data-lucide="newspaper" class="w-4 h-4"></i> 주요 속보
         </button>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
+          <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자 센터
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
+        </button>
       </nav>
 
       <!-- Right Actions: Search & Auth Profile -->
@@ -118,7 +122,10 @@
           <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
         </div>
 
-        <div id="auth-section">
+        <div id="auth-section" class="flex items-center gap-2">
+          <button onclick="switchTab('admin')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-purple-950/60 border border-purple-500/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition shadow-sm">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i> 관리자 모드
+          </button>
           <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
             <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
           </button>
@@ -144,6 +151,9 @@
     </button>
     <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[11px] font-medium">
       <i data-lucide="newspaper" class="w-5 h-5"></i> 뉴스
+    </button>
+    <button onclick="switchTab('admin')" id="m-nav-admin" class="flex flex-col items-center gap-1 text-purple-400 text-[11px] font-bold">
+      <i data-lucide="shield-check" class="w-5 h-5 text-purple-400"></i> 관리자
     </button>
   </div>
 
@@ -1606,16 +1616,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787966989711"></script>
-  <script src="js/calculator.js?v=1787966989711"></script>
-  <script src="js/upbit-api.js?v=1787966989711"></script>
-  <script src="js/charts.js?v=1787966989711"></script>
-  <script src="js/exporter.js?v=1787966989711"></script>
-  <script src="js/sample-data.js?v=1787966989711"></script>
-  <script src="js/analyzer-app.js?v=1787966989711"></script>
+  <script src="js/parser.js?v=1787970171782"></script>
+  <script src="js/calculator.js?v=1787970171782"></script>
+  <script src="js/upbit-api.js?v=1787970171782"></script>
+  <script src="js/charts.js?v=1787970171782"></script>
+  <script src="js/exporter.js?v=1787970171782"></script>
+  <script src="js/sample-data.js?v=1787970171782"></script>
+  <script src="js/analyzer-app.js?v=1787970171782"></script>
 
-  <script src="js/admin.js?v=1787968992388"></script>
-  <script src="app.js?v=1787966989711"></script>
+  <script src="js/admin.js?v=1787970171782"></script>
+  <script src="app.js?v=1787970171782"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
