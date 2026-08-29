@@ -1005,6 +1005,15 @@ function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
 
+  // Filter out any mock users
+  chatMessages = (chatMessages || []).filter(m => 
+    m && m.user && 
+    !['Satoshi_Fan', 'CryptoWhale', 'SolanaKing', 'CoinBeginner', 'PeacefulTrader', 'AlphaBot'].includes(m.user)
+  );
+  try {
+    localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages));
+  } catch(e) {}
+
   if (!chatMessages || chatMessages.length === 0) {
     container.innerHTML = `
       <div class="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-3">
