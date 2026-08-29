@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Tab Switching
 // ----------------------------------------------------
 function switchTab(tabId) {
-  const tabs = ['market', 'forum', 'chat', 'news', 'analyzer'];
+  const tabs = ['market', 'forum', 'chat', 'news', 'analyzer', 'admin'];
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     const navBtn = document.getElementById(`nav-${t}`);

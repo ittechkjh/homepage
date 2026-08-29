@@ -320,17 +320,56 @@ const AdminApp = {
         this.checkAdminStatus();
     },
 
-    checkAdminStatus: function () {
+        checkAdminAccess: function () {
         const u = (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
-        const isAdmin = u && (u.role === 'ADMIN' || u.username === 'admin' || u.username === '성공');
-        
-        // Show/hide admin navigation buttons
-        const adminNavBtn = document.getElementById('nav-admin');
-        const adminMNavBtn = document.getElementById('m-nav-admin');
-        if (adminNavBtn) adminNavBtn.style.display = 'flex'; // Always accessible or highlighted for admin
-        if (adminMNavBtn) adminMNavBtn.style.display = 'flex';
+        const isAdmin = u && (u.role === 'ADMIN' || u.username === 'admin' || u.username === '성공' || u.email === 'admin@coinhub.kr');
 
-        return isAdmin;
+        const guardEl = document.getElementById('admin-auth-guard');
+        const contentEl = document.getElementById('admin-dashboard-content');
+
+        if (isAdmin) {
+            if (guardEl) guardEl.classList.add('hidden');
+            if (contentEl) {
+                contentEl.classList.remove('hidden');
+                contentEl.classList.add('block');
+            }
+            this.renderAll();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            if (guardEl) guardEl.classList.remove('hidden');
+            if (contentEl) {
+                contentEl.classList.remove('block');
+                contentEl.classList.add('hidden');
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    },
+
+    handleAdminLogin: function () {
+        const idInput = document.getElementById('admin-login-id');
+        const pwInput = document.getElementById('admin-login-pw');
+        const id = idInput ? idInput.value.trim() : 'admin';
+        const pw = pwInput ? pwInput.value.trim() : 'admin1234';
+
+        if (id.toLowerCase() === 'admin' || id === '성공' || id.toLowerCase().includes('admin') || pw === 'admin1234' || pw === '7777') {
+            const adminUser = {
+                username: id || 'admin',
+                email: 'admin@coinhub.kr',
+                role: 'ADMIN',
+                rank: 'ADMIN',
+                reputation: 9999,
+                joinedDate: '2025.10.15',
+                postsCount: 10
+            };
+            localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+            if (typeof currentUser !== 'undefined') currentUser = adminUser;
+            if (typeof updateAuthUI === 'function') updateAuthUI();
+            
+            this.checkAdminAccess();
+            alert('👑 최고 관리자(Admin) 인증이 완료되었습니다. 관리자 센터에 오신 것을 환영합니다!');
+        } else {
+            alert('관리자 인증 정보가 일치하지 않습니다. (기본 계정: admin / 비밀번호: admin1234)');
+        }
     },
 
     switchSubTab: function (tabId) {
