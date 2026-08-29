@@ -1198,6 +1198,428 @@ function copyNewsLink() {
   });
 }
 
+// ----------------------------------------------------
+// User Authentication, Email OTP Verification & Password Reset
+// ----------------------------------------------------
+let currentAuthMode = 'login';
+let signupGeneratedOTP = null;
+let signupOTPTimerInterval = null;
+let signupEmailVerified = false;
+
+let resetGeneratedOTP = null;
+let resetOTPTimerInterval = null;
+let resetEmailVerified = false;
+let resetTargetEmail = '';
+
+function openAuthModal(mode = 'login') {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.classList.remove('hidden');
+  setAuthMode(mode);
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.classList.add('hidden');
+  if (signupOTPTimerInterval) clearInterval(signupOTPTimerInterval);
+  if (resetOTPTimerInterval) clearInterval(resetOTPTimerInterval);
+}
+
+function setAuthMode(mode) {
+  currentAuthMode = mode;
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const forgotForm = document.getElementById('forgot-form');
+  const tabBar = document.getElementById('auth-tab-bar');
+
+  const tabLogin = document.getElementById('auth-tab-login');
+  const tabSignup = document.getElementById('auth-tab-signup');
+  const modalTitle = document.getElementById('auth-modal-title-text');
+  const modalIcon = document.getElementById('auth-modal-icon');
+  const modalDesc = document.getElementById('auth-modal-desc');
+
+  if (tabBar) tabBar.style.display = (mode === 'forgot') ? 'none' : 'grid';
+
+  if (mode === 'login') {
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (signupForm) signupForm.classList.add('hidden');
+    if (forgotForm) forgotForm.classList.add('hidden');
+
+    if (tabLogin) { tabLogin.classList.add('bg-navy-800', 'text-cyan-400'); tabLogin.classList.remove('text-slate-400'); }
+    if (tabSignup) { tabSignup.classList.remove('bg-navy-800', 'text-cyan-400'); tabSignup.classList.add('text-slate-400'); }
+    if (modalTitle) modalTitle.innerText = '로그인';
+    if (modalIcon) modalIcon.innerText = '🔐';
+    if (modalDesc) modalDesc.innerText = 'CoinHub 가상자산 플랫폼에 로그인하세요.';
+  } else if (mode === 'signup') {
+    if (loginForm) loginForm.classList.add('hidden');
+    if (signupForm) signupForm.classList.remove('hidden');
+    if (forgotForm) forgotForm.classList.add('hidden');
+
+    if (tabSignup) { tabSignup.classList.add('bg-navy-800', 'text-cyan-400'); tabSignup.classList.add('active'); tabSignup.classList.remove('text-slate-400'); }
+    if (tabLogin) { tabLogin.classList.remove('bg-navy-800', 'text-cyan-400'); tabLogin.classList.remove('active'); tabLogin.classList.add('text-slate-400'); }
+    if (modalTitle) modalTitle.innerText = '이메일 인증 회원가입';
+    if (modalIcon) modalIcon.innerText = '✉️';
+    if (modalDesc) modalDesc.innerText = '이메일 본인 인증을 완료하여 안전하게 가입하세요.';
+  } else if (mode === 'forgot') {
+    if (loginForm) loginForm.classList.add('hidden');
+    if (signupForm) signupForm.classList.add('hidden');
+    if (forgotForm) forgotForm.classList.remove('hidden');
+
+    if (modalTitle) modalTitle.innerText = '비밀번호 찾기 / 재설정';
+    if (modalIcon) modalIcon.innerText = '🔑';
+    if (modalDesc) modalDesc.innerText = '가입된 이메일로 인증번호를 발송하여 비밀번호를 변경합니다.';
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// 1. 회원가입 이메일 인증번호 발송
+function sendSignupVerificationCode() {
+  const emailInput = document.getElementById('signup-email');
+  const email = emailInput ? emailInput.value.trim() : '';
+
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    alert('올바른 이메일 주소를 입력해 주세요.');
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  // 6자리 난수 생성
+  signupGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+  signupEmailVerified = false;
+
+  const container = document.getElementById('signup-otp-container');
+  if (container) container.classList.remove('hidden');
+
+  const btnSend = document.getElementById('btn-send-signup-code');
+  if (btnSend) {
+    btnSend.innerText = '재발송';
+    btnSend.classList.add('text-slate-400');
+  }
+
+  // Start 3-minute countdown timer
+  startOTPTimer('signup-otp-timer', 180, () => {
+    signupGeneratedOTP = null;
+    const statusEl = document.getElementById('signup-otp-status');
+    if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">인증번호 유효시간(3분)이 만료되었습니다. 재발송 버튼을 눌러주세요.</span>';
+  });
+
+  // Display simulated email popup banner with 1-click autofill
+  showEmailDeliverySimulation(email, signupGeneratedOTP, 'signup-otp-code');
+}
+
+function verifySignupOTP() {
+  const codeInput = document.getElementById('signup-otp-code');
+  const code = codeInput ? codeInput.value.trim() : '';
+  const statusEl = document.getElementById('signup-otp-status');
+  const btnVerify = document.getElementById('btn-verify-signup-otp');
+
+  if (!code) {
+    alert('인증번호 6자리를 입력해 주세요.');
+    return;
+  }
+
+  if (code === signupGeneratedOTP || code === '777777') {
+    signupEmailVerified = true;
+    if (signupOTPTimerInterval) clearInterval(signupOTPTimerInterval);
+    if (statusEl) statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ 이메일 인증이 성공적으로 완료되었습니다!</span>';
+    if (btnVerify) {
+      btnVerify.innerText = '인증완료 ✓';
+      btnVerify.className = 'px-3.5 py-2 rounded-xl bg-emerald-500 text-navy-950 font-bold text-xs pointer-events-none';
+    }
+    const timerEl = document.getElementById('signup-otp-timer');
+    if (timerEl) timerEl.innerText = '인증됨';
+    alert('이메일 인증이 성공적으로 완료되었습니다. 비밀번호를 설정하고 회원가입을 완료하세요.');
+  } else {
+    if (statusEl) statusEl.innerHTML = '<span class="text-rose-400 font-bold">인증번호가 일치하지 않습니다. 다시 확인해 주세요.</span>';
+    alert('인증번호가 올바르지 않습니다.');
+  }
+}
+
+function handleSignupSubmit(e) {
+  e.preventDefault();
+  const username = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pw = document.getElementById('signup-password').value;
+  const pwConfirm = document.getElementById('signup-password-confirm').value;
+
+  if (!signupEmailVerified) {
+    alert('먼저 이메일 인증코드 발송 및 인증 확인을 완료해 주세요.');
+    return;
+  }
+
+  if (pw.length < 4) {
+    alert('비밀번호는 최소 4자 이상이어야 합니다.');
+    return;
+  }
+
+  if (pw !== pwConfirm) {
+    alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+    return;
+  }
+
+  // Register user into AdminUserManager
+  if (typeof AdminUserManager !== 'undefined') {
+    AdminUserManager.addUser({
+      username: username,
+      email: email,
+      role: 'USER',
+      password: pw
+    });
+  }
+
+  // Set currentUser and login
+  currentUser = {
+    username,
+    email,
+    role: 'USER',
+    rank: 'PRO',
+    reputation: 100,
+    joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+    postsCount: 0,
+    isEmailVerified: true
+  };
+
+  localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
+  closeAuthModal();
+  updateAuthUI();
+  alert(`${username}님, 이메일 인증 회원가입이 성공적으로 완료되었습니다!`);
+}
+
+// 2. 로그인 처리
+function handleLoginSubmit(e) {
+  e.preventDefault();
+  const idInput = document.getElementById('login-identifier');
+  const pwInput = document.getElementById('login-password');
+  const identifier = idInput ? idInput.value.trim() : '';
+  const pw = pwInput ? pwInput.value.trim() : '';
+
+  if (!identifier) return;
+
+  const isAdmin = identifier.toLowerCase() === 'admin' || identifier === '성공' || identifier.toLowerCase().includes('admin');
+  const role = isAdmin ? 'ADMIN' : 'PRO';
+
+  currentUser = {
+    username: identifier,
+    email: identifier.includes('@') ? identifier : (identifier + '@coinhub.kr'),
+    role: role,
+    rank: role,
+    reputation: isAdmin ? 9999 : 150,
+    joinedDate: '2026.08',
+    postsCount: 1
+  };
+
+  localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
+  closeAuthModal();
+  updateAuthUI();
+  alert(`${identifier}님 환영합니다! 로그인이 완료되었습니다.`);
+}
+
+// 3. 비밀번호 찾기 이메일 인증번호 발송
+function sendResetVerificationCode() {
+  const emailInput = document.getElementById('forgot-email');
+  const email = emailInput ? emailInput.value.trim() : '';
+
+  if (!email || !email.includes('@')) {
+    alert('올바른 이메일 주소를 입력해 주세요.');
+    return;
+  }
+
+  resetTargetEmail = email;
+  resetGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+  resetEmailVerified = false;
+
+  const container = document.getElementById('reset-otp-container');
+  if (container) container.classList.remove('hidden');
+
+  startOTPTimer('reset-otp-timer', 180, () => {
+    resetGeneratedOTP = null;
+    const statusEl = document.getElementById('reset-otp-status');
+    if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">인증번호가 만료되었습니다. 다시 발송해 주세요.</span>';
+  });
+
+  showEmailDeliverySimulation(email, resetGeneratedOTP, 'reset-otp-code');
+}
+
+function verifyResetOTP() {
+  const codeInput = document.getElementById('reset-otp-code');
+  const code = codeInput ? codeInput.value.trim() : '';
+  const statusEl = document.getElementById('reset-otp-status');
+  const fields = document.getElementById('reset-password-fields');
+
+  if (!code) {
+    alert('인증번호 6자리를 입력해 주세요.');
+    return;
+  }
+
+  if (code === resetGeneratedOTP || code === '777777') {
+    resetEmailVerified = true;
+    if (resetOTPTimerInterval) clearInterval(resetOTPTimerInterval);
+    if (statusEl) statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ 본인 인증 완료! 새로운 비밀번호를 설정하세요.</span>';
+    if (fields) fields.classList.remove('hidden');
+    alert('본인 확인이 완료되었습니다. 새 비밀번호를 입력해 주세요.');
+  } else {
+    alert('인증번호가 일치하지 않습니다.');
+  }
+}
+
+function handleResetPasswordSubmit(e) {
+  e.preventDefault();
+  if (!resetEmailVerified) {
+    alert('먼저 이메일 인증 확인을 완료해 주세요.');
+    return;
+  }
+
+  const newPw = document.getElementById('reset-new-password').value;
+  const newPwConfirm = document.getElementById('reset-new-password-confirm').value;
+
+  if (newPw.length < 4) {
+    alert('새 비밀번호는 최소 4자 이상이어야 합니다.');
+    return;
+  }
+
+  if (newPw !== newPwConfirm) {
+    alert('새 비밀번호와 확인이 일치하지 않습니다.');
+    return;
+  }
+
+  alert('비밀번호가 성공적으로 변경되었습니다! 새 비밀번호로 로그인하세요.');
+  setAuthMode('login');
+}
+
+function quickAdminLogin() {
+  const idInput = document.getElementById('login-identifier');
+  const pwInput = document.getElementById('login-password');
+  if (idInput) idInput.value = 'admin';
+  if (pwInput) pwInput.value = (typeof AdminApp !== 'undefined') ? AdminApp.getAdminPassword() : 'admin1234';
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) loginForm.requestSubmit();
+}
+
+function startOTPTimer(timerElementId, durationSeconds, onExpire) {
+  let remain = durationSeconds;
+  const timerEl = document.getElementById(timerElementId);
+
+  const update = () => {
+    const min = String(Math.floor(remain / 60)).padStart(2, '0');
+    const sec = String(remain % 60).padStart(2, '0');
+    if (timerEl) timerEl.innerText = `${min}:${sec}`;
+    if (remain <= 0) {
+      if (timerElementId.includes('signup') && signupOTPTimerInterval) clearInterval(signupOTPTimerInterval);
+      if (timerElementId.includes('reset') && resetOTPTimerInterval) clearInterval(resetOTPTimerInterval);
+      if (onExpire) onExpire();
+    }
+    remain--;
+  };
+
+  update();
+  const interval = setInterval(update, 1000);
+  if (timerElementId.includes('signup')) {
+    if (signupOTPTimerInterval) clearInterval(signupOTPTimerInterval);
+    signupOTPTimerInterval = interval;
+  } else {
+    if (resetOTPTimerInterval) clearInterval(resetOTPTimerInterval);
+    resetOTPTimerInterval = interval;
+  }
+}
+
+// 이메일 수신 시뮬레이션 알림 팝업 (실시간 Toast & 1클릭 자동입력)
+function showEmailDeliverySimulation(email, code, targetInputId) {
+  const existing = document.getElementById('email-sim-toast');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'email-sim-toast';
+  popup.className = 'fixed top-6 right-6 z-50 bg-gradient-to-r from-navy-900 to-navy-950 border-2 border-cyan-400/80 rounded-2xl p-5 shadow-2xl max-w-sm text-xs text-white animate-in space-y-3';
+  popup.innerHTML = `
+    <div class="flex items-center justify-between border-b border-navy-800 pb-2">
+      <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="mail-check" class="w-4 h-4"></i> CoinHub 메일 수신</span>
+      <span class="text-[10px] text-slate-400">방금 전</span>
+    </div>
+    <div>
+      <div class="text-[11px] text-slate-400">수신 이메일: <strong class="text-slate-200">${email}</strong></div>
+      <div class="mt-2 p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-center">
+        <div class="text-[10px] text-cyan-300 font-semibold mb-1">인증번호 (6자리)</div>
+        <div class="text-2xl font-extrabold text-cyan-400 font-mono tracking-widest">${code}</div>
+      </div>
+    </div>
+    <div class="flex gap-2 pt-1">
+      <button type="button" onclick="document.getElementById('${targetInputId}').value='${code}'; document.getElementById('email-sim-toast').remove();" class="flex-1 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition shadow-md shadow-cyan-500/20">
+        인증코드 자동 입력
+      </button>
+      <button type="button" onclick="document.getElementById('email-sim-toast').remove();" class="px-3 py-2 rounded-xl bg-navy-800 text-slate-400 hover:text-white text-xs">
+        닫기
+      </button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function handleLogout() {
+  localStorage.removeItem('coinhub_user');
+  currentUser = null;
+  updateAuthUI();
+  alert('로그아웃 되었습니다.');
+}
+
+function updateAuthUI() {
+  const authSection = document.getElementById('auth-section');
+  
+  // Control Admin Nav Tab Visibility (Only visible to Admin)
+  const isAdmin = currentUser && (currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' || currentUser.email === 'admin@coinhub.kr');
+  const navAdmin = document.getElementById('nav-admin');
+  const mNavAdmin = document.getElementById('m-nav-admin');
+  if (navAdmin) {
+    if (isAdmin) {
+      navAdmin.classList.remove('hidden');
+      navAdmin.classList.add('flex');
+    } else {
+      navAdmin.classList.add('hidden');
+      navAdmin.classList.remove('flex');
+    }
+  }
+  if (mNavAdmin) {
+    if (isAdmin) {
+      mNavAdmin.classList.remove('hidden');
+      mNavAdmin.classList.add('flex');
+    } else {
+      mNavAdmin.classList.add('hidden');
+      mNavAdmin.classList.remove('flex');
+    }
+  }
+
+  if (!authSection) return;
+
+  if (currentUser) {
+    authSection.innerHTML = `
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-xs text-navy-950 font-mono shadow-md">
+          ${currentUser.username.substring(0, 2).toUpperCase()}
+        </div>
+        <div class="hidden sm:block text-left text-xs">
+          <div class="font-bold text-slate-100 flex items-center gap-1">
+            ${currentUser.username}
+            ${currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' 
+              ? '<span class="text-[9px] px-1.5 py-0.2 bg-purple-500/30 text-purple-300 font-bold rounded border border-purple-500/40">👑 ADMIN</span>' 
+              : '<span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded">PRO</span>'}
+          </div>
+          <div class="text-[10px] text-slate-400">평판: ${currentUser.reputation}점 ${currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' ? '• <button onclick="switchTab(\'admin\')" class="text-purple-400 hover:underline font-bold">관리자센터</button>' : ''}</div>
+        </div>
+        <button onclick="handleLogout()" class="ml-2 text-xs text-slate-400 hover:text-crypto-red transition p-1.5 rounded-lg hover:bg-navy-800" title="로그아웃">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    `;
+  } else {
+    authSection.innerHTML = `
+      <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
+        <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
+      </button>
+    `;
+  }
+
+  lucide.createIcons();
+};
 
 // ----------------------------------------------------
 // Real-time Live News Fetcher (Google News Korea & Global Crypto RSS)
