@@ -5,6 +5,22 @@
 
 const UpbitAPI = {
     koreanToSymbolMap: {
+    "엑스알피": "XRP",
+    "리플": "XRP",
+    "이오스닥": "EOSDAC",
+    "팝체인": "POPC",
+    "비트코인에스브이": "BSV",
+    "비트코인sv": "BSV",
+    "소폰": "SOPH",
+    "아스타": "ASTR",
+    "너보스": "CKB",
+    "비트코인": "BTC",
+    "이더리움": "ETH",
+    "솔라나": "SOL",
+    "폴리곤": "POL",
+    "매틱": "POL",
+    "에이다": "ADA",
+
     "지오드넷": "GEOD",
     "왁스": "WAXP",
     "카브": "CARV",

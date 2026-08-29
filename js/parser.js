@@ -267,6 +267,7 @@ const UpbitParser = {
         let fee = 0;
         let settlement = 0;
 
+        let rawMarketFound = '';
         const numbers = [];
 
         for (let c = 0; c < row.length; c++) {
@@ -290,17 +291,17 @@ const UpbitParser = {
             if (s.includes('출금')) { type = s.includes('원화') ? '원화출금' : '코인출금'; category = 'transfer'; continue; }
             if (s.includes('스테이킹')) { type = '스테이킹보상'; category = 'staking'; continue; }
 
-            // 3. 코인/마켓
-            if (s.startsWith('KRW-') || s.startsWith('BTC-')) {
-                market = s.toUpperCase();
-                coinSymbol = market.split('-')[1];
-                continue;
-            }
-            const api = getUpbitAPI();
-            if (api && api.koreanToSymbolMap && api.koreanToSymbolMap[s]) {
-                coinSymbol = api.koreanToSymbolMap[s];
-                market = `KRW-${coinSymbol}`;
-                continue;
+            // 3. 코인/마켓 탐색
+            if (!rawMarketFound) {
+                if (s.startsWith('KRW-') || s.startsWith('BTC-') || s.startsWith('USDT-') || s.includes('[') || s.includes('(') || s.includes('/KRW')) {
+                    rawMarketFound = s;
+                    continue;
+                }
+                const api = getUpbitAPI();
+                if (api && api.koreanToSymbolMap && (api.koreanToSymbolMap[s] || api.koreanToSymbolMap[s.replace(/[\(\)\[\]]/g, '')])) {
+                    rawMarketFound = s;
+                    continue;
+                }
             }
 
             // 4. 숫자
@@ -310,6 +311,20 @@ const UpbitParser = {
             }
         }
 
+        if (rawMarketFound) {
+            market = this.normalizeMarket(rawMarketFound);
+            coinSymbol = market.includes('-') ? market.split('-')[1] : market;
+        }
+
+        let exchange = defaultExchange;
+        const rawMStr = String(rawMarketFound || '').trim();
+        const rawMUpper = rawMStr.toUpperCase();
+        if (rawMStr.includes('[') || rawMStr.includes('(') || rawMStr.includes('/KRW') || rawMStr.includes('엑스알피') || rawMStr.includes('이오스닥') || rawMStr.includes('팝체인')) {
+            exchange = 'BITHUMB';
+        } else if (rawMUpper.startsWith('KRW-') || rawMUpper.startsWith('BTC-') || rawMUpper.startsWith('USDT-')) {
+            exchange = 'UPBIT';
+        }
+
         if (numbers.length >= 2) {
             numbers.sort((a, b) => a - b);
             quantity = numbers[0];
@@ -317,17 +332,21 @@ const UpbitParser = {
             price = quantity > 0 ? amount / quantity : 0;
             settlement = amount;
         } else if (numbers.length === 1) {
-            amount = numbers[0];
-            quantity = 1;
-            price = amount;
-            settlement = amount;
+            if (type === '원화입금' || type === '원화출금') {
+                amount = numbers[0];
+                quantity = numbers[0];
+            } else {
+                quantity = numbers[0];
+            }
+            price = 1;
+            settlement = amount || quantity;
         }
 
         if (amount <= 0 && quantity <= 0) return null;
 
         return {
-            id: `${defaultExchange}_${time}_${market}_${type}_${quantity}_${amount}_${rowNum}`,
-            exchange: defaultExchange,
+            id: `${exchange}_${time}_${market}_${type}_${quantity}_${amount}_${rowNum}`,
+            exchange: exchange,
             time: time,
             date: time.includes(' ') ? time.split(' ')[0] : time,
             category: category,
@@ -510,18 +529,32 @@ const UpbitParser = {
         const rawMarketUpper = (rawMarket || '').toUpperCase();
         const rawTypeUpper = (rawType || '').toUpperCase();
 
-        // 빗썸 전용 코인/마켓 표기 (괄호 표기 예: 비트코인(BTC), /KRW, _KRW)
-        if (
-            rawMarket.includes('(') || 
-            rawMarket.includes('/KRW') || 
-            rawMarket.includes('_KRW') ||
-            (rawMarketUpper.endsWith('KRW') && !rawMarketUpper.startsWith('KRW-') && rawMarketUpper !== 'KRW')
-        ) {
+        const rawMarketStr = String(rawMarket || '').trim();
+
+        // 1. 빗썸 고유 마켓/종목 패턴 정밀 판별
+        const isBithumbRow = rawMarketStr.includes('[') || 
+                             rawMarketStr.includes('(') || 
+                             rawMarketStr.includes('/KRW') || 
+                             rawMarketStr.includes('_KRW') ||
+                             rawMarketStr.includes('엑스알피') ||
+                             rawMarketStr.includes('리플') ||
+                             rawMarketStr.includes('이오스닥') ||
+                             rawMarketStr.includes('팝체인') ||
+                             rawMarketStr.includes('소폰') ||
+                             rawMarketStr.includes('너보스') ||
+                             rawMarketStr.includes('아스타') ||
+                             (rawMarketUpper.endsWith('KRW') && !rawMarketUpper.startsWith('KRW-') && rawMarketUpper !== 'KRW');
+
+        // 2. 업비트 고유 마켓코드 패턴 판별 (KRW-BTC 등)
+        const isUpbitRow = rawMarketUpper.startsWith('KRW-') || 
+                           rawMarketUpper.startsWith('BTC-') || 
+                           rawMarketUpper.startsWith('USDT-');
+
+        if (isBithumbRow) {
             exchange = 'BITHUMB';
-        } else if (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-')) {
+        } else if (isUpbitRow) {
             exchange = 'UPBIT';
         } else {
-            // 원화(KRW) 및 일반 심볼(BTC, ETH 등)의 경우 기본 판별된 거래소(defaultExchange) 유지
             exchange = defaultExchange;
         }
 
@@ -663,9 +696,9 @@ const UpbitParser = {
         return { type: '매수', category: 'trade' };
     },
 
-    normalizeMarket: function (str) {
+        normalizeMarket: function (str) {
         if (!str) return 'KRW';
-        let s = str.trim();
+        let s = String(str).trim();
         
         if (s === 'KRW' || s === '원화' || s === '대한민국 원' || s === 'KRW-KRW' || 
             s === '입금' || s === '출금' || s === '원화입금' || s === '원화출금' || 
@@ -673,28 +706,58 @@ const UpbitParser = {
             return 'KRW';
         }
 
-        const match = s.match(/\((.*?)\)/);
-        if (match && match[1]) {
-            s = match[1].trim();
+        // 1. 대괄호/소괄호 안 영문/심볼 또는 한글 별칭 정밀 파싱
+        // 예: 엑스알피[리플], 비트코인(BTC), 비트코인[BTC], 리플[XRP]
+        const bracketMatch = s.match(/[([](.*?)[)]]/);
+        if (bracketMatch && bracketMatch[1]) {
+            const inner = bracketMatch[1].trim();
+            if (/^[A-Za-z0-9]+$/.test(inner)) {
+                s = inner;
+            } else if (inner === '리플' || inner === '엑스알피') {
+                s = 'XRP';
+            } else if (inner === '이오스닥') {
+                s = 'EOSDAC';
+            } else if (inner === '팝체인') {
+                s = 'POPC';
+            }
         }
 
+        // 2. 슬래시 마켓 분리 (예: BTC/KRW -> BTC)
         if (s.includes('/')) {
             const parts = s.split('/');
-            const base = parts[0].trim();
-            s = base;
+            s = parts[0].trim();
         }
 
+        // 3. 언더스코어 마켓 분리 (예: BTC_KRW -> BTC)
+        if (s.includes('_')) {
+            const parts = s.split('_');
+            s = parts[0].trim();
+        }
+
+        // 4. 특수문자 제거 후 순수 한글/영문 매핑
+        const cleanText = s.replace(/[()[]]/g, '').trim();
         const api = getUpbitAPI();
-        if (api && api.koreanToSymbolMap && api.koreanToSymbolMap[s]) {
-            s = api.koreanToSymbolMap[s];
+        if (api && api.koreanToSymbolMap) {
+            const lowerClean = cleanText.toLowerCase();
+            for (const [kName, sym] of Object.entries(api.koreanToSymbolMap)) {
+                if (kName.toLowerCase() === lowerClean) {
+                    s = sym;
+                    break;
+                }
+            }
+            if (cleanText.includes('엑스알피') || cleanText.includes('리플')) s = 'XRP';
+            if (cleanText.includes('이오스닥')) s = 'EOSDAC';
+            if (cleanText.includes('팝체인')) s = 'POPC';
+            if (cleanText.includes('비트코인에스브이')) s = 'BSV';
         }
 
         s = s.toUpperCase();
 
         if (s.startsWith('KRW-') || s.startsWith('BTC-') || s.startsWith('USDT-')) {
             const parts = s.split('-');
-            if (api && api.koreanToSymbolMap && api.koreanToSymbolMap[parts[1]]) {
-                return `${parts[0]}-${api.koreanToSymbolMap[parts[1]]}`;
+            const sym = parts[1];
+            if (api && api.koreanToSymbolMap && api.koreanToSymbolMap[sym]) {
+                return `${parts[0]}-${api.koreanToSymbolMap[sym]}`;
             }
             return s;
         }
