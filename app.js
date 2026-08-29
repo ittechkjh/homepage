@@ -1385,7 +1385,7 @@ function handleSignupSubmit(e) {
   alert(`${username}님, 이메일 인증 회원가입이 성공적으로 완료되었습니다!`);
 }
 
-// 2. 로그인 처리
+// 2. 로그인 처리 (엄격한 실제 회원 및 비밀번호 검증)
 function handleLoginSubmit(e) {
   e.preventDefault();
   const idInput = document.getElementById('login-identifier');
@@ -1393,73 +1393,46 @@ function handleLoginSubmit(e) {
   const identifier = idInput ? idInput.value.trim() : '';
   const pw = pwInput ? pwInput.value.trim() : '';
 
-  if (!identifier) return;
+  if (!identifier) {
+    alert('아이디 또는 이메일을 입력해 주세요.');
+    if (idInput) idInput.focus();
+    return;
+  }
 
-  const isAdmin = identifier.toLowerCase() === 'admin' || identifier === '성공' || identifier.toLowerCase().includes('admin');
-  const role = isAdmin ? 'ADMIN' : 'PRO';
+  if (!pw) {
+    alert('비밀번호를 입력해 주세요.');
+    if (pwInput) pwInput.focus();
+    return;
+  }
 
-  currentUser = {
-    username: identifier,
-    email: identifier.includes('@') ? identifier : (identifier + '@coinhub.kr'),
-    role: role,
-    rank: role,
-    reputation: isAdmin ? 9999 : 150,
-    joinedDate: '2026.08',
-    postsCount: 1
-  };
+  // Validate strictly against AdminUserManager
+  if (typeof AdminUserManager !== 'undefined') {
+    const authResult = AdminUserManager.validateUserLogin(identifier, pw);
+    if (!authResult.success) {
+      alert(authResult.message);
+      return;
+    }
+
+    const u = authResult.user;
+    currentUser = {
+      username: u.username,
+      email: u.email,
+      role: u.role || 'USER',
+      rank: u.role === 'ADMIN' ? 'ADMIN' : 'PRO',
+      reputation: u.reputation || 100,
+      joinedDate: u.joinedDate || '2026.08',
+      postsCount: 0,
+      isEmailVerified: true
+    };
+  } else {
+    alert('인증 모듈을 초기화하는 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
 
   localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
   closeAuthModal();
   updateAuthUI();
-  alert(`${identifier}님 환영합니다! 로그인이 완료되었습니다.`);
-}
-
-// 3. 비밀번호 찾기 이메일 인증번호 발송
-function sendResetVerificationCode() {
-  const emailInput = document.getElementById('forgot-email');
-  const email = emailInput ? emailInput.value.trim() : '';
-
-  if (!email || !email.includes('@')) {
-    alert('올바른 이메일 주소를 입력해 주세요.');
-    return;
-  }
-
-  resetTargetEmail = email;
-  resetGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
-  resetEmailVerified = false;
-
-  const container = document.getElementById('reset-otp-container');
-  if (container) container.classList.remove('hidden');
-
-  startOTPTimer('reset-otp-timer', 180, () => {
-    resetGeneratedOTP = null;
-    const statusEl = document.getElementById('reset-otp-status');
-    if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">인증번호가 만료되었습니다. 다시 발송해 주세요.</span>';
-  });
-
-  showEmailDeliverySimulation(email, resetGeneratedOTP, 'reset-otp-code');
-}
-
-function verifyResetOTP() {
-  const codeInput = document.getElementById('reset-otp-code');
-  const code = codeInput ? codeInput.value.trim() : '';
-  const statusEl = document.getElementById('reset-otp-status');
-  const fields = document.getElementById('reset-password-fields');
-
-  if (!code) {
-    alert('인증번호 6자리를 입력해 주세요.');
-    return;
-  }
-
-  if (code === resetGeneratedOTP || code === '777777') {
-    resetEmailVerified = true;
-    if (resetOTPTimerInterval) clearInterval(resetOTPTimerInterval);
-    if (statusEl) statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ 본인 인증 완료! 새로운 비밀번호를 설정하세요.</span>';
-    if (fields) fields.classList.remove('hidden');
-    alert('본인 확인이 완료되었습니다. 새 비밀번호를 입력해 주세요.');
-  } else {
-    alert('인증번호가 일치하지 않습니다.');
-  }
+  alert(`${currentUser.username}님 환영합니다! 로그인이 완료되었습니다.`);
 }
 
 function handleResetPasswordSubmit(e) {
@@ -1480,6 +1453,10 @@ function handleResetPasswordSubmit(e) {
   if (newPw !== newPwConfirm) {
     alert('새 비밀번호와 확인이 일치하지 않습니다.');
     return;
+  }
+
+  if (typeof AdminUserManager !== 'undefined') {
+    AdminUserManager.updateUserPassword(resetTargetEmail, newPw);
   }
 
   alert('비밀번호가 성공적으로 변경되었습니다! 새 비밀번호로 로그인하세요.');
