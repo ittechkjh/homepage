@@ -1047,6 +1047,326 @@
       </div>
     </section>
 
+
+    <!-- ==============================================
+         TAB 6: ADMIN OPERATIONS & SITE MANAGEMENT HUB
+         ============================================== -->
+    <section id="tab-admin" class="tab-content hidden space-y-6">
+
+      <!-- Admin Top Banner -->
+      <div class="bg-gradient-to-r from-navy-900 via-purple-950/40 to-navy-900 border border-purple-500/30 rounded-2xl p-6 shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-xl font-bold shadow-lg shadow-purple-500/20">
+              🛡️
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
+                코인허브 통합 관리자 센터
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono font-bold">ADMIN v2.5</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">실시간 일일 방문자 트래픽 모니터링, 회원 계정 관리, 커뮤니티 정화 및 시스템 제어</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="AdminApp.openAddUserModal()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> 신규 회원 등록
+          </button>
+          <button onclick="AdminApp.exportFullBackupJSON()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1.5">
+            <i data-lucide="download" class="w-4 h-4"></i> 전체 데이터 백업
+          </button>
+          <button onclick="AdminApp.renderAll()" class="p-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 transition" title="새로고침">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Sub-Navigation Pills -->
+      <div class="flex flex-wrap items-center gap-2 border-b border-navy-800 pb-3">
+        <button onclick="AdminApp.switchSubTab('analytics')" class="admin-subtab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="analytics">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i> 방문자 & 트래픽 분석
+        </button>
+        <button onclick="AdminApp.switchSubTab('users')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="users">
+          <i data-lucide="users" class="w-4 h-4 text-purple-400"></i> 회원 계정 관리 (<span id="admin-total-users-count">7명</span>)
+        </button>
+        <button onclick="AdminApp.switchSubTab('moderation')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="moderation">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i> 커뮤니티 & 채팅 관리
+        </button>
+        <button onclick="AdminApp.switchSubTab('system')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="system">
+          <i data-lucide="server" class="w-4 h-4 text-emerald-400"></i> 시스템 진단 & 스토리지
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 1: VISITOR & TRAFFIC ANALYTICS    -->
+      <!-- ============================================== -->
+      <div id="admin-tab-analytics" class="admin-tab-content space-y-6">
+
+        <!-- 4 Top KPI Analytics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Today Visitors -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">오늘 하루 방문자 수 (DAU)</span>
+              <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400"><i data-lucide="user-check" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-white" id="admin-today-visitors">1,780명</div>
+            <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center gap-1" id="admin-today-growth">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +5.4% vs 어제
+            </div>
+          </div>
+
+          <!-- Card 2: Live Active Users -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">실시간 현재 동시접속자</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
+            <div class="text-2xl font-extrabold text-emerald-400" id="admin-live-users">47명</div>
+            <div class="text-[11px] text-slate-400 mt-1">라이브 세션 활성 모니터링 중</div>
+          </div>
+
+          <!-- Card 3: Weekly Visitors -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">이번 주 누적 방문자 (WAU)</span>
+              <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="calendar" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-purple-300" id="admin-weekly-visitors">11,840명</div>
+            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 합계</div>
+          </div>
+
+          <!-- Card 4: Total Pageviews -->
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">누적 총 페이지뷰 (PV)</span>
+              <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="eye" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-amber-300" id="admin-total-pageviews">186,450 PV</div>
+            <div class="text-[11px] text-slate-400 mt-1">사용자당 평균 3.8회 탭 탐색</div>
+          </div>
+        </div>
+
+        <!-- 14-Day Visitor Trend Chart -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> 최근 14일간 일별 방문자 수 (DAU) 추이
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">매일 자정 기준으로 집계된 고유 방문자 및 페이지뷰 통계입니다.</p>
+            </div>
+            <span class="text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg font-mono">14-Day Analytics</span>
+          </div>
+
+          <div id="admin-visitor-chart" class="flex items-end gap-2 sm:gap-3 h-48 pt-6 border-b border-navy-800 pb-2">
+            <!-- Dynamically populated bars -->
+          </div>
+        </div>
+
+        <!-- Traffic Breakdown Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Popular Feature Usage -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 방문 점유율
+            </h3>
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>📊 거래내역 분석기 (Excel/FIFO)</span>
+                  <span class="text-cyan-400 font-bold">44%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 44%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>📈 가상자산 실시간 시세 & 차트</span>
+                  <span class="text-purple-400 font-bold">27%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 27%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>⚡ 글로벌 암호화폐 실시간 속보</span>
+                  <span class="text-amber-400 font-bold">18%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" style="width: 18%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>💬 커뮤니티 포럼 & 실시간 채팅</span>
+                  <span class="text-emerald-400 font-bold">11%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style="width: 11%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Device & Browser Stats -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i> 기기 및 브라우저 환경 분석
+            </h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
+                <div class="text-slate-400 text-xs font-semibold mb-1">📱 모바일 기기 (스마트폰)</div>
+                <div class="text-xl font-extrabold text-cyan-400">64.2%</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">iOS Safari & Android Chrome</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
+                <div class="text-slate-400 text-xs font-semibold mb-1">💻 데스크톱 (PC / Mac)</div>
+                <div class="text-xl font-extrabold text-purple-400">35.8%</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Windows & macOS 브라우저</div>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 pt-2 border-t border-navy-800 flex justify-between font-mono">
+              <span>Chrome: 66%</span>
+              <span>Safari: 21%</span>
+              <span>Samsung: 8%</span>
+              <span>Edge: 5%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 2: USER ACCOUNT MANAGEMENT        -->
+      <!-- ============================================== -->
+      <div id="admin-tab-users" class="admin-tab-content hidden space-y-4">
+        
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <div class="flex flex-1 items-center gap-3">
+            <div class="relative flex-1 max-w-md">
+              <input type="text" id="admin-user-search" placeholder="회원명, 이메일 검색..." class="w-full bg-navy-950 border border-navy-800 text-xs rounded-xl pl-9 pr-3 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <select id="admin-user-role-filter" class="bg-navy-950 border border-navy-800 text-xs rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none focus:border-purple-500">
+              <option value="ALL">전체 권한</option>
+              <option value="ADMIN">ADMIN (관리자)</option>
+              <option value="PRO">PRO 회원</option>
+              <option value="USER">일반 회원</option>
+            </select>
+          </div>
+
+          <button onclick="AdminApp.openAddUserModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> 신규 회원 등록
+          </button>
+        </div>
+
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-navy-950 text-slate-400 text-[11px] font-bold border-b border-navy-800 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">회원 계정명</th>
+                  <th class="py-3.5 px-4">이메일 주소</th>
+                  <th class="py-3.5 px-4">가입일</th>
+                  <th class="py-3.5 px-4">권한 등급</th>
+                  <th class="py-3.5 px-4">계정 상태</th>
+                  <th class="py-3.5 px-4 text-right">분석 거래건수</th>
+                  <th class="py-3.5 px-4">최근 활동</th>
+                  <th class="py-3.5 px-4 text-right">관리 조치</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body" class="divide-y divide-navy-800/60">
+                <!-- User rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 3: MODERATION & COMMUNITY CONTROL -->
+      <!-- ============================================== -->
+      <div id="admin-tab-moderation" class="admin-tab-content hidden space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Chat Moderation -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4 text-cyan-400"></i> 실시간 채팅방 모니터링 & 제어
+              </h3>
+              <div class="flex items-center gap-1.5">
+                <button onclick="AdminApp.broadcastAdminNotice()" class="px-2.5 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 rounded-lg text-xs font-bold transition">
+                  📢 공지 전송
+                </button>
+                <button onclick="AdminApp.clearAllChat()" class="px-2.5 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-bold transition">
+                  전체 초기화
+                </button>
+              </div>
+            </div>
+
+            <div id="admin-chat-preview" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Chat list rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Forum Moderation -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="messages-square" class="w-4 h-4 text-amber-400"></i> 커뮤니티 포럼 게시글 관리
+              </h3>
+              <span class="text-xs text-slate-400">불량 게시글 즉시 삭제</span>
+            </div>
+
+            <div id="admin-forum-preview" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <!-- Forum posts rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 4: SYSTEM HEALTH & STORAGE        -->
+      <!-- ============================================== -->
+      <div id="admin-tab-system" class="admin-tab-content hidden space-y-6">
+
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="hard-drive" class="w-4 h-4 text-emerald-400"></i> 로컬 스토리지 데이터 진단 및 사용량
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">브라우저 전용 격리 저장소에 저장된 사용자 거래 내역, 포럼 글 및 설정 데이터</p>
+            </div>
+            <span class="text-xs font-mono font-bold text-emerald-400" id="admin-storage-used">계산 중...</span>
+          </div>
+
+          <div id="admin-storage-keys-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto">
+            <!-- Storage keys list -->
+          </div>
+
+          <div class="pt-4 border-t border-navy-800 flex flex-wrap items-center justify-between gap-3">
+            <button onclick="AdminApp.exportFullBackupJSON()" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition flex items-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i> 전체 시스템 데이터 백업 (JSON 다운로드)
+            </button>
+            <button onclick="AdminAnalytics.recordVisit(); AdminApp.renderAnalytics(); alert('방문자 카운터가 수동으로 1회 집계되었습니다.');" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 text-xs font-semibold transition border border-navy-700">
+              방문자 수 수동 카운트 증가 (+1)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ==============================================
@@ -1294,6 +1614,7 @@
   <script src="js/sample-data.js?v=1787966989711"></script>
   <script src="js/analyzer-app.js?v=1787966989711"></script>
 
+  <script src="js/admin.js?v=1787968992388"></script>
   <script src="app.js?v=1787966989711"></script>
 </body>
   <script>
