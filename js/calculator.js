@@ -245,13 +245,14 @@ const ProfitCalculator = {
                 totalKrwWithdraw += amount;
                 totalKrwWithdrawFees += fee;
             } else {
-                // 코인 입출금
-                const symbol = item.coinSymbol;
-                if (!coinTransfersMap[symbol]) {
-                    coinTransfersMap[symbol] = {
-                        coinSymbol: symbol,
+                // 코인 입출금 (거래소별 독립 분리 집계)
+                const ex = item.exchange || 'UPBIT';
+                const key = `${ex}:::${item.coinSymbol}`;
+                if (!coinTransfersMap[key]) {
+                    coinTransfersMap[key] = {
+                        coinSymbol: item.coinSymbol,
                         market: item.market,
-                        exchange: item.exchange || 'UPBIT',
+                        exchange: ex,
                         depositQty: 0,
                         withdrawQty: 0,
                         depositCount: 0,
@@ -259,7 +260,7 @@ const ProfitCalculator = {
                         totalFees: 0
                     };
                 }
-                const cTrans = coinTransfersMap[symbol];
+                const cTrans = coinTransfersMap[key];
                 cTrans.totalFees += fee;
 
                 if (type.includes('입금')) {
