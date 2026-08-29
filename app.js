@@ -427,7 +427,20 @@ document.addEventListener('DOMContentLoaded', () => {
   renderForumPosts();
 
   // Render News
+    // Load cached real news from localStorage if present
+  try {
+    const cachedNews = localStorage.getItem('coinhub_live_news');
+    if (cachedNews) {
+      const parsed = JSON.parse(cachedNews);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        NEWS_ITEMS = parsed;
+      }
+    }
+  } catch(e) {}
+  
+  // Render News & trigger initial live real news fetch
   renderNews();
+  fetchLatestNews(false);
   initNewsPeriodicUpdater();
 
   // Render Chat
@@ -1185,32 +1198,152 @@ function copyNewsLink() {
   });
 }
 
-function fetchLatestNews(isManual = false) {
+
+// ----------------------------------------------------
+// Real-time Live News Fetcher (Google News Korea & Global Crypto RSS)
+// ----------------------------------------------------
+const NEWS_RSS_FEEDS = [
+  {
+    url: 'https://news.google.com/rss/search?q=%EA%B0%80%EC%83%81%EC%9E%90%EC%82%B0+%EB%B9%84%ED%8A%B8%EC%BD%94%EC%9D%B8&hl=ko&gl=KR&ceid=KR:ko',
+    defaultCategory: 'MARKET',
+    defaultCategoryName: '📈 비트코인/시장'
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=%EC%9D%B4%EB%8D%94%EB%A6%AC%EC%9B%80+%EC%95%8C%ED%8A%B8%EC%BD%94%EC%9D%B8&hl=ko&gl=KR&ceid=KR:ko',
+    defaultCategory: 'ALTCOIN',
+    defaultCategoryName: '🚀 알트코인'
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=%EB%B8%94%EB%A1%9D%EC%B2%B4%EC%9D%B8+%EA%B7%9C%EC%A0%9C+%EA%B8%88%EC%9C%B5%EC%9C%84&hl=ko&gl=KR&ceid=KR:ko',
+    defaultCategory: 'REGULATION',
+    defaultCategoryName: '🏛️ 규제/정책'
+  }
+];
+
+function hashNewsString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function formatNewsRelativeTime(timestamp) {
+  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+  if (diffSec < 60) return '방금 전';
+  if (diffSec < 3600) return Math.floor(diffSec / 60) + '분 전';
+  if (diffSec < 86400) return Math.floor(diffSec / 3600) + '시간 전';
+  return Math.floor(diffSec / 86400) + '일 전';
+}
+
+async function fetchRealCryptoNews() {
+  const allArticles = [];
+
+  for (const feed of NEWS_RSS_FEEDS) {
+    try {
+      const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feed.url);
+      const res = await fetch(apiUrl);
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      if (data && data.status === 'ok' && Array.isArray(data.items)) {
+        data.items.forEach((item, idx) => {
+          let title = item.title || '';
+          let source = '언론사 종합';
+          if (title.includes(' - ')) {
+            const parts = title.split(' - ');
+            source = parts.pop().trim();
+            title = parts.join(' - ').trim();
+          }
+
+          const rawDesc = (item.description || item.content || '').replace(/<[^>]*>?/gm, '').trim();
+          const cleanSummary = rawDesc.length > 10 ? rawDesc.slice(0, 160) + '...' : (title + '에 대한 주요 실시간 보도입니다.');
+
+          let cat = feed.defaultCategory;
+          let catName = feed.defaultCategoryName;
+          const tLower = title.toLowerCase();
+          if (tLower.includes('규제') || tLower.includes('법') || tLower.includes('당국') || tLower.includes('과세') || tLower.includes('sec') || tLower.includes('금융위')) {
+            cat = 'REGULATION';
+            catName = '🏛️ 규제/정책';
+          } else if (tLower.includes('기술') || tLower.includes('l2') || tLower.includes('업그레이드') || tLower.includes('메인넷') || tLower.includes('defi') || tLower.includes('ai')) {
+            cat = 'TECH';
+            catName = '⚡ 기술/DeFi';
+          } else if (tLower.includes('솔라나') || tLower.includes('리플') || tLower.includes('알트코인') || tLower.includes('sui') || tLower.includes('도지') || tLower.includes('xrp')) {
+            cat = 'ALTCOIN';
+            catName = '🚀 알트코인';
+          } else if (tLower.includes('비트코인') || tLower.includes('etf') || tLower.includes('상승') || tLower.includes('하락') || tLower.includes('시세') || tLower.includes('급등')) {
+            cat = 'MARKET';
+            catName = '📈 비트코인/시장';
+          }
+
+          const tickers = [];
+          if (title.includes('비트코인') || title.includes('BTC')) tickers.push({ symbol: 'BTC', name: 'Bitcoin', change: '+1.85%', isUp: true });
+          if (title.includes('이더리움') || title.includes('ETH')) tickers.push({ symbol: 'ETH', name: 'Ethereum', change: '+2.10%', isUp: true });
+          if (title.includes('솔라나') || title.includes('SOL')) tickers.push({ symbol: 'SOL', name: 'Solana', change: '+4.50%', isUp: true });
+          if (title.includes('리플') || title.includes('XRP')) tickers.push({ symbol: 'XRP', name: 'Ripple', change: '+0.80%', isUp: true });
+
+          const pubTimestamp = item.pubDate ? new Date(item.pubDate).getTime() : (Date.now() - idx * 10 * 60 * 1000);
+
+          allArticles.push({
+            id: 'real-news-' + hashNewsString(item.link || title),
+            category: cat,
+            categoryName: catName,
+            source: source,
+            sourceUrl: item.link || '#',
+            author: source + ' 기자',
+            time: formatNewsRelativeTime(pubTimestamp),
+            timestamp: pubTimestamp,
+            isBreaking: idx === 0,
+            title: title,
+            summary: cleanSummary,
+            takeaways: [
+              title,
+              '보도 언론사: ' + source,
+              '기사 작성일: ' + (item.pubDate || new Date().toLocaleString('ko-KR'))
+            ],
+            content: `${title}\n\n${cleanSummary}\n\n본 기사는 ${source}에서 실시간 보도한 실제 언론사 뉴스 기사이며, [전문 읽기] 버튼을 통해 해당 언론사의 원문 기사 전문을 바로 열람하실 수 있습니다.`,
+            tickers: tickers
+          });
+        });
+      }
+    } catch (e) {
+      console.warn('Real news feed fetch failed:', e);
+    }
+  }
+
+  return allArticles;
+}
+
+async function fetchLatestNews(isManual = false) {
   const refreshIcon = document.getElementById('news-refresh-icon');
   if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
-  // Inject breaking story from pool with endless recycling
-  if (NEWS_ROTATION_POOL.length > 0) {
-    const nextItem = { ...NEWS_ROTATION_POOL.shift() };
-    nextItem.id = `news-${Date.now()}`;
-    nextItem.time = '방금 전';
-    nextItem.timestamp = Date.now();
-    nextItem.isBreaking = true;
-    
-    // Add to top of active list
-    NEWS_ITEMS.unshift(nextItem);
+  try {
+    const realArticles = await fetchRealCryptoNews();
+    if (realArticles && realArticles.length > 0) {
+      // Sort real articles by pubDate desc
+      realArticles.sort((a, b) => b.timestamp - a.timestamp);
 
-    // Keep active list size controlled (up to 20 items) and recycle back to pool
-    if (NEWS_ITEMS.length > 20) {
-      const removed = NEWS_ITEMS.pop();
-      delete removed.id;
-      NEWS_ROTATION_POOL.push(removed);
+      // Merge with existing NEWS_ITEMS avoiding duplicates by id
+      const existingIds = new Set(NEWS_ITEMS.map(n => n.id));
+      let newCount = 0;
+
+      for (const art of realArticles) {
+        if (!existingIds.has(art.id)) {
+          NEWS_ITEMS.unshift(art);
+          existingIds.add(art.id);
+          newCount++;
+        }
+      }
+
+      // Save to localStorage for instant load
+      try {
+        localStorage.setItem('coinhub_live_news', JSON.stringify(NEWS_ITEMS.slice(0, 30)));
+      } catch (e) {}
     }
-    
-    // Also recycle the used item to the end of pool
-    const recycled = { ...nextItem };
-    delete recycled.id;
-    NEWS_ROTATION_POOL.push(recycled);
+  } catch (err) {
+    console.warn('News live update error:', err);
   }
 
   // Update relative timestamps
@@ -1221,18 +1354,20 @@ function fetchLatestNews(isManual = false) {
     newsCountdownSeconds = 30;
     renderNews();
 
-    // Show toast alert on update
-    const notice = document.createElement('div');
-    notice.className = 'fixed bottom-20 right-6 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl animate-in flex items-center gap-2 border border-cyan-300/40';
-    notice.innerHTML = `<i data-lucide="bell-ring" class="w-4 h-4 text-navy-950"></i> ${isManual ? '속보가 즉시 새로고침되었습니다!' : '⚡ 새로운 실시간 암호화폐 속보가 도착했습니다!'}`;
-    document.body.appendChild(notice);
-    lucide.createIcons();
-    setTimeout(() => {
-      notice.style.transition = 'opacity 0.4s, transform 0.4s';
-      notice.style.opacity = '0';
-      notice.style.transform = 'translateY(10px)';
-      setTimeout(() => notice.remove(), 400);
-    }, 2800);
+    // Show toast alert on manual or when new articles found
+    if (isManual) {
+      const notice = document.createElement('div');
+      notice.className = 'fixed bottom-20 right-6 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl animate-in flex items-center gap-2 border border-cyan-300/40';
+      notice.innerHTML = `<i data-lucide="bell-ring" class="w-4 h-4 text-navy-950"></i> 실제 최신 암호화폐 뉴스 피드가 실시간 갱신되었습니다!`;
+      document.body.appendChild(notice);
+      lucide.createIcons();
+      setTimeout(() => {
+        notice.style.transition = 'opacity 0.4s, transform 0.4s';
+        notice.style.opacity = '0';
+        notice.style.transform = 'translateY(10px)';
+        setTimeout(() => notice.remove(), 400);
+      }, 2800);
+    }
   }, 500);
 }
 
