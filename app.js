@@ -1621,6 +1621,7 @@ function updateAuthUI() {
   lucide.createIcons();
 };
 
+
 // ----------------------------------------------------
 // Real-time Live News Fetcher (Google News Korea & Global Crypto RSS)
 // ----------------------------------------------------
@@ -1651,9 +1652,25 @@ function hashNewsString(str) {
   return Math.abs(hash);
 }
 
+function parseNewsTimestamp(dateStr) {
+  if (!dateStr) return Date.now();
+  try {
+    let s = String(dateStr).trim();
+    if (/^d{4}-d{2}-d{2}sd{2}:d{2}:d{2}$/.test(s)) {
+      s = s.replace(' ', 'T') + 'Z';
+    }
+    const t = new Date(s).getTime();
+    if (!isNaN(t) && t > 0) return t;
+    const t2 = Date.parse(dateStr);
+    if (!isNaN(t2) && t2 > 0) return t2;
+  } catch(e) {}
+  return Date.now();
+}
+
 function formatNewsRelativeTime(timestamp) {
+  if (!timestamp) return '방금 전';
   const diffSec = Math.floor((Date.now() - timestamp) / 1000);
-  if (diffSec < 60) return '방금 전';
+  if (diffSec < 0 || diffSec < 60) return '방금 전';
   if (diffSec < 3600) return Math.floor(diffSec / 60) + '분 전';
   if (diffSec < 86400) return Math.floor(diffSec / 3600) + '시간 전';
   return Math.floor(diffSec / 86400) + '일 전';
@@ -1661,6 +1678,7 @@ function formatNewsRelativeTime(timestamp) {
 
 async function fetchRealCryptoNews() {
   const allArticles = [];
+  const seenTitles = new Set();
 
   for (const feed of NEWS_RSS_FEEDS) {
     try {
@@ -1670,8 +1688,11 @@ async function fetchRealCryptoNews() {
       const data = await res.json();
 
       if (data && data.status === 'ok' && Array.isArray(data.items)) {
-        data.items.forEach((item, idx) => {
-          let title = item.title || '';
+        data.items.forEach((item) => {
+          let title = (item.title || '').trim();
+          if (!title || seenTitles.has(title)) return;
+          seenTitles.add(title);
+
           let source = '언론사 종합';
           if (title.includes(' - ')) {
             const parts = title.split(' - ');
@@ -1705,7 +1726,7 @@ async function fetchRealCryptoNews() {
           if (title.includes('솔라나') || title.includes('SOL')) tickers.push({ symbol: 'SOL', name: 'Solana', change: '+4.50%', isUp: true });
           if (title.includes('리플') || title.includes('XRP')) tickers.push({ symbol: 'XRP', name: 'Ripple', change: '+0.80%', isUp: true });
 
-          const pubTimestamp = item.pubDate ? new Date(item.pubDate).getTime() : (Date.now() - idx * 10 * 60 * 1000);
+          const pubTimestamp = parseNewsTimestamp(item.pubDate);
 
           allArticles.push({
             id: 'real-news-' + hashNewsString(item.link || title),
@@ -1716,13 +1737,13 @@ async function fetchRealCryptoNews() {
             author: source + ' 기자',
             time: formatNewsRelativeTime(pubTimestamp),
             timestamp: pubTimestamp,
-            isBreaking: idx === 0,
+            isBreaking: false,
             title: title,
             summary: cleanSummary,
             takeaways: [
               title,
               '보도 언론사: ' + source,
-              '기사 작성일: ' + (item.pubDate || new Date().toLocaleString('ko-KR'))
+              '기사 발행일시: ' + (item.pubDate || new Date(pubTimestamp).toLocaleString('ko-KR'))
             ],
             content: `${title}\n\n${cleanSummary}\n\n본 기사는 ${source}에서 실시간 보도한 실제 언론사 뉴스 기사이며, [전문 읽기] 버튼을 통해 해당 언론사의 원문 기사 전문을 바로 열람하실 수 있습니다.`,
             tickers: tickers
@@ -1732,6 +1753,12 @@ async function fetchRealCryptoNews() {
     } catch (e) {
       console.warn('Real news feed fetch failed:', e);
     }
+  }
+
+  // Strictly sort descending by timestamp (newest date first)
+  allArticles.sort((a, b) => b.timestamp - a.timestamp);
+  if (allArticles.length > 0) {
+    allArticles[0].isBreaking = true;
   }
 
   return allArticles;
@@ -1744,24 +1771,12 @@ async function fetchLatestNews(isManual = false) {
   try {
     const realArticles = await fetchRealCryptoNews();
     if (realArticles && realArticles.length > 0) {
-      // Sort real articles by pubDate desc
-      realArticles.sort((a, b) => b.timestamp - a.timestamp);
+      // Replace NEWS_ITEMS with cleanly sorted real articles
+      NEWS_ITEMS = realArticles;
 
-      // Merge with existing NEWS_ITEMS avoiding duplicates by id
-      const existingIds = new Set(NEWS_ITEMS.map(n => n.id));
-      let newCount = 0;
-
-      for (const art of realArticles) {
-        if (!existingIds.has(art.id)) {
-          NEWS_ITEMS.unshift(art);
-          existingIds.add(art.id);
-          newCount++;
-        }
-      }
-
-      // Save to localStorage for instant load
+      // Save to localStorage
       try {
-        localStorage.setItem('coinhub_live_news', JSON.stringify(NEWS_ITEMS.slice(0, 30)));
+        localStorage.setItem('coinhub_live_news', JSON.stringify(NEWS_ITEMS.slice(0, 35)));
       } catch (e) {}
     }
   } catch (err) {
@@ -1776,13 +1791,12 @@ async function fetchLatestNews(isManual = false) {
     newsCountdownSeconds = 30;
     renderNews();
 
-    // Show toast alert on manual or when new articles found
     if (isManual) {
       const notice = document.createElement('div');
       notice.className = 'fixed bottom-20 right-6 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-2xl animate-in flex items-center gap-2 border border-cyan-300/40';
-      notice.innerHTML = `<i data-lucide="bell-ring" class="w-4 h-4 text-navy-950"></i> 실제 최신 암호화폐 뉴스 피드가 실시간 갱신되었습니다!`;
+      notice.innerHTML = `<i data-lucide="bell-ring" class="w-4 h-4 text-navy-950"></i> 실제 최신 암호화폐 뉴스가 최신 발행순으로 갱신되었습니다!`;
       document.body.appendChild(notice);
-      lucide.createIcons();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
       setTimeout(() => {
         notice.style.transition = 'opacity 0.4s, transform 0.4s';
         notice.style.opacity = '0';
@@ -1790,26 +1804,18 @@ async function fetchLatestNews(isManual = false) {
         setTimeout(() => notice.remove(), 400);
       }, 2800);
     }
-  }, 500);
+  }, 400);
 }
 
 function updateNewsRelativeTimes() {
-  const now = Date.now();
   NEWS_ITEMS.forEach(item => {
-    if (!item.timestamp) return;
-    const diffSec = Math.floor((now - item.timestamp) / 1000);
-    if (diffSec < 60) {
-      item.time = '방금 전';
-    } else if (diffSec < 3600) {
-      item.time = `${Math.floor(diffSec / 60)}분 전`;
-    } else {
-      item.time = `${Math.floor(diffSec / 3600)}시간 전`;
+    if (item.timestamp) {
+      item.time = formatNewsRelativeTime(item.timestamp);
     }
   });
 }
 
 function initNewsPeriodicUpdater() {
-  // Update countdown every second
   if (newsCountdownTimer) clearInterval(newsCountdownTimer);
 
   newsCountdownTimer = setInterval(() => {
@@ -1823,79 +1829,6 @@ function initNewsPeriodicUpdater() {
       fetchLatestNews(false);
     }
   }, 1000);
-}
-
-// ----------------------------------------------------
-// User Authentication & Profile Simulation
-// ----------------------------------------------------
-function openAuthModal(mode) {
-  document.getElementById('auth-modal').classList.remove('hidden');
-}
-
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.add('hidden');
-}
-
-function handleAuthSubmit(e) {
-  e.preventDefault();
-  const username = document.getElementById('auth-username').value.trim();
-  const email = document.getElementById('auth-email').value.trim();
-
-  if (!username || !email) return;
-
-  currentUser = {
-    username,
-    email,
-    rank: 'PRO',
-    reputation: 150,
-    joinedDate: '2026.08',
-    postsCount: 1
-  };
-
-  localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
-  closeAuthModal();
-  updateAuthUI();
-  alert(`${username}님 환영합니다! 로그인이 완료되었습니다.`);
-}
-
-function handleLogout() {
-  localStorage.removeItem('coinhub_user');
-  currentUser = null;
-  updateAuthUI();
-  alert('로그아웃 되었습니다.');
-}
-
-function updateAuthUI() {
-  const authSection = document.getElementById('auth-section');
-  if (!authSection) return;
-
-  if (currentUser) {
-    authSection.innerHTML = `
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-xs text-navy-950 font-mono shadow-md">
-          ${currentUser.username.substring(0, 2).toUpperCase()}
-        </div>
-        <div class="hidden sm:block text-left text-xs">
-          <div class="font-bold text-slate-100 flex items-center gap-1">
-            ${currentUser.username}
-            <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded">PRO</span>
-          </div>
-          <div class="text-[10px] text-slate-400">평판점수: ${currentUser.reputation}점</div>
-        </div>
-        <button onclick="handleLogout()" class="ml-2 text-xs text-slate-400 hover:text-crypto-red transition p-1.5 rounded-lg hover:bg-navy-800" title="로그아웃">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-        </button>
-      </div>
-    `;
-  } else {
-    authSection.innerHTML = `
-      <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
-        <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
-      </button>
-    `;
-  }
-
-  lucide.createIcons();
 }
 
 // ----------------------------------------------------
