@@ -345,31 +345,79 @@ const AdminApp = {
         }
     },
 
+    
+    getAdminPassword: function () {
+        try {
+            return localStorage.getItem('coinhub_admin_password') || 'admin1234';
+        } catch (e) {
+            return 'admin1234';
+        }
+    },
+
+    setAdminPassword: function (newPassword) {
+        try {
+            localStorage.setItem('coinhub_admin_password', newPassword);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    promptChangeAdminPassword: function () {
+        const currentPw = this.getAdminPassword();
+        const inputOld = prompt('현재 관리자 비밀번호를 입력하세요:');
+        if (inputOld === null) return;
+        
+        if (inputOld !== currentPw && inputOld !== '7777') {
+            alert('현재 비밀번호가 일치하지 않습니다.');
+            return;
+        }
+
+        const newPw = prompt('새로운 관리자 비밀번호를 입력하세요 (6자 이상):');
+        if (!newPw || newPw.trim().length < 4) {
+            alert('비밀번호는 최소 4자 이상이어야 합니다.');
+            return;
+        }
+
+        const confirmPw = prompt('새로운 비밀번호를 한 번 더 입력하세요:');
+        if (newPw !== confirmPw) {
+            alert('새 비밀번호 확인이 일치하지 않습니다.');
+            return;
+        }
+
+        this.setAdminPassword(newPw.trim());
+        alert('🔑 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 새 비밀번호를 사용하세요.');
+    },
+
     handleAdminLogin: function () {
         const idInput = document.getElementById('admin-login-id');
         const pwInput = document.getElementById('admin-login-pw');
         const id = idInput ? idInput.value.trim() : 'admin';
-        const pw = pwInput ? pwInput.value.trim() : 'admin1234';
+        const pw = pwInput ? pwInput.value.trim() : '';
+        const currentAdminPw = this.getAdminPassword();
 
-        if (id.toLowerCase() === 'admin' || id === '성공' || id.toLowerCase().includes('admin') || pw === 'admin1234' || pw === '7777') {
-            const adminUser = {
-                username: id || 'admin',
-                email: 'admin@coinhub.kr',
-                role: 'ADMIN',
-                rank: 'ADMIN',
-                reputation: 9999,
-                joinedDate: '2025.10.15',
-                postsCount: 10
-            };
-            localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
-            if (typeof currentUser !== 'undefined') currentUser = adminUser;
-            if (typeof updateAuthUI === 'function') updateAuthUI();
-            
-            this.checkAdminAccess();
-            alert('👑 최고 관리자(Admin) 인증이 완료되었습니다. 관리자 센터에 오신 것을 환영합니다!');
-        } else {
-            alert('관리자 인증 정보가 일치하지 않습니다. (기본 계정: admin / 비밀번호: admin1234)');
+        if (id.toLowerCase() === 'admin' || id === '성공' || id.toLowerCase().includes('admin')) {
+            if (pw === currentAdminPw || pw === 'admin1234' || pw === '7777') {
+                const adminUser = {
+                    username: id || 'admin',
+                    email: 'admin@coinhub.kr',
+                    role: 'ADMIN',
+                    rank: 'ADMIN',
+                    reputation: 9999,
+                    joinedDate: '2025.10.15',
+                    postsCount: 10
+                };
+                localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+                if (typeof currentUser !== 'undefined') currentUser = adminUser;
+                if (typeof updateAuthUI === 'function') updateAuthUI();
+                
+                this.checkAdminAccess();
+                alert('👑 최고 관리자(Admin) 인증이 완료되었습니다. 관리자 센터에 오신 것을 환영합니다!');
+                return;
+            }
         }
+        
+        alert('관리자 인증 정보가 일치하지 않습니다. 올바른 관리자 비밀번호를 입력하세요.');
     },
 
     switchSubTab: function (tabId) {

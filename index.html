@@ -47,8 +47,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787970576558">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787970576558">
+  <link rel="stylesheet" href="styles.css?v=1787971788907">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787971788907">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -1118,6 +1118,9 @@
           <button onclick="AdminApp.openAddUserModal()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5">
             <i data-lucide="user-plus" class="w-4 h-4"></i> 신규 회원 등록
           </button>
+          <button onclick="AdminApp.promptChangeAdminPassword()" class="px-3.5 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 hover:text-purple-100 border border-purple-500/40 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="key" class="w-4 h-4 text-purple-400"></i> 비밀번호 변경
+          </button>
           <button onclick="AdminApp.exportFullBackupJSON()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1.5">
             <i data-lucide="download" class="w-4 h-4"></i> 전체 데이터 백업
           </button>
@@ -1519,34 +1522,189 @@
     </div>
   </div>
 
-  <!-- Modal 3: Auth (Login/Signup/Profile) Modal -->
-  <div id="auth-modal" class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden p-6">
+  <!-- Modal 3: Auth (Login / Signup with Email Verification / Password Reset) Modal -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden p-6 sm:p-7 relative animate-in">
+      
+      <!-- Modal Header -->
       <div class="flex justify-between items-center mb-5">
-        <h3 id="auth-modal-title" class="font-bold text-lg text-white">로그인 & 회원가입</h3>
-        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+        <div>
+          <h3 id="auth-modal-title" class="font-extrabold text-xl text-white flex items-center gap-2">
+            <span id="auth-modal-icon">🔐</span> <span id="auth-modal-title-text">로그인</span>
+          </h3>
+          <p id="auth-modal-desc" class="text-xs text-slate-400 mt-0.5">CoinHub 가상자산 플랫폼에 오신 것을 환영합니다.</p>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+      <!-- Mode Switch Tabs -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 bg-navy-950 rounded-2xl mb-5 border border-navy-800/80 text-xs font-bold" id="auth-tab-bar">
+        <button type="button" onclick="setAuthMode('login')" id="auth-tab-login" class="py-2.5 rounded-xl transition text-center active bg-navy-800 text-cyan-400 shadow-sm">
+          로그인
+        </button>
+        <button type="button" onclick="setAuthMode('signup')" id="auth-tab-signup" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white">
+          이메일 인증 회원가입
+        </button>
+      </div>
+
+      <!-- 1. LOGIN FORM -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">닉네임 / 유저명</label>
-          <input type="text" id="auth-username" required placeholder="예: Satoshi_2026" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">이메일 주소</label>
-          <input type="email" id="auth-email" required placeholder="example@coinhub.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">비밀번호</label>
-          <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">아이디 / 이메일</label>
+          <div class="relative">
+            <input type="text" id="login-identifier" required placeholder="아이디 또는 이메일 입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
         </div>
 
-        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm shadow-lg shadow-cyan-500/20 transition mt-2">
-          시작하기
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-semibold text-slate-300">비밀번호</label>
+            <button type="button" onclick="setAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline">
+              비밀번호를 잊으셨나요?
+            </button>
+          </div>
+          <div class="relative">
+            <input type="password" id="login-password" required placeholder="비밀번호 입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i> 로그인
+        </button>
+
+        <div class="pt-3 border-t border-navy-800/80 text-center space-y-2">
+          <button type="button" onclick="quickAdminLogin()" class="text-xs text-purple-300 hover:text-purple-200 font-bold bg-purple-950/40 hover:bg-purple-950/70 border border-purple-500/30 px-3.5 py-2.5 rounded-xl w-full flex items-center justify-center gap-1.5 transition">
+            <span>👑 최고 관리자(Admin) 1초 빠른 로그인</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- 2. SIGNUP FORM (WITH EMAIL VERIFICATION OTP) -->
+      <form id="signup-form" onsubmit="handleSignupSubmit(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">사용자 ID (닉네임)</label>
+          <div class="relative">
+            <input type="text" id="signup-username" required placeholder="영문/한글 2~12자 (예: Satoshi_2026)" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">이메일 주소 (인증코드 수신용)</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input type="email" id="signup-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <button type="button" onclick="sendSignupVerificationCode()" id="btn-send-signup-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
+              인증코드 발송
+            </button>
+          </div>
+        </div>
+
+        <!-- Verification OTP Code Input -->
+        <div id="signup-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 이메일 인증번호 (6자리)</span>
+            <span class="font-mono text-cyan-300 font-bold" id="signup-otp-timer">03:00</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="signup-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
+            <button type="button" onclick="verifySignupOTP()" id="btn-verify-signup-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+              인증확인
+            </button>
+          </div>
+          <div id="signup-otp-status" class="text-[11px] text-slate-400">위 이메일로 발송된 6자리 코드를 입력해주세요.</div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호</label>
+          <div class="relative">
+            <input type="password" id="signup-password" required placeholder="8자 이상 영문, 숫자 조합" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호 확인</label>
+          <div class="relative">
+            <input type="password" id="signup-password-confirm" required placeholder="비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit-signup" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="user-check" class="w-4 h-4"></i> 이메일 인증 완료 및 회원가입
         </button>
       </form>
+
+      <!-- 3. FORGOT / RESET PASSWORD FORM (WITH EMAIL VERIFICATION OTP) -->
+      <form id="forgot-form" onsubmit="handleResetPasswordSubmit(event)" class="space-y-4 hidden">
+        <div class="p-3 rounded-xl bg-navy-950 border border-navy-800 text-xs text-slate-300">
+          가입 시 등록하신 이메일 주소로 본인 확인 인증번호를 발송하여 비밀번호를 안전하게 재설정합니다.
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">가입된 이메일 주소</label>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input type="email" id="forgot-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <button type="button" onclick="sendResetVerificationCode()" id="btn-send-reset-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
+              인증코드 발송
+            </button>
+          </div>
+        </div>
+
+        <!-- Reset OTP Code Input -->
+        <div id="reset-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 본인 확인 인증번호 (6자리)</span>
+            <span class="font-mono text-cyan-300 font-bold" id="reset-otp-timer">03:00</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="reset-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
+            <button type="button" onclick="verifyResetOTP()" id="btn-verify-reset-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+              인증확인
+            </button>
+          </div>
+          <div id="reset-otp-status" class="text-[11px] text-slate-400">이메일로 발송된 6자리 코드를 입력해주세요.</div>
+        </div>
+
+        <div id="reset-password-fields" class="hidden space-y-3 pt-2 border-t border-navy-800">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새로운 비밀번호</label>
+            <div class="relative">
+              <input type="password" id="reset-new-password" placeholder="8자 이상 새 비밀번호" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="key" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새 비밀번호 확인</label>
+            <div class="relative">
+              <input type="password" id="reset-new-password-confirm" placeholder="새 비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+              <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> 비밀번호 변경 및 즉시 로그인
+          </button>
+        </div>
+
+        <div class="pt-2 text-center">
+          <button type="button" onclick="setAuthMode('login')" class="text-xs text-slate-400 hover:text-white transition">
+            ← 로그인 화면으로 돌아가기
+          </button>
+        </div>
+      </form>
+
     </div>
   </div>
 
@@ -1653,16 +1811,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787970576558"></script>
-  <script src="js/calculator.js?v=1787970576558"></script>
-  <script src="js/upbit-api.js?v=1787970576558"></script>
-  <script src="js/charts.js?v=1787970576558"></script>
-  <script src="js/exporter.js?v=1787970576558"></script>
-  <script src="js/sample-data.js?v=1787970576558"></script>
-  <script src="js/analyzer-app.js?v=1787970576558"></script>
+  <script src="js/parser.js?v=1787971788907"></script>
+  <script src="js/calculator.js?v=1787971788907"></script>
+  <script src="js/upbit-api.js?v=1787971788907"></script>
+  <script src="js/charts.js?v=1787971788907"></script>
+  <script src="js/exporter.js?v=1787971788907"></script>
+  <script src="js/sample-data.js?v=1787971788907"></script>
+  <script src="js/analyzer-app.js?v=1787971788907"></script>
 
-  <script src="js/admin.js?v=1787970576558"></script>
-  <script src="app.js?v=1787970576558"></script>
+  <script src="js/admin.js?v=1787971788907"></script>
+  <script src="app.js?v=1787971788907"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
