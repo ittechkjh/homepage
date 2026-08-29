@@ -47,8 +47,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787976059293">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787976059293">
+  <link rel="stylesheet" href="styles.css?v=1787976218258">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787976218258">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -405,9 +405,6 @@
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-230px)] min-h-[550px]">
         
         <div class="hidden lg:flex flex-col bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-lg overflow-hidden">
-          <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
-            <span class="flex items-center gap-2">
-              <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
           <div class="font-bold text-sm text-white flex items-center justify-between pb-3 border-b border-navy-800">
             <span class="flex items-center gap-2">
               <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
@@ -1557,7 +1554,7 @@
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">아이디 / 이메일</label>
           <div class="relative">
-            <input type="text" id="login-identifier" required placeholder="아이디 또는 이메일 입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <input type="text" id="login-identifier" required placeholder="아이디 또는 이메일 입력" autocomplete="off" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
             <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
           </div>
         </div>
@@ -1570,7 +1567,7 @@
             </button>
           </div>
           <div class="relative">
-            <input type="password" id="login-password" required placeholder="비밀번호 입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+            <input type="password" id="login-password" required placeholder="비밀번호 입력" autocomplete="new-password" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
             <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
           </div>
         </div>
@@ -1579,11 +1576,7 @@
           <i data-lucide="log-in" class="w-4 h-4"></i> 로그인
         </button>
 
-        <div class="pt-3 border-t border-navy-800/80 text-center space-y-2">
-          <button type="button" onclick="quickAdminLogin()" class="text-xs text-purple-300 hover:text-purple-200 font-bold bg-purple-950/40 hover:bg-purple-950/70 border border-purple-500/30 px-3.5 py-2.5 rounded-xl w-full flex items-center justify-center gap-1.5 transition">
-            <span>👑 최고 관리자(Admin) 1초 빠른 로그인</span>
-          </button>
-        </div>
+
       </form>
 
       <!-- 2. SIGNUP FORM (WITH EMAIL VERIFICATION OTP) -->
@@ -1814,16 +1807,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787976059293"></script>
-  <script src="js/calculator.js?v=1787976059293"></script>
-  <script src="js/upbit-api.js?v=1787976059293"></script>
-  <script src="js/charts.js?v=1787976059293"></script>
-  <script src="js/exporter.js?v=1787976059293"></script>
-  <script src="js/sample-data.js?v=1787976059293"></script>
-  <script src="js/analyzer-app.js?v=1787976059293"></script>
+  <script src="js/parser.js?v=1787976218258"></script>
+  <script src="js/calculator.js?v=1787976218258"></script>
+  <script src="js/upbit-api.js?v=1787976218258"></script>
+  <script src="js/charts.js?v=1787976218258"></script>
+  <script src="js/exporter.js?v=1787976218258"></script>
+  <script src="js/sample-data.js?v=1787976218258"></script>
+  <script src="js/analyzer-app.js?v=1787976218258"></script>
 
-  <script src="js/admin.js?v=1787976059293"></script>
-  <script src="app.js?v=1787976059293"></script>
+  <script src="js/admin.js?v=1787976218258"></script>
+  <script src="app.js?v=1787976218258"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load

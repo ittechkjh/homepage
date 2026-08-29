@@ -409,6 +409,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {}
 
+  
+  // Self-healing: Clear any old mock chat messages from localStorage
+  try {
+    const rawChat = localStorage.getItem('coinhub_chat_messages');
+    if (rawChat && (rawChat.includes('Satoshi_Fan') || rawChat.includes('CryptoWhale') || rawChat.includes('AlphaBot') || rawChat.includes('SolanaKing') || rawChat.includes('PeacefulTrader'))) {
+      localStorage.removeItem('coinhub_chat_messages');
+      chatMessages = [];
+    }
+  } catch(e) {}
+
   // Initialize LocalStorage for forum if empty
   if (!localStorage.getItem('coinhub_forum_posts')) {
     localStorage.setItem('coinhub_forum_posts', JSON.stringify(INITIAL_FORUM_POSTS));
@@ -1484,14 +1494,7 @@ function handleResetPasswordSubmit(e) {
   setAuthMode('login');
 }
 
-function quickAdminLogin() {
-  const idInput = document.getElementById('login-identifier');
-  const pwInput = document.getElementById('login-password');
-  if (idInput) idInput.value = 'admin';
-  if (pwInput) pwInput.value = (typeof AdminApp !== 'undefined') ? AdminApp.getAdminPassword() : 'admin1234';
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) loginForm.requestSubmit();
-}
+
 
 function startOTPTimer(timerElementId, durationSeconds, onExpire) {
   let remain = durationSeconds;
