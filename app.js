@@ -1536,6 +1536,9 @@ function handleLogout() {
   localStorage.removeItem('coinhub_user');
   currentUser = null;
   updateAuthUI();
+  if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') {
+    App.checkAuthStatus();
+  }
   alert('로그아웃 되었습니다.');
 }
 
@@ -1565,6 +1568,7 @@ function updateAuthUI() {
     }
   }
 
+  if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') App.checkAuthStatus();
   if (!authSection) return;
 
   if (currentUser) {

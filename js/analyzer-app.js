@@ -259,22 +259,39 @@ const App = {
         }
     },
 
-    checkAuthStatus: function () {
-        const u = window.currentUser || (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
+        checkAuthStatus: function () {
+        const u = (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
         const authGuard = document.getElementById('analyzer-auth-guard');
         const mainContent = document.getElementById('analyzer-main-content');
 
-        if (!u) {
-            if (authGuard) authGuard.style.display = 'block';
-            if (mainContent) mainContent.style.display = 'none';
+        if (!u || !u.username) {
+            if (authGuard) {
+                authGuard.classList.remove('hidden');
+                authGuard.classList.add('block');
+                authGuard.style.display = 'block';
+            }
+            if (mainContent) {
+                mainContent.classList.remove('block');
+                mainContent.classList.add('hidden');
+                mainContent.style.display = 'none';
+            }
             this.state.rawTrades = [];
             this.state.reportData = null;
         } else {
-            if (authGuard) authGuard.style.display = 'none';
-            if (mainContent) mainContent.style.display = 'block';
+            if (authGuard) {
+                authGuard.classList.remove('block');
+                authGuard.classList.add('hidden');
+                authGuard.style.display = 'none';
+            }
+            if (mainContent) {
+                mainContent.classList.remove('hidden');
+                mainContent.classList.add('block');
+                mainContent.style.display = 'block';
+            }
             this.loadSavedTrades();
         }
         this.updateUserBanner();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     },
 
     initColumnDropdowns: function () {
