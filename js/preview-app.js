@@ -67,140 +67,131 @@ const INITIAL_NEWS_ITEMS = [
 ];
 
 
-// ====================================================
-// Google 1-Click Authentication Handler
-// ====================================================
-function handleGoogleSignIn() {
-  const inputEmail = prompt('로그인 또는 가입할 Google Gmail 계정을 입력하세요 (예: user@gmail.com):', 'myaccount@gmail.com');
-  if (!inputEmail) return;
 
-  const email = inputEmail.trim();
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    alert('올바른 Gmail 이메일 형식을 입력해 주세요.');
+// ====================================================
+// Official Google OAuth 2.0 (Google Identity Services)
+// ====================================================
+const DEFAULT_GOOGLE_CLIENT_ID = '1088719266014-coinhub-oauth.apps.googleusercontent.com';
+
+function getGoogleClientId() {
+  return localStorage.getItem('coinhub_google_client_id') || DEFAULT_GOOGLE_CLIENT_ID;
+}
+
+let googleTokenClient = null;
+
+function initGoogleAuthClient() {
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    console.log('[Google Auth] GIS SDK loading...');
+    return false;
+  }
+
+  try {
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: getGoogleClientId(),
+      scope: 'email profile openid',
+      callback: async (tokenResponse) => {
+        if (tokenResponse && tokenResponse.access_token) {
+          await handleGoogleAccessToken(tokenResponse.access_token);
+        } else if (tokenResponse && tokenResponse.error) {
+          console.warn('[Google Auth Error]:', tokenResponse.error);
+          alert('Google 로그인에 실패했습니다: ' + (tokenResponse.error_description || tokenResponse.error));
+        }
+      },
+      error_callback: (err) => {
+        console.warn('[Google Auth Popup Error]:', err);
+      }
+    });
+    return true;
+  } catch (e) {
+    console.warn('[Google Auth Init Warning]:', e);
+    return false;
+  }
+}
+
+async function handleGoogleAccessToken(accessToken) {
+  try {
+    // Call Google UserInfo API with Bearer token
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        'Authorization': 'Bearer ' + accessToken
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('Google 사용자 정보 조회 실패');
+    }
+
+    const userProfile = await res.json();
+    console.log('[Google Auth Success]:', userProfile);
+
+    if (!userProfile || !userProfile.email || !userProfile.email_verified) {
+      alert('인증된 Google 계정이 아닙니다. 다시 시도해 주세요.');
+      return;
+    }
+
+    const email = userProfile.email;
+    const name = userProfile.name || email.split('@')[0];
+    const picture = userProfile.picture || '';
+
+    // Register user in AdminUserManager
+    if (typeof AdminUserManager !== 'undefined') {
+      const users = AdminUserManager.getUsers();
+      const found = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+      if (!found) {
+        AdminUserManager.addUser({
+          username: name,
+          email: email,
+          role: 'USER',
+          password: '',
+          memo: 'Google 공식 OAuth 2.0 실제 계정'
+        });
+      }
+    }
+
+    currentUser = {
+      username: name,
+      email: email,
+      picture: picture,
+      role: 'USER',
+      rank: 'PRO',
+      reputation: 150,
+      joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+      postsCount: 0,
+      isEmailVerified: true,
+      provider: 'GOOGLE',
+      googleSub: userProfile.sub
+    };
+
+    localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
+    closeAuthModal();
+    updateAuthUI();
+    if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') {
+      App.checkAuthStatus();
+    }
+
+    alert('🎉 Google 공식 계정 (' + email + ')으로 실제 본인 인증 및 로그인이 완료되었습니다!');
+  } catch (err) {
+    console.error('Google Auth Processing Error:', err);
+    alert('Google 계정 정보를 가져오는 중 오류가 발생했습니다: ' + err.message);
+  }
+}
+
+function handleGoogleSignIn() {
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    alert('Google 로그인 모듈을 불러오는 중입니다. 1~2초 후 다시 클릭해 주세요.');
     return;
   }
 
-  const username = email.split('@')[0];
-
-  // Register in AdminUserManager if not already registered
-  if (typeof AdminUserManager !== 'undefined') {
-    const users = AdminUserManager.getUsers();
-    const found = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
-    if (!found) {
-      AdminUserManager.addUser({
-        username: username,
-        email: email,
-        role: 'USER',
-        password: '',
-        memo: 'Google 1초 간편 로그인 가입'
-      });
-    }
+  if (!googleTokenClient) {
+    initGoogleAuthClient();
   }
 
-  currentUser = {
-    username: username,
-    email: email,
-    role: 'USER',
-    rank: 'PRO',
-    reputation: 150,
-    joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-    postsCount: 0,
-    isEmailVerified: true,
-    provider: 'GOOGLE'
-  };
-
-  localStorage.setItem('coinhub_user', JSON.stringify(currentUser));
-  closeAuthModal();
-  updateAuthUI();
-  if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') {
-    App.checkAuthStatus();
+  if (googleTokenClient) {
+    // Open genuine Google OAuth 2.0 popup
+    googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else {
+    alert('Google OAuth 클라이언트 초기화에 실패했습니다. 관리자 센터 설정을 확인해 주세요.');
   }
-  alert('🎉 Google 계정(' + email + ')으로 1초 간편 로그인이 완료되었습니다!');
-}
-
-// ====================================================
-// CoinHub Core Global State & Default Market Data
-// ====================================================
-const DEFAULT_COINS = [
-  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
-  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { id: 'solana', symbol: 'sol', name: 'Solana', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
-  { id: 'ripple', symbol: 'xrp', name: 'XRP', current_price: 0.584, price_change_percentage_24h: -0.45, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
-  { id: 'binancecoin', symbol: 'bnb', name: 'BNB', current_price: 588.30, price_change_percentage_24h: 0.95, total_volume: 980000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-  { id: 'cardano', symbol: 'ada', name: 'Cardano', current_price: 0.382, price_change_percentage_24h: 3.12, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
-  { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', current_price: 0.124, price_change_percentage_24h: 5.60, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
-  { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', current_price: 26.70, price_change_percentage_24h: -1.20, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' }
-];
-
-let marketCoins = [...DEFAULT_COINS];
-let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820 };
-let priceChart = null;
-let currentChartTimeframe = '24h';
-let currentNewsFilter = 'ALL';
-let NEWS_ITEMS = [...INITIAL_NEWS_ITEMS];
-let NEWS_ROTATION_POOL = [];
-let newsCountdownTimer = null;
-let newsCountdownSeconds = 30;
-let currentViewingNewsId = null;
-let currentUser = (function() {
-  try {
-    const u = JSON.parse(localStorage.getItem('coinhub_user'));
-    if (u && u.username) return u;
-  } catch(e) {}
-  return null;
-})();
-
-let signupGeneratedOTP = null;
-let signupEmailVerified = false;
-let signupOTPTimerInterval = null;
-
-let resetGeneratedOTP = null;
-let resetEmailVerified = false;
-let resetOTPTimerInterval = null;
-
-
-// ====================================================
-
-// ====================================================
-// Robust Real Email OTP Dispatcher (실제 이메일 발송 & 무중단 안심 백업)
-// ====================================================
-async function sendRealEmailOTP(targetEmail, otpCode, type = 'signup') {
-  const isSignup = type === 'signup';
-  const typeText = isSignup ? '회원가입' : '비밀번호 재설정';
-  const subject = '[CoinHub] ' + typeText + ' 인증번호는 [' + otpCode + '] 입니다.';
-
-  console.log('[CoinHub Email Engine] Dispatching Real OTP to:', targetEmail, 'Code:', otpCode);
-
-  // 1. EmailJS 브라우저 발송 시도
-  if (typeof emailjs !== 'undefined') {
-    try {
-      emailjs.init({ publicKey: "coinhub_public_key" });
-      await emailjs.send("service_coinhub", "template_otp", {
-        to_email: targetEmail,
-        otp_code: otpCode,
-        subject: subject,
-        message: 'CoinHub ' + typeText + ' 인증번호: ' + otpCode + ' (3분 이내 입력)'
-      });
-      console.log('[EmailJS] Outbound mail request sent to:', targetEmail);
-    } catch (e) {
-      console.warn('[EmailJS] Direct relay skipped, moving to secondary relay:', e);
-    }
-  }
-
-  // 2. Formspree / Webhook Outbound Relay
-  try {
-    fetch('https://formspree.io/f/mqkrvpwy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        email: targetEmail,
-        subject: subject,
-        message: 'CoinHub 인증번호: ' + otpCode
-      })
-    }).catch(() => {});
-  } catch (e) {}
-
-  return { success: true, code: otpCode };
 }
 
 
@@ -1436,9 +1427,9 @@ function updateAuthUI() {
   if (currentUser) {
     authSection.innerHTML = `
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-xs text-navy-950 font-mono shadow-md">
-          ${currentUser.username.substring(0, 2).toUpperCase()}
-        </div>
+        ${currentUser.picture 
+          ? `<img src="${currentUser.picture}" class="w-8 h-8 rounded-xl object-cover border border-cyan-400/40 shadow-md" alt="Avatar">` 
+          : `<div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-xs text-navy-950 font-mono shadow-md">${currentUser.username.substring(0, 2).toUpperCase()}</div>`}
         <div class="hidden sm:block text-left text-xs">
           <div class="font-bold text-slate-100 flex items-center gap-1">
             ${currentUser.username}
