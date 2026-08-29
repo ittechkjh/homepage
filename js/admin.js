@@ -316,7 +316,7 @@ const AdminUserManager = {
         if (!user) {
             return { 
                 success: false, 
-                message: '가입되지 않은 계정 또는 이메일입니다. 먼저 [이메일 인증 회원가입]을 진행해 주세요.' 
+                message: '가입되지 않은 계정 또는 이메일입니다. 먼저 [간편 회원가입]을 진행해 주세요.' 
             };
         }
 
