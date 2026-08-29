@@ -1,4 +1,72 @@
 
+const INITIAL_NEWS_ITEMS = [
+  {
+    id: 'news-init-1',
+    category: 'MARKET',
+    categoryName: '📈 비트코인/시장',
+    source: 'CoinDesk Korea',
+    sourceUrl: 'https://www.coindesk.com',
+    author: '이상훈 기자',
+    time: '방금 전',
+    timestamp: Date.now() - 5 * 60 * 1000,
+    isBreaking: true,
+    title: '비트코인 65,000달러 돌파 시도... 美 현물 ETF 순유입세 3일 연속 확대',
+    summary: '미국 비트코인 현물 ETF 시장에 기관 자금이 대거 유입되며 가격 반등 모멘텀이 강화되고 있습니다. 블랙록 IBIT 및 피델리티 FBTC 중심 매수세 지속.',
+    takeaways: ['현물 ETF 3일 연속 순유입 기록', '미국 연준 금리 인하 기대감 고조', '글로벌 유동성 지표 반등'],
+    content: '미국 비트코인 현물 ETF 시장에 3일 연속 대규모 기관 자금이 유입되며 비트코인이 65,000달러 저항선 돌파를 시도하고 있습니다.',
+    tickers: [{ symbol: 'BTC', name: 'Bitcoin', change: '+2.45%', isUp: true }]
+  },
+  {
+    id: 'news-init-2',
+    category: 'TECH',
+    categoryName: '⚡ 기술/DeFi',
+    source: '블록미디어',
+    sourceUrl: 'https://www.blockmedia.co.kr',
+    author: '김민주 전문기자',
+    time: '18분 전',
+    timestamp: Date.now() - 18 * 60 * 1000,
+    isBreaking: false,
+    title: '이더리움 레이어2 TVL 역대 최고치 경신... 베이스(Base)·아비트럼 거래량 급증',
+    summary: '이더리움 생태계 확장 레이어2 네트워크의 총 예치자산(TVL)이 역대 최고치를 돌파했습니다. 수수료 절감 효과로 사용자 유입 가속화.',
+    takeaways: ['L2 TVL 사상 최고 기록', '가스비 절감 효과 체감', 'DeFi 트랜잭션 급증'],
+    content: '이더리움 레이어2 네트워크 생태계가 덴쿤 업그레이드 이후 저렴해진 가스비를 바탕으로 사용자 트랜잭션을 폭발적으로 흡수하고 있습니다.',
+    tickers: [{ symbol: 'ETH', name: 'Ethereum', change: '+1.82%', isUp: true }]
+  },
+  {
+    id: 'news-init-3',
+    category: 'ALTCOIN',
+    categoryName: '🚀 알트코인',
+    source: '코인포스트',
+    sourceUrl: 'https://coinpost.jp',
+    author: '글로벌 마켓팀',
+    time: '35분 전',
+    timestamp: Date.now() - 35 * 60 * 1000,
+    isBreaking: false,
+    title: '솔라나(SOL) 생태계 온체인 거래량 이더리움 추월... DEX 점유율 1위 등극',
+    summary: '솔라나 기반 탈중앙화 거래소(DEX) 일일 거래량이 이더리움 메인넷을 넘어서며 알트코인 시장 내 강력한 거래 점유율을 확보했습니다.',
+    takeaways: ['솔라나 DEX 거래대금 1위', '밈코인 및 DeFi 활성도 상승', '초당 트랜잭션(TPS) 안정 유지'],
+    content: '솔라나 네트워크의 탈중앙화 금융(DeFi) 및 밈코인 거래 열풍이 지속되며 온체인 일일 볼륨이 강력한 성장세를 보이고 있습니다.',
+    tickers: [{ symbol: 'SOL', name: 'Solana', change: '+8.94%', isUp: true }]
+  },
+  {
+    id: 'news-init-4',
+    category: 'REGULATION',
+    categoryName: '🏛️ 규제/정책',
+    source: '한국금융신문',
+    sourceUrl: 'https://www.fntimes.com',
+    author: '박정우 기자',
+    time: '1시간 전',
+    timestamp: Date.now() - 60 * 60 * 1000,
+    isBreaking: false,
+    title: '금융위, 가상자산 사업자 이용자보호 가이드라인 2단계 발표 예고',
+    summary: '국내 가상자산이용자보호법 시행 이후 2단계로 스테이블코인 규율 체계 및 법인 계좌 단계적 허용 방안에 대한 정책 논의가 본격화됩니다.',
+    takeaways: ['가상자산이용자보호법 2단계 가이드라인', '법인 실명계좌 허용 검토', '원화 스테이블코인 발행 요건 정립'],
+    content: '금융위원회가 가상자산 이용자 보호를 위한 2단계 입법 준비에 착수하며, 법인 투자자의 거래소 계좌 발급 요건을 검토 중입니다.',
+    tickers: [{ symbol: 'XRP', name: 'Ripple', change: '-0.45%', isUp: false }]
+  }
+];
+
+
 // ====================================================
 // Google 1-Click Authentication Handler
 // ====================================================
@@ -69,6 +137,11 @@ let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820
 let priceChart = null;
 let currentChartTimeframe = '24h';
 let currentNewsFilter = 'ALL';
+let NEWS_ITEMS = [...INITIAL_NEWS_ITEMS];
+let NEWS_ROTATION_POOL = [];
+let newsCountdownTimer = null;
+let newsCountdownSeconds = 30;
+let currentViewingNewsId = null;
 let currentUser = (function() {
   try {
     const u = JSON.parse(localStorage.getItem('coinhub_user'));
@@ -1665,7 +1738,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Initialize Price Chart
   initChart();
 
-  // 6. Render Forum Posts & News
+    // 6. Render Forum Posts & News
+  try {
+    const cachedNews = localStorage.getItem('coinhub_live_news');
+    if (cachedNews) {
+      const parsed = JSON.parse(cachedNews);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        NEWS_ITEMS = parsed;
+      }
+    }
+  } catch(e) {}
+
   renderForumPosts();
   renderNews();
   fetchLatestNews(false);

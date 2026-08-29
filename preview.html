@@ -57,8 +57,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1787987540824">
-  <link rel="stylesheet" href="css/analyzer.css?v=1787987540824">
+  <link rel="stylesheet" href="styles.css?v=1787987799076">
+  <link rel="stylesheet" href="css/analyzer.css?v=1787987799076">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- ==============================================
@@ -187,7 +187,7 @@
     <!-- ==============================================
          TAB 1: MARKET DATA & OVERVIEW
          ============================================== -->
-    <section id="tab-market" class="tab-content block space-y-6">
+    <section id="tab-market" class="tab-content hidden space-y-6">
       
       <!-- Market Hero Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -565,7 +565,7 @@
     <!-- ============================================== -->
     <!-- TAB 5: CRYPTO TRADE ANALYZER (MEMBER ONLY & STRICT PER-USER ISOLATION) -->
     <!-- ============================================== -->
-    <section id="tab-analyzer" class="tab-content hidden space-y-6">
+    <section id="tab-analyzer" class="tab-content block space-y-6">
 
       <!-- AUTH GUARD: 비로그인 시 노출되는 잠금 안내 화면 -->
       <div id="analyzer-auth-guard" class="analyzer-card p-10 text-center bg-gradient-to-b from-navy-900 to-navy-950 border border-cyan-500/30 rounded-2xl max-w-2xl mx-auto my-12 shadow-2xl space-y-5">
@@ -1912,16 +1912,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1787987540824"></script>
-  <script src="js/calculator.js?v=1787987540824"></script>
-  <script src="js/upbit-api.js?v=1787987540824"></script>
-  <script src="js/charts.js?v=1787987540824"></script>
-  <script src="js/exporter.js?v=1787987540824"></script>
-  <script src="js/sample-data.js?v=1787987540824"></script>
-  <script src="js/analyzer-app.js?v=1787987540824"></script>
+  <script src="js/parser.js?v=1787987799076"></script>
+  <script src="js/calculator.js?v=1787987799076"></script>
+  <script src="js/upbit-api.js?v=1787987799076"></script>
+  <script src="js/charts.js?v=1787987799076"></script>
+  <script src="js/exporter.js?v=1787987799076"></script>
+  <script src="js/sample-data.js?v=1787987799076"></script>
+  <script src="js/analyzer-app.js?v=1787987799076"></script>
 
-  <script src="js/admin.js?v=1787987540824"></script>
-  <script src="js/preview-app.js?v=1787987540824"></script>
+  <script src="js/admin.js?v=1787987799076"></script>
+  <script src="js/preview-app.js?v=1787987799076"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
