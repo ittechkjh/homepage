@@ -498,6 +498,9 @@ function switchTab(tabId, updateHash = true) {
 
   updatePageSEO(tabId);
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+    AdminAnalytics.recordVisit(tabId);
+  }
 
   // Initialize analyzer when user switches to analyzer tab
   if (tabId === 'analyzer' && typeof App !== 'undefined') {
