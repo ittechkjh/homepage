@@ -660,3 +660,5 @@ const ProfitCalculator = {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ProfitCalculator;
 }
+
+if (typeof window !== "undefined") { window.ProfitCalculator = ProfitCalculator; }

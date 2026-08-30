@@ -222,6 +222,28 @@ const CoinCalculators = {
         }
     },
 
+    // Helper: Retrieve calculation report from Analyzer Engine
+    getAnalyzerData: function () {
+        if (typeof window !== "undefined" && window.App && window.App.state && window.App.state.reportData) {
+            return window.App.state.reportData;
+        }
+        if (typeof App !== "undefined" && App.state && App.state.reportData) {
+            return App.state.reportData;
+        }
+        const pc = (typeof ProfitCalculator !== "undefined") ? ProfitCalculator : (typeof window !== "undefined" ? window.ProfitCalculator : null);
+        const as = (typeof AnalyzerStorage !== "undefined") ? AnalyzerStorage : (typeof window !== "undefined" ? window.AnalyzerStorage : null);
+        if (pc && as) {
+            const trades = as.getTrades ? as.getTrades() : [];
+            if (trades && trades.length > 0) {
+                return pc.calculate(trades);
+            }
+        }
+        if (pc && typeof SAMPLE_TRADES !== "undefined") {
+            return pc.calculate(SAMPLE_TRADES);
+        }
+        return null;
+    },
+
     // 3. 코인 세금 계산기
     calcTax: function () {
         const totalSell = parseFloat(document.getElementById("taxTotalSell")?.value) || 0;
@@ -260,30 +282,17 @@ const CoinCalculators = {
     },
 
     importFromAnalyzer: function () {
-        let rep = null;
-        if (typeof AnalyzerApp !== "undefined" && AnalyzerApp.state && AnalyzerApp.state.reportData) {
-            rep = AnalyzerApp.state.reportData;
-        } else if (typeof AnalyzerStorage !== "undefined") {
-            const trades = AnalyzerStorage.getTrades ? AnalyzerStorage.getTrades() : [];
-            if (trades.length > 0 && typeof AnalyzerCalculator !== "undefined") {
-                rep = AnalyzerCalculator.calculate(trades);
-            }
-        }
-
-        if (rep) {
+        const rep = this.getAnalyzerData();
+        if (rep && rep.summary) {
+            const s = rep.summary;
             const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-            setVal("taxTotalSell", Math.round(rep.totalSellVolume || 0));
-            setVal("taxTotalBuy", Math.round(rep.totalBuyVolume || 0));
-            setVal("taxTotalFee", Math.round(rep.totalFee || 0));
+            setVal("taxTotalSell", Math.round(s.totalSellAmount || 0));
+            setVal("taxTotalBuy", Math.round(s.totalBuyAmount || 0));
+            setVal("taxTotalFee", Math.round(s.totalFee || 0));
             this.calcTax();
-            alert("거래내역 분석기의 실측 손익 데이터가 세금 계산기에 성공적으로 반영되었습니다!");
+            alert("손익 분석기의 실측 손익 데이터(총 매도액 " + Math.round(s.totalSellAmount || 0).toLocaleString() + "원)가 세금 계산기에 성공적으로 반영되었습니다!");
         } else {
-            if (typeof AnalyzerApp !== "undefined" && AnalyzerApp.loadSampleData) {
-                AnalyzerApp.loadSampleData("ALL");
-                setTimeout(() => this.importFromAnalyzer(), 300);
-            } else {
-                alert("먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.");
-            }
+            alert("먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.");
         }
     },
 
@@ -470,45 +479,41 @@ const CoinCalculators = {
     },
 
     importProfitCardFromAnalyzer: function () {
-        let rep = null;
-        if (typeof AnalyzerApp !== "undefined" && AnalyzerApp.state && AnalyzerApp.state.reportData) {
-            rep = AnalyzerApp.state.reportData;
-        } else if (typeof AnalyzerStorage !== "undefined") {
-            const trades = AnalyzerStorage.getTrades ? AnalyzerStorage.getTrades() : [];
-            if (trades.length > 0 && typeof AnalyzerCalculator !== "undefined") {
-                rep = AnalyzerCalculator.calculate(trades);
-            }
-        }
-
+        const rep = this.getAnalyzerData();
         const nick = (typeof getNickname === "function" ? getNickname() : "익명 트레이더");
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
 
-        if (rep) {
-            setVal("cardNick", nick);
-            setVal("cardRoi", (rep.realizedRoi >= 0 ? "+" : "") + rep.realizedRoi.toFixed(2) + "%");
-            setVal("cardWinrate", (rep.winRate || 0).toFixed(1) + "%");
-            
-            if (rep.coins && rep.coins.length > 0) {
-                const top = [...rep.coins].sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0))[0];
-                if (top) setVal("cardTopCoin", top.coin);
+        if (rep && rep.summary) {
+            const s = rep.summary;
+            const roiVal = (typeof s.realizedRoi === "number") ? s.realizedRoi : (parseFloat(s.realizedRoi) || 0);
+            const winrateVal = (typeof s.winRate === "number") ? s.winRate : (parseFloat(s.winRate) || 0);
+            const roiStr = (roiVal >= 0 ? "+" : "") + roiVal.toFixed(2) + "%";
+            const winrateStr = winrateVal.toFixed(1) + "%";
+
+            let topCoinName = "BTC (비트코인)";
+            if (rep.coinSummaries && rep.coinSummaries.length > 0) {
+                const sorted = [...rep.coinSummaries].sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0));
+                if (sorted[0] && sorted[0].coin) {
+                    topCoinName = sorted[0].coin;
+                }
             }
+
+            let periodStr = "2024.01 ~ 2026.08";
+            if (s.startDate && s.endDate) {
+                periodStr = String(s.startDate).slice(0, 7) + " ~ " + String(s.endDate).slice(0, 7);
+            }
+
+            setVal("cardNick", nick);
+            setVal("cardRoi", roiStr);
+            setVal("cardWinrate", winrateStr);
+            setVal("cardPeriod", periodStr);
+            setVal("cardTopCoin", topCoinName);
 
             this.renderProfitCard();
             this.switchSubTab("card");
-            alert("손익 분석기의 실측 수익률(" + (rep.realizedRoi >= 0 ? "+" : "") + rep.realizedRoi.toFixed(2) + "%)과 승률이 인증 카드에 성공적으로 반영되었습니다!");
+            alert("손익 분석기의 실측 수익률(" + roiStr + ")과 승률(" + winrateStr + ")이 인증 카드에 성공적으로 반영되었습니다!");
         } else {
-            if (typeof AnalyzerApp !== "undefined" && AnalyzerApp.loadSampleData) {
-                AnalyzerApp.loadSampleData("ALL");
-                setTimeout(() => this.importProfitCardFromAnalyzer(), 300);
-            } else {
-                setVal("cardNick", nick);
-                setVal("cardRoi", "+142.8%");
-                setVal("cardWinrate", "78.5%");
-                setVal("cardTopCoin", "BTC (비트코인)");
-                this.renderProfitCard();
-                this.switchSubTab("card");
-                alert("수익 인증 카드가 생성되었습니다!");
-            }
+            alert("먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.");
         }
     }
 };
