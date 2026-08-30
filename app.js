@@ -1,3 +1,97 @@
+// ====================================================
+// CoinHub Core Global State & Default Data
+// ====================================================
+const DEFAULT_COINS = [
+  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { id: 'solana', symbol: 'sol', name: 'Solana', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+  { id: 'ripple', symbol: 'xrp', name: 'XRP', current_price: 0.584, price_change_percentage_24h: -0.45, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+  { id: 'binancecoin', symbol: 'bnb', name: 'BNB', current_price: 588.30, price_change_percentage_24h: 0.95, total_volume: 980000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+  { id: 'cardano', symbol: 'ada', name: 'Cardano', current_price: 0.382, price_change_percentage_24h: 3.12, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
+  { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', current_price: 0.124, price_change_percentage_24h: 5.60, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+  { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', current_price: 26.70, price_change_percentage_24h: -1.20, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' }
+];
+
+let currentUser = (function() {
+  try {
+    const u = JSON.parse(localStorage.getItem('coinhub_user'));
+    if (u && u.username) return u;
+  } catch(e) {}
+  return null;
+})();
+
+let marketCoins = [...DEFAULT_COINS];
+let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820 };
+let priceChart = null;
+let currentChartTimeframe = '24h';
+let currentNewsFilter = 'ALL';
+let activeCategory = 'all';
+let currentViewingPostId = null;
+let currentViewingNewsId = null;
+let chatMessages = [];
+let newsCountdownTimer = null;
+let newsCountdownSeconds = 30;
+
+let signupGeneratedOTP = null;
+let signupEmailVerified = false;
+let signupOTPTimerInterval = null;
+
+let resetGeneratedOTP = null;
+let resetEmailVerified = false;
+let resetOTPTimerInterval = null;
+let resetTargetEmail = '';
+
+
+// ====================================================
+// Initial Forum Posts Default Data
+// ====================================================
+const INITIAL_FORUM_POSTS = [
+  {
+    id: 1,
+    category: 'market',
+    categoryName: '📊 차트/기술적 분석',
+    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표 분석',
+    content: '최근 거래소 유출량 증가와 고래들의 매집 패턴이 뚜렷하게 관찰되고 있습니다. RSI 4시간봉 다이버전스 확인 후 진입 전략을 추천합니다.',
+    author: 'CryptoWhale',
+    authorRank: 'Master',
+    upvotes: 42,
+    views: 890,
+    time: '2시간 전',
+    timestamp: Date.now() - 2 * 3600 * 1000,
+    comments: [
+      { id: 101, author: 'Satoshi_Fan', text: '68K까지는 열려있는 것으로 보입니다!', time: '1시간 전' }
+    ]
+  },
+  {
+    id: 2,
+    category: 'altcoin',
+    categoryName: '🚀 알트코인 분석',
+    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 알트코인은?',
+    content: '솔라나 기반 밈코인 및 DeFi 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 관련 생태계 토큰들 분할 매수 고려 중입니다.',
+    author: 'SolanaKing',
+    authorRank: 'PRO',
+    upvotes: 28,
+    views: 654,
+    time: '4시간 전',
+    timestamp: Date.now() - 4 * 3600 * 1000,
+    comments: []
+  },
+  {
+    id: 3,
+    category: 'general',
+    categoryName: '💬 자유 토론',
+    title: '2026년 하반기 가상자산 세금 및 규제 정책 방향성에 대한 생각',
+    content: '가상자산이용자보호법 2단계 추진과 함께 실명계좌 발급 요건이 완화될지 주목됩니다. 장기 투자자분들은 어떻게 대비하고 계신가요?',
+    author: 'PeacefulTrader',
+    authorRank: 'PRO',
+    upvotes: 19,
+    views: 420,
+    time: '6시간 전',
+    timestamp: Date.now() - 6 * 3600 * 1000,
+    comments: []
+  }
+];
+
 
 const INITIAL_NEWS_ITEMS = [
   {
@@ -70,6 +164,9 @@ const INITIAL_NEWS_ITEMS = [
 
 
 
+
+let NEWS_ITEMS = [...INITIAL_NEWS_ITEMS];
+let NEWS_ROTATION_POOL = [...INITIAL_NEWS_ITEMS];
 
 // ====================================================
 // Standard Secure Authentication System
@@ -955,7 +1052,6 @@ function copyNewsLink() {
 // User Authentication, Email OTP Verification & Password Reset
 // ----------------------------------------------------
 let currentAuthMode = 'login';
-let resetTargetEmail = '';
 
 function openAuthModal(mode = 'login') {
   const modal = document.getElementById('auth-modal');
