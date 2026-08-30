@@ -1,4 +1,53 @@
 
+// ====================================================
+// Legal Policy & Terms Modal Handlers (AdSense Compliance)
+// ====================================================
+function openLegalModal(tab = 'privacy') {
+  const modal = document.getElementById('legal-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    switchLegalTab(tab);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+
+function closeLegalModal() {
+  const modal = document.getElementById('legal-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function switchLegalTab(tab) {
+  const privacyContent = document.getElementById('legal-content-privacy');
+  const termsContent = document.getElementById('legal-content-terms');
+  const tabPrivacy = document.getElementById('tab-legal-privacy');
+  const tabTerms = document.getElementById('tab-legal-terms');
+  const titleText = document.getElementById('legal-modal-title');
+
+  if (tab === 'privacy') {
+    if (privacyContent) privacyContent.classList.remove('hidden');
+    if (termsContent) termsContent.classList.add('hidden');
+    if (tabPrivacy) {
+      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+    }
+    if (tabTerms) {
+      tabTerms.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
+    }
+    if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
+  } else {
+    if (privacyContent) privacyContent.classList.add('hidden');
+    if (termsContent) termsContent.classList.remove('hidden');
+    if (tabTerms) {
+      tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
+    }
+    if (tabPrivacy) {
+      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
+    }
+    if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+
 
 // ====================================================
 // Community Post Image Attachment & 5MB Auto-Compressor
