@@ -12,12 +12,15 @@ const CoinCalculators = {
     activeSubTab: 'water',
     exchangeRateUsdKrw: 1380,
     coinStatsMap: {},
+    // 매수 차수 (mode: 'amount' | 'qty' | 'pct')
     waterTiers: [
-        { id: 1, price: 78000000, amount: 10000000 }
+        { id: 1, mode: 'amount', price: 78000000, val: 10000000 }
     ],
     nextWaterTierId: 2,
+
+    // 매도 차수 (mode: 'pct' | 'amount' | 'qty')
     sellTiers: [
-        { id: 1, price: 98000000, qtyPct: 50, amount: 0 }
+        { id: 1, mode: 'pct', price: 98000000, val: 50 }
     ],
     nextSellTierId: 2,
 
@@ -89,82 +92,33 @@ const CoinCalculators = {
     },
 
     // ========================================================
-    // 1. 물타기 & 불타기 다중 차수(DCA) 평단가/탈출 계산기
+    // 1. 물타기 & 불타기 다중 차수(DCA) 평단가/탈출 & 분할 매도 시뮬레이터
     // ========================================================
-    renderSellTiers: function () {
-        const container = document.getElementById('sellTiersContainer');
-        if (!container) return;
 
-        container.innerHTML = this.sellTiers.map((tier, idx) => {
-            return `
-              <div class="p-3 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2 relative" data-sell-tier-id="${tier.id}">
-                <div class="flex justify-between items-center text-xs">
-                  <span class="font-bold text-amber-300 flex items-center gap-1">
-                    <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-mono">${idx + 1}</span>
-                    <span>${idx + 1}차 분할 매도 계획</span>
-                  </span>
-                  ${this.sellTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeSellTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition" title="차수 삭제">✕ 삭제</button>` : ''}
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
-                    <input type="number" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
-                  </div>
-                  <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 비중 (%)</label>
-                    <div class="flex items-center gap-1">
-                      <input type="number" value="${tier.qtyPct}" min="1" max="100" oninput="CoinCalculators.updateSellTier(${tier.id}, 'qtyPct', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
-                      <span class="text-xs text-slate-400">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-        }).join('');
-    },
-
-    addSellTier: function (price, qtyPct) {
-        const lastTier = this.sellTiers[this.sellTiers.length - 1];
-        const defaultPrice = (price !== undefined) ? price : (lastTier ? Math.round(lastTier.price * 1.1) : 105000000);
-        const defaultPct = (qtyPct !== undefined) ? qtyPct : 50;
-
-        this.sellTiers.push({
-            id: this.nextSellTierId++,
-            price: defaultPrice,
-            qtyPct: defaultPct,
-            amount: 0
-        });
-        this.renderSellTiers();
-        this.calcWater();
-    },
-
-    removeSellTier: function (id) {
-        if (this.sellTiers.length <= 1) return;
-        this.sellTiers = this.sellTiers.filter(t => t.id !== id);
-        this.renderSellTiers();
-        this.calcWater();
-    },
-
-    updateSellTier: function (id, field, value) {
-        const tier = this.sellTiers.find(t => t.id === id);
-        if (tier) {
-            tier[field] = parseFloat(value) || 0;
-            this.calcWater();
-        }
-    },
-
+    // 매수 차수 UI 렌더링 (금액/수량/비중 선택 가능)
     renderWaterTiers: function () {
         const container = document.getElementById('waterTiersContainer');
         if (!container) return;
 
         container.innerHTML = this.waterTiers.map((tier, idx) => {
+            const mode = tier.mode || 'amount';
+            const valLabel = mode === 'amount' ? '투자 금액 (KRW)' : (mode === 'qty' ? '매수 수량 (개)' : '보유량 대비 비중 (%)');
+            const placeholder = mode === 'amount' ? '10000000' : (mode === 'qty' ? '0.2' : '50');
+
             return `
               <div class="p-3 rounded-2xl bg-navy-950 border border-cyan-500/30 space-y-2 relative" data-tier-id="${tier.id}">
                 <div class="flex justify-between items-center text-xs">
-                  <span class="font-bold text-cyan-300 flex items-center gap-1">
-                    <span class="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px] font-mono">${idx + 1}</span>
-                    <span>${idx + 1}차 추가 매수</span>
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-cyan-300 flex items-center gap-1">
+                      <span class="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px] font-mono">${idx + 1}</span>
+                      <span>${idx + 1}차 추가 매수</span>
+                    </span>
+                    <select onchange="CoinCalculators.updateWaterTierMode(${tier.id}, this.value)" class="bg-navy-900 border border-cyan-500/30 text-cyan-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
+                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>₩ 금액 입력</option>
+                      <option value="qty" ${mode === 'qty' ? 'selected' : ''}>🪙 수량 입력</option>
+                      <option value="pct" ${mode === 'pct' ? 'selected' : ''}>％ 비중 입력</option>
+                    </select>
+                  </div>
                   ${this.waterTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeWaterTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition" title="차수 삭제">✕ 삭제</button>` : ''}
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -173,8 +127,8 @@ const CoinCalculators = {
                     <input type="number" value="${tier.price}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                   <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">투자 금액 (KRW)</label>
-                    <input type="number" value="${tier.amount}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'amount', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
+                    <input type="number" step="any" value="${tier.val}" placeholder="${placeholder}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -182,15 +136,17 @@ const CoinCalculators = {
         }).join('');
     },
 
-    addWaterTier: function (price, amount) {
+    addWaterTier: function () {
         const lastTier = this.waterTiers[this.waterTiers.length - 1];
-        const defaultPrice = (price !== undefined) ? price : (lastTier ? Math.round(lastTier.price * 0.9) : 70000000);
-        const defaultAmount = (amount !== undefined) ? amount : (lastTier ? lastTier.amount : 10000000);
-        
+        const defaultPrice = lastTier ? Math.round(lastTier.price * 0.9) : 70000000;
+        const defaultMode = lastTier ? lastTier.mode : 'amount';
+        const defaultVal = lastTier ? lastTier.val : 10000000;
+
         this.waterTiers.push({
             id: this.nextWaterTierId++,
+            mode: defaultMode,
             price: defaultPrice,
-            amount: defaultAmount
+            val: defaultVal
         });
         this.renderWaterTiers();
         this.calcWater();
@@ -211,30 +167,139 @@ const CoinCalculators = {
         }
     },
 
+    updateWaterTierMode: function (id, newMode) {
+        const tier = this.waterTiers.find(t => t.id === id);
+        if (tier) {
+            tier.mode = newMode;
+            if (newMode === 'amount') tier.val = 10000000;
+            else if (newMode === 'qty') tier.val = 0.2;
+            else if (newMode === 'pct') tier.val = 50;
+            this.renderWaterTiers();
+            this.calcWater();
+        }
+    },
+
+    // 매도 차수 UI 렌더링 (비중/수량/금액 선택 가능)
+    renderSellTiers: function () {
+        const container = document.getElementById('sellTiersContainer');
+        if (!container) return;
+
+        container.innerHTML = this.sellTiers.map((tier, idx) => {
+            const mode = tier.mode || 'pct';
+            const valLabel = mode === 'pct' ? '매도 비중 (%)' : (mode === 'qty' ? '매도 수량 (개)' : '매도 목표금액 (KRW)');
+            const placeholder = mode === 'pct' ? '50' : (mode === 'qty' ? '0.3' : '20000000');
+
+            return `
+              <div class="p-3 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2 relative" data-sell-tier-id="${tier.id}">
+                <div class="flex justify-between items-center text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-amber-300 flex items-center gap-1">
+                      <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-mono">${idx + 1}</span>
+                      <span>${idx + 1}차 분할 매도</span>
+                    </span>
+                    <select onchange="CoinCalculators.updateSellTierMode(${tier.id}, this.value)" class="bg-navy-900 border border-amber-500/30 text-amber-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
+                      <option value="pct" ${mode === 'pct' ? 'selected' : ''}>％ 비중 입력</option>
+                      <option value="qty" ${mode === 'qty' ? 'selected' : ''}>🪙 수량 입력</option>
+                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>₩ 금액 입력</option>
+                    </select>
+                  </div>
+                  ${this.sellTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeSellTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition" title="차수 삭제">✕ 삭제</button>` : ''}
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
+                    <input type="number" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
+                    <input type="number" step="any" value="${tier.val}" placeholder="${placeholder}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+            `;
+        }).join('');
+    },
+
+    addSellTier: function () {
+        const lastTier = this.sellTiers[this.sellTiers.length - 1];
+        const defaultPrice = lastTier ? Math.round(lastTier.price * 1.1) : 105000000;
+        const defaultMode = lastTier ? lastTier.mode : 'pct';
+        const defaultVal = lastTier ? lastTier.val : 50;
+
+        this.sellTiers.push({
+            id: this.nextSellTierId++,
+            mode: defaultMode,
+            price: defaultPrice,
+            val: defaultVal
+        });
+        this.renderSellTiers();
+        this.calcWater();
+    },
+
+    removeSellTier: function (id) {
+        if (this.sellTiers.length <= 1) return;
+        this.sellTiers = this.sellTiers.filter(t => t.id !== id);
+        this.renderSellTiers();
+        this.calcWater();
+    },
+
+    updateSellTier: function (id, field, value) {
+        const tier = this.sellTiers.find(t => t.id === id);
+        if (tier) {
+            tier[field] = parseFloat(value) || 0;
+            this.calcWater();
+        }
+    },
+
+    updateSellTierMode: function (id, newMode) {
+        const tier = this.sellTiers.find(t => t.id === id);
+        if (tier) {
+            tier.mode = newMode;
+            if (newMode === 'pct') tier.val = 50;
+            else if (newMode === 'qty') tier.val = 0.2;
+            else if (newMode === 'amount') tier.val = 20000000;
+            this.renderSellTiers();
+            this.calcWater();
+        }
+    },
+
+    // 종합 DCA 매수 및 분할 매도 실시간 연산
     calcWater: function () {
         const curPrice = parseFloat(document.getElementById('waterCurrentPrice')?.value) || 0;
         const curQty = parseFloat(document.getElementById('waterCurrentQty')?.value) || 0;
         const feePercent = parseFloat(document.getElementById('waterFeeRate')?.value || 0.05) / 100;
 
         const curTotalCost = curPrice * curQty;
-        let totalAddedQty = 0;
-        let totalAddedCost = 0;
+        let runningQty = curQty;
+        let runningCost = curTotalCost;
         let lastAddPrice = curPrice;
 
         const tierProgressList = [];
-        let runningQty = curQty;
-        let runningCost = curTotalCost;
 
+        // 1. 추가 매수(DCA) 시뮬레이션
         this.waterTiers.forEach((tier, i) => {
             const p = parseFloat(tier.price) || 0;
-            const amt = parseFloat(tier.amount) || 0;
-            const q = p > 0 ? (amt / p) : 0;
-            totalAddedQty += q;
-            totalAddedCost += amt;
+            const mode = tier.mode || 'amount';
+            const val = parseFloat(tier.val) || 0;
+
+            let addedQty = 0;
+            let addedAmount = 0;
+
+            if (mode === 'amount') {
+                addedAmount = val;
+                addedQty = p > 0 ? (val / p) : 0;
+            } else if (mode === 'qty') {
+                addedQty = val;
+                addedAmount = val * p;
+            } else if (mode === 'pct') {
+                addedQty = (val / 100) * curQty;
+                addedAmount = addedQty * p;
+            }
+
+            runningQty += addedQty;
+            runningCost += addedAmount;
             if (p > 0) lastAddPrice = p;
 
-            runningQty += q;
-            runningCost += amt;
             const avgP = runningQty > 0 ? (runningCost / runningQty) : 0;
             const breakEven = (runningQty > 0 && (1 - feePercent) > 0)
                 ? (runningCost * (1 + feePercent)) / (runningQty * (1 - feePercent))
@@ -244,8 +309,10 @@ const CoinCalculators = {
             tierProgressList.push({
                 tierNum: i + 1,
                 price: p,
-                amount: amt,
-                addedQty: q,
+                mode: mode,
+                val: val,
+                amount: addedAmount,
+                addedQty: addedQty,
                 totalCost: runningCost,
                 avgPrice: avgP,
                 dropPct: dropPct,
@@ -253,8 +320,8 @@ const CoinCalculators = {
             });
         });
 
-        const newTotalQty = curQty + totalAddedQty;
-        const newTotalCost = curTotalCost + totalAddedCost;
+        const newTotalQty = runningQty;
+        const newTotalCost = runningCost;
         const newAvgPrice = newTotalQty > 0 ? (newTotalCost / newTotalQty) : 0;
 
         const breakEvenPrice = (newTotalQty > 0 && (1 - feePercent) > 0)
@@ -264,45 +331,110 @@ const CoinCalculators = {
         const refPrice = lastAddPrice > 0 ? lastAddPrice : curPrice;
         const requiredGain = refPrice > 0 ? ((breakEvenPrice - refPrice) / refPrice) * 100 : 0;
 
+        // 2. 추가 매도(분할 매도/익절) 시뮬레이션
+        let remainingQty = newTotalQty;
+        let totalRealizedProfit = 0;
+        let totalRecoveredCash = 0;
+        const sellProgressList = [];
+
+        this.sellTiers.forEach((st, i) => {
+            const sellPrice = parseFloat(st.price) || 0;
+            const mode = st.mode || 'pct';
+            const val = parseFloat(st.val) || 0;
+
+            let sellQty = 0;
+            if (mode === 'pct') {
+                const pct = Math.max(0, Math.min(100, val));
+                sellQty = (pct / 100) * remainingQty;
+            } else if (mode === 'qty') {
+                sellQty = Math.min(remainingQty, Math.max(0, val));
+            } else if (mode === 'amount') {
+                sellQty = sellPrice > 0 ? Math.min(remainingQty, Math.max(0, val / sellPrice)) : 0;
+            }
+
+            const sellVolume = sellQty * sellPrice;
+            const sellFee = sellVolume * feePercent;
+            const netCash = sellVolume - sellFee;
+            const buyCostBasis = sellQty * newAvgPrice;
+            const profit = netCash - buyCostBasis;
+            const roiPct = buyCostBasis > 0 ? (profit / buyCostBasis) * 100 : 0;
+
+            remainingQty = Math.max(0, remainingQty - sellQty);
+            totalRealizedProfit += profit;
+            totalRecoveredCash += netCash;
+
+            sellProgressList.push({
+                tierNum: i + 1,
+                sellPrice: sellPrice,
+                mode: mode,
+                val: val,
+                soldQty: sellQty,
+                netCash: netCash,
+                profit: profit,
+                roiPct: roiPct,
+                remainingQty: remainingQty
+            });
+        });
+
+        const totalRoiPct = newTotalCost > 0 ? (totalRealizedProfit / newTotalCost) * 100 : 0;
+
+        // 3. UI 텍스트 출력
         const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-        setTxt('waterResNewAvg', Math.round(newAvgPrice).toLocaleString('ko-KR') + '원');
-        setTxt('waterResTotalQty', newTotalQty.toLocaleString('ko-KR', { maximumFractionDigits: 6 }));
-        setTxt('waterResTotalCost', Math.round(newTotalCost).toLocaleString('ko-KR') + '원');
-        setTxt('waterResBreakEven', Math.round(breakEvenPrice).toLocaleString('ko-KR') + '원');
-        
-        const gainEl = document.getElementById('waterResRequiredGain');
-        if (gainEl) {
-            gainEl.innerText = (requiredGain > 0 ? '+' : '') + requiredGain.toFixed(2) + '%';
-            gainEl.className = 'font-black font-mono ' + (requiredGain > 0 ? 'text-rose-400' : 'text-emerald-400');
+
+        setTxt('waterResNewAvg', Math.round(newAvgPrice).toLocaleString() + '원');
+        setTxt('waterResTotalQty', newTotalQty.toLocaleString(undefined, { maximumFractionDigits: 6 }));
+        setTxt('waterResTotalCost', Math.round(newTotalCost).toLocaleString() + '원');
+        setTxt('waterResBreakEven', Math.round(breakEvenPrice).toLocaleString() + '원');
+        setTxt('waterResRequiredGain', (requiredGain >= 0 ? '+' : '') + requiredGain.toFixed(2) + '%');
+
+        // 분할 매도 카드 출력
+        setTxt('waterResTotalSellProfit', (totalRealizedProfit >= 0 ? '+' : '') + Math.round(totalRealizedProfit).toLocaleString() + '원');
+        setTxt('waterResTotalSellRoi', (totalRoiPct >= 0 ? '+' : '') + totalRoiPct.toFixed(2) + '%');
+        setTxt('waterResRecoveredCash', Math.round(totalRecoveredCash).toLocaleString() + '원');
+        setTxt('waterResRemainingQty', remainingQty.toLocaleString(undefined, { maximumFractionDigits: 6 }));
+
+        const profitEl = document.getElementById('waterResTotalSellProfit');
+        if (profitEl) {
+            profitEl.className = 'text-lg font-black font-mono mt-1 ' + (totalRealizedProfit >= 0 ? 'text-emerald-400' : 'text-rose-400');
+        }
+        const roiEl = document.getElementById('waterResTotalSellRoi');
+        if (roiEl) {
+            roiEl.className = 'text-lg font-bold font-mono mt-1 ' + (totalRoiPct >= 0 ? 'text-emerald-400' : 'text-rose-400');
         }
 
-        this.renderWaterSimTable(tierProgressList, curPrice);
-    },
-
-    renderWaterSimTable: function (tierProgressList, curPrice) {
-        const tbody = document.getElementById('waterSimTableBody');
-        if (!tbody) return;
-
-        if (!tierProgressList || tierProgressList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-500 text-xs">매수 차수를 추가해 주세요.</td></tr>';
-            return;
+        // 매수 시뮬레이션 테이블 렌더링
+        const buyTbody = document.getElementById('waterSimTableBody');
+        if (buyTbody) {
+            buyTbody.innerHTML = tierProgressList.map(t => {
+                const modeLabel = t.mode === 'amount' ? `+${Math.round(t.amount).toLocaleString()}원` : (t.mode === 'qty' ? `+${t.addedQty.toFixed(4)}개` : `+${t.val}% 비중`);
+                return `
+                  <tr class="border-b border-navy-800/60 text-xs font-mono">
+                    <td class="py-2.5 px-3 font-bold text-white">${t.tierNum}차 (${modeLabel} @ ${t.price.toLocaleString()}원)</td>
+                    <td class="py-2.5 px-3 text-right text-cyan-300 font-bold">${Math.round(t.avgPrice).toLocaleString()}원</td>
+                    <td class="py-2.5 px-3 text-right text-rose-400 font-bold">${t.dropPct >= 0 ? '+' : ''}${t.dropPct.toFixed(2)}%</td>
+                    <td class="py-2.5 px-3 text-right text-slate-200">${Math.round(t.breakEven).toLocaleString()}원</td>
+                  </tr>
+                `;
+            }).join('');
         }
 
-        tbody.innerHTML = tierProgressList.map(t => {
-            return `
-              <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
-                <td class="py-2.5 px-3 font-semibold text-slate-200">
-                  <div class="flex items-center gap-1.5">
-                    <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono font-bold text-[10px]">${t.tierNum}차 매수 후</span>
-                    <span>+${(t.amount / 10000).toLocaleString()}만원 (${t.price.toLocaleString()}원)</span>
-                  </div>
-                </td>
-                <td class="py-2.5 px-3 text-right font-mono text-cyan-400 font-bold">${Math.round(t.avgPrice).toLocaleString()}원</td>
-                <td class="py-2.5 px-3 text-right font-mono ${t.dropPct < 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.dropPct.toFixed(2)}%</td>
-                <td class="py-2.5 px-3 text-right font-mono text-rose-300 font-bold">${Math.round(t.breakEven).toLocaleString()}원</td>
-              </tr>
-            `;
-        }).join('');
+        // 매도 시뮬레이션 테이블 렌더링
+        const sellTbody = document.getElementById('waterSellSimTableBody');
+        if (sellTbody) {
+            sellTbody.innerHTML = sellProgressList.map(s => {
+                const isPos = s.profit >= 0;
+                const modeLabel = s.mode === 'pct' ? `${s.val}% 비중` : (s.mode === 'qty' ? `${s.soldQty.toFixed(4)}개` : `${Math.round(s.val).toLocaleString()}원 목표`);
+                return `
+                  <tr class="border-b border-navy-800/60 text-xs font-mono">
+                    <td class="py-2.5 px-3 font-bold text-amber-300">${s.tierNum}차 (${Math.round(s.sellPrice).toLocaleString()}원 / ${modeLabel})</td>
+                    <td class="py-2.5 px-3 text-right text-slate-200">${s.soldQty.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${Math.round(s.profit).toLocaleString()}원 (${isPos ? '+' : ''}${s.roiPct.toFixed(2)}%)</td>
+                    <td class="py-2.5 px-3 text-right text-cyan-300">${Math.round(s.netCash).toLocaleString()}원</td>
+                    <td class="py-2.5 px-3 text-right text-slate-400">${s.remainingQty.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
+                  </tr>
+                `;
+            }).join('');
+        }
     },
 
     // ========================================================
