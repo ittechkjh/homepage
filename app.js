@@ -1660,6 +1660,10 @@ function updateAuthUI() {
   if (authSection) {
     authSection.innerHTML = `
       <div class="flex items-center gap-2">
+        <button onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>약관·개인정보</span>
+        </button>
         <button onclick="openNicknameModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold text-slate-200 hover:text-cyan-400 transition shadow-sm group" title="닉네임 변경">
           <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
           <span id="user-nickname-display">${escapeHtml(nick)}</span>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko" class="dark">
 <head>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%2306b6d4"/><stop offset="50%" stop-color="%233b82f6"/><stop offset="100%" stop-color="%238b5cf6"/></linearGradient></defs><circle cx="50" cy="50" r="46" fill="%2307090e" stroke="url(%23g)" stroke-width="8"/><path d="M42 30 C30 30, 24 38, 24 50 C24 62, 30 70, 42 70 C50 70, 56 65, 60 58 L50 52 C48 56, 45 58, 41 58 C35 58, 32 54, 32 50 C32 46, 35 42, 41 42 C45 42, 48 44, 50 48 L60 42 C56 35, 50 30, 42 30 Z" fill="url(%23g)"/><circle cx="70" cy="35" r="7" fill="%2310b981"/></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwNmI2ZDQiLz48c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzNiODJmNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ2IiBmaWxsPSIjMDcwOTBlIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOCIvPjxwYXRoIGQ9Ik00MiAzMCBDMzAgMzAsIDI0IDM4LCAyNCA1MCBDMjQgNjIsIDMwIDcwLCA0MiA3MCBDNTAgNzAsIDU2IDY1LCA2MCA1OCBMNTAgNTIgQzQ4IDU2LCA0NSA1OCwgNDEgNTggQzM1IDU4LCAzMiA1NCwgMzIgNTAgQzMyIDQ2LCAzNSA0MiwgNDEgNDIgQzQ1IDQyLCA0OCA0NCwgNTAgNDggTDYwIDQyIEM1NiAzNSwgNTAgMzAsIDQyIDMwIFoiIGZpbGw9InVybCgjZykiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjM1IiByPSI3IiBmaWxsPSIjMTBiOTgxIi8+PC9zdmc+"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%2306b6d4"/><stop offset="50%" stop-color="%233b82f6"/><stop offset="100%" stop-color="%238b5cf6"/></linearGradient></defs><circle cx="50" cy="50" r="46" fill="%2307090e" stroke="url(%23g)" stroke-width="8"/><path d="M42 30 C30 30, 24 38, 24 50 C24 62, 30 70, 42 70 C50 70, 56 65, 60 58 L50 52 C48 56, 45 58, 41 58 C35 58, 32 54, 32 50 C32 46, 35 42, 41 42 C45 42, 48 44, 50 48 L60 42 C56 35, 50 30, 42 30 Z" fill="url(%23g)"/><circle cx="70" cy="35" r="7" fill="%2310b981"/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -59,8 +59,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788058479079">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788058479079">
+  <link rel="stylesheet" href="styles.css?v=1788058741542">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788058741542">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -136,6 +136,10 @@
         </div>
 
         <div id="auth-section" class="flex items-center gap-2">
+          <button onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>약관·개인정보</span>
+          </button>
           <button onclick="openNicknameModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold text-slate-200 hover:text-cyan-400 transition shadow-sm group" title="닉네임 변경">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
             <span id="user-nickname-display">익명 트레이더</span>
@@ -1621,12 +1625,15 @@
         <span class="font-bold text-slate-200">CoinHub Cryptocurrency Platform</span>
         <span>© 2026 CoinHub. All rights reserved.</span>
       </div>
-      <div class="flex items-center gap-4 text-slate-400">
-        <a href="javascript:void(0)" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition font-medium">이용약관</a>
-        <a href="javascript:void(0)" onclick="openLegalModal('privacy')" class="hover:text-cyan-400 transition font-medium text-slate-300">개인정보처리방침</a>
-        <a href="#" class="hover:text-cyan-400 transition">CoinGecko API</a>
-        <a href="https://github.com/ittechkjh/homepage" target="_blank" class="hover:text-cyan-400 transition flex items-center gap-1">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub Repo
+      <div class="flex flex-wrap items-center gap-3 text-xs">
+        <button type="button" onclick="openLegalModal('privacy')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 font-bold transition flex items-center gap-1 cursor-pointer">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 개인정보처리방침
+        </button>
+        <button type="button" onclick="openLegalModal('terms')" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 font-bold transition flex items-center gap-1 cursor-pointer">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 이용약관
+        </button>
+        <a href="https://github.com/ittechkjh/homepage" target="_blank" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-400 hover:text-white border border-navy-800 transition flex items-center gap-1">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub
         </a>
       </div>
     </div>
@@ -1651,16 +1658,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788058479079"></script>
-  <script src="js/calculator.js?v=1788058479079"></script>
-  <script src="js/upbit-api.js?v=1788058479079"></script>
-  <script src="js/charts.js?v=1788058479079"></script>
-  <script src="js/exporter.js?v=1788058479079"></script>
-  <script src="js/sample-data.js?v=1788058479079"></script>
-  <script src="js/analyzer-app.js?v=1788058479079"></script>
+  <script src="js/parser.js?v=1788058741542"></script>
+  <script src="js/calculator.js?v=1788058741542"></script>
+  <script src="js/upbit-api.js?v=1788058741542"></script>
+  <script src="js/charts.js?v=1788058741542"></script>
+  <script src="js/exporter.js?v=1788058741542"></script>
+  <script src="js/sample-data.js?v=1788058741542"></script>
+  <script src="js/analyzer-app.js?v=1788058741542"></script>
 
-  <script src="js/admin.js?v=1788058479079"></script>
-  <script src="js/preview-app.js?v=1788058479079"></script>
+  <script src="js/admin.js?v=1788058741542"></script>
+  <script src="js/preview-app.js?v=1788058741542"></script>
 
   <!-- Excel Download 3-Second Quick Guide Modal -->
   <div id="excel-guide-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
