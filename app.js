@@ -1,26 +1,27 @@
 
+
 // ====================================================
-// Legal Policy & Terms Modal Handlers (AdSense Compliance)
+// Global Window Event Handlers (AdSense Compliance & Modals)
 // ====================================================
-function openLegalModal(tab = 'privacy') {
+window.openLegalModal = function(tab = 'privacy') {
   const modal = document.getElementById('legal-modal');
   if (modal) {
-    modal.style.display = 'flex';
     modal.classList.remove('hidden');
-    switchLegalTab(tab);
+    modal.style.display = 'flex';
+    window.switchLegalTab(tab);
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
-}
+};
 
-function closeLegalModal() {
+window.closeLegalModal = function() {
   const modal = document.getElementById('legal-modal');
   if (modal) {
-    modal.style.display = 'none';
     modal.classList.add('hidden');
+    modal.style.display = 'none';
   }
-}
+};
 
-function switchLegalTab(tab) {
+window.switchLegalTab = function(tab) {
   const privacyContent = document.getElementById('legal-content-privacy');
   const termsContent = document.getElementById('legal-content-terms');
   const tabPrivacy = document.getElementById('tab-legal-privacy');
@@ -61,161 +62,44 @@ function switchLegalTab(tab) {
     if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
-}
+};
 
-
-
-// ====================================================
-// Community Post Image Attachment & 5MB Auto-Compressor
-// ====================================================
-let currentPostImageData = null;
-
-function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.82) {
-  return new Promise((resolve, reject) => {
-    if (!file) return resolve(null);
-
-    // Strict 5MB Max File Size Guard
-    if (file.size > 5 * 1024 * 1024) {
-      alert('선택하신 이미지 용량(' + (file.size / (1024 * 1024)).toFixed(1) + 'MB)이 최대 제한(5MB)을 초과합니다. 5MB 이하의 사진을 선택해 주세요.');
-      return resolve(null);
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        // Calculate scaled dimensions
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Compress to high-efficiency JPEG dataURL
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        const origSizeKb = (file.size / 1024).toFixed(0);
-        const compSizeKb = (compressedDataUrl.length * 0.75 / 1024).toFixed(0);
-        console.log('[Image Compressor] ' + origSizeKb + 'KB -> ' + compSizeKb + 'KB (' + width + 'x' + height + ')');
-
-        resolve({
-          dataUrl: compressedDataUrl,
-          origSizeKb: origSizeKb,
-          compSizeKb: compSizeKb,
-          width: width,
-          height: height
-        });
-      };
-      img.onerror = () => reject(new Error('이미지 파일 로드에 실패했습니다.'));
-      img.src = e.target.result;
-    };
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handlePostImageSelect(e) {
-  const file = e.target.files ? e.target.files[0] : null;
-  if (!file) return;
-
-  const previewBox = document.getElementById('post-image-preview-container');
-  const previewImg = document.getElementById('post-image-preview');
-  const uploadBox = document.getElementById('post-image-upload-box');
-  const compressInfo = document.getElementById('post-image-compress-info');
-
-  try {
-    const result = await compressImageFile(file);
-    if (!result) {
-      removePostImage();
-      return;
-    }
-
-    currentPostImageData = result.dataUrl;
-
-    if (previewImg) previewImg.src = currentPostImageData;
-    if (compressInfo) {
-      compressInfo.innerHTML = '<span class="text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-emerald-400"></i> 자동 최적화 완료: ' + result.origSizeKb + 'KB ➡️ ' + result.compSizeKb + 'KB (용량 초과 방지)</span>';
-    }
-    if (previewBox) previewBox.classList.remove('hidden');
-    if (uploadBox) uploadBox.classList.add('hidden');
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  } catch (err) {
-    console.error('Image compression error:', err);
-    alert('이미지 압축 처리 중 오류가 발생했습니다: ' + err.message);
-  }
-}
-
-function removePostImage(e) {
-  if (e) e.stopPropagation();
-  currentPostImageData = null;
-  const fileInput = document.getElementById('post-image-file');
-  if (fileInput) fileInput.value = '';
-  const previewBox = document.getElementById('post-image-preview-container');
-  const uploadBox = document.getElementById('post-image-upload-box');
-  if (previewBox) previewBox.classList.add('hidden');
-  if (uploadBox) uploadBox.classList.remove('hidden');
-}
-
-
-// ====================================================
-// Excel Download Guide Modal Handlers
-// ====================================================
-function openExcelGuideModal() {
+window.openExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
   if (modal) {
     modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
-}
+};
 
-function closeExcelGuideModal() {
+window.closeExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
-  if (modal) modal.classList.add('hidden');
-}
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+};
 
-function showExchangeGuide(exchange) {
+window.showExchangeGuide = function(exchange) {
   const upbitContent = document.getElementById('guide-content-upbit');
   const bithumbContent = document.getElementById('guide-content-bithumb');
   const tabUpbit = document.getElementById('tab-guide-upbit');
   const tabBithumb = document.getElementById('tab-guide-bithumb');
 
   if (exchange === 'upbit') {
-    if (upbitContent) upbitContent.classList.remove('hidden');
-    if (bithumbContent) bithumbContent.classList.add('hidden');
-    if (tabUpbit) {
-      tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
-    }
-    if (tabBithumb) {
-      tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
-    }
+    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.display = 'block'; }
+    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.display = 'none'; }
+    if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+    if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   } else {
-    if (upbitContent) upbitContent.classList.add('hidden');
-    if (bithumbContent) bithumbContent.classList.remove('hidden');
-    if (tabBithumb) {
-      tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
-    }
-    if (tabUpbit) {
-      tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
-    }
+    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.display = 'none'; }
+    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.display = 'block'; }
+    if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
+    if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
-}
+};
 
 
 // ====================================================
