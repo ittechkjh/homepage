@@ -196,7 +196,7 @@ const UpbitParser = {
 
                 const rowStr = row.map(c => String(c).trim().toLowerCase()).join(' ');
                 
-                // 빗썸 전용 고유 키워드: 체결단가, 체결금액, 실정산금액, 처리일시(빗썸 입출금), 빗썸, bithumb, 가상자산명
+                // 빗썸 전용 고유 키워드: 체결단가, 체결금액, 실정산금액, 처리일시(빗썸 입출금), 빗썸, bithumb, 가상자산명, 자산구분
                 const isBithumbSpecific = rowStr.includes('체결단가') || 
                                           rowStr.includes('체결금액') || 
                                           rowStr.includes('실정산') || 
@@ -204,19 +204,21 @@ const UpbitParser = {
                                           rowStr.includes('빗썸') || 
                                           rowStr.includes('bithumb') ||
                                           rowStr.includes('가상자산명') ||
+                                          rowStr.includes('자산구분') ||
                                           rowStr.includes('수량(units)') ||
                                           rowStr.includes('단가(price)');
 
-                // 업비트 전용 고유 키워드: 주문시간, 거래단가, 거래금액, 정산금액, 완료일시(업비트 입출금), 업비트, upbit
-                const isUpbitSpecific = rowStr.includes('주문시간') || 
+                // 업비트 전용 고유 키워드 (실정산금액이 아닌 순수 정산금액, 주문시간 등)
+                const isUpbitSpecific = !rowStr.includes('실정산') && !rowStr.includes('처리일시') && (
+                                        rowStr.includes('주문시간') || 
                                         rowStr.includes('거래단가') || 
                                         rowStr.includes('거래금액') || 
                                         rowStr.includes('정산금액') || 
                                         rowStr.includes('완료일시') || 
                                         rowStr.includes('업비트') || 
-                                        rowStr.includes('upbit');
+                                        rowStr.includes('upbit'));
 
-                if (isBithumbSpecific && !isUpbitSpecific) {
+                if (isBithumbSpecific) {
                     detectedExchange = 'BITHUMB';
                 } else if (isUpbitSpecific) {
                     detectedExchange = 'UPBIT';
@@ -550,7 +552,9 @@ const UpbitParser = {
                            rawMarketUpper.startsWith('BTC-') || 
                            rawMarketUpper.startsWith('USDT-');
 
-        if (isBithumbRow) {
+        if (defaultExchange === 'BITHUMB') {
+            exchange = 'BITHUMB';
+        } else if (isBithumbRow) {
             exchange = 'BITHUMB';
         } else if (isUpbitRow) {
             exchange = 'UPBIT';

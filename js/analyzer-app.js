@@ -874,14 +874,29 @@ const App = {
                 (it.market && it.market.toLowerCase().includes(f.search))
             );
         }
+        if (f.exchange && f.exchange !== 'ALL') {
+            items = items.filter(it => (it.exchange || 'UPBIT').toUpperCase() === f.exchange.toUpperCase());
+        }
         if (f.type !== 'ALL') {
             items = items.filter(it => it.type === f.type);
         }
 
         const sort = this.state.sortStates.transfersTable;
         items.sort((a, b) => {
-            let valA = a[sort.col] || 0;
-            let valB = b[sort.col] || 0;
+            let valA, valB;
+            if (sort.col === 'asset') {
+                valA = a.coinSymbol || a.market || '';
+                valB = b.coinSymbol || b.market || '';
+            } else if (sort.col === 'quantity') {
+                valA = (a.coinSymbol === 'KRW' || a.type.includes('원화')) ? (a.amount || a.quantity || 0) : (a.quantity || 0);
+                valB = (b.coinSymbol === 'KRW' || b.type.includes('원화')) ? (b.amount || b.quantity || 0) : (b.quantity || 0);
+            } else if (sort.col === 'settlement') {
+                valA = a.settlement || a.amount || a.quantity || 0;
+                valB = b.settlement || b.amount || b.quantity || 0;
+            } else {
+                valA = a[sort.col] || 0;
+                valB = b[sort.col] || 0;
+            }
             if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             return sort.asc ? valA - valB : valB - valA;
         });
