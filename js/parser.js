@@ -104,6 +104,24 @@ const UpbitParser = {
         let allItems = [];
         let debugLogs = [];
 
+        // 1차 패스: 전체 워크북 내 빗썸 고유 패턴 존재 여부 선탐색
+        let hasBithumbPatternInWorkbook = (fileName || '').toLowerCase().includes('bithumb') || (fileName || '').toLowerCase().includes('빗썸');
+        if (!hasBithumbPatternInWorkbook) {
+            for (const sName of workbook.SheetNames) {
+                const ws = workbook.Sheets[sName];
+                if (!ws) continue;
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+                const text = JSON.stringify(rows.slice(0, 30));
+                if (text.includes('체결단가') || text.includes('체결금액') || text.includes('자산구분') || text.includes('처리일시') || 
+                    text.includes('비트코인(BTC)') || text.includes('엑스알피') || text.includes('팝체인') || text.includes('이오스닥') ||
+                    text.includes('소폰') || text.includes('너보스') || text.includes('아스타') || text.includes('가상자산명') ||
+                    text.includes('수량(Units)') || text.includes('단가(Price)')) {
+                    hasBithumbPatternInWorkbook = true;
+                    break;
+                }
+            }
+        }
+
         workbook.SheetNames.forEach(sheetName => {
             const worksheet = workbook.Sheets[sheetName];
             if (!worksheet) return;
@@ -116,7 +134,7 @@ const UpbitParser = {
             if (rawSheetData && rawSheetData.length > 0) {
                 debugLogs.push(`시트[${sheetName}] 데이터 1~3행: ${JSON.stringify(rawSheetData.slice(0, 3))}`);
                 try {
-                    const sheetItems = this.parse2DArray(rawSheetData, `${fileName}_${sheetName}`);
+                    const sheetItems = this.parse2DArray(rawSheetData, `${fileName}_${sheetName}`, hasBithumbPatternInWorkbook ? 'BITHUMB' : 'AUTO');
                     if (sheetItems && sheetItems.length > 0) {
                         allItems = this.mergeTradeLists(allItems, sheetItems);
                     }
@@ -127,6 +145,15 @@ const UpbitParser = {
                 debugLogs.push(`시트[${sheetName}] 빈 데이터`);
             }
         });
+
+        // 후처리: 워크북 내 빗썸 거래가 있으면 KRW 입출금도 BITHUMB으로 최종 일치
+        if (hasBithumbPatternInWorkbook) {
+            allItems.forEach(item => {
+                if (item.market === 'KRW' || item.coinSymbol === 'KRW' || (item.type && item.type.includes('원화'))) {
+                    item.exchange = 'BITHUMB';
+                }
+            });
+        }
 
         if (allItems.length === 0) {
             throw new Error(`파일에서 유효한 거래 내역을 찾지 못했습니다.\n\n[디버그 로그]\n${debugLogs.join('\n')}`);
@@ -169,13 +196,13 @@ const UpbitParser = {
         return this.parse2DArray(rows, fileName);
     },
 
-    parse2DArray: function (rows, fileName = '') {
+    parse2DArray: function (rows, fileName = '', forcedExchange = 'AUTO') {
         if (!rows || rows.length === 0) return [];
 
         let bestHeaderRowIndex = -1;
         let bestColumnMapping = null;
         let maxMatchCount = 0;
-        let detectedExchange = 'UPBIT';
+        let detectedExchange = (forcedExchange === 'BITHUMB') ? 'BITHUMB' : 'UPBIT';
 
         const fnLower = (fileName || '').toLowerCase();
         if (fnLower.includes('bithumb') || fnLower.includes('빗썸')) {

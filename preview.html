@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788097014098">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788097014098">
+  <link rel="stylesheet" href="styles.css?v=1788097520326">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788097520326">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -1417,15 +1417,16 @@
         </div>
       </div>
 
-      <!-- TOOL 1: 물타기/불타기 -->
+            <!-- TOOL 1: 물타기/불타기 & 분할 매도 시뮬레이터 -->
       <div id="calc-tab-water" class="calc-subtab-content space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>💧</span> 물타기 & 불타기 매수 조건 입력</h3>
+            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>💧</span> 물타기·불타기 매수 & 매도 계획 입력</h3>
             <div class="space-y-3 text-xs">
+              <!-- 1. 초기 보유 포지션 -->
               <div class="p-3.5 rounded-2xl bg-navy-950/80 border border-navy-800 space-y-2.5">
                 <div class="flex justify-between items-center">
-                  <span class="font-bold text-slate-200">📌 현재 보유 포지션</span>
+                  <span class="font-bold text-slate-200">📌 1. 현재 보유 포지션</span>
                   <span class="text-[11px] text-slate-400">초기 매수 기준</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -1440,21 +1441,39 @@
                 </div>
               </div>
 
+              <!-- 2. 추가 매수 계획 -->
               <div class="pt-2 border-t border-navy-800 space-y-2.5">
                 <div class="flex justify-between items-center">
                   <span class="font-bold text-cyan-300 flex items-center gap-1">
-                    <span>💧</span> 수동 추가 매수 계획 (다중 차수 DCA)
+                    <span>💧</span> 2. 추가 매수 계획 (다중 DCA)
                   </span>
                   <button type="button" onclick="CoinCalculators.addWaterTier()" class="px-2.5 py-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 text-[11px] font-bold transition flex items-center gap-1">
                     <span>+ 매수 차수 추가</span>
                   </button>
                 </div>
                 
-                <div id="waterTiersContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                  <!-- Dynamic DCA Tiers rendered by JS -->
+                <div id="waterTiersContainer" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  <!-- Dynamic Buy DCA Tiers rendered by JS -->
                 </div>
               </div>
 
+              <!-- 3. 추가 매도 계획 -->
+              <div class="pt-2 border-t border-navy-800 space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-amber-300 flex items-center gap-1">
+                    <span>💰</span> 3. 추가 매도 계획 (분할 익절/탈출)
+                  </span>
+                  <button type="button" onclick="CoinCalculators.addSellTier()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-navy-950 border border-amber-500/40 text-[11px] font-bold transition flex items-center gap-1">
+                    <span>+ 매도 차수 추가</span>
+                  </button>
+                </div>
+                
+                <div id="sellTiersContainer" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  <!-- Dynamic Sell Tiers rendered by JS -->
+                </div>
+              </div>
+
+              <!-- 4. 거래 수수료율 -->
               <div class="pt-2 border-t border-navy-800">
                 <label class="block font-semibold text-slate-400 mb-1">거래소 매매 수수료율 (%)</label>
                 <select id="waterFeeRate" onchange="CoinCalculators.calcWater()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-slate-300 text-xs">
@@ -1466,16 +1485,16 @@
               </div>
             </div>
           </div>
-          </div>
 
           <div class="lg:col-span-7 space-y-6">
+            <!-- 1. 매수 합성 결과 KPI 카드 -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div class="p-4 rounded-2xl bg-navy-900 border border-cyan-500/40">
                 <div class="text-[11px] text-slate-400 font-semibold">새로운 예상 평단가</div>
                 <div id="waterResNewAvg" class="text-lg font-black text-cyan-400 font-mono mt-1">0원</div>
               </div>
               <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
-                <div class="text-[11px] text-slate-400 font-semibold">총 보유 수량</div>
+                <div class="text-[11px] text-slate-400 font-semibold">총 매수 수량</div>
                 <div id="waterResTotalQty" class="text-lg font-bold text-white font-mono mt-1">0</div>
               </div>
               <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
@@ -1488,9 +1507,30 @@
               </div>
             </div>
 
+            <!-- 2. 매도 실현 손익 KPI 카드 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-4 rounded-2xl bg-navy-900 border border-amber-500/40">
+                <div class="text-[11px] text-amber-300 font-semibold">총 예상 실현손익</div>
+                <div id="waterResTotalSellProfit" class="text-lg font-black font-mono mt-1 text-emerald-400">+0원</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold">총 매도 수익률</div>
+                <div id="waterResTotalSellRoi" class="text-lg font-bold text-emerald-400 font-mono mt-1">+0.00%</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold">총 회수 원금+수익</div>
+                <div id="waterResRecoveredCash" class="text-lg font-bold text-slate-200 font-mono mt-1">0원</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold">매도 후 잔여 수량</div>
+                <div id="waterResRemainingQty" class="text-lg font-bold text-white font-mono mt-1">0</div>
+              </div>
+            </div>
+
+            <!-- 3. 추가 매수 시뮬레이션 테이블 -->
             <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
               <div class="flex justify-between items-center">
-                <h4 class="font-bold text-sm text-white flex items-center gap-2"><span>📈</span> 추가 매수 금액별 평단가 변화</h4>
+                <h4 class="font-bold text-sm text-white flex items-center gap-2"><span>📈</span> 추가 매수 차수별 평단가 변화</h4>
                 <div class="text-xs text-slate-400">탈출 필요 상승률: <span id="waterResRequiredGain" class="font-bold font-mono text-emerald-400">+0.00%</span></div>
               </div>
               <div class="overflow-x-auto">
@@ -1504,6 +1544,27 @@
                     </tr>
                   </thead>
                   <tbody id="waterSimTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 4. 추가 매도 시뮬레이션 테이블 -->
+            <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="font-bold text-sm text-amber-300 flex items-center gap-2"><span>💰</span> 추가 매도 차수별 실현손익 & 회수 시뮬레이션</h4>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead>
+                    <tr class="border-b border-navy-800 text-[11px] text-slate-400 font-semibold">
+                      <th class="pb-2 px-3">매도 차수 (목표가/비중)</th>
+                      <th class="pb-2 px-3 text-right">매도 수량</th>
+                      <th class="pb-2 px-3 text-right">실현 손익 (수익률)</th>
+                      <th class="pb-2 px-3 text-right">실 수령액</th>
+                      <th class="pb-2 px-3 text-right">잔여 수량</th>
+                    </tr>
+                  </thead>
+                  <tbody id="waterSellSimTableBody"></tbody>
                 </table>
               </div>
             </div>
@@ -2368,17 +2429,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788097014098"></script>
-  <script src="js/calculator.js?v=1788097014098"></script>
-  <script src="js/upbit-api.js?v=1788097014098"></script>
-  <script src="js/charts.js?v=1788097014098"></script>
-  <script src="js/exporter.js?v=1788097014098"></script>
-  <script src="js/sample-data.js?v=1788097014098"></script>
+  <script src="js/parser.js?v=1788097520326"></script>
+  <script src="js/calculator.js?v=1788097520326"></script>
+  <script src="js/upbit-api.js?v=1788097520326"></script>
+  <script src="js/charts.js?v=1788097520326"></script>
+  <script src="js/exporter.js?v=1788097520326"></script>
+  <script src="js/sample-data.js?v=1788097520326"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788097014098"></script>
+  <script src="js/analyzer-app.js?v=1788097520326"></script>
 
-  <script src="js/admin.js?v=1788097014098"></script>
-  <script src="js/preview-app.js?v=1788097014098"></script>
+  <script src="js/admin.js?v=1788097520326"></script>
+  <script src="js/preview-app.js?v=1788097520326"></script>
 
   </body>
   <script>

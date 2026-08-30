@@ -16,10 +16,15 @@ const CoinCalculators = {
         { id: 1, price: 78000000, amount: 10000000 }
     ],
     nextWaterTierId: 2,
+    sellTiers: [
+        { id: 1, price: 98000000, qtyPct: 50, amount: 0 }
+    ],
+    nextSellTierId: 2,
 
     init: function () {
         this.bindEvents();
         this.renderWaterTiers();
+        this.renderSellTiers();
         this.calcWater();
         this.calcTax();
         this.calcFutures();
@@ -86,6 +91,68 @@ const CoinCalculators = {
     // ========================================================
     // 1. 물타기 & 불타기 다중 차수(DCA) 평단가/탈출 계산기
     // ========================================================
+    renderSellTiers: function () {
+        const container = document.getElementById('sellTiersContainer');
+        if (!container) return;
+
+        container.innerHTML = this.sellTiers.map((tier, idx) => {
+            return `
+              <div class="p-3 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2 relative" data-sell-tier-id="${tier.id}">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-amber-300 flex items-center gap-1">
+                    <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-mono">${idx + 1}</span>
+                    <span>${idx + 1}차 분할 매도 계획</span>
+                  </span>
+                  ${this.sellTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeSellTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition" title="차수 삭제">✕ 삭제</button>` : ''}
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
+                    <input type="number" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 비중 (%)</label>
+                    <div class="flex items-center gap-1">
+                      <input type="number" value="${tier.qtyPct}" min="1" max="100" oninput="CoinCalculators.updateSellTier(${tier.id}, 'qtyPct', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                      <span class="text-xs text-slate-400">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+        }).join('');
+    },
+
+    addSellTier: function (price, qtyPct) {
+        const lastTier = this.sellTiers[this.sellTiers.length - 1];
+        const defaultPrice = (price !== undefined) ? price : (lastTier ? Math.round(lastTier.price * 1.1) : 105000000);
+        const defaultPct = (qtyPct !== undefined) ? qtyPct : 50;
+
+        this.sellTiers.push({
+            id: this.nextSellTierId++,
+            price: defaultPrice,
+            qtyPct: defaultPct,
+            amount: 0
+        });
+        this.renderSellTiers();
+        this.calcWater();
+    },
+
+    removeSellTier: function (id) {
+        if (this.sellTiers.length <= 1) return;
+        this.sellTiers = this.sellTiers.filter(t => t.id !== id);
+        this.renderSellTiers();
+        this.calcWater();
+    },
+
+    updateSellTier: function (id, field, value) {
+        const tier = this.sellTiers.find(t => t.id === id);
+        if (tier) {
+            tier[field] = parseFloat(value) || 0;
+            this.calcWater();
+        }
+    },
+
     renderWaterTiers: function () {
         const container = document.getElementById('waterTiersContainer');
         if (!container) return;
