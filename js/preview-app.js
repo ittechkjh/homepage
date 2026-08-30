@@ -5,6 +5,7 @@
 function openLegalModal(tab = 'privacy') {
   const modal = document.getElementById('legal-modal');
   if (modal) {
+    modal.style.display = 'flex';
     modal.classList.remove('hidden');
     switchLegalTab(tab);
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -13,7 +14,10 @@ function openLegalModal(tab = 'privacy') {
 
 function closeLegalModal() {
   const modal = document.getElementById('legal-modal');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+  }
 }
 
 function switchLegalTab(tab) {
@@ -24,8 +28,14 @@ function switchLegalTab(tab) {
   const titleText = document.getElementById('legal-modal-title');
 
   if (tab === 'privacy') {
-    if (privacyContent) privacyContent.classList.remove('hidden');
-    if (termsContent) termsContent.classList.add('hidden');
+    if (privacyContent) {
+      privacyContent.classList.remove('hidden');
+      privacyContent.style.display = 'block';
+    }
+    if (termsContent) {
+      termsContent.classList.add('hidden');
+      termsContent.style.display = 'none';
+    }
     if (tabPrivacy) {
       tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     }
@@ -34,8 +44,14 @@ function switchLegalTab(tab) {
     }
     if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
   } else {
-    if (privacyContent) privacyContent.classList.add('hidden');
-    if (termsContent) termsContent.classList.remove('hidden');
+    if (privacyContent) {
+      privacyContent.classList.add('hidden');
+      privacyContent.style.display = 'none';
+    }
+    if (termsContent) {
+      termsContent.classList.remove('hidden');
+      termsContent.style.display = 'block';
+    }
     if (tabTerms) {
       tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
     }

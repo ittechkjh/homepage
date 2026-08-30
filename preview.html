@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788059139154">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788059139154">
+  <link rel="stylesheet" href="styles.css?v=1788059411799">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788059411799">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -103,28 +103,27 @@
       </a>
 
       <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800">
-        <button href="#/market" onclick="switchTab('market'); return false;" id="nav-market" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="trending-up" class="w-4 h-4"></i> 시세 & 분석
+      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink-0">
+        <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <i data-lucide="trending-up" class="w-4 h-4"></i> 시세
         </button>
-        <button href="#/forum" onclick="switchTab('forum'); return false;" id="nav-forum" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="messages-square" class="w-4 h-4"></i> 커뮤니티 포럼
+        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼
         </button>
-        <button href="#/chat" onclick="switchTab('chat'); return false;" id="nav-chat" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="message-circle" class="w-4 h-4"></i> 실시간 채팅
-          <span class="w-2 h-2 rounded-full bg-crypto-green animate-ping"></span>
+        <button onclick="switchTab('chat')" id="nav-chat" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> 채팅
+          <span class="w-1.5 h-1.5 rounded-full bg-crypto-green animate-ping"></span>
         </button>
-        
-        <a href="#/analyzer" onclick="switchTab('analyzer'); return false;" id="nav-analyzer" class="nav-tab active px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab active px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
           <i data-lucide="calculator" class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform"></i>
           <span>손익 분석기</span>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT FREE</span>
-        </a>
-        <button href="#/news" onclick="switchTab('news'); return false;" id="nav-news" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i data-lucide="newspaper" class="w-4 h-4"></i> 주요 속보
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
-        <button href="#/admin" onclick="switchTab('admin'); return false;" id="nav-admin" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
-          <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자 센터
+        <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <i data-lucide="newspaper" class="w-4 h-4"></i> 속보
+        </button>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
+          <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자
           <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
         </button>
       </nav>
@@ -1659,16 +1658,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788059139154"></script>
-  <script src="js/calculator.js?v=1788059139154"></script>
-  <script src="js/upbit-api.js?v=1788059139154"></script>
-  <script src="js/charts.js?v=1788059139154"></script>
-  <script src="js/exporter.js?v=1788059139154"></script>
-  <script src="js/sample-data.js?v=1788059139154"></script>
-  <script src="js/analyzer-app.js?v=1788059139154"></script>
+  <script src="js/parser.js?v=1788059411799"></script>
+  <script src="js/calculator.js?v=1788059411799"></script>
+  <script src="js/upbit-api.js?v=1788059411799"></script>
+  <script src="js/charts.js?v=1788059411799"></script>
+  <script src="js/exporter.js?v=1788059411799"></script>
+  <script src="js/sample-data.js?v=1788059411799"></script>
+  <script src="js/analyzer-app.js?v=1788059411799"></script>
 
-  <script src="js/admin.js?v=1788059139154"></script>
-  <script src="js/preview-app.js?v=1788059139154"></script>
+  <script src="js/admin.js?v=1788059411799"></script>
+  <script src="js/preview-app.js?v=1788059411799"></script>
 
   <!-- Excel Download 3-Second Quick Guide Modal -->
   <div id="excel-guide-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -1745,7 +1744,7 @@
 
 
   <!-- Google AdSense Essential: Privacy Policy & Terms of Service Modal -->
-  <div id="legal-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div id="legal-modal" class="fixed inset-0 z-50 bg-navy-950/90 backdrop-blur-sm hidden items-center justify-center p-4" style="display: none;">
     <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in">
       
       <!-- Modal Header -->
