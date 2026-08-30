@@ -11,6 +11,7 @@
 const CoinCalculators = {
     activeSubTab: "water",
     exchangeRateUsdKrw: 1380,
+    coinStatsMap: {},
 
     init: function () {
         this.bindEvents();
@@ -356,6 +357,21 @@ const CoinCalculators = {
     },
 
     // 5. 수익 인증 카드 생성기
+    onCoinSelectChange: function () {
+        const selectEl = document.getElementById('cardTopCoin');
+        if (!selectEl) return;
+        const selectedVal = selectEl.value;
+        
+        if (this.coinStatsMap && this.coinStatsMap[selectedVal]) {
+            const stat = this.coinStatsMap[selectedVal];
+            const roiEl = document.getElementById('cardRoi');
+            const winrateEl = document.getElementById('cardWinrate');
+            if (roiEl && stat.roi) roiEl.value = stat.roi;
+            if (winrateEl && stat.winrate) winrateEl.value = stat.winrate;
+        }
+        this.renderProfitCard();
+    },
+
     renderProfitCard: function () {
         const canvas = document.getElementById("profitCardCanvas");
         if (!canvas) return;
@@ -484,42 +500,58 @@ const CoinCalculators = {
         }
     },
 
-    importProfitCardFromAnalyzer: function () {
+        importProfitCardFromAnalyzer: function () {
         const rep = this.getAnalyzerData();
-        const nick = (typeof getNickname === "function" ? getNickname() : "익명 트레이더");
+        const nick = (typeof getNickname === 'function' ? getNickname() : '익명 트레이더');
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
 
         if (rep && rep.summary) {
             const s = rep.summary;
-            const rawRoi = (typeof s.totalRealizedRoi === "number") ? s.totalRealizedRoi : ((typeof s.realizedRoi === "number") ? s.realizedRoi : parseFloat(s.totalRealizedRoi || s.realizedRoi || 0));
-            const rawWinrate = (typeof s.totalWinRate === "number") ? s.totalWinRate : ((typeof s.winRate === "number") ? s.winRate : parseFloat(s.totalWinRate || s.winRate || 0));
-            const roiStr = (rawRoi > 0 ? "+" : "") + rawRoi.toFixed(2) + "%";
-            const winrateStr = rawWinrate.toFixed(1) + "%";
+            const rawRoi = (typeof s.totalRealizedRoi === 'number') ? s.totalRealizedRoi : ((typeof s.realizedRoi === 'number') ? s.realizedRoi : parseFloat(s.totalRealizedRoi || s.realizedRoi || 0));
+            const rawWinrate = (typeof s.totalWinRate === 'number') ? s.totalWinRate : ((typeof s.winRate === 'number') ? s.winRate : parseFloat(s.totalWinRate || s.winRate || 0));
+            const roiStr = (rawRoi > 0 ? '+' : '') + rawRoi.toFixed(2) + '%';
+            const winrateStr = rawWinrate.toFixed(1) + '%';
 
-            let topCoinName = "BTC (비트코인)";
+            // Build coinStatsMap
+            this.coinStatsMap = {
+                '전체 포트폴리오 (통합)': { roi: roiStr, winrate: winrateStr }
+            };
+
+            let coinSelectHtml = '<option value="전체 포트폴리오 (통합)">🪙 전체 포트폴리오 (통합)</option>';
+            let defaultCoin = '전체 포트폴리오 (통합)';
+
             if (rep.coinSummaries && rep.coinSummaries.length > 0) {
                 const sorted = [...rep.coinSummaries].sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0));
-                if (sorted[0] && sorted[0].coin) {
-                    topCoinName = sorted[0].coin;
-                }
+                sorted.forEach(c => {
+                    const cName = c.coin || c.market || '코인';
+                    const cRoi = (typeof c.realizedRoi === 'number') ? ((c.realizedRoi > 0 ? '+' : '') + c.realizedRoi.toFixed(2) + '%') : roiStr;
+                    const cWinrate = (typeof c.winRate === 'number') ? (c.winRate.toFixed(1) + '%') : winrateStr;
+                    this.coinStatsMap[cName] = { roi: cRoi, winrate: cWinrate };
+                    coinSelectHtml += '<option value="' + cName + '">' + cName + ' (수익률: ' + cRoi + ')</option>';
+                });
             }
 
-            let periodStr = "2024.01 ~ 2026.08";
+            const coinSelectEl = document.getElementById('cardTopCoin');
+            if (coinSelectEl) {
+                coinSelectEl.innerHTML = coinSelectHtml;
+                coinSelectEl.value = defaultCoin;
+            }
+
+            let periodStr = '2024.01 ~ 2026.08';
             if (s.startDate && s.endDate) {
-                periodStr = String(s.startDate).slice(0, 10) + " ~ " + String(s.endDate).slice(0, 10);
+                periodStr = String(s.startDate).slice(0, 10) + ' ~ ' + String(s.endDate).slice(0, 10);
             }
 
-            setVal("cardNick", nick);
-            setVal("cardRoi", roiStr);
-            setVal("cardWinrate", winrateStr);
-            setVal("cardPeriod", periodStr);
-            setVal("cardTopCoin", topCoinName);
+            setVal('cardNick', nick);
+            setVal('cardRoi', roiStr);
+            setVal('cardWinrate', winrateStr);
+            setVal('cardPeriod', periodStr);
 
             this.renderProfitCard();
-            this.switchSubTab("card");
-            alert("손익 분석기의 실측 수익률(" + roiStr + ")과 승률(" + winrateStr + ")이 인증 카드에 성공적으로 반영되었습니다!");
+            this.switchSubTab('card');
+            alert('손익 분석기의 거래 코인 목록(' + (rep.coinSummaries ? rep.coinSummaries.length : 0) + '종)과 전체 수익률(' + roiStr + ')이 반영되었습니다! 원하는 코인을 드롭다운에서 자유롭게 선택하세요.');
         } else {
-            alert("손익 분석기에 업로드된 거래내역이 없습니다. 먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.");
+            alert('손익 분석기에 업로드된 거래내역이 없습니다. 먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.');
         }
     }
 };

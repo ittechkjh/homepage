@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788086531161">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788086531161">
+  <link rel="stylesheet" href="styles.css?v=1788086930174">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788086930174">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -1575,8 +1575,14 @@
                   <input type="text" id="cardPeriod" value="2024.01 ~ 2026.08" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-300">
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-300 mb-1">최대 수익 코인</label>
-                  <input type="text" id="cardTopCoin" value="BTC (비트코인)" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-amber-400 font-bold">
+                  <label class="block font-semibold text-slate-300 mb-1">인증 대상 코인 선택</label>
+                  <select id="cardTopCoin" onchange="CoinCalculators.onCoinSelectChange()" class="w-full bg-navy-950 border border-amber-500/40 rounded-xl px-3 py-2 text-amber-400 font-bold focus:border-amber-400 focus:outline-none text-xs">
+                    <option value="전체 포트폴리오 (통합)">🪙 전체 포트폴리오 (통합)</option>
+                    <option value="BTC (비트코인)">BTC (비트코인)</option>
+                    <option value="ETH (이더리움)">ETH (이더리움)</option>
+                    <option value="XRP (리플)">XRP (리플)</option>
+                    <option value="SOL (솔라나)">SOL (솔라나)</option>
+                  </select>
                 </div>
               </div>
               <div>
@@ -2224,17 +2230,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788086531161"></script>
-  <script src="js/calculator.js?v=1788086531161"></script>
-  <script src="js/upbit-api.js?v=1788086531161"></script>
-  <script src="js/charts.js?v=1788086531161"></script>
-  <script src="js/exporter.js?v=1788086531161"></script>
-  <script src="js/sample-data.js?v=1788086531161"></script>
+  <script src="js/parser.js?v=1788086930174"></script>
+  <script src="js/calculator.js?v=1788086930174"></script>
+  <script src="js/upbit-api.js?v=1788086930174"></script>
+  <script src="js/charts.js?v=1788086930174"></script>
+  <script src="js/exporter.js?v=1788086930174"></script>
+  <script src="js/sample-data.js?v=1788086930174"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788086531161"></script>
+  <script src="js/analyzer-app.js?v=1788086930174"></script>
 
-  <script src="js/admin.js?v=1788086531161"></script>
-  <script src="app.js?v=1788086531161"></script>
+  <script src="js/admin.js?v=1788086930174"></script>
+  <script src="app.js?v=1788086930174"></script>
 
   </body>
   <script>
