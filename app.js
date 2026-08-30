@@ -182,28 +182,7 @@ function openNicknameModal() {
   }
 }
 
-let isAdminUnlocked = false;
 
-function checkAdminTabAccess() {
-  if (isAdminUnlocked) return true;
-  
-  const pw = prompt('🛡️ 관리자 센터 접근을 위해 관리자 비밀번호를 입력해 주세요 (기본: admin1234):');
-  if (pw === null) {
-    switchTab('market', false);
-    return false;
-  }
-
-  const adminPw = (typeof AdminApp !== 'undefined' && AdminApp.getAdminPassword) ? AdminApp.getAdminPassword() : 'admin1234';
-  if (pw === adminPw || pw === '7777') {
-    isAdminUnlocked = true;
-    alert('관리자 인증에 성공하였습니다. 관리자 센터가 활성화됩니다.');
-    return true;
-  } else {
-    alert('관리자 비밀번호가 일치하지 않습니다.');
-    switchTab('market', false);
-    return false;
-  }
-}
 
 // ====================================================
 // CoinHub Core Global State & Default Data
@@ -482,9 +461,8 @@ function switchTab(tabId, updateHash = true) {
   }
 
   // Check admin access when switching to admin tab
-  if (tabId === 'admin') {
-    if (!checkAdminTabAccess()) return;
-    if (typeof AdminApp !== 'undefined') AdminApp.renderAll();
+  if (tabId === 'admin' && typeof AdminApp !== 'undefined') {
+    AdminApp.checkAdminAccess();
   }
 }
 
