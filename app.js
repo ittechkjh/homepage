@@ -16,6 +16,21 @@ function openLegalModal(tab) {
 }
 window.openLegalModal = openLegalModal;
 
+// Global Document Event Delegation for Legal Modal (AdSense 100% Guarantee)
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button, a');
+    if (!btn) return;
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    const dataLegal = btn.getAttribute('data-open-legal');
+    if (dataLegal || onclickAttr.includes('openLegalModal')) {
+      const tab = dataLegal || (onclickAttr.includes('terms') ? 'terms' : 'privacy');
+      openLegalModal(tab);
+    }
+  });
+}
+
+
 function closeLegalModal() {
   var modal = document.getElementById('legal-modal');
   if (modal) {

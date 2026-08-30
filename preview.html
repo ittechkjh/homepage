@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788083927557">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788083927557">
+  <link rel="stylesheet" href="styles.css?v=1788084186609">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788084186609">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -137,7 +137,7 @@
         </div>
 
         <div id="auth-section" class="flex items-center gap-2">
-          <button onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
+          <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
             <span>약관·개인정보</span>
           </button>
@@ -1131,6 +1131,375 @@
     <!-- ==============================================
          TAB 6: ADMIN OPERATIONS & SITE MANAGEMENT HUB
          ============================================== -->
+    
+    <!-- ============================================== -->
+    <!-- TAB 6: COIN CALCULATORS SUITE (5 KILLER TOOLS) -->
+    <!-- ============================================== -->
+    <section id="tab-calculators" class="tab-content hidden space-y-6">
+      
+      <!-- Calculators Header Hero -->
+      <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border border-amber-500/30 shadow-2xl relative overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold mb-2">
+              <span>⚡ 코인 투자자 필수 5대 정밀 계산기</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white">가상자산 실전 트레이딩 계산기 센터</h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">물타기 평단가 • 실시간 김프 & 보따리 • 코인 세금 • 선물 청산가 • 수익률 인증 카드</p>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5 p-1.5 bg-navy-950 rounded-2xl border border-navy-800 text-xs font-bold shrink-0">
+            <button type="button" onclick="CoinCalculators.switchSubTab('water')" data-calctab="water" class="calc-subtab-btn active px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <span>💧 물타기/탈출</span>
+            </button>
+            <button type="button" onclick="CoinCalculators.switchSubTab('kimp')" data-calctab="kimp" class="calc-subtab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <span>⚡ 김프 & 보따리</span>
+            </button>
+            <button type="button" onclick="CoinCalculators.switchSubTab('tax')" data-calctab="tax" class="calc-subtab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <span>📑 코인 세금</span>
+            </button>
+            <button type="button" onclick="CoinCalculators.switchSubTab('futures')" data-calctab="futures" class="calc-subtab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <span>📊 선물 청산가</span>
+            </button>
+            <button type="button" onclick="CoinCalculators.switchSubTab('card')" data-calctab="card" class="calc-subtab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <span>🖼️ 수익 인증 카드</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 1: 물타기/불타기 -->
+      <div id="calc-tab-water" class="calc-subtab-content space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>💧</span> 물타기 & 불타기 매수 조건 입력</h3>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">현재 보유 매수 평단가 (KRW)</label>
+                <input type="number" id="waterCurrentPrice" value="95000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:border-cyan-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">현재 보유 수량</label>
+                <input type="number" id="waterCurrentQty" step="0.0001" value="0.5" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:border-cyan-500 focus:outline-none">
+              </div>
+              <div class="pt-2 border-t border-navy-800">
+                <label class="block font-semibold text-cyan-300 mb-1">추가 매수할 희망 가격 (KRW)</label>
+                <input type="number" id="waterAddPrice" value="78000000" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold focus:border-cyan-400 focus:outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold text-cyan-300 mb-1">추가 매수할 총 투자 금액 (KRW)</label>
+                <input type="number" id="waterAddAmount" value="10000000" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold focus:border-cyan-400 focus:outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-400 mb-1">거래소 매매 수수료율 (%)</label>
+                <select id="waterFeeRate" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-slate-300 text-xs">
+                  <option value="0.05">업비트 (0.05%)</option>
+                  <option value="0.04">빗썸 (0.04%)</option>
+                  <option value="0.1">일반 / 해외 (0.1%)</option>
+                  <option value="0">수수료 무료 (0%)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-4 rounded-2xl bg-navy-900 border border-cyan-500/40">
+                <div class="text-[11px] text-slate-400 font-semibold">새로운 예상 평단가</div>
+                <div id="waterResNewAvg" class="text-lg font-black text-cyan-400 font-mono mt-1">0원</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold">총 보유 수량</div>
+                <div id="waterResTotalQty" class="text-lg font-bold text-white font-mono mt-1">0</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold">총 투입 원금</div>
+                <div id="waterResTotalCost" class="text-lg font-bold text-slate-200 font-mono mt-1">0원</div>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900 border border-rose-500/40">
+                <div class="text-[11px] text-rose-300 font-semibold">본전 탈출 목표가</div>
+                <div id="waterResBreakEven" class="text-lg font-black text-rose-400 font-mono mt-1">0원</div>
+              </div>
+            </div>
+
+            <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="font-bold text-sm text-white flex items-center gap-2"><span>📈</span> 추가 매수 금액별 평단가 변화</h4>
+                <div class="text-xs text-slate-400">탈출 필요 상승률: <span id="waterResRequiredGain" class="font-bold font-mono text-emerald-400">+0.00%</span></div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead>
+                    <tr class="border-b border-navy-800 text-[11px] text-slate-400 font-semibold">
+                      <th class="pb-2 px-3">추가 투입금</th>
+                      <th class="pb-2 px-3 text-right">예상 평단가</th>
+                      <th class="pb-2 px-3 text-right">평단 하락률</th>
+                      <th class="pb-2 px-3 text-right">수수료 포함 탈출가</th>
+                    </tr>
+                  </thead>
+                  <tbody id="waterSimTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 2: 김치프리미엄 & 보따리 -->
+      <div id="calc-tab-kimp" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <h3 class="font-bold text-base text-white flex items-center gap-2"><span>⚡</span> 국내 vs 해외 실시간 김치프리미엄</h3>
+              <div id="kimpUsdRateDisplay" class="text-xs font-mono text-cyan-400 bg-cyan-950/40 px-3 py-1 rounded-xl border border-cyan-500/20">기준환율: 1$ = 1,380원</div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="border-b border-navy-800 text-[11px] text-slate-400 font-semibold">
+                    <th class="pb-2.5 px-3">코인</th>
+                    <th class="pb-2.5 px-3 text-right">업비트(KRW)</th>
+                    <th class="pb-2.5 px-3 text-right">바이낸스(USD)</th>
+                    <th class="pb-2.5 px-3 text-right">가격 차이</th>
+                    <th class="pb-2.5 px-3 text-right">김프율</th>
+                  </tr>
+                </thead>
+                <tbody id="kimpTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>✈️</span> 해외 송금 & 보따리 차익 시뮬레이터</h3>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">송금 코인 선택</label>
+                <select id="arbCoinSelect" onchange="CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-200">
+                  <option value="XRP">리플 (XRP) • 수수료 1 XRP</option>
+                  <option value="TRX">트론 (TRX) • 수수료 1 TRX</option>
+                  <option value="SOL">솔라나 (SOL) • 초고속 전송</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">송금 원화 금액 (KRW)</label>
+                <input type="number" id="arbSendAmount" value="5000000" oninput="CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">적용 김프율 (%)</label>
+                <input type="number" step="0.1" id="arbCustomKimp" value="1.8" oninput="CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-cyan-400 font-mono font-bold">
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-navy-950 border border-cyan-500/30 space-y-2 text-xs">
+              <div class="flex justify-between text-slate-400"><span>네트워크 전송료:</span><span id="arbResNetworkFee" class="font-mono text-slate-200">1,500원</span></div>
+              <div class="flex justify-between text-slate-400"><span>거래 매매 수수료:</span><span id="arbResTradeFee" class="font-mono text-slate-200">5,000원</span></div>
+              <div class="pt-2 border-t border-navy-800 flex justify-between font-bold text-sm"><span class="text-white">예상 차익 순수익:</span><span id="arbResNetProfit" class="font-mono text-emerald-400">+83,500원</span></div>
+              <div class="flex justify-between text-xs font-semibold"><span class="text-slate-400">순수익률(ROI):</span><span id="arbResRoi" class="font-mono text-emerald-400">+1.67%</span></div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/60 to-blue-950/60 border border-cyan-500/40 text-center space-y-2">
+              <div class="text-xs text-cyan-300 font-bold">🌐 해외 거래소 공식 수수료 20% 평생 할인</div>
+              <div class="flex justify-center gap-2">
+                <a href="https://www.binance.com" target="_blank" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-[11px] transition">바이낸스 가입</a>
+                <a href="https://www.bybit.com" target="_blank" class="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-[11px] transition">바이비트 가입</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 3: 코인 세금 -->
+      <div id="calc-tab-tax" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-6 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <h3 class="font-bold text-base text-white flex items-center gap-2"><span>📑</span> 1년치 거래 손익 및 공제액 입력</h3>
+              <button type="button" onclick="CoinCalculators.importFromAnalyzer()" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 font-bold text-xs transition flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> 분석기 데이터 가져오기
+              </button>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">연간 총 양도(매도) 대금 (KRW)</label>
+                <input type="number" id="taxTotalSell" value="150000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">연간 총 취득(매수) 가액 (KRW)</label>
+                <input type="number" id="taxTotalBuy" value="120000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">매매 수수료 및 부대비용 (KRW)</label>
+                <input type="number" id="taxTotalFee" value="135000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">기본 공제액 기준</label>
+                <select id="taxDeductionType" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-200">
+                  <option value="250">현행 기준 (연 250만 원 공제)</option>
+                  <option value="5000">개정 추진안 (연 5,000만 원 공제)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-base text-white">납부 예상 세액 정산서</h3>
+              <div id="taxStatusBadge" class="px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs">🛡️ 계산 완료</div>
+            </div>
+            <div class="space-y-2.5 text-xs p-4 rounded-2xl bg-navy-950 border border-navy-800">
+              <div class="flex justify-between text-slate-400"><span>과세 대상 순손익:</span><span id="taxResNetProfit" class="font-mono text-white font-bold">0원</span></div>
+              <div class="flex justify-between text-slate-400"><span>기본 공제 차감:</span><span id="taxResDeduction" class="font-mono text-cyan-400">-0원</span></div>
+              <div class="flex justify-between text-slate-400"><span>과세 표준:</span><span id="taxResTaxableBase" class="font-mono text-white font-bold">0원</span></div>
+              <div class="pt-2 border-t border-navy-800 flex justify-between text-slate-400"><span>소득세 (20%):</span><span id="taxResIncomeTax" class="font-mono text-slate-300">0원</span></div>
+              <div class="flex justify-between text-slate-400"><span>지방소득세 (2%):</span><span id="taxResLocalTax" class="font-mono text-slate-300">0원</span></div>
+              <div class="pt-3 border-t border-cyan-500/40 flex justify-between items-center text-sm font-bold"><span class="text-white">총 예상 납부 세금 (22%):</span><span id="taxResTotalTax" class="font-black text-xl font-mono text-rose-400">0원</span></div>
+              <div class="flex justify-between text-slate-400 text-[11px]"><span>실효 세율:</span><span id="taxResEffectiveRate" class="font-mono text-slate-300">0.00%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 4: 해외 선물 청산가 -->
+      <div id="calc-tab-futures" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>📊</span> 선물 포지션 조건 설정</h3>
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">포지션 방향</label>
+                  <select id="futuresPosType" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 font-bold text-emerald-400">
+                    <option value="LONG">🟢 롱 (LONG)</option>
+                    <option value="SHORT">🔴 숏 (SHORT)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">마진 모드</label>
+                  <select id="futuresMarginMode" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-200">
+                    <option value="ISOLATED">격리 (Isolated)</option>
+                    <option value="CROSS">교차 (Cross)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between font-semibold text-slate-300 mb-1"><span>레버리지 배수</span><span class="text-cyan-400 font-mono">1x ~ 125x</span></div>
+                <input type="number" id="futuresLeverage" value="10" min="1" max="125" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-white font-mono">
+                <div class="flex gap-1 mt-2">
+                  <button type="button" onclick="CoinCalculators.setFuturesLeverage(5)" class="flex-1 py-1 rounded-lg bg-navy-950 border border-navy-800 hover:border-cyan-500 text-[10px] font-bold text-slate-300">5x</button>
+                  <button type="button" onclick="CoinCalculators.setFuturesLeverage(10)" class="flex-1 py-1 rounded-lg bg-navy-950 border border-navy-800 hover:border-cyan-500 text-[10px] font-bold text-slate-300">10x</button>
+                  <button type="button" onclick="CoinCalculators.setFuturesLeverage(20)" class="flex-1 py-1 rounded-lg bg-navy-950 border border-navy-800 hover:border-cyan-500 text-[10px] font-bold text-slate-300">20x</button>
+                  <button type="button" onclick="CoinCalculators.setFuturesLeverage(50)" class="flex-1 py-1 rounded-lg bg-navy-950 border border-navy-800 hover:border-cyan-500 text-[10px] font-bold text-slate-300">50x</button>
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">진입 가격 (Entry, USD)</label>
+                <input type="number" id="futuresEntryPrice" value="64000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">투자 원금 (Margin, USDT)</label>
+                <input type="number" id="futuresMargin" value="1000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">목표 가격 (Target, USD)</label>
+                <input type="number" id="futuresTargetPrice" value="68000" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="p-5 rounded-3xl bg-navy-900 border border-rose-500/40 shadow-xl space-y-2">
+                <div class="flex justify-between items-center"><span class="text-xs font-bold text-rose-300">🚨 강제 청산 가격</span><span id="futuresResLiqDistance" class="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono font-bold">0.00% 남음</span></div>
+                <div id="futuresResLiqPrice" class="text-2xl font-black text-rose-400 font-mono">$0.00</div>
+                <div class="text-[11px] text-slate-400">도달 시 포지션이 전량 강제 청산됩니다.</div>
+              </div>
+              <div class="p-5 rounded-3xl bg-navy-900 border border-emerald-500/40 shadow-xl space-y-2">
+                <div class="flex justify-between items-center"><span class="text-xs font-bold text-emerald-300">🎯 목표가 도달 수익률</span><span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono font-bold">PROFIT</span></div>
+                <div id="futuresResRoe" class="text-2xl font-black text-emerald-400 font-mono">+0.00%</div>
+                <div class="text-[11px] text-slate-400">목표가 도달 시 예상 수익률</div>
+              </div>
+            </div>
+            <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-2 text-xs">
+              <div class="flex justify-between text-slate-400"><span>총 포지션 규모:</span><span id="futuresResPosSize" class="font-mono text-white font-bold">$10,000</span></div>
+              <div class="flex justify-between text-slate-400"><span>목표 순수익 (USDT):</span><span id="futuresResPnlUsdt" class="font-mono text-emerald-400 font-bold">+$625.00</span></div>
+              <div class="flex justify-between text-slate-400"><span>원화 환산 순수익 (KRW):</span><span id="futuresResPnlKrw" class="font-mono text-emerald-400 font-bold">+862,500원</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 5: 수익률 자랑 카드 -->
+      <div id="calc-tab-card" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <h3 class="font-bold text-base text-white flex items-center gap-2"><span>🎨</span> 인증 카드 디자인 설정</h3>
+              <button type="button" onclick="CoinCalculators.importProfitCardFromAnalyzer()" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 font-bold text-xs transition flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> 분석기 수익률 반영
+              </button>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">트레이더 닉네임</label>
+                <input type="text" id="cardNick" value="코인왕김수익" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">누적 수익률 (%)</label>
+                  <input type="text" id="cardRoi" value="+142.8%" class="w-full bg-navy-950 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-emerald-400 font-mono font-bold">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">매매 승률 (%)</label>
+                  <input type="text" id="cardWinrate" value="78.5%" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">매매 기간</label>
+                  <input type="text" id="cardPeriod" value="2024.01 ~ 2026.08" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-300">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">최대 수익 코인</label>
+                  <input type="text" id="cardTopCoin" value="BTC (비트코인)" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-amber-400 font-bold">
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">카드 배경 테마</label>
+                <select id="cardTheme" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-200">
+                  <option value="cyber">🌌 사이버 다크 네온</option>
+                  <option value="gold">👑 골드 웨일</option>
+                  <option value="emerald">🐂 에메랄드 불마켓</option>
+                </select>
+              </div>
+              <div class="pt-2 flex items-center gap-2">
+                <input type="checkbox" id="cardHideAmount" checked class="rounded border-navy-800 text-cyan-500 focus:ring-0">
+                <label for="cardHideAmount" class="text-slate-300 text-xs cursor-pointer">금액 숨김 모드 (수익률만 깔끔 인증)</label>
+              </div>
+            </div>
+            <div class="pt-2 flex gap-2">
+              <button type="button" onclick="CoinCalculators.downloadProfitCard()" class="flex-1 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-500/20">
+                <i data-lucide="download" class="w-4 h-4"></i> 이미지 다운로드 (PNG)
+              </button>
+              <button type="button" onclick="CoinCalculators.copyCardToClipboard()" class="px-4 py-3 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-200 border border-navy-700 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                <i data-lucide="copy" class="w-4 h-4"></i> 클립보드 복사
+              </button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl flex flex-col items-center justify-center space-y-3">
+            <div class="text-xs text-slate-400 font-semibold self-start flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-4 h-4 text-cyan-400"></i> 생성된 인증 카드:
+            </div>
+            <div class="w-full overflow-hidden rounded-2xl border border-navy-800 bg-navy-950 flex items-center justify-center p-2 shadow-2xl">
+              <canvas id="profitCardCanvas" class="max-w-full h-auto rounded-xl"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
     <section id="tab-admin" class="tab-content hidden space-y-6">
 
       <!-- 1. ADMIN AUTH GUARD (비관리자 접근 시 노출되는 잠금/인증 화면) -->
@@ -1633,10 +2002,10 @@
         <span>© 2026 CoinHub. All rights reserved.</span>
       </div>
       <div class="flex flex-wrap items-center gap-3 text-xs">
-        <button type="button" onclick="openLegalModal('privacy')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 font-bold transition flex items-center gap-1 cursor-pointer">
+        <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 font-bold transition flex items-center gap-1 cursor-pointer">
           <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 개인정보처리방침
         </button>
-        <button type="button" onclick="openLegalModal('terms')" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 font-bold transition flex items-center gap-1 cursor-pointer">
+        <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 font-bold transition flex items-center gap-1 cursor-pointer">
           <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 이용약관
         </button>
         <a href="https://github.com/ittechkjh/homepage" target="_blank" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-400 hover:text-white border border-navy-800 transition flex items-center gap-1">
@@ -1856,17 +2225,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788083927557"></script>
-  <script src="js/calculator.js?v=1788083927557"></script>
-  <script src="js/upbit-api.js?v=1788083927557"></script>
-  <script src="js/charts.js?v=1788083927557"></script>
-  <script src="js/exporter.js?v=1788083927557"></script>
-  <script src="js/sample-data.js?v=1788083927557"></script>
+  <script src="js/parser.js?v=1788084186609"></script>
+  <script src="js/calculator.js?v=1788084186609"></script>
+  <script src="js/upbit-api.js?v=1788084186609"></script>
+  <script src="js/charts.js?v=1788084186609"></script>
+  <script src="js/exporter.js?v=1788084186609"></script>
+  <script src="js/sample-data.js?v=1788084186609"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788083927557"></script>
+  <script src="js/analyzer-app.js?v=1788084186609"></script>
 
-  <script src="js/admin.js?v=1788083927557"></script>
-  <script src="js/preview-app.js?v=1788083927557"></script>
+  <script src="js/admin.js?v=1788084186609"></script>
+  <script src="js/preview-app.js?v=1788084186609"></script>
 
   </body>
   <script>
