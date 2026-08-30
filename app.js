@@ -7,7 +7,8 @@ function openLegalModal(tab) {
   tab = tab || 'privacy';
   var modal = document.getElementById('legal-modal');
   if (modal) {
-    modal.style.display = 'flex';
+    modal.style.setProperty('display', 'flex', 'important');
+    modal.classList.remove('hidden');
     switchLegalTab(tab);
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
       try { lucide.createIcons(); } catch(e) {}
@@ -15,6 +16,48 @@ function openLegalModal(tab) {
   }
 }
 window.openLegalModal = openLegalModal;
+
+function closeLegalModal() {
+  var modal = document.getElementById('legal-modal');
+  if (modal) {
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+window.closeLegalModal = closeLegalModal;
+
+function switchLegalTab(tab) {
+  var privacyContent = document.getElementById('legal-content-privacy');
+  var termsContent = document.getElementById('legal-content-terms');
+  var tabPrivacy = document.getElementById('tab-legal-privacy');
+  var tabTerms = document.getElementById('tab-legal-terms');
+  var titleText = document.getElementById('legal-modal-title');
+
+  if (tab === 'privacy') {
+    if (privacyContent) privacyContent.style.setProperty('display', 'block', 'important');
+    if (termsContent) termsContent.style.setProperty('display', 'none', 'important');
+    if (tabPrivacy) {
+      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+    }
+    if (tabTerms) {
+      tabTerms.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
+    }
+    if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
+  } else {
+    if (privacyContent) privacyContent.style.setProperty('display', 'none', 'important');
+    if (termsContent) termsContent.style.setProperty('display', 'block', 'important');
+    if (tabTerms) {
+      tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
+    }
+    if (tabPrivacy) {
+      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
+    }
+    if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
+  }
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
+}
+window.switchLegalTab = switchLegalTab;
 
 // Global Document Event Delegation for Legal Modal (AdSense 100% Guarantee)
 if (typeof document !== 'undefined') {

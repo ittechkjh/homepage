@@ -60,10 +60,126 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788084186598">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788084186598">
+  <link rel="stylesheet" href="styles.css?v=1788085249096">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788085249096">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
+
+  <!-- Google AdSense Essential: Privacy Policy & Terms of Service Modal -->
+  <div id="legal-modal" class="fixed inset-0 z-[99999] bg-navy-950/95 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/80">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
+            📜
+          </div>
+          <div>
+            <h3 id="legal-modal-title" class="font-extrabold text-lg text-white">개인정보처리방침 및 이용약관</h3>
+            <p class="text-xs text-slate-400">CoinHub 가상자산 플랫폼 공식 정책 및 이용 약관 고지</p>
+          </div>
+        </div>
+        <button onclick="closeLegalModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="grid grid-cols-2 gap-2 p-3 bg-navy-950 border-b border-navy-800 text-xs font-bold">
+        <button type="button" onclick="switchLegalTab('privacy')" id="tab-legal-privacy" class="py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+          🛡️ 개인정보처리방침 (Privacy Policy)
+        </button>
+        <button type="button" onclick="switchLegalTab('terms')" id="tab-legal-terms" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent">
+          ⚖️ 서비스 이용약관 (Terms of Service)
+        </button>
+      </div>
+
+      <!-- Scrollable Policy Content -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-300 leading-relaxed max-h-[60vh]">
+        
+        <!-- PRIVACY POLICY SECTION -->
+        <div id="legal-content-privacy" class="space-y-4" style="display: block;">
+          <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 text-cyan-200">
+            <strong>시행일자:</strong> 2026년 8월 1일 | <strong>최종 개정일:</strong> 2026년 8월 30일<br>
+            CoinHub(이하 "서비스")는 이용자의 개인정보를 매우 소중히 여기며, 「개인정보 보호법」 및 Google AdSense 정책을 엄격히 준수합니다.
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제1조 (가상자산 엑셀 파일의 100% 로컬 처리 원칙)</h4>
+            <p>1. 본 서비스가 제공하는 '업비트·빗썸 엑셀 거래내역 손익 분석기'는 <strong>100% 클라이언트 사이드(Client-Side) 로컬 브라우저 엔진</strong>으로 동작합니다.</p>
+            <p>2. 이용자가 업로드하는 거래내역, 입출금 엑셀/CSV 파일 및 손익 데이터는 <strong>외부 웹 서버나 데이터베이스로 일체 전송되지 않으며</strong>, 오직 이용자 본인의 브라우저 메모리 및 로컬 저장소(localStorage)에만 안전하게 보관됩니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제2조 (Google AdSense 및 제3자 광고 쿠키(Cookie) 사용 고지)</h4>
+            <p>1. 본 서비스는 맞춤형 광고 게재를 위해 <strong>Google AdSense</strong>를 포함한 제3자 광고 사업자의 서비스를 이용할 수 있습니다.</p>
+            <p>2. Google을 비롯한 서드파티 공급업체는 이용자가 본 웹사이트 또는 다른 웹사이트를 방문한 과거 기록을 바탕으로 광고를 게재하기 위해 <strong>쿠키(Cookie)</strong>를 사용합니다.</p>
+            <p>3. Google의 광고 쿠키(DoubleClick/DART 쿠키 등)를 통해 Google과 그 파트너는 이용자의 웹사이트 방문 기록에 기반한 적절한 광고를 제공합니다.</p>
+            <p>4. 이용자는 언제든지 <strong><a href="https://adssettings.google.com" target="_blank" class="text-cyan-400 underline">Google 광고 설정(adssettings.google.com)</a></strong>을 방문하여 개인 맞춤 광고 게재를 비활성화(Opt-out)할 수 있습니다. 또한 <strong><a href="https://www.aboutads.info/choices/" target="_blank" class="text-cyan-400 underline">www.aboutads.info</a></strong>를 통해 서드파티 공급업체의 개인 맞춤 광고용 쿠키 사용을 차단할 수 있습니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제3조 (수집하는 개인정보 항목 및 수집 방법)</h4>
+            <p>1. <strong>비회원 서비스 이용 시:</strong> 별도의 회원가입 없이 이용자가 자발적으로 설정하는 닉네임, 서비스 접속 로그, 기기 환경 정보(브라우저 종류, OS), IP 주소가 수집될 수 있습니다.</p>
+            <p>2. <strong>회원가입/인증 시:</strong> 닉네임, 이메일 주소, 비밀번호(암호화 저장).</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제4조 (개인정보의 보유 및 이용 기간)</h4>
+            <p>이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 파기합니다. 로컬 저장소에 저장된 거래 내역은 사이트 내 [내 데이터 초기화] 버튼 클릭 또는 브라우저 캐시 삭제 시 즉시 영구 삭제됩니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제5조 (개인정보 보호책임자 및 문의처)</h4>
+            <p>서비스 이용 중 발생하는 개인정보 보호 관련 민원 및 권리 행사는 아래의 고객지원 채널로 문의해 주시기 바랍니다.</p>
+            <p class="mt-1 font-mono text-slate-300">• 담당 부서: CoinHub 개인정보보호팀<br>• 문의 이메일: privacy@coinhub.kr / ittechkjh@gmail.com</p>
+          </div>
+        </div>
+
+        <!-- TERMS OF SERVICE SECTION -->
+        <div id="legal-content-terms" class="space-y-4" style="display: none;">
+          <div class="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200">
+            <strong>시행일자:</strong> 2026년 8월 1일 | <strong>적용 대상:</strong> CoinHub의 모든 이용자<br>
+            본 약관은 CoinHub가 제공하는 가상자산 정보 조회, 엑셀 손익 분석기, 커뮤니티 등의 이용 조건 및 절차를 규정합니다.
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제1조 (가상자산 투자 유의사항 및 재정적 조언 면책 고지)</h4>
+            <p class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 font-semibold">
+              ⚠️ 중요: 본 웹사이트에서 제공하는 모든 암호화폐 실시간 시세, 차트, 커뮤니티 게시글, 속보 및 엑셀 손익 계산 결과는 단순 정보 제공 목적이며, 어떠한 경우에도 매수/매도 권유 또는 금융·투자 자문(Financial Advice)에 해당하지 않습니다.
+            </p>
+            <p class="mt-1.5">가상자산은 높은 가격 변동성으로 인해 원금 손실이 발생할 수 있으며, 모든 투자 판단과 그에 따른 책임은 전적으로 이용자 본인에게 있습니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제2조 (손익 계산 결과의 참고용 고지)</h4>
+            <p>본 사이트의 손익 계산기는 선입선출법(FIFO) 알고리즘을 기반으로 추정치를 계산합니다. 거래소 API 데이터 지연, 에어드랍, 소수점 반올림 오차 등에 따라 국세청 실제 세무 신고액과 차이가 발생할 수 있으므로, 최종 세무 신고 시에는 공인 세무사의 검토를 권장합니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제3조 (커뮤니티 이용 규칙 및 게시물 저작권)</h4>
+            <p>1. 포럼 및 채팅방 내 욕설, 비방, 스팸, 허위사실 유포, 미검증 리딩방 홍보 행위는 관리자에 의해 사전 통보 없이 삭제 및 영구 이용 제한될 수 있습니다.</p>
+            <p>2. 이용자가 게시한 글의 저작권은 해당 작성자에게 귀속됩니다.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제4조 (약관의 변경 및 준거법)</h4>
+            <p>본 약관은 관련 법령 및 서비스 운영 방침에 따라 개정될 수 있으며, 개정 사항은 사이트 공지사항을 통해 공지됩니다. 본 약관과 관련된 분쟁은 대한민국 법률을 준거법으로 합니다.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-navy-950 border-t border-navy-800 flex justify-end">
+        <button type="button" onclick="closeLegalModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+          확인 및 닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Live Price Ticker Bar -->
   <div class="bg-navy-900/90 backdrop-blur border-b border-navy-800 text-xs py-2 px-4 overflow-x-auto no-scrollbar sticky top-0 z-40">
     <div class="container mx-auto flex items-center justify-between gap-6">
@@ -2100,123 +2216,6 @@
   </div>
 
 
-  <!-- Google AdSense Essential: Privacy Policy & Terms of Service Modal -->
-  <div id="legal-modal" class="fixed inset-0 z-[9999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4" style="display: none;">
-    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in">
-      
-      <!-- Modal Header -->
-      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/80">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
-            📜
-          </div>
-          <div>
-            <h3 id="legal-modal-title" class="font-extrabold text-lg text-white">개인정보처리방침 및 이용약관</h3>
-            <p class="text-xs text-slate-400">CoinHub 가상자산 플랫폼 공식 정책 및 이용 약관 고지</p>
-          </div>
-        </div>
-        <button onclick="closeLegalModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Tab Switcher -->
-      <div class="grid grid-cols-2 gap-2 p-3 bg-navy-950 border-b border-navy-800 text-xs font-bold">
-        <button type="button" onclick="switchLegalTab('privacy')" id="tab-legal-privacy" class="py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-          🛡️ 개인정보처리방침 (Privacy Policy)
-        </button>
-        <button type="button" onclick="switchLegalTab('terms')" id="tab-legal-terms" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent">
-          ⚖️ 서비스 이용약관 (Terms of Service)
-        </button>
-      </div>
-
-      <!-- Scrollable Policy Content -->
-      <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-300 leading-relaxed max-h-[60vh]">
-        
-        <!-- PRIVACY POLICY SECTION -->
-        <div id="legal-content-privacy" class="space-y-4" style="display: block;">
-          <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 text-cyan-200">
-            <strong>시행일자:</strong> 2026년 8월 1일 | <strong>최종 개정일:</strong> 2026년 8월 30일<br>
-            CoinHub(이하 "서비스")는 이용자의 개인정보를 매우 소중히 여기며, 「개인정보 보호법」 및 Google AdSense 정책을 엄격히 준수합니다.
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제1조 (가상자산 엑셀 파일의 100% 로컬 처리 원칙)</h4>
-            <p>1. 본 서비스가 제공하는 '업비트·빗썸 엑셀 거래내역 손익 분석기'는 <strong>100% 클라이언트 사이드(Client-Side) 로컬 브라우저 엔진</strong>으로 동작합니다.</p>
-            <p>2. 이용자가 업로드하는 거래내역, 입출금 엑셀/CSV 파일 및 손익 데이터는 <strong>외부 웹 서버나 데이터베이스로 일체 전송되지 않으며</strong>, 오직 이용자 본인의 브라우저 메모리 및 로컬 저장소(localStorage)에만 안전하게 보관됩니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제2조 (Google AdSense 및 제3자 광고 쿠키(Cookie) 사용 고지)</h4>
-            <p>1. 본 서비스는 맞춤형 광고 게재를 위해 <strong>Google AdSense</strong>를 포함한 제3자 광고 사업자의 서비스를 이용할 수 있습니다.</p>
-            <p>2. Google을 비롯한 서드파티 공급업체는 이용자가 본 웹사이트 또는 다른 웹사이트를 방문한 과거 기록을 바탕으로 광고를 게재하기 위해 <strong>쿠키(Cookie)</strong>를 사용합니다.</p>
-            <p>3. Google의 광고 쿠키(DoubleClick/DART 쿠키 등)를 통해 Google과 그 파트너는 이용자의 웹사이트 방문 기록에 기반한 적절한 광고를 제공합니다.</p>
-            <p>4. 이용자는 언제든지 <strong><a href="https://adssettings.google.com" target="_blank" class="text-cyan-400 underline">Google 광고 설정(adssettings.google.com)</a></strong>을 방문하여 개인 맞춤 광고 게재를 비활성화(Opt-out)할 수 있습니다. 또한 <strong><a href="https://www.aboutads.info/choices/" target="_blank" class="text-cyan-400 underline">www.aboutads.info</a></strong>를 통해 서드파티 공급업체의 개인 맞춤 광고용 쿠키 사용을 차단할 수 있습니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제3조 (수집하는 개인정보 항목 및 수집 방법)</h4>
-            <p>1. <strong>비회원 서비스 이용 시:</strong> 별도의 회원가입 없이 이용자가 자발적으로 설정하는 닉네임, 서비스 접속 로그, 기기 환경 정보(브라우저 종류, OS), IP 주소가 수집될 수 있습니다.</p>
-            <p>2. <strong>회원가입/인증 시:</strong> 닉네임, 이메일 주소, 비밀번호(암호화 저장).</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제4조 (개인정보의 보유 및 이용 기간)</h4>
-            <p>이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 파기합니다. 로컬 저장소에 저장된 거래 내역은 사이트 내 [내 데이터 초기화] 버튼 클릭 또는 브라우저 캐시 삭제 시 즉시 영구 삭제됩니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제5조 (개인정보 보호책임자 및 문의처)</h4>
-            <p>서비스 이용 중 발생하는 개인정보 보호 관련 민원 및 권리 행사는 아래의 고객지원 채널로 문의해 주시기 바랍니다.</p>
-            <p class="mt-1 font-mono text-slate-300">• 담당 부서: CoinHub 개인정보보호팀<br>• 문의 이메일: privacy@coinhub.kr / ittechkjh@gmail.com</p>
-          </div>
-        </div>
-
-        <!-- TERMS OF SERVICE SECTION -->
-        <div id="legal-content-terms" class="space-y-4" style="display: none;">
-          <div class="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200">
-            <strong>시행일자:</strong> 2026년 8월 1일 | <strong>적용 대상:</strong> CoinHub의 모든 이용자<br>
-            본 약관은 CoinHub가 제공하는 가상자산 정보 조회, 엑셀 손익 분석기, 커뮤니티 등의 이용 조건 및 절차를 규정합니다.
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제1조 (가상자산 투자 유의사항 및 재정적 조언 면책 고지)</h4>
-            <p class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 font-semibold">
-              ⚠️ 중요: 본 웹사이트에서 제공하는 모든 암호화폐 실시간 시세, 차트, 커뮤니티 게시글, 속보 및 엑셀 손익 계산 결과는 단순 정보 제공 목적이며, 어떠한 경우에도 매수/매도 권유 또는 금융·투자 자문(Financial Advice)에 해당하지 않습니다.
-            </p>
-            <p class="mt-1.5">가상자산은 높은 가격 변동성으로 인해 원금 손실이 발생할 수 있으며, 모든 투자 판단과 그에 따른 책임은 전적으로 이용자 본인에게 있습니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제2조 (손익 계산 결과의 참고용 고지)</h4>
-            <p>본 사이트의 손익 계산기는 선입선출법(FIFO) 알고리즘을 기반으로 추정치를 계산합니다. 거래소 API 데이터 지연, 에어드랍, 소수점 반올림 오차 등에 따라 국세청 실제 세무 신고액과 차이가 발생할 수 있으므로, 최종 세무 신고 시에는 공인 세무사의 검토를 권장합니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제3조 (커뮤니티 이용 규칙 및 게시물 저작권)</h4>
-            <p>1. 포럼 및 채팅방 내 욕설, 비방, 스팸, 허위사실 유포, 미검증 리딩방 홍보 행위는 관리자에 의해 사전 통보 없이 삭제 및 영구 이용 제한될 수 있습니다.</p>
-            <p>2. 이용자가 게시한 글의 저작권은 해당 작성자에게 귀속됩니다.</p>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm text-white mb-1.5 text-cyan-400">제4조 (약관의 변경 및 준거법)</h4>
-            <p>본 약관은 관련 법령 및 서비스 운영 방침에 따라 개정될 수 있으며, 개정 사항은 사이트 공지사항을 통해 공지됩니다. 본 약관과 관련된 분쟁은 대한민국 법률을 준거법으로 합니다.</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Modal Footer -->
-      <div class="p-4 bg-navy-950 border-t border-navy-800 flex justify-end">
-        <button type="button" onclick="closeLegalModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
-          확인 및 닫기
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-
   <!-- SheetJS Excel Library -->
   <script src="lib/xlsx.full.min.js"></script>
   <script>
@@ -2225,17 +2224,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788084186598"></script>
-  <script src="js/calculator.js?v=1788084186598"></script>
-  <script src="js/upbit-api.js?v=1788084186598"></script>
-  <script src="js/charts.js?v=1788084186598"></script>
-  <script src="js/exporter.js?v=1788084186598"></script>
-  <script src="js/sample-data.js?v=1788084186598"></script>
+  <script src="js/parser.js?v=1788085249096"></script>
+  <script src="js/calculator.js?v=1788085249096"></script>
+  <script src="js/upbit-api.js?v=1788085249096"></script>
+  <script src="js/charts.js?v=1788085249096"></script>
+  <script src="js/exporter.js?v=1788085249096"></script>
+  <script src="js/sample-data.js?v=1788085249096"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788084186598"></script>
+  <script src="js/analyzer-app.js?v=1788085249096"></script>
 
-  <script src="js/admin.js?v=1788084186598"></script>
-  <script src="app.js?v=1788084186598"></script>
+  <script src="js/admin.js?v=1788085249096"></script>
+  <script src="app.js?v=1788085249096"></script>
 
   </body>
   <script>
