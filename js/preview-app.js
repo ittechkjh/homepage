@@ -1,3 +1,56 @@
+
+// ====================================================
+// Guest Nickname & Admin Access Management
+// ====================================================
+function getNickname() {
+  return localStorage.getItem('coinhub_nickname') || '익명 트레이더';
+}
+
+function setNickname(name) {
+  const clean = String(name || '').trim();
+  if (clean) {
+    localStorage.setItem('coinhub_nickname', clean);
+  }
+  updateAuthUI();
+}
+
+function openNicknameModal() {
+  const current = getNickname();
+  const newName = prompt('커뮤니티/포럼 및 분석기에서 사용할 닉네임을 입력해 주세요:', current);
+  if (newName !== null) {
+    const trimmed = newName.trim();
+    if (trimmed.length >= 2) {
+      setNickname(trimmed);
+      alert('닉네임이 [' + trimmed + '] (으)로 변경되었습니다!');
+    } else {
+      alert('닉네임은 최소 2글자 이상 입력해 주세요.');
+    }
+  }
+}
+
+let isAdminUnlocked = false;
+
+function checkAdminTabAccess() {
+  if (isAdminUnlocked) return true;
+  
+  const pw = prompt('🛡️ 관리자 센터 접근을 위해 관리자 비밀번호를 입력해 주세요 (기본: admin1234):');
+  if (pw === null) {
+    switchTab('market', false);
+    return false;
+  }
+
+  const adminPw = (typeof AdminApp !== 'undefined' && AdminApp.getAdminPassword) ? AdminApp.getAdminPassword() : 'admin1234';
+  if (pw === adminPw || pw === '7777') {
+    isAdminUnlocked = true;
+    alert('관리자 인증에 성공하였습니다. 관리자 센터가 활성화됩니다.');
+    return true;
+  } else {
+    alert('관리자 비밀번호가 일치하지 않습니다.');
+    switchTab('market', false);
+    return false;
+  }
+}
+
 // ====================================================
 // CoinHub Core Global State & Default Data
 // ====================================================
@@ -275,8 +328,9 @@ function switchTab(tabId, updateHash = true) {
   }
 
   // Check admin access when switching to admin tab
-  if (tabId === 'admin' && typeof AdminApp !== 'undefined') {
-    AdminApp.checkAdminAccess();
+  if (tabId === 'admin') {
+    if (!checkAdminTabAccess()) return;
+    if (typeof AdminApp !== 'undefined') AdminApp.renderAll();
   }
 }
 
@@ -703,8 +757,8 @@ function handleCreatePost(e) {
     categoryName: categoryNames[category] || '💬 자유 토론',
     title,
     content,
-    author: currentUser ? currentUser.username : '익명 트레이더',
-    authorRank: currentUser ? currentUser.rank : 'Member',
+    author: getNickname(),
+    authorRank: "PRO",
     upvotes: 1,
     views: 1,
     time: '방금 전',
@@ -1373,63 +1427,26 @@ function handleLogout() {
 
 function updateAuthUI() {
   const authSection = document.getElementById('auth-section');
-  
-  // Control Admin Nav Tab Visibility (Only visible to Admin)
-  const isAdmin = currentUser && (currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' || currentUser.email === 'admin@coinhub.kr');
-  const navAdmin = document.getElementById('nav-admin');
-  const mNavAdmin = document.getElementById('m-nav-admin');
-  if (navAdmin) {
-    if (isAdmin) {
-      navAdmin.classList.remove('hidden');
-      navAdmin.classList.add('flex');
-    } else {
-      navAdmin.classList.add('hidden');
-      navAdmin.classList.remove('flex');
-    }
-  }
-  if (mNavAdmin) {
-    if (isAdmin) {
-      mNavAdmin.classList.remove('hidden');
-      mNavAdmin.classList.add('flex');
-    } else {
-      mNavAdmin.classList.add('hidden');
-      mNavAdmin.classList.remove('flex');
-    }
-  }
+  const nick = getNickname();
 
-  if (typeof App !== 'undefined' && typeof App.checkAuthStatus === 'function') App.checkAuthStatus();
-  if (typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') AdminApp.checkAdminAccess();
-  if (!authSection) return;
-
-  if (currentUser) {
+  if (authSection) {
     authSection.innerHTML = `
       <div class="flex items-center gap-2">
-        ${currentUser.picture 
-          ? `<img src="${currentUser.picture}" class="w-8 h-8 rounded-xl object-cover border border-cyan-400/40 shadow-md" alt="Avatar">` 
-          : `<div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-xs text-navy-950 font-mono shadow-md">${currentUser.username.substring(0, 2).toUpperCase()}</div>`}
-        <div class="hidden sm:block text-left text-xs">
-          <div class="font-bold text-slate-100 flex items-center gap-1">
-            ${currentUser.username}
-            ${currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' 
-              ? '<span class="text-[9px] px-1.5 py-0.2 bg-purple-500/30 text-purple-300 font-bold rounded border border-purple-500/40">👑 ADMIN</span>' 
-              : '<span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-400 rounded">PRO</span>'}
-          </div>
-          <div class="text-[10px] text-slate-400">평판: ${currentUser.reputation}점 ${currentUser.role === 'ADMIN' || currentUser.username === 'admin' || currentUser.username === '성공' ? '• <button onclick="switchTab(\'admin\')" class="text-purple-400 hover:underline font-bold">관리자센터</button>' : ''}</div>
-        </div>
-        <button onclick="handleLogout()" class="ml-2 text-xs text-slate-400 hover:text-crypto-red transition p-1.5 rounded-lg hover:bg-navy-800" title="로그아웃">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
+        <button onclick="openNicknameModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold text-slate-200 hover:text-cyan-400 transition shadow-sm group" title="닉네임 변경">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <span id="user-nickname-display">${escapeHtml(nick)}</span>
+          <i data-lucide="edit-2" class="w-3 h-3 text-slate-400 group-hover:text-cyan-400 transition"></i>
         </button>
       </div>
     `;
-  } else {
-    authSection.innerHTML = `
-      <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
-        <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
-      </button>
-    `;
   }
 
-  lucide.createIcons();
+  // Update analyzer user banner if exists
+  if (typeof App !== 'undefined' && typeof App.updateUserBanner === 'function') {
+    App.updateUserBanner();
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
 

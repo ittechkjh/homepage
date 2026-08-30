@@ -58,8 +58,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788052182906">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788052182906">
+  <link rel="stylesheet" href="styles.css?v=1788053867057">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788053867057">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -133,9 +133,10 @@
         </div>
 
         <div id="auth-section" class="flex items-center gap-2">
-          
-          <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5">
-            <i data-lucide="user" class="w-4 h-4"></i> 로그인 / 가입
+          <button onclick="openNicknameModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold text-slate-200 hover:text-cyan-400 transition shadow-sm group" title="닉네임 변경">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+            <span id="user-nickname-display">익명 트레이더</span>
+            <i data-lucide="edit-2" class="w-3 h-3 text-slate-400 group-hover:text-cyan-400 transition"></i>
           </button>
         </div>
       </div>
@@ -1591,257 +1592,6 @@
     </div>
   </div>
 
-  <!-- Modal 3: Auth (Login / Signup with Email Verification / Password Reset) Modal -->
-  <div id="auth-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden p-6 sm:p-7 relative animate-in">
-      
-      <!-- Modal Header -->
-      <div class="flex justify-between items-center mb-5">
-        <div>
-          <h3 id="auth-modal-title" class="font-extrabold text-xl text-white flex items-center gap-2">
-            <span id="auth-modal-icon">🔐</span> <span id="auth-modal-title-text">로그인</span>
-          </h3>
-          <p id="auth-modal-desc" class="text-xs text-slate-400 mt-0.5">CoinHub 가상자산 플랫폼에 오신 것을 환영합니다.</p>
-        </div>
-        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Mode Switch Tabs -->
-      <div class="grid grid-cols-2 gap-1.5 p-1 bg-navy-950 rounded-2xl mb-5 border border-navy-800/80 text-xs font-bold" id="auth-tab-bar">
-        <button type="button" onclick="setAuthMode('login')" id="auth-tab-login" class="py-2.5 rounded-xl transition text-center active bg-navy-800 text-cyan-400 shadow-sm">
-          로그인
-        </button>
-        <button type="button" onclick="setAuthMode('signup')" id="auth-tab-signup" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white">
-          간편 회원가입
-        </button>
-      </div>
-
-      <!-- 1. LOGIN FORM -->
-      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">아이디 / 이메일</label>
-          <div class="relative">
-            <input type="text" id="login-identifier" required placeholder="아이디 또는 이메일 입력" autocomplete="off" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
-            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1.5">
-            <label class="text-xs font-semibold text-slate-300">비밀번호</label>
-            <button type="button" onclick="setAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline">
-              비밀번호를 잊으셨나요?
-            </button>
-          </div>
-          <div class="relative">
-            <input type="password" id="login-password" required placeholder="비밀번호 입력" autocomplete="new-password" value="" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 transition">
-            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
-          <i data-lucide="log-in" class="w-4 h-4"></i> 로그인
-        </button>
-
-
-      </form>
-
-      
-      
-  
-
-      <!-- 2. SIGNUP FORM (WITH EMAIL VERIFICATION OTP) -->
-      <form id="signup-form" onsubmit="handleSignupSubmit(event)" class="space-y-4 hidden">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">사용자 ID (닉네임)</label>
-          <div class="relative">
-            <input type="text" id="signup-username" required placeholder="영문/한글 2~12자 (예: Satoshi_2026)" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">이메일 주소 (인증코드 수신용)</label>
-          <div class="flex gap-2">
-            <div class="relative flex-1">
-              <input type="email" id="signup-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-            </div>
-            <button type="button" onclick="sendSignupVerificationCode()" id="btn-send-signup-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
-              인증코드 발송
-            </button>
-          </div>
-        </div>
-
-        <!-- Verification OTP Code Input -->
-        <div id="signup-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
-          <div class="flex justify-between items-center text-xs">
-            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 이메일 인증번호 (6자리)</span>
-            <span class="font-mono text-cyan-300 font-bold" id="signup-otp-timer">03:00</span>
-          </div>
-          <div class="flex gap-2">
-            <input type="text" id="signup-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
-            <button type="button" onclick="verifySignupOTP()" id="btn-verify-signup-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
-              인증확인
-            </button>
-          </div>
-          <div id="signup-otp-status" class="text-[11px] text-slate-400">위 이메일로 발송된 6자리 코드를 입력해주세요.</div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호</label>
-          <div class="relative">
-            <input type="password" id="signup-password" required placeholder="8자 이상 영문, 숫자 조합" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">비밀번호 확인</label>
-          <div class="relative">
-            <input type="password" id="signup-password-confirm" required placeholder="비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-            <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <button type="submit" id="btn-submit-signup" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
-          <i data-lucide="user-check" class="w-4 h-4"></i> 이메일 인증 완료 및 회원가입
-        </button>
-      </form>
-
-      <!-- 3. FORGOT / RESET PASSWORD FORM (WITH EMAIL VERIFICATION OTP) -->
-      <form id="forgot-form" onsubmit="handleResetPasswordSubmit(event)" class="space-y-4 hidden">
-        <div class="p-3 rounded-xl bg-navy-950 border border-navy-800 text-xs text-slate-300">
-          가입 시 등록하신 이메일 주소로 본인 확인 인증번호를 발송하여 비밀번호를 안전하게 재설정합니다.
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">가입된 이메일 주소</label>
-          <div class="flex gap-2">
-            <div class="relative flex-1">
-              <input type="email" id="forgot-email" required placeholder="name@example.com" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-              <i data-lucide="mail" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-            </div>
-            <button type="button" onclick="sendResetVerificationCode()" id="btn-send-reset-code" class="px-3.5 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-cyan-400 font-bold text-xs border border-navy-700 whitespace-nowrap transition">
-              인증코드 발송
-            </button>
-          </div>
-        </div>
-
-        <!-- Reset OTP Code Input -->
-        <div id="reset-otp-container" class="hidden p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
-          <div class="flex justify-between items-center text-xs">
-            <span class="font-bold text-cyan-400 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4"></i> 본인 확인 인증번호 (6자리)</span>
-            <span class="font-mono text-cyan-300 font-bold" id="reset-otp-timer">03:00</span>
-          </div>
-          <div class="flex gap-2">
-            <input type="text" id="reset-otp-code" maxlength="6" placeholder="인증번호 6자리 입력" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-center text-xs text-cyan-300 font-mono tracking-widest font-bold focus:outline-none focus:border-cyan-400">
-            <button type="button" onclick="verifyResetOTP()" id="btn-verify-reset-otp" class="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
-              인증확인
-            </button>
-          </div>
-          <div id="reset-otp-status" class="text-[11px] text-slate-400">이메일로 발송된 6자리 코드를 입력해주세요.</div>
-        </div>
-
-        <div id="reset-password-fields" class="hidden space-y-3 pt-2 border-t border-navy-800">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새로운 비밀번호</label>
-            <div class="relative">
-              <input type="password" id="reset-new-password" placeholder="8자 이상 새 비밀번호" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-              <i data-lucide="key" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1.5">새 비밀번호 확인</label>
-            <div class="relative">
-              <input type="password" id="reset-new-password-confirm" placeholder="새 비밀번호 재입력" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-              <i data-lucide="check" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-            </div>
-          </div>
-
-          <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-navy-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 mt-2">
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i> 비밀번호 변경 및 즉시 로그인
-          </button>
-        </div>
-
-        <div class="pt-2 text-center">
-          <button type="button" onclick="setAuthMode('login')" class="text-xs text-slate-400 hover:text-white transition">
-            ← 로그인 화면으로 돌아가기
-          </button>
-        </div>
-      </form>
-
-    </div>
-  </div>
-
-  <!-- Modal 4: News Detail & Full Article Modal -->
-  <div id="news-detail-modal" class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in">
-      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-850">
-        <div class="flex items-center gap-2">
-          <span id="modal-news-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">MARKET</span>
-          <span id="modal-news-source" class="text-xs font-semibold text-slate-300 flex items-center gap-1">
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-cyan-400"></i> CoinDesk
-          </span>
-          <span class="text-xs text-slate-400">•</span>
-          <span id="modal-news-time" class="text-xs text-slate-400">방금 전</span>
-        </div>
-        <button onclick="closeNewsDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-5 flex-1">
-        <h2 id="modal-news-title" class="text-xl font-bold text-white leading-snug">속보 기사 제목</h2>
-        
-        <!-- Key Takeaways Box -->
-        <div class="bg-navy-950 p-4 rounded-xl border border-cyan-500/30 space-y-2">
-          <div class="text-xs font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 핵심 요약 (Key Takeaways)
-          </div>
-          <ul id="modal-news-takeaways" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
-            <!-- Dynamic bullets -->
-          </ul>
-        </div>
-
-        <!-- Full Article Body -->
-        <div id="modal-news-content" class="text-slate-200 text-sm leading-relaxed space-y-3 whitespace-pre-wrap">
-          <!-- Dynamic paragraphs -->
-        </div>
-
-        <!-- Market Impact & Related Tickers -->
-        <div class="pt-4 border-t border-navy-800 bg-navy-950/50 p-4 rounded-xl border border-navy-800">
-          <div class="text-xs font-bold text-slate-300 mb-2.5 flex items-center gap-1.5">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-crypto-green"></i> 시장 영향 분석 및 관련 자산
-          </div>
-          <div class="flex flex-wrap items-center gap-2" id="modal-news-tickers">
-            <!-- Dynamic tickers -->
-          </div>
-        </div>
-
-        <!-- Modal Footer Actions -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-navy-800">
-          <a id="modal-news-original-link" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition">
-            <span>원문 언론사 기사 전문 보기</span>
-            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-          </a>
-
-          <div class="flex items-center gap-2">
-            <button onclick="copyNewsLink()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-slate-700 text-xs text-slate-300 transition">
-              <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 링크 복사
-            </button>
-            <button onclick="closeNewsDetailModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 hover:text-white text-xs transition">
-              닫기
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Footer -->
   <footer class="bg-navy-900 border-t border-navy-800 py-8 text-xs text-slate-400 mt-auto">
     <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1880,16 +1630,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788052182906"></script>
-  <script src="js/calculator.js?v=1788052182906"></script>
-  <script src="js/upbit-api.js?v=1788052182906"></script>
-  <script src="js/charts.js?v=1788052182906"></script>
-  <script src="js/exporter.js?v=1788052182906"></script>
-  <script src="js/sample-data.js?v=1788052182906"></script>
-  <script src="js/analyzer-app.js?v=1788052182906"></script>
+  <script src="js/parser.js?v=1788053867057"></script>
+  <script src="js/calculator.js?v=1788053867057"></script>
+  <script src="js/upbit-api.js?v=1788053867057"></script>
+  <script src="js/charts.js?v=1788053867057"></script>
+  <script src="js/exporter.js?v=1788053867057"></script>
+  <script src="js/sample-data.js?v=1788053867057"></script>
+  <script src="js/analyzer-app.js?v=1788053867057"></script>
 
-  <script src="js/admin.js?v=1788052182906"></script>
-  <script src="js/preview-app.js?v=1788052182906"></script>
+  <script src="js/admin.js?v=1788053867057"></script>
+  <script src="js/preview-app.js?v=1788053867057"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load

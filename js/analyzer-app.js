@@ -6,25 +6,21 @@
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
-            const u = window.currentUser || JSON.parse(localStorage.getItem('coinhub_user'));
-            if (u && u.username) {
-                return 'user_' + String(u.username).trim().toLowerCase();
-            }
+            const nick = localStorage.getItem('coinhub_nickname') || 'guest';
+            return 'user_' + String(nick).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
         } catch (e) {}
-        return null;
+        return 'user_guest';
     },
     
     getKey: function (key) {
         const uid = this.getCurrentUserId();
-        if (!uid) return null;
         return 'coinhub_' + uid + '_' + key;
     },
 
     getTrades: function () {
         const storageKey = this.getKey('trades');
-        if (!storageKey) return [];
         try {
-            const saved = localStorage.getItem(storageKey);
+            const saved = localStorage.getItem(storageKey) || localStorage.getItem('coinhub_analyzer_trades');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) return parsed;
@@ -37,12 +33,9 @@ const AnalyzerStorage = {
 
     saveTrades: function (trades) {
         const storageKey = this.getKey('trades');
-        if (!storageKey) {
-            console.warn('비로그인 상태에서는 거래 데이터를 저장할 수 없습니다.');
-            return;
-        }
         try {
             localStorage.setItem(storageKey, JSON.stringify(trades));
+            localStorage.setItem('coinhub_analyzer_trades', JSON.stringify(trades));
         } catch (e) {
             console.warn('로컬 저장소 용량 초과:', e);
         }
@@ -53,6 +46,7 @@ const AnalyzerStorage = {
         if (storageKey) {
             localStorage.removeItem(storageKey);
         }
+        localStorage.removeItem('coinhub_analyzer_trades');
     }
 };
 
@@ -260,38 +254,7 @@ const App = {
     },
 
         checkAuthStatus: function () {
-        const u = (function() { try { return JSON.parse(localStorage.getItem('coinhub_user')); } catch(e){ return null; } })();
-        const authGuard = document.getElementById('analyzer-auth-guard');
-        const mainContent = document.getElementById('analyzer-main-content');
-
-        if (!u || !u.username) {
-            if (authGuard) {
-                authGuard.classList.remove('hidden');
-                authGuard.classList.add('block');
-                authGuard.style.display = 'block';
-            }
-            if (mainContent) {
-                mainContent.classList.remove('block');
-                mainContent.classList.add('hidden');
-                mainContent.style.display = 'none';
-            }
-            this.state.rawTrades = [];
-            this.state.reportData = null;
-        } else {
-            if (authGuard) {
-                authGuard.classList.remove('block');
-                authGuard.classList.add('hidden');
-                authGuard.style.display = 'none';
-            }
-            if (mainContent) {
-                mainContent.classList.remove('hidden');
-                mainContent.classList.add('block');
-                mainContent.style.display = 'block';
-            }
-            this.loadSavedTrades();
-        }
         this.updateUserBanner();
-        if (typeof lucide !== 'undefined') lucide.createIcons();
     },
 
     initColumnDropdowns: function () {
