@@ -24,18 +24,36 @@ const AnalyzerStorage = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                    // 빗썸 입출금 데이터 자동 복구/보정
-                    return parsed.map(item => {
-                        if (item.id && item.id.startsWith('BITHUMB_')) {
+                    let needsResave = false;
+                    const healed = parsed.map(item => {
+                        const marketStr = String(item.market || '').toUpperCase();
+                        const idStr = String(item.id || '').toUpperCase();
+                        const isBithumbItem = idStr.startsWith('BITHUMB_') || 
+                                              idStr.includes('BITHUMB') || 
+                                              marketStr.includes('[') || 
+                                              marketStr.includes('(') || 
+                                              marketStr.includes('/KRW') ||
+                                              (item.coinSymbol && ['팝체인', '이오스닥', '소폰', '너보스', '아스타'].includes(item.coinSymbol));
+                        
+                        if (isBithumbItem && item.exchange !== 'BITHUMB') {
                             item.exchange = 'BITHUMB';
+                            needsResave = true;
                         }
-                        if (item.market === 'KRW' || item.coinSymbol === 'KRW' || (item.type && item.type.includes('원화'))) {
-                            if (item.id && (item.id.startsWith('BITHUMB_') || item.id.includes('bithumb'))) {
+                        if (item.coinSymbol === 'KRW' || item.market === 'KRW' || (item.type && item.type.includes('원화'))) {
+                            if (isBithumbItem || idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
                                 item.exchange = 'BITHUMB';
+                                needsResave = true;
                             }
                         }
                         return item;
                     });
+                    if (needsResave) {
+                        try {
+                            localStorage.setItem(storageKey, JSON.stringify(healed));
+                            localStorage.setItem('coinhub_analyzer_trades', JSON.stringify(healed));
+                        } catch (e) {}
+                    }
+                    return healed;
                 }
             }
         } catch (e) {

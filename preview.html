@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788096479379">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788096479379">
+  <link rel="stylesheet" href="styles.css?v=1788097014098">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788097014098">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -176,6 +176,139 @@
         <button type="button" onclick="closeLegalModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
           확인 및 닫기
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel Download 3-Second Quick Guide Modal -->
+  <div id="excel-guide-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden p-6 sm:p-7 relative max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-4 border-b border-navy-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
+            📌
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-white">업비트·빗썸 엑셀 다운로드 3초 가이드</h3>
+            <p class="text-xs text-slate-400">거래소 PC 웹에서 엑셀 파일을 다운로드하는 가장 빠른 방법</p>
+          </div>
+        </div>
+        <button onclick="closeExcelGuideModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <!-- Tabs for Exchanges -->
+        <div class="grid grid-cols-2 gap-2 p-1 bg-navy-950 rounded-2xl border border-navy-800 text-xs font-bold">
+          <button type="button" onclick="showExchangeGuide('upbit')" id="tab-guide-upbit" class="py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">
+            🔵 업비트 (Upbit) 다운로드
+          </button>
+          <button type="button" onclick="showExchangeGuide('bithumb')" id="tab-guide-bithumb" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white font-bold">
+            🟠 빗썸 (Bithumb) 다운로드
+          </button>
+        </div>
+
+        <!-- Upbit Guide Content -->
+        <div id="guide-content-upbit" class="space-y-3 text-xs" style="display: block;">
+          <div class="p-4 rounded-2xl bg-navy-950 border border-cyan-500/20 space-y-2.5">
+            <div class="font-bold text-cyan-400 text-sm flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i> 업비트 거래내역 다운로드 3단계:
+            </div>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300 leading-relaxed text-xs">
+              <li><strong><a href="https://upbit.com" target="_blank" class="text-cyan-400 underline font-semibold">업비트 PC 웹(upbit.com)</a></strong>에 로그인합니다.</li>
+              <li>상단 메뉴에서 <strong>[투자내역] ➡️ [거래내역]</strong> 탭을 클릭합니다.</li>
+              <li>기간을 <strong>[전체]</strong> 또는 분석할 기간으로 선택한 후, 우측 상단 <strong>[거래내역 다운로드 (Excel/CSV)]</strong> 버튼을 클릭합니다.</li>
+              <li>(선택) 코인/원화 입출금까지 분석하려면 <strong>[입출금]</strong> 탭의 내역 파일도 함께 다운로드하여 올리시면 됩니다.</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-[11px] text-cyan-200">
+            💡 <strong>Tip:</strong> 기간을 '전체'로 설정하시면 최초 매수 평단가부터 현재까지의 누적 실현손익이 가장 정밀하게 계산됩니다!
+          </div>
+        </div>
+
+        <!-- Bithumb Guide Content -->
+        <div id="guide-content-bithumb" class="space-y-3 text-xs" style="display: none;">
+          <div class="p-4 rounded-2xl bg-navy-950 border border-amber-500/20 space-y-2.5">
+            <div class="font-bold text-amber-400 text-sm flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i> 빗썸 거래내역 & 입출금 다운로드 3단계:
+            </div>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300 leading-relaxed text-xs">
+              <li><strong><a href="https://www.bithumb.com" target="_blank" class="text-amber-400 underline font-semibold">빗썸 PC 웹(bithumb.com)</a></strong>에 로그인합니다.</li>
+              <li>상단 메뉴에서 <strong>[자산현황] ➡️ [거래내역]</strong> 또는 <strong>[입출금]</strong>으로 이동합니다.</li>
+              <li>조회 구분을 <strong>[전체]</strong>로 설정하고, 우측 상단 <strong>[엑셀 다운로드]</strong>를 클릭합니다.</li>
+              <li>다운로드된 파일을 본 플랫폼에 드래그하거나 [파일 선택하기]로 올리시면 즉시 자동 분석됩니다.</li>
+            </ol>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-200">
+            💡 <strong>Tip:</strong> 빗썸의 거래내역 엑셀과 입출금 엑셀을 동시에 여러 개 드래그 앤 드롭하시면 통합 정산됩니다!
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-navy-800 flex justify-end">
+        <button type="button" onclick="closeExcelGuideModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
+          확인 / 닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Detail & AI Summary Modal -->
+  <div id="news-detail-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden p-6 sm:p-7 relative max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start pb-4 border-b border-navy-800">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span id="modal-news-category" class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 font-mono font-bold text-xs border border-cyan-500/20">MARKET</span>
+            <span id="modal-news-source" class="text-xs text-slate-400 font-medium">언론사</span>
+            <span id="modal-news-time" class="text-xs text-slate-500 font-mono">방금 전</span>
+          </div>
+          <h3 id="modal-news-title" class="font-extrabold text-lg sm:text-xl text-white leading-snug">속보 기사 제목</h3>
+        </div>
+        <button onclick="closeNewsDetailModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition shrink-0 ml-2">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <!-- AI 3-Point Summary Box -->
+        <div class="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2">
+          <div class="font-bold text-cyan-300 text-xs flex items-center gap-1.5">
+            <span>⚡</span> AI 3줄 핵심 요약 & 시장 영향 분석:
+          </div>
+          <ul id="modal-news-takeaways" class="list-disc list-inside space-y-1.5 text-slate-200 text-xs leading-relaxed">
+            <!-- Dynamic Takeaways -->
+          </ul>
+        </div>
+
+        <!-- Full Content / Description -->
+        <div id="modal-news-content" class="text-xs text-slate-300 leading-relaxed space-y-2.5 bg-navy-950 p-4 rounded-2xl border border-navy-800">
+          <!-- Dynamic Content -->
+        </div>
+
+        <!-- Related Tickers -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-400 mb-1.5">관련 종목 & 시세 동향:</div>
+          <div id="modal-news-tickers" class="flex flex-wrap gap-2">
+            <!-- Dynamic Tickers -->
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-navy-800 flex items-center justify-between gap-3">
+        <button type="button" onclick="copyNewsLink()" class="px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 border border-navy-800 font-bold text-xs transition flex items-center gap-1.5">
+          <i data-lucide="share-2" class="w-4 h-4"></i> 링크 복사
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeNewsDetailModal()" class="px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 font-bold text-xs transition">
+            닫기
+          </button>
+          <a id="modal-news-original-link" href="#" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-extrabold text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20">
+            <span>원문 기사 전문 보기</span>
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -2235,17 +2368,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788096479379"></script>
-  <script src="js/calculator.js?v=1788096479379"></script>
-  <script src="js/upbit-api.js?v=1788096479379"></script>
-  <script src="js/charts.js?v=1788096479379"></script>
-  <script src="js/exporter.js?v=1788096479379"></script>
-  <script src="js/sample-data.js?v=1788096479379"></script>
+  <script src="js/parser.js?v=1788097014098"></script>
+  <script src="js/calculator.js?v=1788097014098"></script>
+  <script src="js/upbit-api.js?v=1788097014098"></script>
+  <script src="js/charts.js?v=1788097014098"></script>
+  <script src="js/exporter.js?v=1788097014098"></script>
+  <script src="js/sample-data.js?v=1788097014098"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788096479379"></script>
+  <script src="js/analyzer-app.js?v=1788097014098"></script>
 
-  <script src="js/admin.js?v=1788096479379"></script>
-  <script src="js/preview-app.js?v=1788096479379"></script>
+  <script src="js/admin.js?v=1788097014098"></script>
+  <script src="js/preview-app.js?v=1788097014098"></script>
 
   </body>
   <script>
