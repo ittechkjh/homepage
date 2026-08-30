@@ -120,7 +120,8 @@ window.openExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
   if (modal) {
     modal.classList.remove('hidden');
-    modal.style.display = 'flex';
+    modal.style.setProperty('display', 'flex', 'important');
+    window.showExchangeGuide('upbit');
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 };
@@ -129,7 +130,7 @@ window.closeExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
   if (modal) {
     modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.style.setProperty('display', 'none', 'important');
   }
 };
 
@@ -1240,27 +1241,35 @@ function renderNews() {
 }
 
 function openNewsDetailModal(newsId) {
-  const item = NEWS_ITEMS.find(n => n.id === newsId) || NEWS_ROTATION_POOL.find(n => n.id === newsId);
+  const targetId = String(newsId);
+  const item = (NEWS_ITEMS || []).find(n => String(n.id) === targetId) || 
+               (NEWS_ROTATION_POOL || []).find(n => String(n.id) === targetId) ||
+               (INITIAL_NEWS_ITEMS || []).find(n => String(n.id) === targetId);
   if (!item) return;
 
   currentViewingNewsId = newsId;
 
-  document.getElementById('modal-news-category').innerText = item.categoryName || item.category;
-  document.getElementById('modal-news-source').innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-cyan-400 inline"></i> ${item.source} (${item.author || '특파원'})`;
-  document.getElementById('modal-news-time').innerText = item.time;
-  document.getElementById('modal-news-title').innerText = item.title;
+  const catEl = document.getElementById('modal-news-category');
+  const srcEl = document.getElementById('modal-news-source');
+  const timeEl = document.getElementById('modal-news-time');
+  const titleEl = document.getElementById('modal-news-title');
+
+  if (catEl) catEl.innerText = item.categoryName || item.category;
+  if (srcEl) srcEl.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-cyan-400 inline"></i> ' + (item.source || '암호화폐 뉴스') + ' (' + (item.author || '특파원') + ')';
+  if (timeEl) timeEl.innerText = item.time || '방금 전';
+  if (titleEl) titleEl.innerText = item.title || '';
 
   // Render takeaways
   const takeawaysList = document.getElementById('modal-news-takeaways');
   if (takeawaysList) {
-    const takeaways = item.takeaways && item.takeaways.length > 0 ? item.takeaways : [item.summary];
+    const takeaways = item.takeaways && item.takeaways.length > 0 ? item.takeaways : [item.summary || item.title];
     takeawaysList.innerHTML = takeaways.map(t => `<li>${escapeHtml(t)}</li>`).join('');
   }
 
   // Render full body
   const contentEl = document.getElementById('modal-news-content');
   if (contentEl) {
-    const paragraphs = (item.content || item.summary).split('\n\n');
+    const paragraphs = (item.content || item.summary || item.title).split('\n\n');
     contentEl.innerHTML = paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
   }
 
@@ -1289,14 +1298,25 @@ function openNewsDetailModal(newsId) {
     linkEl.setAttribute('rel', 'noopener noreferrer');
   }
 
-  document.getElementById('news-detail-modal').classList.remove('hidden');
-  lucide.createIcons();
+  const modal = document.getElementById('news-detail-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function closeNewsDetailModal() {
-  document.getElementById('news-detail-modal').classList.add('hidden');
+  const modal = document.getElementById('news-detail-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
   currentViewingNewsId = null;
 }
+
+window.openNewsDetailModal = openNewsDetailModal;
+window.closeNewsDetailModal = closeNewsDetailModal;
 
 function copyNewsLink() {
   const url = window.location.href;

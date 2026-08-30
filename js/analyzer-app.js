@@ -23,7 +23,20 @@ const AnalyzerStorage = {
             const saved = localStorage.getItem(storageKey) || localStorage.getItem('coinhub_analyzer_trades');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed)) {
+                    // 빗썸 입출금 데이터 자동 복구/보정
+                    return parsed.map(item => {
+                        if (item.id && item.id.startsWith('BITHUMB_')) {
+                            item.exchange = 'BITHUMB';
+                        }
+                        if (item.market === 'KRW' || item.coinSymbol === 'KRW' || (item.type && item.type.includes('원화'))) {
+                            if (item.id && (item.id.startsWith('BITHUMB_') || item.id.includes('bithumb'))) {
+                                item.exchange = 'BITHUMB';
+                            }
+                        }
+                        return item;
+                    });
+                }
             }
         } catch (e) {
             console.error('거래 내역 로드 실패:', e);
