@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788097520319">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788097520319">
+  <link rel="stylesheet" href="styles.css?v=1788101550706">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788101550706">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -2356,70 +2356,6 @@
     </div>
 
     <!-- Application Script Modules -->
-    
-
-  
-  
-        <button onclick="closeExcelGuideModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="mt-4 space-y-4">
-        <!-- Tabs for Exchanges -->
-        <div class="grid grid-cols-2 gap-2 p-1 bg-navy-950 rounded-2xl border border-navy-800 text-xs font-bold">
-          <button type="button" onclick="showExchangeGuide('upbit')" id="tab-guide-upbit" class="py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-            🔵 업비트 (Upbit) 다운로드
-          </button>
-          <button type="button" onclick="showExchangeGuide('bithumb')" id="tab-guide-bithumb" class="py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white">
-            🟠 빗썸 (Bithumb) 다운로드
-          </button>
-        </div>
-
-        <!-- Upbit Guide Content -->
-        <div id="guide-content-upbit" class="space-y-3 text-xs">
-          <div class="p-3.5 rounded-2xl bg-navy-950 border border-cyan-500/20 space-y-2">
-            <div class="font-bold text-cyan-400 text-sm flex items-center gap-1.5">
-              <i data-lucide="check-circle-2" class="w-4 h-4"></i> 업비트 거래내역 다운로드 3단계:
-            </div>
-            <ol class="list-decimal list-inside space-y-2 text-slate-300 leading-relaxed text-xs">
-              <li><strong><a href="https://upbit.com" target="_blank" class="text-cyan-400 underline font-semibold">업비트 PC 웹(upbit.com)</a></strong>에 로그인합니다.</li>
-              <li>상단 메뉴에서 <strong>[투자내역] ➡️ [거래내역]</strong> 탭을 클릭합니다.</li>
-              <li>기간을 <strong>[전체]</strong> 또는 분석할 기간으로 선택한 후, 우측 상단 <strong>[거래내역 다운로드 (Excel/CSV)]</strong> 버튼을 클릭합니다.</li>
-              <li>(선택) 코인/원화 입출금까지 분석하려면 <strong>[입출금]</strong> 탭의 내역 파일도 함께 다운로드하여 올리시면 됩니다.</li>
-            </ol>
-          </div>
-          <div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-[11px] text-cyan-200">
-            💡 <strong>Tip:</strong> 기간을 '전체'로 설정하시면 최초 매수 평단가부터 현재까지의 누적 실현손익이 가장 정밀하게 계산됩니다!
-          </div>
-        </div>
-
-        <!-- Bithumb Guide Content -->
-        <div id="guide-content-bithumb" class="space-y-3 text-xs hidden">
-          <div class="p-3.5 rounded-2xl bg-navy-950 border border-amber-500/20 space-y-2">
-            <div class="font-bold text-amber-400 text-sm flex items-center gap-1.5">
-              <i data-lucide="check-circle-2" class="w-4 h-4"></i> 빗썸 거래내역 다운로드 3단계:
-            </div>
-            <ol class="list-decimal list-inside space-y-2 text-slate-300 leading-relaxed text-xs">
-              <li><strong><a href="https://bithumb.com" target="_blank" class="text-amber-400 underline font-semibold">빗썸 PC 웹(bithumb.com)</a></strong>에 로그인합니다.</li>
-              <li>상단 메뉴에서 <strong>[자산현황] ➡️ [거래내역]</strong> 탭을 클릭합니다.</li>
-              <li>조회 기간을 설정한 후 <strong>[Excel 다운로드]</strong> 버튼을 클릭하여 파일을 받습니다.</li>
-            </ol>
-          </div>
-          <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-200">
-            💡 <strong>Tip:</strong> 업비트 파일과 빗썸 파일을 동시에 드래그 앤 드롭하면 <strong>두 거래소 통합 포트폴리오</strong>가 한 화면에 자동 합산됩니다!
-          </div>
-        </div>
-
-        <div class="pt-2 flex justify-end">
-          <button type="button" onclick="closeExcelGuideModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition">
-            확인 및 분석기 시작
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 
   <!-- SheetJS Excel Library -->
   <script src="lib/xlsx.full.min.js"></script>
@@ -2429,17 +2365,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788097520319"></script>
-  <script src="js/calculator.js?v=1788097520319"></script>
-  <script src="js/upbit-api.js?v=1788097520319"></script>
-  <script src="js/charts.js?v=1788097520319"></script>
-  <script src="js/exporter.js?v=1788097520319"></script>
-  <script src="js/sample-data.js?v=1788097520319"></script>
+  <script src="js/parser.js?v=1788101550706"></script>
+  <script src="js/calculator.js?v=1788101550706"></script>
+  <script src="js/upbit-api.js?v=1788101550706"></script>
+  <script src="js/charts.js?v=1788101550706"></script>
+  <script src="js/exporter.js?v=1788101550706"></script>
+  <script src="js/sample-data.js?v=1788101550706"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788097520319"></script>
+  <script src="js/analyzer-app.js?v=1788101550706"></script>
 
-  <script src="js/admin.js?v=1788097520319"></script>
-  <script src="app.js?v=1788097520319"></script>
+  <script src="js/admin.js?v=1788101550706"></script>
+  <script src="app.js?v=1788101550706"></script>
 
   </body>
   <script>
