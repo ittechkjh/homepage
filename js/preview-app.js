@@ -1,31 +1,99 @@
 
+
 // ====================================================
-// Community Post Image Attachment Handlers
+// Community Post Image Attachment & 5MB Auto-Compressor
 // ====================================================
 let currentPostImageData = null;
 
-function handlePostImageSelect(e) {
+function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
+
+    // Strict 5MB Max File Size Guard
+    if (file.size > 5 * 1024 * 1024) {
+      alert('선택하신 이미지 용량(' + (file.size / (1024 * 1024)).toFixed(1) + 'MB)이 최대 제한(5MB)을 초과합니다. 5MB 이하의 사진을 선택해 주세요.');
+      return resolve(null);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate scaled dimensions
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress to high-efficiency JPEG dataURL
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const origSizeKb = (file.size / 1024).toFixed(0);
+        const compSizeKb = (compressedDataUrl.length * 0.75 / 1024).toFixed(0);
+        console.log('[Image Compressor] ' + origSizeKb + 'KB -> ' + compSizeKb + 'KB (' + width + 'x' + height + ')');
+
+        resolve({
+          dataUrl: compressedDataUrl,
+          origSizeKb: origSizeKb,
+          compSizeKb: compSizeKb,
+          width: width,
+          height: height
+        });
+      };
+      img.onerror = () => reject(new Error('이미지 파일 로드에 실패했습니다.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handlePostImageSelect(e) {
   const file = e.target.files ? e.target.files[0] : null;
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert('이미지 파일 크기는 최대 5MB까지 첨부 가능합니다.');
-    return;
-  }
+  const previewBox = document.getElementById('post-image-preview-container');
+  const previewImg = document.getElementById('post-image-preview');
+  const uploadBox = document.getElementById('post-image-upload-box');
+  const compressInfo = document.getElementById('post-image-compress-info');
 
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentPostImageData = evt.target.result;
-    const previewBox = document.getElementById('post-image-preview-container');
-    const previewImg = document.getElementById('post-image-preview');
-    const uploadBox = document.getElementById('post-image-upload-box');
-    
+  try {
+    const result = await compressImageFile(file);
+    if (!result) {
+      removePostImage();
+      return;
+    }
+
+    currentPostImageData = result.dataUrl;
+
     if (previewImg) previewImg.src = currentPostImageData;
+    if (compressInfo) {
+      compressInfo.innerHTML = '<span class="text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-emerald-400"></i> 자동 최적화 완료: ' + result.origSizeKb + 'KB ➡️ ' + result.compSizeKb + 'KB (용량 초과 방지)</span>';
+    }
     if (previewBox) previewBox.classList.remove('hidden');
     if (uploadBox) uploadBox.classList.add('hidden');
     if (typeof lucide !== 'undefined') lucide.createIcons();
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('Image compression error:', err);
+    alert('이미지 압축 처리 중 오류가 발생했습니다: ' + err.message);
+  }
 }
 
 function removePostImage(e) {

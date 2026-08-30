@@ -59,8 +59,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788056260598">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788056260598">
+  <link rel="stylesheet" href="styles.css?v=1788056411265">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788056411265">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -1592,13 +1592,17 @@
           </div>
 
           <!-- Preview Box -->
-          <div id="post-image-preview-container" class="hidden relative mt-2 rounded-2xl overflow-hidden border border-cyan-500/40 bg-navy-950 p-2 max-h-60 flex items-center justify-center">
-            <img id="post-image-preview" src="" alt="Preview" class="max-h-56 max-w-full rounded-xl object-contain">
-            <button type="button" onclick="removePostImage(event)" class="absolute top-3 right-3 p-1.5 rounded-xl bg-navy-950/90 hover:bg-rose-600 text-slate-300 hover:text-white border border-navy-700 transition shadow-lg flex items-center gap-1 text-xs font-semibold" title="사진 삭제">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
-            </button>
+          <div id="post-image-preview-container" class="hidden mt-2 rounded-2xl border border-cyan-500/40 bg-navy-950 p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <div id="post-image-compress-info" class="text-xs"></div>
+              <button type="button" onclick="removePostImage(event)" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 transition shadow text-[11px] font-bold flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3 h-3"></i> 사진 삭제
+              </button>
+            </div>
+            <div class="max-h-60 overflow-hidden flex items-center justify-center bg-navy-900 rounded-xl p-1">
+              <img id="post-image-preview" src="" alt="Preview" class="max-h-56 max-w-full rounded-lg object-contain">
+            </div>
           </div>
-        </div>
 
 
         <div class="flex justify-end gap-2 pt-2">
@@ -1647,16 +1651,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788056260598"></script>
-  <script src="js/calculator.js?v=1788056260598"></script>
-  <script src="js/upbit-api.js?v=1788056260598"></script>
-  <script src="js/charts.js?v=1788056260598"></script>
-  <script src="js/exporter.js?v=1788056260598"></script>
-  <script src="js/sample-data.js?v=1788056260598"></script>
-  <script src="js/analyzer-app.js?v=1788056260598"></script>
+  <script src="js/parser.js?v=1788056411265"></script>
+  <script src="js/calculator.js?v=1788056411265"></script>
+  <script src="js/upbit-api.js?v=1788056411265"></script>
+  <script src="js/charts.js?v=1788056411265"></script>
+  <script src="js/exporter.js?v=1788056411265"></script>
+  <script src="js/sample-data.js?v=1788056411265"></script>
+  <script src="js/analyzer-app.js?v=1788056411265"></script>
 
-  <script src="js/admin.js?v=1788056260598"></script>
-  <script src="app.js?v=1788056260598"></script>
+  <script src="js/admin.js?v=1788056411265"></script>
+  <script src="app.js?v=1788056411265"></script>
 
   <!-- Excel Download 3-Second Quick Guide Modal -->
   <div id="excel-guide-modal" class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
