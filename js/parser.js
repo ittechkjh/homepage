@@ -20,23 +20,24 @@ function getUpbitAPI() {
 
 const UpbitParser = {
     // 통합 컬럼 동의어 매핑 사전
-    columnAliases: {
+        columnAliases: {
         time: [
             '완료일시', '완료시간', '체결일시', '체결시간', '거래일시', '거래시간', 
             '처리일시', '처리시간', '주문일시', '주문시간', '신청일시', '신청시간', 
-            '일시', '날짜', '시간', 'trade_time', 'time', 'created_at', 'Date', 'Time', 'DateTime', '일자'
+            '일시', '날짜', '시간', 'trade_time', 'time', 'created_at', 'Date', 'Time', 'DateTime', '일자', '요청일시', '승인일시'
         ],
         market: [
-            '마켓', '마켓코드', '가상자산', '가상자산명', '종목', '종목명', '코인', '코인명', '화폐', '화폐명', '자산', '자산명',
-            'market', 'currency', 'coin', 'symbol', '마켓명', 'Asset', 'Coin'
+            '마켓', '마켓코드', '가상자산', '가상자산명', '종목', '종목명', '코인', '코인명', '화폐', '화폐명', '자산', '자산구분', '자산명',
+            'market', 'currency', 'coin', 'symbol', '마켓명', 'Asset', 'Coin', '통화', '통화명', '화폐구분'
         ],
         type: [
             '종류', '구분', '거래종류', '거래구분', '주문종류', '주문구분', 'side', 'type', '매수/매도', 
-            '입출금구분', '입출구분', '입출금', 'Type', 'Side', '거래타입', '유형', '거래유형'
+            '입출금구분', '입출구분', '입출금', 'Type', 'Side', '거래타입', '유형', '거래유형',
+            '입출금종류', '이동구분', '변동구분', '입출금타입', '입출금유형'
         ],
         quantity: [
             '완료수량', '실입출금수량', '체결수량', '거래수량', '수량', 'volume', 'units', 'qty', 
-            'amount_volume', '체결량', '입출금수량', '수량(Units)', 'Units', 'Quantity', '신청수량', '처리수량', '주문수량'
+            'amount_volume', '체결량', '입출금수량', '수량(Units)', 'Units', 'Quantity', '신청수량', '처리수량', '주문수량', '변동수량', '수량(금액)'
         ],
         price: [
             '거래단가', '체결단가', '단가', '체결가격', '가격', 'price', 'unit_price', '주문단가', 
@@ -44,17 +45,17 @@ const UpbitParser = {
         ],
         amount: [
             '거래금액', '체결금액', '총액', '금액', '거래금액(KRW)', 'total', 'funds', 'amount', 
-            '주문금액', '입출금금액', '총액(Total)', 'Total', '처리금액', '신청금액', '원화금액'
+            '주문금액', '입출금금액', '총액(Total)', 'Total', '처리금액', '신청금액', '원화금액', '입금액', '출금액', '입출금액', '실입금액', '실출금액', '완료금액'
         ],
         fee: [
-            '수수료', '거래수수료', '수수료(KRW)', 'fee', 'fees', 'commission', '출금수수료', 'Fee', '이용료'
+            '수수료', '거래수수료', '수수료(KRW)', 'fee', 'fees', 'commission', '출금수수료', 'Fee', '이용료', '취급수수료'
         ],
         settlement: [
             '정산금액', '정산금액(KRW)', '정산금액 (KRW)', 'settlement', 'settlement_amount', 
-            '실정산금액', '총 거래금액', '실입출금액', '실수령액'
+            '실정산금액', '총 거래금액', '실입출금액', '실수령액', '실입금액', '실출금액', '최종정산금액'
         ],
         status: [
-            '상태', '진행상태', '처리상태', 'status', 'Status', '상태구분'
+            '상태', '진행상태', '처리상태', 'status', 'Status', '상태구분', '결과', '처리결과'
         ]
     },
 
@@ -235,7 +236,7 @@ const UpbitParser = {
             if (!row || !Array.isArray(row) || row.length === 0) continue;
             if (i === bestHeaderRowIndex) continue;
 
-            const item = this.normalizeRow(row, mappingToUse, i + 1, detectedExchange);
+            const item = this.normalizeRow(row, mappingToUse, i + 1, detectedExchange, fileName);
             if (item) {
                 parsedItems.push(item);
             }
@@ -437,7 +438,7 @@ const UpbitParser = {
         return mapping;
     },
 
-    normalizeRow: function (row, mapping, rowNum, defaultExchange) {
+    normalizeRow: function (row, mapping, rowNum, defaultExchange, fileName = '') {
         const hasAnyContent = row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
         if (!hasAnyContent) return null;
 
@@ -523,9 +524,9 @@ const UpbitParser = {
             }
         }
 
-        const parsedTypeInfo = this.normalizeType(rawType, rawMarket);
-        const type = parsedTypeInfo ? parsedTypeInfo.type : '매수';
-        const category = parsedTypeInfo ? parsedTypeInfo.category : 'trade';
+        const parsedTypeInfo = this.normalizeType(rawType, rawMarket, fileName);
+        let type = parsedTypeInfo ? parsedTypeInfo.type : '매수';
+        let category = parsedTypeInfo ? parsedTypeInfo.category : 'trade';
 
         let exchange = defaultExchange;
         const rawMarketUpper = (rawMarket || '').toUpperCase();
@@ -565,7 +566,11 @@ const UpbitParser = {
         if (!rawMarket && (type === '원화입금' || type === '원화출금')) {
             rawMarket = 'KRW';
         }
-        const market = this.normalizeMarket(rawMarket);
+        let market = this.normalizeMarket(rawMarket);
+        let coinSymbol = 'KRW';
+        if (market !== 'KRW' && market !== 'KRW-KRW') {
+            coinSymbol = market.includes('-') ? market.split('-')[1] : market;
+        }
 
         let quantity = this.parseNumber(getVal('quantity'));
         let price = this.parseNumber(getVal('price'));
@@ -602,7 +607,11 @@ const UpbitParser = {
 
         // 입출금 및 매매 금액/수량 보정
         if (category === 'transfer') {
-            if (type === '원화입금' || type === '원화출금') {
+            const isKrw = (type === '원화입금' || type === '원화출금' || rawMarket === 'KRW' || rawMarket === '원화' || coinSymbol === 'KRW');
+            if (isKrw) {
+                type = type.includes('출금') ? '원화출금' : '원화입금';
+                market = 'KRW';
+                coinSymbol = 'KRW';
                 if (amount === 0 && quantity > 0) amount = quantity;
                 if (quantity === 0 && amount > 0) quantity = amount;
                 price = 1;
@@ -633,11 +642,6 @@ const UpbitParser = {
             timestamp = '-';
         }
 
-        let coinSymbol = 'KRW';
-        if (market !== 'KRW' && market !== 'KRW-KRW') {
-            coinSymbol = market.includes('-') ? market.split('-')[1] : market;
-        }
-
         return {
             id: `${exchange}_${timestamp}_${market}_${type}_${quantity}_${price}_${amount}_${rowNum}`,
             exchange: exchange,
@@ -656,10 +660,18 @@ const UpbitParser = {
         };
     },
 
-    normalizeType: function (str, marketStr = '') {
-        if (!str) return null;
+        normalizeType: function (str, marketStr = '', fileName = '') {
+        if (!str) {
+            const mLower = (marketStr || '').trim().toLowerCase();
+            const fnLower = (fileName || '').trim().toLowerCase();
+            if (mLower === 'krw' || mLower === '원화' || fnLower.includes('입출금') || fnLower.includes('원화')) {
+                return { type: '원화입금', category: 'transfer' };
+            }
+            return null;
+        }
         const s = str.trim().toLowerCase().replace(/\s+/g, '');
         const m = (marketStr || '').trim().toLowerCase();
+        const fn = (fileName || '').trim().toLowerCase();
 
         // 1. 스테이킹
         if (s.includes('스테이킹보상') || s.includes('보상') || s.includes('이자') || s.includes('리워드') || s.includes('reward')) {
@@ -681,7 +693,9 @@ const UpbitParser = {
         }
 
         // 3. 입출금
-        const isKrwAsset = m === 'krw' || m === '원화' || m.includes('원화') || m === '대한민국원' || m === 'krw-krw' || s.includes('원화') || s.includes('krw');
+        const isKrwAsset = m === 'krw' || m === '원화' || m.includes('원화') || m === '대한민국원' || m === 'krw-krw' || 
+                           s.includes('원화') || s.includes('krw') || s.includes('충전') || s.includes('환급') || s.includes('계좌') ||
+                           fn.includes('원화') || fn.includes('krw');
 
         if (s.includes('코인입금') || s.includes('외부입금') || s.includes('디지털자산입금') || s.includes('가상자산입금') || s.includes('에어드랍') || s.includes('지급')) {
             return { type: '코인입금', category: 'transfer' };
@@ -690,17 +704,17 @@ const UpbitParser = {
             return { type: '코인출금', category: 'transfer' };
         }
 
-        if (s.includes('입금') || s.includes('deposit')) {
+        if (s.includes('입금') || s.includes('deposit') || s.includes('충전')) {
             return isKrwAsset ? { type: '원화입금', category: 'transfer' } : { type: '코인입금', category: 'transfer' };
         }
-        if (s.includes('출금') || s.includes('withdraw')) {
+        if (s.includes('출금') || s.includes('withdraw') || s.includes('환급')) {
             return isKrwAsset ? { type: '원화출금', category: 'transfer' } : { type: '코인출금', category: 'transfer' };
         }
 
         return { type: '매수', category: 'trade' };
     },
 
-        normalizeMarket: function (str) {
+    normalizeMarket: function (str) {
         if (!str) return 'KRW';
         let s = String(str).trim();
         
