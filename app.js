@@ -1,42 +1,39 @@
 
 
 // ====================================================
-// Global Window Event Handlers (AdSense Compliance & Modals)
+// Legal Policy & Terms Modal Handlers (AdSense Compliance)
 // ====================================================
-window.openLegalModal = function(tab = 'privacy') {
-  const modal = document.getElementById('legal-modal');
+function openLegalModal(tab) {
+  tab = tab || 'privacy';
+  var modal = document.getElementById('legal-modal');
   if (modal) {
-    modal.classList.remove('hidden');
     modal.style.display = 'flex';
-    window.switchLegalTab(tab);
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    switchLegalTab(tab);
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
   }
-};
+}
+window.openLegalModal = openLegalModal;
 
-window.closeLegalModal = function() {
-  const modal = document.getElementById('legal-modal');
+function closeLegalModal() {
+  var modal = document.getElementById('legal-modal');
   if (modal) {
-    modal.classList.add('hidden');
     modal.style.display = 'none';
   }
-};
+}
+window.closeLegalModal = closeLegalModal;
 
-window.switchLegalTab = function(tab) {
-  const privacyContent = document.getElementById('legal-content-privacy');
-  const termsContent = document.getElementById('legal-content-terms');
-  const tabPrivacy = document.getElementById('tab-legal-privacy');
-  const tabTerms = document.getElementById('tab-legal-terms');
-  const titleText = document.getElementById('legal-modal-title');
+function switchLegalTab(tab) {
+  var privacyContent = document.getElementById('legal-content-privacy');
+  var termsContent = document.getElementById('legal-content-terms');
+  var tabPrivacy = document.getElementById('tab-legal-privacy');
+  var tabTerms = document.getElementById('tab-legal-terms');
+  var titleText = document.getElementById('legal-modal-title');
 
   if (tab === 'privacy') {
-    if (privacyContent) {
-      privacyContent.classList.remove('hidden');
-      privacyContent.style.display = 'block';
-    }
-    if (termsContent) {
-      termsContent.classList.add('hidden');
-      termsContent.style.display = 'none';
-    }
+    if (privacyContent) privacyContent.style.display = 'block';
+    if (termsContent) termsContent.style.display = 'none';
     if (tabPrivacy) {
       tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     }
@@ -45,14 +42,8 @@ window.switchLegalTab = function(tab) {
     }
     if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
   } else {
-    if (privacyContent) {
-      privacyContent.classList.add('hidden');
-      privacyContent.style.display = 'none';
-    }
-    if (termsContent) {
-      termsContent.classList.remove('hidden');
-      termsContent.style.display = 'block';
-    }
+    if (privacyContent) privacyContent.style.display = 'none';
+    if (termsContent) termsContent.style.display = 'block';
     if (tabTerms) {
       tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
     }
@@ -61,8 +52,11 @@ window.switchLegalTab = function(tab) {
     }
     if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
   }
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-};
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
+}
+window.switchLegalTab = switchLegalTab;
 
 window.openExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
