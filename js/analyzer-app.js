@@ -254,6 +254,16 @@ const App = {
     },
 
         checkAuthStatus: function () {
+        const mainContent = document.getElementById('analyzer-main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+            mainContent.classList.remove('hidden');
+        }
+        const authGuard = document.getElementById('analyzer-auth-guard');
+        if (authGuard) {
+            authGuard.style.display = 'none';
+            authGuard.classList.add('hidden');
+        }
         this.updateUserBanner();
     },
 

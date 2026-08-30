@@ -58,8 +58,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788053867057">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788053867057">
+  <link rel="stylesheet" href="styles.css?v=1788055330913">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788055330913">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -552,33 +552,8 @@
     <!-- ============================================== -->
     <section id="tab-analyzer" class="tab-content block space-y-6">
 
-      <!-- AUTH GUARD: 비로그인 시 노출되는 잠금 안내 화면 -->
-      <div id="analyzer-auth-guard" class="analyzer-card p-10 text-center bg-gradient-to-b from-navy-900 to-navy-950 border border-cyan-500/30 rounded-2xl max-w-2xl mx-auto my-12 shadow-2xl space-y-5">
-        <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-3xl mx-auto">
-          <i data-lucide="lock" class="w-8 h-8"></i>
-        </div>
-        <div class="space-y-2">
-          <h2 class="text-2xl font-bold text-white tracking-tight">🔒 로그인 회원 전용 분석 서비스</h2>
-          <p class="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-            거래내역 분석기는 사용자의 소중한 개인 금융 및 투자 데이터 보안을 위해 <strong>100% 회원별 독립 격리 로컬 저장소</strong>로 보호됩니다.
-          </p>
-        </div>
-        <div class="p-4 rounded-xl bg-navy-950/80 border border-navy-800 text-xs text-slate-300 max-w-md mx-auto text-left space-y-1.5">
-          <div class="flex items-center gap-2 text-cyan-400 font-bold">
-            <i data-lucide="shield-check" class="w-4 h-4"></i> 개인정보 & 엑셀 데이터 보호
-          </div>
-          <div>• 업로드하신 엑셀 데이터는 서버로 전송되지 않고 오직 본인 브라우저에만 안전하게 저장됩니다.</div>
-          <div>• 다른 사용자와 데이터가 절대 공유되거나 섞이지 않습니다.</div>
-        </div>
-        <div>
-          <button onclick="openAuthModal('login')" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-cyan-500/25 transition transform hover:scale-105 inline-flex items-center gap-2">
-            <i data-lucide="log-in" class="w-4 h-4"></i> 로그인 / 회원가입하고 분석기 시작하기
-          </button>
-        </div>
-      </div>
-
       <!-- MAIN ANALYZER DASHBOARD: 로그인 회원 전용 대시보드 -->
-      <div id="analyzer-main-content" style="display: none;">
+      <div id="analyzer-main-content" class="space-y-6 block">
         
         <!-- User Privacy Status Top Banner -->
         <!-- HERO SECTION & PRIVACY TRUST SHIELD (CoinHub 2.0 Killer Feature) -->
@@ -1630,16 +1605,16 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788053867057"></script>
-  <script src="js/calculator.js?v=1788053867057"></script>
-  <script src="js/upbit-api.js?v=1788053867057"></script>
-  <script src="js/charts.js?v=1788053867057"></script>
-  <script src="js/exporter.js?v=1788053867057"></script>
-  <script src="js/sample-data.js?v=1788053867057"></script>
-  <script src="js/analyzer-app.js?v=1788053867057"></script>
+  <script src="js/parser.js?v=1788055330913"></script>
+  <script src="js/calculator.js?v=1788055330913"></script>
+  <script src="js/upbit-api.js?v=1788055330913"></script>
+  <script src="js/charts.js?v=1788055330913"></script>
+  <script src="js/exporter.js?v=1788055330913"></script>
+  <script src="js/sample-data.js?v=1788055330913"></script>
+  <script src="js/analyzer-app.js?v=1788055330913"></script>
 
-  <script src="js/admin.js?v=1788053867057"></script>
-  <script src="js/preview-app.js?v=1788053867057"></script>
+  <script src="js/admin.js?v=1788055330913"></script>
+  <script src="js/preview-app.js?v=1788055330913"></script>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
