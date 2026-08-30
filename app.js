@@ -1,5 +1,50 @@
 
 // ====================================================
+// Excel Download Guide Modal Handlers
+// ====================================================
+function openExcelGuideModal() {
+  const modal = document.getElementById('excel-guide-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+
+function closeExcelGuideModal() {
+  const modal = document.getElementById('excel-guide-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function showExchangeGuide(exchange) {
+  const upbitContent = document.getElementById('guide-content-upbit');
+  const bithumbContent = document.getElementById('guide-content-bithumb');
+  const tabUpbit = document.getElementById('tab-guide-upbit');
+  const tabBithumb = document.getElementById('tab-guide-bithumb');
+
+  if (exchange === 'upbit') {
+    if (upbitContent) upbitContent.classList.remove('hidden');
+    if (bithumbContent) bithumbContent.classList.add('hidden');
+    if (tabUpbit) {
+      tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+    }
+    if (tabBithumb) {
+      tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
+    }
+  } else {
+    if (upbitContent) upbitContent.classList.add('hidden');
+    if (bithumbContent) bithumbContent.classList.remove('hidden');
+    if (tabBithumb) {
+      tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
+    }
+    if (tabUpbit) {
+      tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
+    }
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+
+// ====================================================
 // Guest Nickname & Admin Access Management
 // ====================================================
 function getNickname() {
@@ -349,9 +394,35 @@ async function fetchMarketData() {
   const refreshIcon = document.getElementById('refresh-icon');
   if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
+  // Immediately render fallback to eliminate any blank loading state
+  renderMarketUI();
+
   try {
+    // 1. First fetch high-speed Upbit Ticker for instant zero-latency KRW/USD updates
+    try {
+      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
+      const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
+      if (upbitRes.ok) {
+        const upbitData = await upbitRes.json();
+        const usdRate = 1380; // approximate KRW/USD exchange rate
+        upbitData.forEach(item => {
+          const sym = item.market.replace('KRW-', '').toLowerCase();
+          const target = marketCoins.find(c => c.symbol.toLowerCase() === sym);
+          if (target) {
+            target.current_price = Number((item.trade_price / usdRate).toFixed(2));
+            target.price_change_percentage_24h = Number((item.signed_change_rate * 100).toFixed(2));
+            target.total_volume = Number((item.acc_trade_price_24h / usdRate).toFixed(0));
+          }
+        });
+        renderMarketUI();
+      }
+    } catch (e) {
+      console.warn('Upbit ticker fetch skipped:', e);
+    }
+
+    // 2. Secondary fetch CoinGecko with 3s timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const response = await fetch(
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h',
@@ -359,16 +430,17 @@ async function fetchMarketData() {
     );
     clearTimeout(timeoutId);
 
-    if (!response.ok) throw new Error('API Rate Limit or Network Error');
-    const data = await response.json();
-    if (Array.isArray(data) && data.length > 0) {
-      marketCoins = data;
-    } else {
-      marketCoins = DEFAULT_COINS;
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        marketCoins = data;
+      }
     }
   } catch (err) {
-    console.warn('Using instant fallback crypto market data:', err);
-    marketCoins = DEFAULT_COINS;
+    console.warn('CoinGecko fetch fallback active (using instant cached data):', err);
+    if (!marketCoins || marketCoins.length === 0) {
+      marketCoins = DEFAULT_COINS;
+    }
   } finally {
     if (refreshIcon) refreshIcon.classList.remove('animate-spin');
     renderMarketUI();

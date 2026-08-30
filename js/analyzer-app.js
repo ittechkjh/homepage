@@ -608,12 +608,7 @@ const App = {
     },
 
     loadSampleData: async function (type = 'ALL') {
-        if (!AnalyzerStorage.getCurrentUserId()) {
-            openAuthModal('login');
-            return;
-        }
-
-        this.showLoading(true, '샘플 데이터 로딩 중...');
+        this.showLoading(true, '샘플 데이터 로딩 및 손익 계산 중...');
         try {
             let sampleRows = [];
             if (type === 'UPBIT') {
@@ -634,11 +629,18 @@ const App = {
             this.recalculate();
             await this.fetchLiveTickers(false);
 
-            this.showToast((type === 'ALL' ? '업비트+빗썸 통합' : (type === 'UPBIT' ? '업비트' : '빗썸')) + ' 샘플 데이터가 로드되었습니다.', 'success');
+            const typeLabel = (type === 'ALL' ? '업비트+빗썸 통합' : (type === 'UPBIT' ? '업비트 전용' : '빗썸 전용'));
+            this.showToast('🎉 [' + typeLabel + '] 샘플 데이터 ' + items.length + '건이 로드되었습니다!', 'success');
+            
+            // Switch to dashboard and scroll smoothly
             this.switchSubTab('dashboard');
+            setTimeout(() => {
+                const target = document.getElementById('reportDashboard');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         } catch (err) {
             console.error('샘플 데이터 로드 실패:', err);
-            this.showToast('샘플 데이터 로드 중 오류가 발생했습니다.', 'error');
+            this.showToast('샘플 데이터 로드 중 오류가 발생했습니다: ' + err.message, 'error');
         } finally {
             this.showLoading(false);
         }
