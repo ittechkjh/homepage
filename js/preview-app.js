@@ -345,7 +345,7 @@ function updatePageSEO(tabId) {
 
 // Update switchTab to support URL Hash & Dynamic SEO
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'admin'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   tabs.forEach(t => {
@@ -397,6 +397,10 @@ function switchTab(tabId, updateHash = true) {
   }
 
   // Initialize analyzer when user switches to analyzer tab
+  if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
+    CoinCalculators.switchSubTab(CoinCalculators.activeSubTab || 'water');
+  }
+
   if (tabId === 'analyzer' && typeof App !== 'undefined') {
     if (!App._initialized) {
       App.init();

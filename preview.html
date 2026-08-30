@@ -60,8 +60,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788083694505">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788083694505">
+  <link rel="stylesheet" href="styles.css?v=1788083927557">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788083927557">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
   <!-- Top Live Price Ticker Bar -->
@@ -119,6 +119,7 @@
           <span>손익 분석기</span>
           <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
+        <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i> 계산기 5종</button>
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="newspaper" class="w-4 h-4"></i> 속보
         </button>
@@ -599,6 +600,12 @@
 
             <div class="pt-2 flex items-center justify-center gap-2 text-xs flex-wrap">
               <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
+              <button type="button" onclick="CoinCalculators.importProfitCardFromAnalyzer()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-950/50 text-cyan-300 hover:text-cyan-200 border border-navy-800 hover:border-cyan-500/40 transition flex items-center gap-1.5 font-bold" title="수익률 인증 카드 만들기">
+                <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> 수익 카드 생성
+              </button>
+              <button type="button" onclick="CoinCalculators.importFromAnalyzer(); switchTab('calculators'); CoinCalculators.switchSubTab('tax');" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-950/50 text-amber-300 hover:text-amber-200 border border-navy-800 hover:border-amber-500/40 transition flex items-center gap-1.5 font-bold" title="올해 예상 세금 계산">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i> 세금 계산기
+              </button>
               <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1.5" title="현재 사용자 데이터 전체 삭제">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 내 데이터 초기화
               </button>
@@ -1849,16 +1856,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788083694505"></script>
-  <script src="js/calculator.js?v=1788083694505"></script>
-  <script src="js/upbit-api.js?v=1788083694505"></script>
-  <script src="js/charts.js?v=1788083694505"></script>
-  <script src="js/exporter.js?v=1788083694505"></script>
-  <script src="js/sample-data.js?v=1788083694505"></script>
-  <script src="js/analyzer-app.js?v=1788083694505"></script>
+  <script src="js/parser.js?v=1788083927557"></script>
+  <script src="js/calculator.js?v=1788083927557"></script>
+  <script src="js/upbit-api.js?v=1788083927557"></script>
+  <script src="js/charts.js?v=1788083927557"></script>
+  <script src="js/exporter.js?v=1788083927557"></script>
+  <script src="js/sample-data.js?v=1788083927557"></script>
+  <script src="js/tools-calculators.js"></script>
+  <script src="js/analyzer-app.js?v=1788083927557"></script>
 
-  <script src="js/admin.js?v=1788083694505"></script>
-  <script src="js/preview-app.js?v=1788083694505"></script>
+  <script src="js/admin.js?v=1788083927557"></script>
+  <script src="js/preview-app.js?v=1788083927557"></script>
 
   </body>
   <script>
