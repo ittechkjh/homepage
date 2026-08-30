@@ -423,6 +423,15 @@ const App = {
         });
 
         // 입출금 검색/필터
+        const transExchangeSelect = document.getElementById('transferExchangeFilter');
+        if (transExchangeSelect) {
+            transExchangeSelect.addEventListener('change', (e) => {
+                this.state.transferFilter.exchange = e.target.value;
+                this.state.transferFilter.page = 1;
+                this.renderTransfersTable();
+            });
+        }
+
         const transSearch = document.getElementById('transferSearchInput');
         const transType = document.getElementById('transferTypeFilter');
 

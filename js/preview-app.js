@@ -189,14 +189,15 @@ function openNicknameModal() {
 // CoinHub Core Global State & Default Data
 // ====================================================
 const DEFAULT_COINS = [
-  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
-  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-  { id: 'solana', symbol: 'sol', name: 'Solana', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
-  { id: 'ripple', symbol: 'xrp', name: 'XRP', current_price: 0.584, price_change_percentage_24h: -0.45, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
-  { id: 'binancecoin', symbol: 'bnb', name: 'BNB', current_price: 588.30, price_change_percentage_24h: 0.95, total_volume: 980000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-  { id: 'cardano', symbol: 'ada', name: 'Cardano', current_price: 0.382, price_change_percentage_24h: 3.12, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
-  { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', current_price: 0.124, price_change_percentage_24h: 5.60, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
-  { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', current_price: 26.70, price_change_percentage_24h: -1.20, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' }
+  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', korean_name: '비트코인', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', korean_name: '이더리움', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+  { id: 'solana', symbol: 'sol', name: 'Solana', korean_name: '솔라나', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+  { id: 'ripple', symbol: 'xrp', name: 'XRP', korean_name: '리플', current_price: 0.584, price_change_percentage_24h: -0.45, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+  { id: 'binancecoin', symbol: 'bnb', name: 'BNB', korean_name: '바이낸스코인', current_price: 588.30, price_change_percentage_24h: 0.95, total_volume: 980000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+  { id: 'cardano', symbol: 'ada', name: 'Cardano', korean_name: '에이다', current_price: 0.382, price_change_percentage_24h: 3.12, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
+  { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', korean_name: '도지코인', current_price: 0.124, price_change_percentage_24h: 5.60, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+  { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', korean_name: '아발란체', current_price: 26.70, price_change_percentage_24h: -1.20, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' },
+  { id: 'tron', symbol: 'trx', name: 'TRON', korean_name: '트론', current_price: 0.134, price_change_percentage_24h: 1.15, total_volume: 290000000, image: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png' }
 ];
 
 let currentUser = (function() {
@@ -646,15 +647,35 @@ function renderCoinTable(coins) {
 }
 
 function handleSearch(query) {
-  if (!query) {
+  const q = (query || '').trim().toLowerCase();
+  
+  // If on Market tab or global search
+  if (!q) {
     renderCoinTable(marketCoins);
-    return;
+  } else {
+    const filtered = marketCoins.filter(c => 
+      c.name.toLowerCase().includes(q) || 
+      c.symbol.toLowerCase().includes(q) ||
+      (c.korean_name && c.korean_name.toLowerCase().includes(q)) ||
+      (c.id && c.id.toLowerCase().includes(q))
+    );
+    renderCoinTable(filtered);
   }
-  const filtered = marketCoins.filter(c => 
-    c.name.toLowerCase().includes(query.toLowerCase()) || 
-    c.symbol.toLowerCase().includes(query.toLowerCase())
-  );
-  renderCoinTable(filtered);
+
+  // If on Analyzer tab, forward search query to active analyzer sub-tab filter
+  if (typeof App !== 'undefined' && App.state) {
+    const activeSubTab = App.state.activeTab || 'dashboard';
+    if (activeSubTab === 'coins') {
+      const searchEl = document.getElementById('coinFilterSearch');
+      if (searchEl) { searchEl.value = q; App.renderCoinsTable(); }
+    } else if (activeSubTab === 'activities') {
+      const searchEl = document.getElementById('activitySearchInput');
+      if (searchEl) { searchEl.value = q; App.state.activityFilter.search = q; App.state.activityFilter.page = 1; App.renderAllActivitiesTable(); }
+    } else if (activeSubTab === 'transfers') {
+      const searchEl = document.getElementById('transferSearchInput');
+      if (searchEl) { searchEl.value = q; App.state.transferFilter.search = q; App.state.transferFilter.page = 1; App.renderTransfersTable(); }
+    }
+  }
 }
 
 // ----------------------------------------------------
