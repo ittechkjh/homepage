@@ -94,13 +94,13 @@ window.showExchangeGuide = function(exchange) {
   const tabBithumb = document.getElementById('tab-guide-bithumb');
 
   if (exchange === 'upbit') {
-    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.setProperty('display', 'block', 'important'); }
-    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.setProperty('display', 'none', 'important'); }
+    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.display = 'block'; }
+    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.display = 'none'; }
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   } else {
-    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.setProperty('display', 'none', 'important'); }
-    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.setProperty('display', 'block', 'important'); }
+    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.display = 'none'; }
+    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.display = 'block'; }
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   }
@@ -215,100 +215,48 @@ const INITIAL_FORUM_POSTS = [
     id: 1,
     category: 'market',
     categoryName: '📊 차트/기술적 분석',
-    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표(MVRV, SOPR) 분석',
-    content: '최근 미국 현물 ETF로의 기관 자금 순유입세가 3일 연속 확대되면서 65,000달러 부근의 주요 매물대 소화 과정이 진행되고 있습니다. 단기 홀더 SOPR 지표가 1.0 위에서 지지받고 있어 분할 매수 전략이 유효해 보입니다.',
+    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표 분석',
+    content: '최근 거래소 유출량 증가와 고래들의 매집 패턴이 뚜렷하게 관찰되고 있습니다. RSI 4시간봉 다이버전스 확인 후 진입 전략을 추천합니다.',
     author: 'CryptoWhale',
     authorRank: 'Master',
-    upvotes: 48,
-    views: 1240,
-    time: '1시간 전',
-    timestamp: Date.now() - 3600 * 1000,
+    upvotes: 42,
+    views: 890,
+    time: '2시간 전',
+    timestamp: Date.now() - 2 * 3600 * 1000,
     comments: [
-      { id: 101, author: 'Satoshi_Fan', text: '68K 돌파 시 알트코인 순환매도 기대됩니다!', time: '40분 전' },
-      { id: 102, author: 'AlphaBot', text: '좋은 분석 감사합니다. 손절 라인은 어디로 보시나요?', time: '20분 전' }
+      { id: 101, author: 'Satoshi_Fan', text: '68K까지는 열려있는 것으로 보입니다!', time: '1시간 전' }
     ]
   },
   {
     id: 2,
     category: 'altcoin',
     categoryName: '🚀 알트코인 분석',
-    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 DePIN & AI 알트코인은?',
-    content: '솔라나 기반 탈중앙화 거래소(DEX) 일일 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 특히 DePIN(탈중앙화 물리 인프라) 및 AI 연계 프로젝트들에 스마트 머니가 유입되고 있습니다.',
+    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 알트코인은?',
+    content: '솔라나 기반 밈코인 및 DeFi 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 관련 생태계 토큰들 분할 매수 고려 중입니다.',
     author: 'SolanaKing',
     authorRank: 'PRO',
-    upvotes: 35,
-    views: 890,
-    time: '3시간 전',
-    timestamp: Date.now() - 3 * 3600 * 1000,
-    comments: [
-      { id: 103, author: 'PeacefulTrader', text: '렌더(RNDR)랑 아이오넷(IO) 관심있게 보고 있습니다.', time: '2시간 전' }
-    ]
+    upvotes: 28,
+    views: 654,
+    time: '4시간 전',
+    timestamp: Date.now() - 4 * 3600 * 1000,
+    comments: []
   },
   {
     id: 3,
     category: 'general',
     categoryName: '💬 자유 토론',
-    title: '2026년 가상자산 소득세 22% & 기본공제 5,000만원 유예/개정 이슈 총정리',
-    content: '가상자산이용자보호법 2단계 추진과 함께 소득세법 개정안에 대한 논의가 활발합니다. 국내 투자자분들은 연말 손익통산(손실 확정)을 통해 미리 과세표준을 관리하시는 것을 추천합니다.',
+    title: '2026년 하반기 가상자산 세금 및 규제 정책 방향성에 대한 생각',
+    content: '가상자산이용자보호법 2단계 추진과 함께 실명계좌 발급 요건이 완화될지 주목됩니다. 장기 투자자분들은 어떻게 대비하고 계신가요?',
     author: 'PeacefulTrader',
     authorRank: 'PRO',
-    upvotes: 29,
-    views: 750,
-    time: '5시간 전',
-    timestamp: Date.now() - 5 * 3600 * 1000,
-    comments: [
-      { id: 104, author: 'CoinTaxPro', text: '선입선출법(FIFO)으로 매매내역 엑셀 미리 정리해두면 절세에 큰 도움 됩니다.', time: '3시간 전' }
-    ]
-  },
-  {
-    id: 4,
-    category: 'qna',
-    categoryName: '❓ 초보 Q&A',
-    title: '업비트 엑셀 다운로드해서 손익분석기에 넣었는데 선입선출(FIFO) 평단가가 뭔가요?',
-    content: '거래소 앱에 나오는 평단가랑 손익분석기 평단가가 조금 다른데, 국세청 세무 기준인 선입선출법(FIFO)이 왜 더 정확한지 궁금합니다! 상세히 설명해 주실 분 계신가요?',
-    author: 'CoinBeginner',
-    authorRank: 'Member',
-    upvotes: 18,
-    views: 520,
+    upvotes: 19,
+    views: 420,
     time: '6시간 전',
     timestamp: Date.now() - 6 * 3600 * 1000,
-    comments: [
-      { id: 105, author: 'CryptoWhale', text: '거래소는 단순 이동평균이지만 세법은 먼저 산 걸 먼저 판 걸로 계산하기 때문입니다. [지식 가이드 #3]에 잘 정리되어 있어요!', time: '5시간 전' }
-    ]
-  },
-  {
-    id: 5,
-    category: 'market',
-    categoryName: '📊 차트/기술적 분석',
-    title: '김치프리미엄(김프) 1% 미만 진입... 해외 거래소 보따리 차익거래 진입 타이밍',
-    content: '현재 국내 업비트/빗썸 대비 바이낸스 가격 차이가 0.8% 내외로 매우 좁혀졌습니다. 과거 패턴상 1% 미만에서 테더(USDT)를 분할 매수한 뒤 5% 이상 벌어졌을 때 회수하는 전략이 유효했습니다.',
-    author: 'KimpMaster',
-    authorRank: 'PRO',
-    upvotes: 41,
-    views: 1100,
-    time: '8시간 전',
-    timestamp: Date.now() - 8 * 3600 * 1000,
-    comments: [
-      { id: 106, author: 'SolanaKing', text: '송금 코인으로는 리플(XRP)이나 트론(TRX)이 수수료가 제일 저렴하네요.', time: '7시간 전' }
-    ]
-  },
-  {
-    id: 6,
-    category: 'general',
-    categoryName: '💬 자유 토론',
-    title: '물타기 계산기 써보고 본전 탈출 계획 세웠습니다 (DCA 3차 분할 매수 후기)',
-    content: '고점에 물렸던 알트코인을 물타기 계산기로 시뮬레이션해보고 -15%, -30% 지지선에서 정확히 분할 매수 걸어놨더니 평단가가 40% 이상 확 내려갔네요. 본전 오면 50% 분할 매도부터 걸어둘 예정입니다.',
-    author: 'Survivor2026',
-    authorRank: 'PRO',
-    upvotes: 52,
-    views: 1450,
-    time: '12시간 전',
-    timestamp: Date.now() - 12 * 3600 * 1000,
-    comments: [
-      { id: 107, author: 'PeacefulTrader', text: '분할 매수와 분할 익절이 하락장에서 살아남는 유일한 길입니다!', time: '10시간 전' }
-    ]
+    comments: []
   }
 ];
+
 
 const INITIAL_NEWS_ITEMS = [
   {
@@ -481,8 +429,8 @@ function switchTab(tabId, updateHash = true) {
     CoinCalculators.init();
   }
 
-  if (updateHash) {
-    window.location.hash = '#/' + tabId;
+  if (updateHash && window.location.hash !== `#/${tabId}`) {
+    history.replaceState(null, '', `#/${tabId}`);
   }
 
   updatePageSEO(tabId);
@@ -490,6 +438,289 @@ function switchTab(tabId, updateHash = true) {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     try { lucide.createIcons(); } catch(e) {}
   }
+}
+
+function filterForum(category) {
+  activeCategory = category;
+  const buttons = document.querySelectorAll('#forum-category-filters .category-btn');
+  buttons.forEach(btn => {
+    if (btn.dataset.cat === category) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  renderForumPosts();
+}
+
+function renderForumPosts() {
+  const container = document.getElementById('forum-posts-list');
+  if (!container) return;
+
+  let posts = getStoredPosts();
+
+  // Category filter
+  if (activeCategory !== 'all') {
+    posts = posts.filter(p => p.category === activeCategory);
+  }
+
+  // Sorting
+  const sortType = document.getElementById('forum-sort')?.value || 'latest';
+  if (sortType === 'popular') {
+    posts.sort((a, b) => b.upvotes - a.upvotes);
+  } else if (sortType === 'comments') {
+    posts.sort((a, b) => (b.comments?.length || 0) - (a.comments?.length || 0));
+  } else {
+    posts.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  if (posts.length === 0) {
+    container.innerHTML = `
+      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
+        <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600 mb-3"></i>
+        <p class="text-sm">작성된 게시글이 없습니다. 첫 번째 토론 글을 남겨보세요!</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = posts.map(post => {
+    const commentsCount = post.comments ? post.comments.length : 0;
+    return `
+      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal(${post.id})">
+        <div class="flex-1 space-y-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${post.categoryName}</span>
+            ${post.image ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진첨부</span>' : ''}
+            <span class="text-xs text-slate-400">• ${post.time}</span>
+            <span class="text-xs font-semibold text-slate-300">• ${post.author}</span>
+            ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${post.authorRank}</span>` : ''}
+          </div>
+          <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition">${escapeHtml(post.title)}</h3>
+          <p class="text-xs text-slate-400 line-clamp-2">${escapeHtml(post.content)}</p>
+        </div>
+
+        <div class="flex items-center gap-3 self-end sm:self-center shrink-0 text-xs">
+          ${post.image ? `<div class="w-14 h-14 rounded-xl overflow-hidden border border-navy-800 bg-navy-950 shrink-0"><img src="${post.image}" class="w-full h-full object-cover" alt="Thumb"></div>` : ''}
+          <!-- Upvote Count -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono">
+            <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
+            <span>${post.upvotes}</span>
+          </div>
+
+          <!-- Comments Count -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>${commentsCount}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function openNewPostModal() {
+  document.getElementById('new-post-modal').classList.remove('hidden');
+}
+
+function closeNewPostModal() {
+  document.getElementById('new-post-modal').classList.add('hidden');
+}
+
+function handleCreatePost(e) {
+  e.preventDefault();
+  const category = document.getElementById('post-category-select').value;
+  const title = document.getElementById('post-title-input').value.trim();
+  const content = document.getElementById('post-content-input').value.trim();
+
+  if (!title || !content) return;
+
+  const categoryNames = {
+    general: '💬 자유 토론',
+    market: '📊 차트/기술적 분석',
+    altcoin: '🚀 알트코인 분석',
+    ico: '🪙 ICO / 신규 토큰',
+    qna: '❓ 초보 Q&A'
+  };
+
+  const newPost = {
+    id: Date.now(),
+    category,
+    categoryName: categoryNames[category] || '💬 자유 토론',
+    title,
+    content,
+    image: currentPostImageData || null,
+    author: getNickname(),
+    authorRank: "PRO",
+    upvotes: 1,
+    views: 1,
+    time: '방금 전',
+    timestamp: Date.now(),
+    comments: []
+  };
+
+  const posts = getStoredPosts();
+  posts.unshift(newPost);
+  saveStoredPosts(posts);
+
+  closeNewPostModal();
+  document.getElementById('post-title-input').value = '';
+  document.getElementById('post-content-input').value = '';
+  removePostImage();
+
+  renderForumPosts();
+  alert('게시글(사진 포함)이 성공적으로 등록되었습니다!');
+}
+
+function openPostDetailModal(postId) {
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  currentViewingPostId = postId;
+  post.views = (post.views || 0) + 1;
+  saveStoredPosts(posts);
+
+  document.getElementById('modal-post-category').innerText = post.categoryName;
+  document.getElementById('modal-post-title').innerText = post.title;
+  document.getElementById('modal-post-author').innerText = `${post.author} (${post.authorRank || 'Member'})`;
+  document.getElementById('modal-post-time').innerText = post.time;
+  document.getElementById('modal-post-views').innerText = post.views;
+  document.getElementById('modal-post-content').innerText = post.content;
+  document.getElementById('modal-post-upvotes').innerText = post.upvotes;
+
+  // Render attached image in detail modal
+  const imgContainer = document.getElementById('modal-post-image-container');
+  const imgElement = document.getElementById('modal-post-image');
+  if (imgContainer && imgElement) {
+    if (post.image) {
+      imgElement.src = post.image;
+      imgContainer.classList.remove('hidden');
+    } else {
+      imgElement.src = '';
+      imgContainer.classList.add('hidden');
+    }
+  }
+
+  renderModalComments(post.comments || []);
+
+  document.getElementById('post-detail-modal').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closePostDetailModal() {
+  document.getElementById('post-detail-modal').classList.add('hidden');
+  currentViewingPostId = null;
+  renderForumPosts();
+}
+
+function handleVoteInModal(delta) {
+  if (!currentViewingPostId) return;
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === currentViewingPostId);
+  if (!post) return;
+
+  post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
+  saveStoredPosts(posts);
+
+  document.getElementById('modal-post-upvotes').innerText = post.upvotes;
+}
+
+function renderModalComments(comments) {
+  const container = document.getElementById('modal-comments-list');
+  document.getElementById('modal-comments-count').innerText = comments.length;
+
+  if (comments.length === 0) {
+    container.innerHTML = `<p class="text-xs text-slate-500 py-3">첫 번째 댓글을 남겨보세요!</p>`;
+    return;
+  }
+
+  container.innerHTML = comments.map(c => `
+    <div class="bg-navy-950 p-3 rounded-xl border border-navy-800 text-xs">
+      <div class="flex justify-between items-center text-slate-400 mb-1">
+        <span class="font-bold text-slate-200">${c.author}</span>
+        <span class="text-[10px]">${c.time}</span>
+      </div>
+      <p class="text-slate-300 leading-normal">${escapeHtml(c.text)}</p>
+    </div>
+  `).join('');
+}
+
+function handleAddComment() {
+  if (!currentViewingPostId) return;
+  const input = document.getElementById('new-comment-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === currentViewingPostId);
+  if (!post) return;
+
+  if (!post.comments) post.comments = [];
+  post.comments.push({
+    id: Date.now(),
+    author: currentUser ? currentUser.username : '익명 트레이더',
+    text,
+    time: '방금 전'
+  });
+
+  saveStoredPosts(posts);
+  input.value = '';
+  renderModalComments(post.comments);
+}
+
+// ----------------------------------------------------
+// Real-Time Chat System
+// ----------------------------------------------------
+function renderChatMessages() {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  // Filter out any mock users
+  chatMessages = (chatMessages || []).filter(m => 
+    m && m.user && 
+    !['Satoshi_Fan', 'CryptoWhale', 'SolanaKing', 'CoinBeginner', 'PeacefulTrader', 'AlphaBot'].includes(m.user)
+  );
+  try {
+    localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages));
+  } catch(e) {}
+
+  if (!chatMessages || chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-navy-850 border border-navy-800 flex items-center justify-center text-slate-400">
+          <i data-lucide="message-square-dashed" class="w-6 h-6"></i>
+        </div>
+        <p class="text-xs">현재 작성된 채팅 메시지가 없습니다.<br><span class="text-cyan-400 font-semibold">첫 번째 메시지를 전송</span>하여 실시간 대화를 시작해 보세요!</p>
+      </div>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    renderChatActiveUsers();
+    return;
+  }
+
+  container.innerHTML = chatMessages.map(msg => `
+    <div class="flex items-start gap-3 animate-in">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md font-mono">
+        ${(msg.user || 'U').substring(0, 2).toUpperCase()}
+      </div>
+      <div class="flex-1 bg-navy-950 p-3 rounded-2xl rounded-tl-none border border-navy-800/80">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="font-bold text-xs text-slate-200">${escapeHtml(msg.user)}</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-900 border border-navy-800 text-cyan-400 font-mono">${msg.rank || 'USER'}</span>
+          <span class="text-[10px] text-slate-500 ml-auto font-mono">${msg.time}</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(msg.text)}</p>
+      </div>
+    </div>
+  `).join('');
+
+  container.scrollTop = container.scrollHeight;
+  renderChatActiveUsers();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function renderChatActiveUsers() {
@@ -1247,15 +1478,21 @@ function updateNewsRelativeTimes() {
 
 function initNewsPeriodicUpdater() {
   if (newsCountdownTimer) clearInterval(newsCountdownTimer);
+  newsCountdownSeconds = 30;
+
+  const countdownEl = document.getElementById('news-countdown');
+  if (countdownEl) countdownEl.innerText = '30s';
 
   newsCountdownTimer = setInterval(() => {
     newsCountdownSeconds--;
-    const countdownEl = document.getElementById('news-countdown');
-    if (countdownEl) {
-      countdownEl.innerText = `${newsCountdownSeconds}s`;
+    const el = document.getElementById('news-countdown');
+    if (el) {
+      el.innerText = `${newsCountdownSeconds}s`;
     }
 
     if (newsCountdownSeconds <= 0) {
+      newsCountdownSeconds = 30;
+      if (el) el.innerText = '30s';
       fetchLatestNews(false);
     }
   }, 1000);
