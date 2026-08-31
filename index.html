@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788181081563">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788181081563">
+  <link rel="stylesheet" href="styles.css?v=1788182066967">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788182066967">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -2962,9 +2962,7 @@
           <button onclick="AdminApp.promptChangeAdminPassword()" class="px-3.5 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 hover:text-purple-100 border border-purple-500/40 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
             <i data-lucide="key" class="w-4 h-4 text-purple-400"></i> 비밀번호 변경
           </button>
-          <button onclick="AdminApp.exportFullBackupJSON()" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1.5">
-            <i data-lucide="download" class="w-4 h-4"></i> 전체 데이터 백업
-          </button>
+          
           <button onclick="AdminApp.renderAll()" class="p-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 transition" title="새로고침">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           </button>
@@ -3242,9 +3240,7 @@
           </div>
 
           <div class="pt-4 border-t border-navy-800 flex flex-wrap items-center justify-between gap-3">
-            <button onclick="AdminApp.exportFullBackupJSON()" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition flex items-center gap-2">
-              <i data-lucide="download" class="w-4 h-4"></i> 전체 시스템 데이터 백업 (JSON 다운로드)
-            </button>
+            
             <button onclick="AdminAnalytics.recordVisit(); AdminApp.renderAnalytics(); alert('방문자 카운터가 수동으로 1회 집계되었습니다.');" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 text-xs font-semibold transition border border-navy-700">
               방문자 수 수동 카운트 증가 (+1)
             </button>
@@ -3300,17 +3296,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788181081563"></script>
-  <script src="js/calculator.js?v=1788181081563"></script>
-  <script src="js/upbit-api.js?v=1788181081563"></script>
-  <script src="js/charts.js?v=1788181081563"></script>
-  <script src="js/exporter.js?v=1788181081563"></script>
-  <script src="js/sample-data.js?v=1788181081563"></script>
+  <script src="js/parser.js?v=1788182066967"></script>
+  <script src="js/calculator.js?v=1788182066967"></script>
+  <script src="js/upbit-api.js?v=1788182066967"></script>
+  <script src="js/charts.js?v=1788182066967"></script>
+  <script src="js/exporter.js?v=1788182066967"></script>
+  <script src="js/sample-data.js?v=1788182066967"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788181081563"></script>
+  <script src="js/analyzer-app.js?v=1788182066967"></script>
 
-  <script src="js/admin.js?v=1788181081563"></script>
-  <script src="js/preview-app.js?v=1788181081563"></script>
+  <script src="js/admin.js?v=1788182066967"></script>
+  <script src="js/preview-app.js?v=1788182066967"></script>
 
   </body>
   <script>

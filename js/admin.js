@@ -394,9 +394,10 @@ const AdminApp = {
         this.bindEvents();
     },
 
+    
     getAdminPassword: function () {
         try {
-            return localStorage.getItem('coinhub_admin_password') || 'admin1234';
+            return localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234';
         } catch (e) {
             return 'admin1234';
         }
@@ -404,6 +405,7 @@ const AdminApp = {
 
     setAdminPassword: function (newPassword) {
         try {
+            localStorage.setItem('cryptopnl_admin_password', newPassword);
             localStorage.setItem('coinhub_admin_password', newPassword);
             return true;
         } catch (e) {
@@ -413,11 +415,11 @@ const AdminApp = {
 
     promptChangeAdminPassword: function () {
         const currentPw = this.getAdminPassword();
-        const inputOld = prompt('현재 관리자 비밀번호를 입력하세요:');
+        const inputOld = prompt('현재 관리자 비밀번호를 입력하세요 (초기 비밀번호: admin1234):');
         if (inputOld === null) return;
         
-        if (inputOld !== currentPw && inputOld !== '7777') {
-            alert('현재 비밀번호가 일치하지 않습니다.');
+        if (inputOld.trim() !== currentPw && inputOld.trim() !== '7777') {
+            alert('❌ 현재 비밀번호가 일치하지 않습니다.');
             return;
         }
 
@@ -428,13 +430,13 @@ const AdminApp = {
         }
 
         const confirmPw = prompt('새로운 비밀번호를 한 번 더 입력하세요:');
-        if (newPw !== confirmPw) {
-            alert('새 비밀번호 확인이 일치하지 않습니다.');
+        if (newPw.trim() !== (confirmPw ? confirmPw.trim() : '')) {
+            alert('❌ 새 비밀번호 확인이 일치하지 않습니다.');
             return;
         }
 
         this.setAdminPassword(newPw.trim());
-        alert('🔑 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 새 비밀번호를 사용하세요.');
+        alert('🎉 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 변경된 비밀번호를 사용하세요.');
     },
 
     

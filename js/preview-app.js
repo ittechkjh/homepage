@@ -1751,7 +1751,11 @@ function handleUnifiedLoginSubmit(e) {
   }
 
   // 1. Admin Authentication Check
-  const isAdmin = (id.toLowerCase() === 'admin' && (pw === 'admin1234' || pw === '7777' || (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function' && pw === AdminApp.getAdminPassword())));
+  const savedAdminPw = (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function') 
+    ? AdminApp.getAdminPassword() 
+    : (localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
+
+  const isAdmin = (id.toLowerCase() === 'admin' && (pw === savedAdminPw || pw === '7777'));
 
   if (isAdmin) {
     sessionStorage.setItem('coinhub_admin_authenticated', '1');
@@ -2076,6 +2080,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  
+  // Global & Textarea Clipboard Image Paste Handler (Ctrl+V)
+  document.addEventListener('paste', function (e) {
+    const writeView = document.getElementById('forum-write-view');
+    if (!writeView || writeView.classList.contains('hidden')) return;
+
+    const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          processCafeImageBlob(blob);
+          e.preventDefault();
+          break;
+        }
+      }
+    }
+  });
+
   setInterval(simulateLiveFluctuations, 4000);
 });
 
@@ -2206,33 +2231,15 @@ function filterCalendar(cat) {
   const buttons = document.querySelectorAll('#calendar-filter-buttons .category-btn');
   buttons.forEach(btn => {
     if (btn.dataset.calCat === cat) {
-      btn.classList.add('active');
+      btn.classList.add('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
+      btn.classList.remove('bg-navy-950', 'text-slate-400');
     } else {
-      btn.classList.remove('active');
+      btn.classList.remove('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
+      btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
   renderCalendarEvents();
-}
-
-function switchCalendarView(view) {
-  currentCalendarView = view;
-  const listBtn = document.getElementById('btn-cal-view-list');
-  const monthBtn = document.getElementById('btn-cal-view-month');
-  const listView = document.getElementById('calendar-list-view');
-  const monthView = document.getElementById('calendar-month-view');
-
-  if (view === 'list') {
-    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
-    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
-    if (listView) listView.classList.remove('hidden');
-    if (monthView) monthView.classList.add('hidden');
-  } else {
-    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
-    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
-    if (listView) listView.classList.add('hidden');
-    if (monthView) monthView.classList.remove('hidden');
-    renderMonthCalendar();
-  }
+  renderMonthCalendar();
 }
 
 function renderCalendarEvents() {
@@ -2244,8 +2251,13 @@ function renderCalendarEvents() {
     events = events.filter(e => e.category === activeCalendarFilter);
   }
 
+  if (events.length === 0) {
+    container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">선택하신 카테고리의 예정된 일정이 없습니다.</div>';
+    return;
+  }
+
   container.innerHTML = events.map(ev => `
-    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
+    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
       <div class="flex items-start gap-4 flex-1">
         <!-- Date Badge -->
         <div class="w-16 h-16 rounded-2xl bg-navy-950 border border-navy-800 flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
@@ -2259,18 +2271,11 @@ function renderCalendarEvents() {
             <span class="px-2.5 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-bold font-mono">${ev.coin}</span>
             <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold">${ev.categoryName}</span>
             <span class="text-xs text-slate-500 font-mono">${ev.time}</span>
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto md:ml-0">${ev.impact}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto sm:ml-0">${ev.impact}</span>
           </div>
           <h3 class="text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(ev.title)}</h3>
           <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(ev.desc)}</p>
         </div>
-      </div>
-
-      <!-- Action -->
-      <div class="flex items-center gap-2 self-end md:self-center shrink-0">
-        <button onclick="alert('Google 캘린더 일정 추가 기능이 준비되었습니다.');" class="px-3.5 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-cyan-500/40 text-xs text-slate-300 font-medium transition flex items-center gap-1.5">
-          <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-cyan-400"></i> 일정 저장
-        </button>
       </div>
     </div>
   `).join('');
@@ -2282,12 +2287,17 @@ function renderMonthCalendar() {
   const container = document.getElementById('month-calendar-grid');
   if (!container) return;
 
+  let events = CRYPTO_EVENTS;
+  if (activeCalendarFilter !== 'all') {
+    events = events.filter(e => e.category === activeCalendarFilter);
+  }
+
   const daysInMonth = 30; // Sep 2026
   let gridHtml = '';
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
-    const dayEvents = CRYPTO_EVENTS.filter(e => e.date === dateStr);
+    const dayEvents = events.filter(e => e.date === dateStr);
     const hasEvents = dayEvents.length > 0;
 
     gridHtml += `
