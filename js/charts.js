@@ -7,20 +7,23 @@ const ChartManager = {
     instances: {},
 
     getThemeColors: function () {
-        const isDark = true;
+        const isLight = document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
         const profitColor = '#f43f5e';
         const lossColor = '#3b82f6';
         const profitBg = 'rgba(244, 63, 94, 0.15)';
         const lossBg = 'rgba(59, 130, 246, 0.15)';
 
-        const textColor = '#94a3b8';
-        const textHighlight = '#f8fafc';
-        const gridColor = 'rgba(255, 255, 255, 0.07)';
-        const tooltipBg = 'rgba(15, 23, 42, 0.95)';
+        // In light mode, use deep dark black/slate for 100% crystal clear readability
+        const textColor = isLight ? '#0f172a' : '#94a3b8';
+        const textHighlight = isLight ? '#0f172a' : '#f8fafc';
+        const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.07)';
+        const tooltipBg = isLight ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.95)';
         const tooltipText = '#f8fafc';
+        const cardBorder = isLight ? '#ffffff' : '#182030';
 
         return {
-            isDark,
+            isDark: !isLight,
+            isLight,
             profitColor,
             lossColor,
             profitBg,
@@ -29,7 +32,8 @@ const ChartManager = {
             textHighlight,
             gridColor,
             tooltipBg,
-            tooltipText
+            tooltipText,
+            cardBorder
         };
     },
 
@@ -380,7 +384,7 @@ const ChartManager = {
                     data: dataValues,
                     backgroundColor: palette.slice(0, labels.length),
                     borderWidth: 2,
-                    borderColor: '#182030'
+                    borderColor: colors.cardBorder
                 }]
             },
             options: {

@@ -34,6 +34,16 @@ function applyTheme(theme) {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     try { lucide.createIcons(); } catch(e) {}
   }
+
+  // Instantly re-render charts when theme is toggled
+  try {
+    if (window.ChartManager && window.AnalyzerApp && window.AnalyzerApp.currentReportData) {
+      window.ChartManager.renderAllCharts(window.AnalyzerApp.currentReportData);
+    }
+    if (typeof initChart === 'function') {
+      initChart();
+    }
+  } catch(e) {}
 }
 
 function toggleTheme() {
@@ -438,7 +448,7 @@ function initChart() {
         legend: { display: false }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } } },
+        x: { grid: { display: false }, ticks: { color: document.documentElement.classList.contains('theme-light') ? '#0f172a' : '#64748b', font: { size: 10, family: 'JetBrains Mono' } } },
         y: { grid: { color: 'rgba(30, 41, 75, 0.4)' }, ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } } }
       }
     }
