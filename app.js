@@ -169,15 +169,9 @@ function updateAuthUI() {
 
   if (isAuth || isAdminUser) {
     if (authBtn) {
-      authBtn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i><span>👑 관리자 센터 (로그아웃)</span>';
-      authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/50 hover:border-purple-400 text-xs font-bold text-purple-300 hover:text-purple-100 transition shadow-sm cursor-pointer';
-      authBtn.onclick = function() {
-        if (confirm('관리자 세션을 로그아웃하시겠습니까? (취소 시 관리자 센터로 이동합니다)')) {
-          handleLogout();
-        } else {
-          switchTab('admin');
-        }
-      };
+      authBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i><span>admin (로그아웃)</span>';
+      authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
+      authBtn.onclick = handleLogout;
     }
   } else if (user && user.username) {
     if (authBtn) {
@@ -704,7 +698,7 @@ function showForumWriteView(editPostId = null) {
     if (heading) heading.innerText = '커뮤니티 게시글 작성';
     if (submitBtn) submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> 게시글 등록 완료';
     if (titleInput) titleInput.value = '';
-    if (editor) editor.innerHTML = '<p>자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요...</p>';
+    if (editor) editor.innerHTML = '';
     if (catSelect) catSelect.value = 'general';
   }
 
@@ -1906,6 +1900,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  
+  const cafeEditor = document.getElementById('cafe-write-content');
+  if (cafeEditor) {
+    cafeEditor.addEventListener('focus', function () {
+      if (cafeEditor.innerText.trim() === '자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요...') {
+        cafeEditor.innerHTML = '';
+      }
+    });
+  }
 
   setInterval(simulateLiveFluctuations, 4000);
 });
