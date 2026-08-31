@@ -1,3 +1,47 @@
+
+// ----------------------------------------------------
+// Section 0: Theme Management Engine (Dark / Light)
+// ----------------------------------------------------
+function initTheme() {
+  const savedTheme = localStorage.getItem('cryptopnl_theme') || 'dark';
+  applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+  const html = document.documentElement;
+  const icon = document.getElementById('theme-toggle-icon');
+  const text = document.getElementById('theme-toggle-text');
+
+  if (theme === 'light') {
+    html.classList.add('theme-light');
+    if (icon) {
+      icon.setAttribute('data-lucide', 'moon');
+      icon.className = 'w-4 h-4 text-indigo-400';
+    }
+    if (text) text.innerText = '다크';
+  } else {
+    html.classList.remove('theme-light');
+    if (icon) {
+      icon.setAttribute('data-lucide', 'sun');
+      icon.className = 'w-4 h-4 text-amber-400';
+    }
+    if (text) text.innerText = '라이트';
+  }
+
+  localStorage.setItem('cryptopnl_theme', theme);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.contains('theme-light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+window.toggleTheme = toggleTheme;
+window.applyTheme = applyTheme;
+window.initTheme = initTheme;
+
 // ====================================================
 // CryptoPnL – Complete Core Application Engine
 // 100% Client-Side Privacy Architecture
@@ -2049,6 +2093,7 @@ function simulateLiveFluctuations() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   updateAuthUI();
   updateAdminNavVisibility();
 

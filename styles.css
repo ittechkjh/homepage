@@ -109,3 +109,110 @@ html {
   border-color: rgba(168, 85, 247, 0.5);
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
 }
+
+
+/* ====================================================
+   LIGHT THEME SYSTEM (라이트 모드 테마 시스템)
+   ==================================================== */
+html.theme-light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .bg-navy-950,
+html.theme-light header,
+html.theme-light nav {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .bg-navy-900,
+html.theme-light .bg-navy-850,
+html.theme-light .bg-navy-800 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.theme-light .text-white,
+html.theme-light .text-slate-100,
+html.theme-light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+html.theme-light .text-slate-300,
+html.theme-light .text-slate-400 {
+  color: #334155 !important;
+}
+
+html.theme-light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.theme-light .border-navy-800,
+html.theme-light .border-navy-700,
+html.theme-light .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light input,
+html.theme-light select,
+html.theme-light textarea,
+html.theme-light [contenteditable="true"] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.theme-light input::placeholder,
+html.theme-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.theme-light #cafe-write-content:empty:before {
+  color: #94a3b8 !important;
+}
+
+html.theme-light .crypto-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.theme-light .crypto-card:hover {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 10px 20px -3px rgba(6, 182, 212, 0.12) !important;
+}
+
+html.theme-light table tbody tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+
+html.theme-light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+
+html.theme-light .category-btn:not(.active) {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+html.theme-light .category-btn.active {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+  border-color: #06b6d4 !important;
+  color: #0891b2 !important;
+}
+
+html.theme-light .nav-tab:not(.active) {
+  color: #64748b !important;
+}
+
+html.theme-light .nav-tab:not(.active):hover {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
