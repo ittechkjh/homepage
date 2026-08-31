@@ -625,7 +625,7 @@ function renderForumPosts() {
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
           </div>
-          <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition">${escapeHtml(post.title)}</h3>
+          <h3 class="font-semibold text-sm sm:text-base text-slate-100 group-hover:text-cyan-400 transition leading-snug">${escapeHtml(post.title)}</h3>
           <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(plainText)}</p>
         </div>
 
@@ -743,16 +743,15 @@ function openPostDetailModal(postId) {
   const controlsEl = document.getElementById('cafe-post-author-controls');
   const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '';
-  let isAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
   if (storedUser) {
     try {
       const u = JSON.parse(storedUser);
-      if (u && u.username) currentUsername = u.username;
-      if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN')) isAdmin = true;
+      if (u && u.username) currentUsername = u.username.trim();
     } catch(e) {}
   }
 
-  const isAuthor = (currentUsername && currentUsername === post.author) || isAdmin;
+  // Strictly ONLY the author who wrote this post can edit or delete!
+  const isAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase());
 
   if (controlsEl) {
     if (isAuthor) {
@@ -834,8 +833,25 @@ function handleCafeAddComment() {
 window.handleCafeAddComment = handleCafeAddComment;
 
 function handleDeleteCafePost(postId) {
-  if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  let currentUsername = '';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) currentUsername = u.username.trim();
+    } catch(e) {}
+  }
+
   let posts = getStoredPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  if (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase()) {
+    alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
+    return;
+  }
+
+  if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
   posts = posts.filter(p => p.id !== postId);
   saveStoredPosts(posts);
   alert('🗑️ 게시글이 삭제되었습니다.');
