@@ -108,15 +108,17 @@ html {
 }
 
 
-/* ====================================================
-   ULTRA-HIGH CONTRAST LIGHT THEME (완벽한 선명도 & 가독성 보장)
-   ==================================================== */
+/* ==========================================================================
+   GLOBAL 100% EXHAUSTIVE HIGH-CONTRAST LIGHT THEME (라이트 모드 완전 가독성 보장)
+   ========================================================================== */
+
+html.theme-light,
 html.theme-light body {
   background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 
-/* 1. Base Typography High Contrast Defaults */
+/* 1. Global Text Visibility & High-Contrast Typography */
 html.theme-light h1,
 html.theme-light h2,
 html.theme-light h3,
@@ -134,11 +136,13 @@ html.theme-light .font-black {
 html.theme-light p,
 html.theme-light label,
 html.theme-light li,
-html.theme-light td {
+html.theme-light td,
+html.theme-light th,
+html.theme-light dt,
+html.theme-light dd {
   color: #1e293b !important;
 }
 
-/* 2. Color Contrast Boosters for Light Background */
 html.theme-light .text-white,
 html.theme-light .text-slate-100,
 html.theme-light .text-slate-200 {
@@ -147,88 +151,123 @@ html.theme-light .text-slate-200 {
 
 html.theme-light .text-slate-300,
 html.theme-light .text-slate-400,
-html.theme-light .text-slate-500 {
+html.theme-light .text-slate-500,
+html.theme-light .text-gray-300,
+html.theme-light .text-gray-400,
+html.theme-light .text-gray-500 {
   color: #334155 !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
-/* Transform light neon colors to deep high-contrast tones */
+/* 2. Color Badges & Neon Tone Overrides for High Contrast */
 html.theme-light .text-cyan-400,
-html.theme-light .text-cyan-300 {
+html.theme-light .text-cyan-300,
+html.theme-light .text-cyan-200,
+html.theme-light .text-cyan-100 {
   color: #0284c7 !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 html.theme-light .text-indigo-400,
-html.theme-light .text-indigo-300 {
+html.theme-light .text-indigo-300,
+html.theme-light .text-indigo-200 {
   color: #4338ca !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 html.theme-light .text-amber-400,
-html.theme-light .text-amber-300 {
+html.theme-light .text-amber-300,
+html.theme-light .text-amber-200 {
   color: #b45309 !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 html.theme-light .text-emerald-400,
 html.theme-light .text-emerald-300,
+html.theme-light .text-emerald-200,
 html.theme-light .text-crypto-green {
   color: #047857 !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 html.theme-light .text-rose-400,
 html.theme-light .text-rose-300,
+html.theme-light .text-rose-200,
 html.theme-light .text-crypto-red {
   color: #be123c !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 html.theme-light .text-purple-400,
-html.theme-light .text-purple-300 {
+html.theme-light .text-purple-300,
+html.theme-light .text-purple-200 {
   color: #7e22ce !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
-/* Gradient Text Fallback in Light Mode */
 html.theme-light .bg-clip-text {
   -webkit-text-fill-color: #0369a1 !important;
   color: #0369a1 !important;
 }
 
-/* 3. Containers, Cards, Header & Navbars */
+/* 3. Containers, Cards, Header, Ticker & Navbars */
 html.theme-light header,
 html.theme-light nav,
-html.theme-light .bg-navy-950,
-html.theme-light .bg-navy-900,
-html.theme-light .bg-navy-850,
-html.theme-light .bg-navy-800,
+html.theme-light [class*="bg-navy-"],
+html.theme-light [class*="bg-slate-9"],
+html.theme-light [class*="bg-gray-9"],
 html.theme-light .app-container,
-html.theme-light .analyzer-card {
+html.theme-light .analyzer-card,
+html.theme-light .crypto-card,
+html.theme-light .stat-card,
+html.theme-light .chart-card,
+html.theme-light .upload-card {
+  background: #ffffff !important;
   background-color: #ffffff !important;
   background-image: none !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* 4. Top Hero Banners in Light Mode */
+/* 4. Top Live Ticker Bar */
+html.theme-light #ticker-bar,
+html.theme-light #ticker-bar * {
+  color: #0f172a !important;
+}
+
+html.theme-light #ticker-bar .text-crypto-green {
+  color: #047857 !important;
+}
+
+html.theme-light #ticker-bar .text-crypto-red {
+  color: #be123c !important;
+}
+
+/* 5. Hero Banners in Light Mode */
 html.theme-light [class*="bg-gradient-"] {
   background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f5f3ff 100%) !important;
   border: 2px solid #bae6fd !important;
   box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.1) !important;
 }
 
-/* 5. Drag & Drop File Upload Area */
-html.theme-light .upload-card,
+html.theme-light [class*="bg-gradient-"] * {
+  color: #0f172a !important;
+}
+
+html.theme-light [class*="bg-gradient-"] p,
+html.theme-light [class*="bg-gradient-"] span.text-slate-300,
+html.theme-light [class*="bg-gradient-"] span.text-slate-400 {
+  color: #334155 !important;
+}
+
+/* 6. Drag & Drop File Upload Box */
 html.theme-light #dropZone,
-html.theme-light #drop-area {
-  background-color: #ffffff !important;
-  background-image: none !important;
+html.theme-light #drop-area,
+html.theme-light .upload-card {
+  background-color: #f8fafc !important;
   border: 2px dashed #0284c7 !important;
   color: #0f172a !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 html.theme-light .upload-title {
@@ -238,18 +277,40 @@ html.theme-light .upload-title {
 
 html.theme-light .upload-desc {
   color: #334155 !important;
-  font-weight: 500;
 }
 
-/* 6. Inputs, Selects, and Textareas */
+/* 7. Notice & Warning Boxes */
+html.theme-light [class*="bg-rose-950"],
+html.theme-light [class*="bg-amber-950"],
+html.theme-light [class*="bg-cyan-950"],
+html.theme-light [class*="bg-indigo-950"] {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light [class*="bg-rose-950"] * { color: #9f1239 !important; }
+html.theme-light [class*="bg-amber-950"] * { color: #92400e !important; }
+html.theme-light [class*="bg-cyan-950"] * { color: #075985 !important; }
+html.theme-light [class*="bg-indigo-950"] * { color: #3730a3 !important; }
+
+/* 8. Inputs, Selects, Textareas & Contenteditable */
 html.theme-light input,
 html.theme-light select,
 html.theme-light textarea,
 html.theme-light [contenteditable="true"] {
   background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: #94a3b8 !important;
+  border: 1px solid #94a3b8 !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light input:focus,
+html.theme-light select:focus,
+html.theme-light textarea:focus,
+html.theme-light [contenteditable="true"]:focus {
+  border-color: #0284c7 !important;
+  outline: 2px solid rgba(2, 132, 199, 0.2) !important;
 }
 
 html.theme-light input::placeholder,
@@ -258,56 +319,111 @@ html.theme-light #cafe-write-content:empty:before {
   color: #64748b !important;
 }
 
-/* 7. Buttons & Badges in Light Mode */
-html.theme-light .category-btn:not(.active) {
+/* 9. Data Tables across all tabs */
+html.theme-light table {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-  font-weight: 600 !important;
+  color: #0f172a !important;
 }
 
-html.theme-light .category-btn.active {
-  background-color: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #0369a1 !important;
-  font-weight: 800 !important;
-}
-
-html.theme-light .crypto-card {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
-}
-
-html.theme-light .crypto-card:hover {
-  border-color: #0284c7 !important;
-  box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.15) !important;
-}
-
-/* 8. Tables in Light Mode */
-html.theme-light table thead {
-  background-color: #f1f5f9 !important;
-}
 html.theme-light table thead th {
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
   font-weight: 700 !important;
   border-bottom: 2px solid #cbd5e1 !important;
 }
+
 html.theme-light table tbody tr {
   background-color: #ffffff !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
-html.theme-light table tbody tr:hover {
+
+html.theme-light table tbody tr:hover td {
   background-color: #f8fafc !important;
 }
+
 html.theme-light table tbody td {
   color: #0f172a !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
-/* 9. Modals in Light Mode */
-html.theme-light [id$="-modal"] > div {
+/* 10. Buttons & Navigation */
+html.theme-light .category-btn:not(.active),
+html.theme-light .nav-tab:not(.active),
+html.theme-light .analyzer-subtab:not(.active),
+html.theme-light .page-btn:not(.active) {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+html.theme-light .category-btn.active,
+html.theme-light .nav-tab.active,
+html.theme-light .analyzer-subtab.active,
+html.theme-light .page-btn.active {
+  background-color: #e0f2fe !important;
+  border: 1px solid #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+}
+
+html.theme-light .btn-outline {
+  background: #ffffff !important;
+  border: 1px solid #94a3b8 !important;
   color: #0f172a !important;
+}
+
+html.theme-light .btn-outline:hover {
+  background: #f1f5f9 !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+html.theme-light .btn-primary {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* 11. Modals & Popups */
+html.theme-light [id$="-modal"] > div,
+html.theme-light .modal-content {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.theme-light [id$="-modal"] * {
+  color: #0f172a !important;
+}
+
+html.theme-light [id$="-modal"] p,
+html.theme-light [id$="-modal"] li,
+html.theme-light [id$="-modal"] span.text-slate-400 {
+  color: #334155 !important;
+}
+
+/* 12. Calendar Month Grid in Light Mode */
+html.theme-light #month-calendar-grid > div {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #month-calendar-grid > div.bg-navy-950\/40 {
+  background-color: #f8fafc !important;
+  color: #64748b !important;
+}
+
+/* 13. Scrollbar in Light Mode */
+html.theme-light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+html.theme-light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 4px;
+}
+html.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7 !important;
 }
