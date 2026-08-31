@@ -165,6 +165,9 @@ function openNicknameModal() {
 }
 
 
+// ====================================================
+// CryptoPnL Core Global State & Default Data
+// ====================================================
 const DEFAULT_COINS = [
   { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', korean_name: '비트코인', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
   { id: 'ethereum', symbol: 'eth', name: 'Ethereum', korean_name: '이더리움', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
@@ -440,6 +443,358 @@ function switchTab(tabId, updateHash = true) {
   }
 }
 
+// ----------------------------------------------------
+// Market Data & Price Ticker Logic
+// ----------------------------------------------------
+async function fetchMarketData() {
+  const refreshIcon = document.getElementById('refresh-icon');
+  if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+  // Immediately render fallback to eliminate any blank loading state
+  renderMarketUI();
+
+  try {
+    // 1. First fetch high-speed Upbit Ticker for instant zero-latency KRW/USD updates
+    try {
+      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
+      const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
+      if (upbitRes.ok) {
+        const upbitData = await upbitRes.json();
+        const usdRate = 1380; // approximate KRW/USD exchange rate
+        upbitData.forEach(item => {
+          const sym = item.market.replace('KRW-', '').toLowerCase();
+          const target = marketCoins.find(c => c.symbol.toLowerCase() === sym);
+          if (target) {
+            target.current_price = Number((item.trade_price / usdRate).toFixed(2));
+            target.price_change_percentage_24h = Number((item.signed_change_rate * 100).toFixed(2));
+            target.total_volume = Number((item.acc_trade_price_24h / usdRate).toFixed(0));
+          }
+        });
+        renderMarketUI();
+      }
+    } catch (e) {
+      console.warn('Upbit ticker fetch skipped:', e);
+    }
+
+    // 2. Secondary fetch CoinGecko with 3s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h',
+      { signal: controller.signal }
+    );
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        marketCoins = data;
+      }
+    }
+  } catch (err) {
+    console.warn('CoinGecko fetch fallback active (using instant cached data):', err);
+    if (!marketCoins || marketCoins.length === 0) {
+      marketCoins = DEFAULT_COINS;
+    }
+  } finally {
+    if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+    renderMarketUI();
+  }
+}
+
+
+function renderMarketSkeletonUI() {
+  const tableBody = document.getElementById('market-table-body');
+  if (tableBody) {
+    tableBody.innerHTML = Array(6).fill(0).map(() => `
+      <tr class="animate-pulse border-b border-navy-800/40">
+        <td class="p-3.5"><div class="h-4 bg-navy-800 rounded w-4"></div></td>
+        <td class="p-3.5"><div class="flex items-center gap-2"><div class="w-7 h-7 bg-navy-800 rounded-full"></div><div class="h-4 bg-navy-800 rounded w-20"></div></div></td>
+        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-16 ml-auto"></div></td>
+        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-12 ml-auto"></div></td>
+        <td class="p-3.5 text-right hidden md:table-cell"><div class="h-4 bg-navy-800 rounded w-24 ml-auto"></div></td>
+        <td class="p-3.5 text-right hidden lg:table-cell"><div class="h-4 bg-navy-800 rounded w-20 ml-auto"></div></td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderMarketUI() {
+  // 1. Render Top Ticker Bar
+  const tickerBar = document.getElementById('ticker-bar');
+  if (tickerBar && marketCoins.length > 0) {
+    tickerBar.innerHTML = marketCoins.slice(0, 6).map(coin => {
+      const isUp = (coin.price_change_percentage_24h || 0) >= 0;
+      const colorClass = isUp ? 'text-crypto-green' : 'text-crypto-red';
+      const sign = isUp ? '+' : '';
+      return `
+        <div class="inline-flex items-center gap-2 cursor-pointer hover:text-cyan-400 transition" onclick="selectCoinForChart('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}')">
+          <span class="font-bold text-slate-200">${coin.symbol.toUpperCase()}</span>
+          <span>$${formatNumber(coin.current_price)}</span>
+          <span class="${colorClass} font-semibold">${sign}${(coin.price_change_percentage_24h || 0).toFixed(2)}%</span>
+        </div>
+      `;
+    }).join('<span class="text-slate-700">|</span>');
+  }
+
+  // 2. Update Top 3 Cards
+  const btc = marketCoins.find(c => c.symbol.toLowerCase() === 'btc') || marketCoins[0];
+  const eth = marketCoins.find(c => c.symbol.toLowerCase() === 'eth') || marketCoins[1];
+  const gainer = [...marketCoins].sort((a,b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0))[0];
+
+  if (btc) {
+    document.getElementById('btc-price').innerText = `$${formatNumber(btc.current_price)}`;
+    const btcBadge = document.getElementById('btc-badge');
+    const isUp = (btc.price_change_percentage_24h || 0) >= 0;
+    btcBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
+    btcBadge.innerText = `${isUp ? '+' : ''}${(btc.price_change_percentage_24h || 0).toFixed(2)}%`;
+  }
+
+  if (eth) {
+    document.getElementById('eth-price').innerText = `$${formatNumber(eth.current_price)}`;
+    const ethBadge = document.getElementById('eth-badge');
+    const isUp = (eth.price_change_percentage_24h || 0) >= 0;
+    ethBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
+    ethBadge.innerText = `${isUp ? '+' : ''}${(eth.price_change_percentage_24h || 0).toFixed(2)}%`;
+  }
+
+  if (gainer) {
+    document.getElementById('gainer-name').innerText = `${gainer.name} (${gainer.symbol.toUpperCase()})`;
+    document.getElementById('gainer-price').innerText = `$${formatNumber(gainer.current_price)}`;
+    const gBadge = document.getElementById('gainer-badge');
+    const isUp = (gainer.price_change_percentage_24h || 0) >= 0;
+    gBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
+    gBadge.innerText = `${isUp ? '+' : ''}${(gainer.price_change_percentage_24h || 0).toFixed(2)}%`;
+  }
+
+  // 3. Render Table Rows
+  renderCoinTable(marketCoins);
+}
+
+function renderCoinTable(coins) {
+  const tbody = document.getElementById('crypto-table-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = coins.map((coin, index) => {
+    const isUp = (coin.price_change_percentage_24h || 0) >= 0;
+    const changeClass = isUp ? 'text-crypto-green' : 'text-crypto-red';
+    const sign = isUp ? '+' : '';
+
+    return `
+      <tr class="hover:bg-navy-800/40 transition cursor-pointer group" onclick="selectCoinForChart('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}')">
+        <td class="py-3.5 px-3 text-slate-500 text-xs">${index + 1}</td>
+        <td class="py-3.5 px-3">
+          <div class="flex items-center gap-2.5">
+            <img src="${coin.image}" alt="${coin.name}" class="w-6 h-6 rounded-full" onerror="this.src='https://assets.coingecko.com/coins/images/1/small/bitcoin.png'">
+            <div>
+              <span class="font-bold text-slate-100 font-sans group-hover:text-cyan-400 transition">${coin.name}</span>
+              <span class="text-xs text-slate-500 font-mono ml-1 uppercase">${coin.symbol}</span>
+            </div>
+          </div>
+        </td>
+        <td class="py-3.5 px-3 text-right font-bold text-slate-100">$${formatNumber(coin.current_price)}</td>
+        <td class="py-3.5 px-3 text-right font-bold ${changeClass}">${sign}${(coin.price_change_percentage_24h || 0).toFixed(2)}%</td>
+        <td class="py-3.5 px-3 text-right text-slate-400 hidden sm:table-cell text-xs">$${formatCompact(coin.total_volume)}</td>
+        <td class="py-3.5 px-3 text-center">
+          <button class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 group-hover:border-cyan-500 text-cyan-400 text-xs font-sans font-medium transition">
+            차트 보기
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function handleSearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  
+  // If on Market tab or global search
+  if (!q) {
+    renderCoinTable(marketCoins);
+  } else {
+    const filtered = marketCoins.filter(c => 
+      c.name.toLowerCase().includes(q) || 
+      c.symbol.toLowerCase().includes(q) ||
+      (c.korean_name && c.korean_name.toLowerCase().includes(q)) ||
+      (c.id && c.id.toLowerCase().includes(q))
+    );
+    renderCoinTable(filtered);
+  }
+
+  // If on Analyzer tab, forward search query to active analyzer sub-tab filter
+  if (typeof App !== 'undefined' && App.state) {
+    const activeSubTab = App.state.activeTab || 'dashboard';
+    if (activeSubTab === 'coins') {
+      const searchEl = document.getElementById('coinFilterSearch');
+      if (searchEl) { searchEl.value = q; App.renderCoinsTable(); }
+    } else if (activeSubTab === 'activities') {
+      const searchEl = document.getElementById('activitySearchInput');
+      if (searchEl) { searchEl.value = q; App.state.activityFilter.search = q; App.state.activityFilter.page = 1; App.renderAllActivitiesTable(); }
+    } else if (activeSubTab === 'transfers') {
+      const searchEl = document.getElementById('transferSearchInput');
+      if (searchEl) { searchEl.value = q; App.state.transferFilter.search = q; App.state.transferFilter.page = 1; App.renderTransfersTable(); }
+    }
+  }
+}
+
+// ----------------------------------------------------
+// Interactive Price Chart (Chart.js)
+// ----------------------------------------------------
+function initChart() {
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  
+  // Generate Mock historical data based on timeframe
+  const points = generateChartData(selectedCoin.price || 64820, currentChartTimeframe);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+  gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: points.labels,
+      datasets: [{
+        label: `${selectedCoin.name} (USD)`,
+        data: points.data,
+        borderColor: '#06b6d4',
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#06b6d4',
+        pointHoverBorderColor: '#ffffff',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: '#0b0f19',
+          titleColor: '#94a3b8',
+          bodyColor: '#38bdf8',
+          borderColor: '#1e294b',
+          borderWidth: 1,
+          padding: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return `$${formatNumber(context.parsed.y)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+        },
+        y: {
+          grid: { color: 'rgba(30, 41, 75, 0.4)' },
+          ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+        }
+      }
+    }
+  });
+
+  updateChartStats(points.data);
+}
+
+function selectCoinForChart(id, name, symbol) {
+  const coin = marketCoins.find(c => c.id === id) || { current_price: 64820 };
+  selectedCoin = { id, name, symbol, price: coin.current_price };
+
+  document.getElementById('chart-coin-name').innerText = name;
+  document.getElementById('chart-coin-symbol').innerText = symbol;
+
+  updateChartData();
+}
+
+function changeChartTimeframe(tf) {
+  currentChartTimeframe = tf;
+  const container = document.getElementById('timeframe-buttons');
+  if (container) {
+    const btns = container.querySelectorAll('.tf-btn');
+    btns.forEach(b => {
+      if (b.innerText.toLowerCase() === tf.toLowerCase()) {
+        b.className = 'tf-btn px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400';
+      } else {
+        b.className = 'tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white';
+      }
+    });
+  }
+  updateChartData();
+}
+
+function updateChartData() {
+  if (!priceChart) return;
+  const points = generateChartData(selectedCoin.price, currentChartTimeframe);
+  priceChart.data.labels = points.labels;
+  priceChart.data.datasets[0].label = `${selectedCoin.name} (USD)`;
+  priceChart.data.datasets[0].data = points.data;
+  priceChart.update();
+  updateChartStats(points.data);
+}
+
+function updateChartStats(data) {
+  if (!data || data.length === 0) return;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  document.getElementById('chart-high').innerText = `$${formatNumber(max)}`;
+  document.getElementById('chart-low').innerText = `$${formatNumber(min)}`;
+}
+
+function generateChartData(basePrice, tf) {
+  let count = 24;
+  let labels = [];
+  let data = [];
+  let current = basePrice * 0.96;
+
+  if (tf === '24h') {
+    count = 24;
+    for (let i = 0; i < count; i++) {
+      labels.push(`${i}:00`);
+      current += (Math.random() - 0.48) * (basePrice * 0.015);
+      data.push(Number(current.toFixed(2)));
+    }
+  } else if (tf === '7d') {
+    count = 7;
+    const days = ['월', '화', '수', '목', '금', '토', '일'];
+    for (let i = 0; i < count; i++) {
+      labels.push(days[i]);
+      current += (Math.random() - 0.46) * (basePrice * 0.04);
+      data.push(Number(current.toFixed(2)));
+    }
+  } else {
+    count = 15;
+    for (let i = 1; i <= count; i++) {
+      labels.push(`8/${i * 2}`);
+      current += (Math.random() - 0.45) * (basePrice * 0.08);
+      data.push(Number(current.toFixed(2)));
+    }
+  }
+  data[data.length - 1] = basePrice;
+  return { labels, data };
+}
+
+// ----------------------------------------------------
+// Community Forum Logic (CRUD & LocalStorage)
+// ----------------------------------------------------
+function getStoredPosts() {
+  return JSON.parse(localStorage.getItem('coinhub_forum_posts')) || INITIAL_FORUM_POSTS;
+}
+
+function saveStoredPosts(posts) {
+  localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+}
+
 function filterForum(category) {
   activeCategory = category;
   const buttons = document.querySelectorAll('#forum-category-filters .category-btn');
@@ -523,11 +878,22 @@ function renderForumPosts() {
 }
 
 function openNewPostModal() {
-  document.getElementById('new-post-modal').classList.remove('hidden');
+  const modal = document.getElementById('new-post-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
+  }
 }
 
 function closeNewPostModal() {
-  document.getElementById('new-post-modal').classList.add('hidden');
+  const modal = document.getElementById('new-post-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
 }
 
 function handleCreatePost(e) {
@@ -607,12 +973,12 @@ function openPostDetailModal(postId) {
 
   renderModalComments(post.comments || []);
 
-  document.getElementById('post-detail-modal').classList.remove('hidden');
+  const pdm = document.getElementById('post-detail-modal'); if (pdm) { pdm.classList.remove('hidden'); pdm.style.setProperty('display', 'flex', 'important'); }
   lucide.createIcons();
 }
 
 function closePostDetailModal() {
-  document.getElementById('post-detail-modal').classList.add('hidden');
+  const pdm = document.getElementById('post-detail-modal'); if (pdm) { pdm.classList.add('hidden'); pdm.style.setProperty('display', 'none', 'important'); }
   currentViewingPostId = null;
   renderForumPosts();
 }
