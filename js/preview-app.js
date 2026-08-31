@@ -168,6 +168,7 @@ function setNickname(name) {
     localStorage.setItem('coinhub_nickname', clean);
   }
   updateAuthUI();
+  updateAdminNavVisibility();
 }
 
 function openNicknameModal() {
@@ -239,48 +240,100 @@ const INITIAL_FORUM_POSTS = [
     id: 1,
     category: 'market',
     categoryName: '📊 차트/기술적 분석',
-    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표 분석',
-    content: '최근 거래소 유출량 증가와 고래들의 매집 패턴이 뚜렷하게 관찰되고 있습니다. RSI 4시간봉 다이버전스 확인 후 진입 전략을 추천합니다.',
+    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표(MVRV, SOPR) 분석',
+    content: '최근 미국 현물 ETF로의 기관 자금 순유입세가 3일 연속 확대되면서 65,000달러 부근의 주요 매물대 소화 과정이 진행되고 있습니다. 단기 홀더 SOPR 지표가 1.0 위에서 지지받고 있어 분할 매수 전략이 유효해 보입니다.',
     author: 'CryptoWhale',
     authorRank: 'Master',
-    upvotes: 42,
-    views: 890,
-    time: '2시간 전',
-    timestamp: Date.now() - 2 * 3600 * 1000,
+    upvotes: 48,
+    views: 1240,
+    time: '1시간 전',
+    timestamp: Date.now() - 3600 * 1000,
     comments: [
-      { id: 101, author: 'Satoshi_Fan', text: '68K까지는 열려있는 것으로 보입니다!', time: '1시간 전' }
+      { id: 101, author: 'Satoshi_Fan', text: '68K 돌파 시 알트코인 순환매도 기대됩니다!', time: '40분 전' },
+      { id: 102, author: 'AlphaBot', text: '좋은 분석 감사합니다. 손절 라인은 어디로 보시나요?', time: '20분 전' }
     ]
   },
   {
     id: 2,
     category: 'altcoin',
     categoryName: '🚀 알트코인 분석',
-    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 알트코인은?',
-    content: '솔라나 기반 밈코인 및 DeFi 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 관련 생태계 토큰들 분할 매수 고려 중입니다.',
+    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 DePIN & AI 알트코인은?',
+    content: '솔라나 기반 탈중앙화 거래소(DEX) 일일 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 특히 DePIN(탈중앙화 물리 인프라) 및 AI 연계 프로젝트들에 스마트 머니가 유입되고 있습니다.',
     author: 'SolanaKing',
     authorRank: 'PRO',
-    upvotes: 28,
-    views: 654,
-    time: '4시간 전',
-    timestamp: Date.now() - 4 * 3600 * 1000,
-    comments: []
+    upvotes: 35,
+    views: 890,
+    time: '3시간 전',
+    timestamp: Date.now() - 3 * 3600 * 1000,
+    comments: [
+      { id: 103, author: 'PeacefulTrader', text: '렌더(RNDR)랑 아이오넷(IO) 관심있게 보고 있습니다.', time: '2시간 전' }
+    ]
   },
   {
     id: 3,
     category: 'general',
     categoryName: '💬 자유 토론',
-    title: '2026년 하반기 가상자산 세금 및 규제 정책 방향성에 대한 생각',
-    content: '가상자산이용자보호법 2단계 추진과 함께 실명계좌 발급 요건이 완화될지 주목됩니다. 장기 투자자분들은 어떻게 대비하고 계신가요?',
+    title: '2026년 가상자산 소득세 22% & 기본공제 5,000만원 유예/개정 이슈 총정리',
+    content: '가상자산이용자보호법 2단계 추진과 함께 소득세법 개정안에 대한 논의가 활발합니다. 국내 투자자분들은 연말 손익통산(손실 확정)을 통해 미리 과세표준을 관리하시는 것을 추천합니다.',
     author: 'PeacefulTrader',
     authorRank: 'PRO',
-    upvotes: 19,
-    views: 420,
+    upvotes: 29,
+    views: 750,
+    time: '5시간 전',
+    timestamp: Date.now() - 5 * 3600 * 1000,
+    comments: [
+      { id: 104, author: 'CoinTaxPro', text: '선입선출법(FIFO)으로 매매내역 엑셀 미리 정리해두면 절세에 큰 도움 됩니다.', time: '3시간 전' }
+    ]
+  },
+  {
+    id: 4,
+    category: 'qna',
+    categoryName: '❓ 초보 Q&A',
+    title: '업비트 엑셀 다운로드해서 손익분석기에 넣었는데 선입선출(FIFO) 평단가가 뭔가요?',
+    content: '거래소 앱에 나오는 평단가랑 손익분석기 평단가가 조금 다른데, 국세청 세무 기준인 선입선출법(FIFO)이 왜 더 정확한지 궁금합니다! 상세히 설명해 주실 분 계신가요?',
+    author: 'CoinBeginner',
+    authorRank: 'Member',
+    upvotes: 18,
+    views: 520,
     time: '6시간 전',
     timestamp: Date.now() - 6 * 3600 * 1000,
-    comments: []
+    comments: [
+      { id: 105, author: 'CryptoWhale', text: '거래소는 단순 이동평균이지만 세법은 먼저 산 걸 먼저 판 걸로 계산하기 때문입니다. [지식 가이드 #3]에 잘 정리되어 있어요!', time: '5시간 전' }
+    ]
+  },
+  {
+    id: 5,
+    category: 'market',
+    categoryName: '📊 차트/기술적 분석',
+    title: '김치프리미엄(김프) 1% 미만 진입... 해외 거래소 보따리 차익거래 진입 타이밍',
+    content: '현재 국내 업비트/빗썸 대비 바이낸스 가격 차이가 0.8% 내외로 매우 좁혀졌습니다. 과거 패턴상 1% 미만에서 테더(USDT)를 분할 매수한 뒤 5% 이상 벌어졌을 때 회수하는 전략이 유효했습니다.',
+    author: 'KimpMaster',
+    authorRank: 'PRO',
+    upvotes: 41,
+    views: 1100,
+    time: '8시간 전',
+    timestamp: Date.now() - 8 * 3600 * 1000,
+    comments: [
+      { id: 106, author: 'SolanaKing', text: '송금 코인으로는 리플(XRP)이나 트론(TRX)이 수수료가 제일 저렴하네요.', time: '7시간 전' }
+    ]
+  },
+  {
+    id: 6,
+    category: 'general',
+    categoryName: '💬 자유 토론',
+    title: '물타기 계산기 써보고 본전 탈출 계획 세웠습니다 (DCA 3차 분할 매수 후기)',
+    content: '고점에 물렸던 알트코인을 물타기 계산기로 시뮬레이션해보고 -15%, -30% 지지선에서 정확히 분할 매수 걸어놨더니 평단가가 40% 이상 확 내려갔네요. 본전 오면 50% 분할 매도부터 걸어둘 예정입니다.',
+    author: 'Survivor2026',
+    authorRank: 'PRO',
+    upvotes: 52,
+    views: 1450,
+    time: '12시간 전',
+    timestamp: Date.now() - 12 * 3600 * 1000,
+    comments: [
+      { id: 107, author: 'PeacefulTrader', text: '분할 매수와 분할 익절이 하락장에서 살아남는 유일한 길입니다!', time: '10시간 전' }
+    ]
   }
 ];
-
 
 const INITIAL_NEWS_ITEMS = [
   {
@@ -405,7 +458,7 @@ function updatePageSEO(tabId) {
 
 // Update switchTab to support URL Hash & Dynamic SEO
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'admin'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'guides', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   tabs.forEach(t => {
