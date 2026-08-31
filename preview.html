@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788175812775">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788175812775">
+  <link rel="stylesheet" href="styles.css?v=1788176626947">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788176626947">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -464,6 +464,186 @@
     </div>
   </div>
 
+  
+  <!-- Dedicated Admin Authentication Modal -->
+  <div id="admin-login-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-purple-500/50 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-purple-950/30">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-lg">
+            👑
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-white">CryptoPnL 최고 관리자 로그인</h3>
+            <p class="text-xs text-slate-400">플랫폼 운영, 트래픽 통계 및 시스템 관리</p>
+          </div>
+        </div>
+        <button onclick="AdminApp.closeAdminLoginModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="AdminApp.submitAdminLoginModal(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">관리자 아이디</label>
+          <div class="relative">
+            <input type="text" id="admin-modal-id" value="admin" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">관리자 보안 비밀번호</label>
+          <div class="relative">
+            <input type="password" id="admin-modal-password" required placeholder="비밀번호 입력 (기본: admin1234)" class="w-full bg-navy-950 border border-navy-800 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+            <i data-lucide="key" class="w-4 h-4 text-purple-400 absolute left-3 top-2.5"></i>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5 font-mono">※ 초기 기본 비밀번호: <strong class="text-purple-400">admin1234</strong> 또는 <strong class="text-purple-400">7777</strong></p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3">
+          <button type="button" onclick="AdminApp.closeAdminLoginModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 text-xs hover:bg-navy-800 transition font-medium">취소</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 transition flex items-center gap-1.5">
+            <i data-lucide="log-in" class="w-3.5 h-3.5"></i> 관리자 로그인
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  
+  <!-- Modal 1: Post Detail & Comments Modal -->
+  <div id="post-detail-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/80">
+        <span id="modal-post-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">카테고리</span>
+        <button onclick="closePostDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <h2 id="modal-post-title" class="text-xl font-bold text-white">게시글 제목</h2>
+        
+        <div class="flex items-center gap-3 text-xs text-slate-400 pb-4 border-b border-navy-800">
+          <span id="modal-post-author" class="font-semibold text-slate-200">작성자</span>
+          <span>•</span>
+          <span id="modal-post-time">방금 전</span>
+          <span>•</span>
+          <span>조회수 <span id="modal-post-views">128</span></span>
+        </div>
+
+        <div id="modal-post-image-container" class="hidden my-3 rounded-2xl overflow-hidden border border-navy-800 bg-navy-950 p-2 flex items-center justify-center max-h-96">
+          <img id="modal-post-image" src="" class="max-h-92 max-w-full rounded-xl object-contain" alt="Attached">
+        </div>
+
+        <div id="modal-post-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
+          본문 내용...
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-navy-800">
+          <button id="modal-upvote-btn" onclick="handleVoteInModal(1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500 text-xs font-bold text-slate-200 transition">
+            <i data-lucide="thumbs-up" class="w-4 h-4 text-cyan-400"></i> 추천 <span id="modal-post-upvotes" class="font-mono text-cyan-400">0</span>
+          </button>
+          <button onclick="handleVoteInModal(-1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-crypto-red text-xs font-bold text-slate-400 hover:text-crypto-red transition">
+            <i data-lucide="thumbs-down" class="w-4 h-4"></i> 비추천
+          </button>
+          <button onclick="alert('게시글 링크가 클립보드에 복사되었습니다!')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-slate-700 text-xs text-slate-300 transition ml-auto">
+            <i data-lucide="share-2" class="w-4 h-4"></i> 공유하기
+          </button>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-navy-800 space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="message-square" class="w-4 h-4 text-cyan-400"></i> 댓글 (<span id="modal-comments-count">0</span>)
+          </h3>
+
+          <div class="flex gap-2">
+            <input type="text" id="new-comment-input" placeholder="댓글을 남겨보세요..." class="flex-1 bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <button onclick="handleAddComment()" class="bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs px-4 py-2 rounded-xl transition">
+              등록
+            </button>
+          </div>
+
+          <div id="modal-comments-list" class="space-y-2.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Create New Post Modal -->
+  <div id="new-post-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in">
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/80">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-cyan-400"></i> 커뮤니티 게시글 작성
+        </h3>
+        <button onclick="closeNewPostModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreatePost(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">토론 카테고리</label>
+          <select id="post-category-select" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <option value="general">💬 자유 토론 (General Discussion)</option>
+            <option value="market">📊 차트/기술적 분석 (Technical Analysis)</option>
+            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
+            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
+            <option value="qna">❓ 초보 Q&A 코너</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">제목</label>
+          <input type="text" id="post-title-input" required placeholder="글 제목을 입력하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">내용</label>
+          <textarea id="post-content-input" required rows="6" placeholder="자신의 분석, 생각, 질문 내용을 자유롭게 작성하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"></textarea>
+        </div>
+
+        <!-- Image Attachment Area -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> 차트/수익률 사진 첨부 (선택)</span>
+            <span class="text-[10px] text-slate-500">JPG, PNG, GIF, WebP (최대 5MB)</span>
+          </label>
+          <input type="file" id="post-image-file" accept="image/*" onchange="handlePostImageSelect(event)" class="hidden">
+          
+          <div id="post-image-upload-box" onclick="document.getElementById('post-image-file').click()" class="border-2 border-dashed border-navy-700 hover:border-cyan-500/50 rounded-2xl p-4 text-center cursor-pointer transition bg-navy-950/60 group">
+            <div class="flex items-center justify-center gap-2 text-slate-400 group-hover:text-cyan-400 transition text-xs font-medium">
+              <i data-lucide="camera" class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform"></i>
+              <span>클릭하여 차트 분석 또는 수익률 스크린샷 사진 추가</span>
+            </div>
+          </div>
+
+          <!-- Preview Box -->
+          <div id="post-image-preview-container" class="hidden mt-2 rounded-2xl border border-cyan-500/40 bg-navy-950 p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <div id="post-image-compress-info" class="text-xs"></div>
+              <button type="button" onclick="removePostImage(event)" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 transition shadow text-[11px] font-bold flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3 h-3"></i> 사진 삭제
+              </button>
+            </div>
+            <div class="max-h-60 overflow-hidden flex items-center justify-center bg-navy-900 rounded-xl p-1">
+              <img id="post-image-preview" src="" alt="Preview" class="max-h-56 max-w-full rounded-lg object-contain">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeNewPostModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs hover:bg-navy-800 transition">취소</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition">등록하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Top Live Price Ticker Bar -->
   <div class="bg-navy-900/90 backdrop-blur border-b border-navy-800 text-xs py-2 px-4 overflow-x-auto no-scrollbar sticky top-0 z-40">
     <div class="container mx-auto flex items-center justify-between gap-6">
@@ -540,6 +720,10 @@
         </div>
 
         <div id="auth-section" class="flex items-center gap-2">
+          <button type="button" onclick="AdminApp.openAdminLoginModal()" id="btn-header-admin-login" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/40 hover:border-purple-400 text-[11px] font-bold text-purple-300 hover:text-purple-100 transition shadow-sm" title="관리자 센터 로그인">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
+            <span id="header-admin-btn-text">관리자 로그인</span>
+          </button>
           <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
             <span>약관·개인정보</span>
@@ -2731,137 +2915,6 @@
        MODALS & DIALOGS
        ============================================== -->
 
-  <!-- Modal 1: Post Detail & Comments Modal -->
-  <div id="post-detail-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
-    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-      <div class="p-5 border-b border-navy-800 flex justify-between items-center">
-        <span id="modal-post-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">카테고리</span>
-        <button onclick="closePostDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-4 flex-1">
-        <h2 id="modal-post-title" class="text-xl font-bold text-white">게시글 제목</h2>
-        
-        <div class="flex items-center gap-3 text-xs text-slate-400 pb-4 border-b border-navy-800">
-          <span id="modal-post-author" class="font-semibold text-slate-200">작성자</span>
-          <span>•</span>
-          <span id="modal-post-time">방금 전</span>
-          <span>•</span>
-          <span>조회수 <span id="modal-post-views">128</span></span>
-        </div>
-
-        <div id="modal-post-image-container" class="hidden my-3 rounded-2xl overflow-hidden border border-navy-800 bg-navy-950 p-2 flex items-center justify-center max-h-96"><img id="modal-post-image" src="" class="max-h-92 max-w-full rounded-xl object-contain" alt="Attached"></div>
-
-        <div id="modal-post-content" class="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
-          본문 내용...
-        </div>
-
-        <div class="flex items-center gap-3 pt-4 border-t border-navy-800">
-          <button id="modal-upvote-btn" onclick="handleVoteInModal(1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500 text-xs font-bold text-slate-200 transition">
-            <i data-lucide="thumbs-up" class="w-4 h-4 text-cyan-400"></i> 추천 <span id="modal-post-upvotes" class="font-mono text-cyan-400">0</span>
-          </button>
-          <button onclick="handleVoteInModal(-1)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-crypto-red text-xs font-bold text-slate-400 hover:text-crypto-red transition">
-            <i data-lucide="thumbs-down" class="w-4 h-4"></i> 비추천
-          </button>
-          <button onclick="alert('게시글 링크가 클립보드에 복사되었습니다!')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 hover:border-slate-700 text-xs text-slate-300 transition ml-auto">
-            <i data-lucide="share-2" class="w-4 h-4"></i> 공유하기
-          </button>
-        </div>
-
-        <div class="mt-6 pt-4 border-t border-navy-800 space-y-4">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="message-square" class="w-4 h-4 text-cyan-400"></i> 댓글 (<span id="modal-comments-count">0</span>)
-          </h3>
-
-          <div class="flex gap-2">
-            <input type="text" id="new-comment-input" placeholder="댓글을 남겨보세요..." class="flex-1 bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-            <button onclick="handleAddComment()" class="bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs px-4 py-2 rounded-xl transition">
-              등록
-            </button>
-          </div>
-
-          <div id="modal-comments-list" class="space-y-2.5">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 2: Create New Post Modal -->
-  <div id="new-post-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
-    <div class="bg-navy-900 border border-navy-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
-      <div class="p-5 border-b border-navy-800 flex justify-between items-center">
-        <h3 class="font-bold text-base text-white flex items-center gap-2">
-          <i data-lucide="edit-3" class="w-5 h-5 text-cyan-400"></i> 커뮤니티 게시글 작성
-        </h3>
-        <button onclick="closeNewPostModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form onsubmit="handleCreatePost(event)" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">토론 카테고리</label>
-          <select id="post-category-select" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-            <option value="general">💬 자유 토론 (General Discussion)</option>
-            <option value="market">📊 차트/기술적 분석 (Technical Analysis)</option>
-            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
-            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
-            <option value="qna">❓ 초보 Q&A 코너</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">제목</label>
-          <input type="text" id="post-title-input" required placeholder="글 제목을 입력하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">내용</label>
-          <textarea id="post-content-input" required rows="6" placeholder="자신의 분석, 생각, 질문 내용을 자유롭게 작성하세요..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"></textarea>
-        </div>
-
-        
-        <!-- Image Attachment Area -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-            <span class="flex items-center gap-1.5"><i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> 차트/수익률 사진 첨부 (선택)</span>
-            <span class="text-[10px] text-slate-500">JPG, PNG, GIF, WebP (최대 5MB)</span>
-          </label>
-          <input type="file" id="post-image-file" accept="image/*" onchange="handlePostImageSelect(event)" class="hidden">
-          
-          <div id="post-image-upload-box" onclick="document.getElementById('post-image-file').click()" class="border-2 border-dashed border-navy-700 hover:border-cyan-500/50 rounded-2xl p-4 text-center cursor-pointer transition bg-navy-950/60 group">
-            <div class="flex items-center justify-center gap-2 text-slate-400 group-hover:text-cyan-400 transition text-xs font-medium">
-              <i data-lucide="camera" class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform"></i>
-              <span>클릭하여 차트 분석 또는 수익률 스크린샷 사진 추가</span>
-            </div>
-          </div>
-
-          <!-- Preview Box -->
-          <div id="post-image-preview-container" class="hidden mt-2 rounded-2xl border border-cyan-500/40 bg-navy-950 p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <div id="post-image-compress-info" class="text-xs"></div>
-              <button type="button" onclick="removePostImage(event)" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 transition shadow text-[11px] font-bold flex items-center gap-1">
-                <i data-lucide="trash-2" class="w-3 h-3"></i> 사진 삭제
-              </button>
-            </div>
-            <div class="max-h-60 overflow-hidden flex items-center justify-center bg-navy-900 rounded-xl p-1">
-              <img id="post-image-preview" src="" alt="Preview" class="max-h-56 max-w-full rounded-lg object-contain">
-            </div>
-          </div>
-
-
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeNewPostModal()" class="px-4 py-2 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs hover:bg-navy-800 transition">취소</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition">등록하기</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- Professional 4-Column Footer -->
   <footer class="bg-navy-900 border-t border-navy-800 text-xs text-slate-400 mt-auto">
     <!-- Main Footer Grid -->
@@ -2967,17 +3020,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788175812775"></script>
-  <script src="js/calculator.js?v=1788175812775"></script>
-  <script src="js/upbit-api.js?v=1788175812775"></script>
-  <script src="js/charts.js?v=1788175812775"></script>
-  <script src="js/exporter.js?v=1788175812775"></script>
-  <script src="js/sample-data.js?v=1788175812775"></script>
+  <script src="js/parser.js?v=1788176626947"></script>
+  <script src="js/calculator.js?v=1788176626947"></script>
+  <script src="js/upbit-api.js?v=1788176626947"></script>
+  <script src="js/charts.js?v=1788176626947"></script>
+  <script src="js/exporter.js?v=1788176626947"></script>
+  <script src="js/sample-data.js?v=1788176626947"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788175812775"></script>
+  <script src="js/analyzer-app.js?v=1788176626947"></script>
 
-  <script src="js/admin.js?v=1788175812775"></script>
-  <script src="js/preview-app.js?v=1788175812775"></script>
+  <script src="js/admin.js?v=1788176626947"></script>
+  <script src="js/preview-app.js?v=1788176626947"></script>
 
   </body>
   <script>
