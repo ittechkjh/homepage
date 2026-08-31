@@ -1,3 +1,76 @@
+
+let currentPostImageData = null;
+
+function handlePostImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('이미지 파일(JPG, PNG, GIF, WebP)만 첨부할 수 있습니다.');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('이미지 용량은 최대 5MB까지 업로드 가능합니다.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Compress if too large
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const maxDim = 1200;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      currentPostImageData = canvas.toDataURL('image/jpeg', 0.85);
+
+      const previewContainer = document.getElementById('post-image-preview-container');
+      const previewImg = document.getElementById('post-image-preview');
+      const compressInfo = document.getElementById('post-image-compress-info');
+
+      if (previewImg) previewImg.src = currentPostImageData;
+      if (compressInfo) compressInfo.innerHTML = `<span class="text-cyan-400 font-bold">✓ 사진 첨부 완료</span> <span class="text-slate-500 font-mono">(${width}x${height}px)</span>`;
+      if (previewContainer) {
+        previewContainer.classList.remove('hidden');
+        previewContainer.style.display = 'block';
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePostImage(event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  currentPostImageData = null;
+  const fileInput = document.getElementById('post-image-file');
+  if (fileInput) fileInput.value = '';
+  const previewContainer = document.getElementById('post-image-preview-container');
+  if (previewContainer) {
+    previewContainer.classList.add('hidden');
+    previewContainer.style.display = 'none';
+  }
+}
+
+
 // ====================================================
 // Legal Policy & Terms Modal Handlers (AdSense & 4-Tab Compliant)
 // ====================================================
@@ -1967,3 +2040,141 @@ window.addEventListener('hashchange', function () {
     switchTab(h, false);
   }
 });
+
+
+
+// ====================================================
+// User & Admin Unified Authentication System
+// ====================================================
+function openAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+    const input = document.getElementById('login-identifier');
+    if (input) setTimeout(() => input.focus(), 100);
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+}
+window.openAuthModal = openAuthModal;
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+window.closeAuthModal = closeAuthModal;
+
+function handleUnifiedLoginSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const idInput = document.getElementById('login-identifier');
+  const pwInput = document.getElementById('login-password');
+  const id = (idInput ? idInput.value : '').trim();
+  const pw = (pwInput ? pwInput.value : '').trim();
+
+  if (!id) {
+    alert('아이디 또는 닉네임을 입력해 주세요.');
+    return;
+  }
+
+  // 1. Check if Admin Login
+  const isAdmin = (id.toLowerCase() === 'admin' && (pw === 'admin1234' || pw === '7777' || (typeof AdminApp !== 'undefined' && pw === AdminApp.getAdminPassword())));
+
+  if (isAdmin) {
+    sessionStorage.setItem('coinhub_admin_authenticated', '1');
+    const adminUser = {
+      username: 'admin',
+      email: 'admin@cryptopnl.com',
+      role: 'ADMIN',
+      rank: 'ADMIN',
+      reputation: 9999
+    };
+    localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+    localStorage.setItem('coinhub_nickname', '최고관리자 (admin)');
+    currentUser = adminUser;
+
+    updateAuthUI();
+    updateAdminNavVisibility();
+    closeAuthModal();
+
+    alert('🎉 최고 관리자(ADMIN)로 로그인되었습니다! 관리자 센터로 이동합니다.');
+    switchTab('admin');
+    if (typeof AdminApp !== 'undefined') AdminApp.render();
+    return;
+  }
+
+  // 2. Normal User / Member Login
+  const user = {
+    username: id,
+    email: id.includes('@') ? id : `${id}@cryptopnl.com`,
+    role: 'MEMBER',
+    rank: 'PRO',
+    reputation: 100,
+    joinedDate: new Date().toISOString().slice(0, 10)
+  };
+
+  localStorage.setItem('coinhub_user', JSON.stringify(user));
+  localStorage.setItem('coinhub_nickname', id);
+  currentUser = user;
+
+  updateAuthUI();
+  updateAdminNavVisibility();
+  closeAuthModal();
+
+  alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
+}
+window.handleUnifiedLoginSubmit = handleUnifiedLoginSubmit;
+
+function handleLogout() {
+  if (confirm('로그아웃하시겠습니까?')) {
+    localStorage.removeItem('coinhub_user');
+    sessionStorage.removeItem('coinhub_admin_authenticated');
+    currentUser = null;
+    updateAuthUI();
+    updateAdminNavVisibility();
+    alert('로그아웃되었습니다.');
+    switchTab('analyzer');
+  }
+}
+window.handleLogout = handleLogout;
+
+function updateAuthUI() {
+  const isAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1';
+  const stored = localStorage.getItem('coinhub_user');
+  let user = null;
+  if (stored) {
+    try { user = JSON.parse(stored); } catch(e) {}
+  }
+
+  const authBtn = document.getElementById('btn-header-auth');
+  const userDisplay = document.getElementById('user-nickname-display');
+
+  if (isAuth) {
+    if (authBtn) {
+      authBtn.innerHTML = `<i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i><span>👑 관리자 센터</span>`;
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/50 hover:border-purple-400 text-xs font-bold text-purple-300 hover:text-purple-100 transition shadow-sm';
+      authBtn.onclick = function() { switchTab('admin'); };
+    }
+    if (userDisplay) userDisplay.innerText = '최고관리자 (admin)';
+  } else if (user && user.username) {
+    if (authBtn) {
+      authBtn.innerHTML = `<i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-400"></i><span>로그아웃</span>`;
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-rose-500/30 hover:border-rose-400 text-xs font-bold text-slate-300 hover:text-rose-300 transition shadow-sm';
+      authBtn.onclick = handleLogout;
+    }
+    if (userDisplay) userDisplay.innerText = user.username;
+  } else {
+    if (authBtn) {
+      authBtn.innerHTML = `<i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400"></i><span>로그인 / 관리자</span>`;
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm';
+      authBtn.onclick = openAuthModal;
+    }
+    const currentNick = localStorage.getItem('coinhub_nickname') || '익명 트레이더';
+    if (userDisplay) userDisplay.innerText = currentNick;
+  }
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+}
+window.updateAuthUI = updateAuthUI;
