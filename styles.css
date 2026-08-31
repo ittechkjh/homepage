@@ -91,7 +91,6 @@ html {
   box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.1);
 }
 
-
 /* Admin Subtabs & Styling */
 .admin-subtab-btn {
   background: rgba(15, 23, 42, 0.6);
@@ -112,32 +111,93 @@ html {
 
 
 /* ====================================================
-   LIGHT THEME SYSTEM (라이트 모드 테마 시스템)
+   HIGH CONTRAST & CRYSTAL CLEAR LIGHT THEME SYSTEM
+   (라이트 모드 고대비 완벽 가독성 디자인 시스템)
    ==================================================== */
 html.theme-light body {
-  background-color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-html.theme-light .bg-navy-950,
+/* 1. Containers, Cards, Header & Navbars */
 html.theme-light header,
-html.theme-light nav {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
+html.theme-light nav,
+html.theme-light .bg-navy-950,
 html.theme-light .bg-navy-900,
 html.theme-light .bg-navy-850,
 html.theme-light .bg-navy-800 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
+/* 2. Top Ticker Bar */
+html.theme-light .bg-navy-950\/95,
+html.theme-light #ticker-bar,
+html.theme-light .border-navy-800\/80 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* 3. Hero Banners & Gradient Backgrounds in Light Mode */
+html.theme-light [class*="bg-gradient-to-r"],
+html.theme-light [class*="bg-gradient-to-tr"] {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f5f3ff 100%) !important;
+  border-color: #bae6fd !important;
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.08) !important;
+}
+
+html.theme-light [class*="bg-gradient-to-r"] h1,
+html.theme-light [class*="bg-gradient-to-r"] h2,
+html.theme-light [class*="bg-gradient-to-r"] h3,
+html.theme-light [class*="bg-gradient-to-r"] strong {
+  color: #0f172a !important;
+}
+
+html.theme-light [class*="bg-gradient-to-r"] p,
+html.theme-light [class*="bg-gradient-to-r"] span {
+  color: #334155 !important;
+}
+
+/* 4. Notice / Warning Banners */
+html.theme-light [class*="bg-rose-950"],
+html.theme-light [class*="bg-amber-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+
+html.theme-light [class*="text-rose-200"],
+html.theme-light [class*="text-rose-300"],
+html.theme-light [class*="text-rose-400"] {
+  color: #e11d48 !important;
+}
+
+html.theme-light [class*="text-amber-200"],
+html.theme-light [class*="text-amber-300"] {
+  color: #d97706 !important;
+}
+
+/* 5. Drag & Drop File Upload Area */
+html.theme-light #drop-area {
+  background-color: #f8fafc !important;
+  border-color: #06b6d4 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #drop-area h3,
+html.theme-light #drop-area p {
+  color: #0f172a !important;
+}
+
+/* 6. Typography & High-Contrast Colors */
 html.theme-light .text-white,
 html.theme-light .text-slate-100,
 html.theme-light .text-slate-200 {
   color: #0f172a !important;
+  font-weight: 600;
 }
 
 html.theme-light .text-slate-300,
@@ -155,13 +215,23 @@ html.theme-light .border-slate-800 {
   border-color: #e2e8f0 !important;
 }
 
+/* 7. Inputs, Textareas, Selects & Contenteditable */
 html.theme-light input,
 html.theme-light select,
 html.theme-light textarea,
 html.theme-light [contenteditable="true"] {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light input:focus,
+html.theme-light select:focus,
+html.theme-light textarea:focus,
+html.theme-light [contenteditable="true"]:focus {
+  border-color: #06b6d4 !important;
+  background-color: #ffffff !important;
 }
 
 html.theme-light input::placeholder,
@@ -173,39 +243,53 @@ html.theme-light #cafe-write-content:empty:before {
   color: #94a3b8 !important;
 }
 
+/* 8. Crypto Cards & Forum Cards */
 html.theme-light .crypto-card {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
 }
 
 html.theme-light .crypto-card:hover {
   border-color: #06b6d4 !important;
-  box-shadow: 0 10px 20px -3px rgba(6, 182, 212, 0.12) !important;
+  box-shadow: 0 8px 24px -4px rgba(6, 182, 212, 0.16) !important;
+}
+
+/* 9. Data Tables */
+html.theme-light table thead {
+  background-color: #f8fafc !important;
+}
+
+html.theme-light table thead th {
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+html.theme-light table tbody tr {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 
 html.theme-light table tbody tr:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
 }
 
-html.theme-light ::-webkit-scrollbar-track {
-  background: #f1f5f9 !important;
+html.theme-light table tbody td {
+  color: #0f172a !important;
 }
 
-html.theme-light ::-webkit-scrollbar-thumb {
-  background: #cbd5e1 !important;
-}
-
+/* 10. Buttons & Navigation */
 html.theme-light .category-btn:not(.active) {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
   color: #475569 !important;
 }
 
 html.theme-light .category-btn.active {
-  background-color: rgba(6, 182, 212, 0.15) !important;
+  background-color: rgba(6, 182, 212, 0.12) !important;
   border-color: #06b6d4 !important;
   color: #0891b2 !important;
+  font-weight: 700 !important;
 }
 
 html.theme-light .nav-tab:not(.active) {
@@ -215,4 +299,24 @@ html.theme-light .nav-tab:not(.active) {
 html.theme-light .nav-tab:not(.active):hover {
   color: #0f172a !important;
   background-color: #f1f5f9 !important;
+}
+
+/* 11. Modals */
+html.theme-light [id$="-modal"] > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 12. Scrollbar */
+html.theme-light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+html.theme-light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 4px;
+}
+html.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4 !important;
 }
