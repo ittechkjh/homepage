@@ -1,6 +1,6 @@
 /**
  * admin.js
- * 코인허브(CoinHub) 통합 관리자 센터 엔진 (100% 실제 데이터 모드)
+ * CryptoPnL(CryptoPnL) 통합 관리자 센터 엔진 (100% 실제 데이터 모드)
  * - 실제 일일 방문자 수 및 페이지뷰 실측 집계 (DAU, WAU, PV)
  * - 실제 가입된 회원 계정 및 권한 관리 (ADMIN, USER)
  * - 실제 커뮤니티 포럼 & 실시간 채팅 모니터링 및 제어
@@ -165,7 +165,7 @@ const AdminUserManager = {
             {
                 id: 'usr_admin',
                 username: 'admin',
-                email: 'admin@coinhub.kr',
+                email: 'admin@cryptopnl.com',
                 role: 'ADMIN',
                 status: 'ACTIVE',
                 joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
@@ -185,7 +185,7 @@ const AdminUserManager = {
                     users.push({
                         id: 'usr_' + Date.now(),
                         username: u.username,
-                        email: u.email || (u.username + '@coinhub.kr'),
+                        email: u.email || (u.username + '@cryptopnl.com'),
                         role: u.role || 'USER',
                         status: 'ACTIVE',
                         joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
@@ -279,7 +279,7 @@ const AdminUserManager = {
         const pw = String(password || '').trim();
 
         // 1. Check if trying to log in as admin
-        if (identLower === 'admin' || identLower === 'admin@coinhub.kr' || identLower === '성공') {
+        if (identLower === 'admin' || identLower === 'admin@cryptopnl.com' || identLower === '성공') {
             const adminPw = (typeof AdminApp !== 'undefined') ? AdminApp.getAdminPassword() : 'admin1234';
             if (pw === adminPw || pw === '7777') {
                 let adminUser = users.find(u => u.username.toLowerCase() === 'admin');
@@ -287,7 +287,7 @@ const AdminUserManager = {
                     adminUser = {
                         id: 'usr_admin',
                         username: 'admin',
-                        email: 'admin@coinhub.kr',
+                        email: 'admin@cryptopnl.com',
                         role: 'ADMIN',
                         status: 'ACTIVE',
                         joinedDate: '2025.10.15',
@@ -521,7 +521,7 @@ const AdminApp = {
             return;
         }
 
-        const pw = prompt('👑 CoinHub 최고 관리자 비밀번호를 입력하세요: (기본: admin1234)');
+        const pw = prompt('👑 CryptoPnL 최고 관리자 비밀번호를 입력하세요: (기본: admin1234)');
         if (pw === null) return;
 
         const currentAdminPw = this.getAdminPassword();
@@ -529,7 +529,7 @@ const AdminApp = {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             const adminUser = {
                 username: 'admin',
-                email: 'admin@coinhub.kr',
+                email: 'admin@cryptopnl.com',
                 role: 'ADMIN',
                 rank: 'ADMIN',
                 reputation: 9999,
@@ -601,7 +601,7 @@ const AdminApp = {
             
             const adminUser = {
                 username: id || 'admin',
-                email: 'admin@coinhub.kr',
+                email: 'admin@cryptopnl.com',
                 role: 'ADMIN',
                 rank: 'ADMIN',
                 reputation: 9999,
@@ -918,7 +918,7 @@ const AdminApp = {
     openAddUserModal: function () {
         const username = prompt('등록할 신규 사용자 ID:');
         if (!username || !username.trim()) return;
-        const email = prompt('사용자 이메일 주소:', username.trim() + '@coinhub.kr');
+        const email = prompt('사용자 이메일 주소:', username.trim() + '@cryptopnl.com');
         const role = prompt('권한 (ADMIN, PRO, USER):', 'USER');
 
         const res = AdminUserManager.addUser({

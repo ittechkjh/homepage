@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788178980536">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788178980536">
+  <link rel="stylesheet" href="styles.css?v=1788179618189">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788179618189">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -513,6 +513,89 @@
   </div>
 
 
+  <!-- Modal 3: Edit Post Modal -->
+  <div id="edit-post-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in">
+      
+      <div class="p-6 border-b border-navy-800 flex justify-between items-center bg-navy-950/80 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
+            ✏️
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-white">게시글 수정</h3>
+            <p class="text-xs text-slate-400">작성하신 제목, 본문 내용 및 첨부 이미지를 수정합니다.</p>
+          </div>
+        </div>
+        <button onclick="closeEditPostModal()" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleUpdatePost(event)" class="p-6 sm:p-8 space-y-5 overflow-y-auto flex-1">
+        <div>
+          <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
+          <select id="edit-post-category-select" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
+            <option value="general">💬 자유 토론 (General Discussion)</option>
+            <option value="market">📊 차트 / 기술적 분석 (Technical Analysis)</option>
+            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
+            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
+            <option value="qna">❓ 초보 Q&A 코너</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-200 mb-2">글 제목</label>
+          <input type="text" id="edit-post-title-input" required class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-200 mb-2 flex items-center justify-between">
+            <span>본문 내용</span>
+            <span class="text-[11px] text-cyan-400 font-mono">💡 캡처 사진 붙여넣기(Ctrl+V) 지원</span>
+          </label>
+          <textarea id="edit-post-content-input" required rows="9" class="w-full bg-navy-950 border border-navy-700 rounded-2xl p-4 text-sm text-slate-100 leading-relaxed focus:outline-none focus:border-cyan-500"></textarea>
+        </div>
+
+        <!-- Edit Image Attachment Area -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-200 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-cyan-400"></i> 첨부 사진 변경 (선택 / Ctrl+V 붙여넣기 가능)</span>
+          </label>
+          <input type="file" id="edit-post-image-file" accept="image/*" onchange="handleEditPostImageSelect(event)" class="hidden">
+          
+          <div onclick="document.getElementById('edit-post-image-file').click()" class="border-2 border-dashed border-navy-700 hover:border-cyan-500/60 rounded-2xl p-4 text-center cursor-pointer transition bg-navy-950/60 group">
+            <div class="flex items-center justify-center gap-2 text-slate-400 group-hover:text-cyan-400 transition text-xs font-semibold">
+              <i data-lucide="camera" class="w-4 h-4 text-cyan-400"></i>
+              <span>클릭하여 사진 교체 또는 본문에서 Ctrl+V 붙여넣기</span>
+            </div>
+          </div>
+
+          <div id="edit-post-image-preview-container" class="hidden rounded-2xl border border-cyan-500/40 bg-navy-950 p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div id="edit-post-image-compress-info" class="text-xs font-semibold"></div>
+              <button type="button" onclick="removeEditPostImage(event)" class="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 transition shadow text-xs font-bold flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 사진 삭제
+              </button>
+            </div>
+            <div class="max-h-72 overflow-hidden flex items-center justify-center bg-navy-900 rounded-xl p-2">
+              <img id="edit-post-image-preview" src="" alt="Preview" class="max-h-64 max-w-full rounded-lg object-contain">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-navy-800 shrink-0">
+          <button type="button" onclick="closeEditPostModal()" class="px-5 py-3 rounded-2xl bg-navy-950 border border-navy-700 text-slate-300 text-xs font-bold hover:bg-navy-800 transition">취소</button>
+          <button type="submit" class="px-7 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition flex items-center gap-2">
+            <i data-lucide="check" class="w-4 h-4"></i> 수정 완료
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
         
 
   
@@ -535,6 +618,7 @@
           <span id="modal-post-time">방금 전</span>
           <span>•</span>
           <span>조회수 <span id="modal-post-views">128</span></span>
+          <div id="modal-post-author-controls" class="hidden flex items-center gap-2 ml-auto"></div>
         </div>
 
         <div id="modal-post-image-container" class="hidden my-3 rounded-2xl overflow-hidden border border-navy-800 bg-navy-950 p-2 flex items-center justify-center max-h-96">
@@ -617,7 +701,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-200 mb-2">본문 내용</label>
+          <label class="block text-xs font-bold text-slate-200 mb-2 flex items-center justify-between"><span>본문 내용</span><span class="text-[11px] text-cyan-400 font-mono">💡 스크린샷 직접 붙여넣기(Ctrl+V) 지원</span></label>
           <textarea id="post-content-input" required rows="9" placeholder="자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요..." class="w-full bg-navy-950 border border-navy-700 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 leading-relaxed focus:outline-none focus:border-cyan-500"></textarea>
         </div>
 
@@ -3033,17 +3117,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788178980536"></script>
-  <script src="js/calculator.js?v=1788178980536"></script>
-  <script src="js/upbit-api.js?v=1788178980536"></script>
-  <script src="js/charts.js?v=1788178980536"></script>
-  <script src="js/exporter.js?v=1788178980536"></script>
-  <script src="js/sample-data.js?v=1788178980536"></script>
+  <script src="js/parser.js?v=1788179618189"></script>
+  <script src="js/calculator.js?v=1788179618189"></script>
+  <script src="js/upbit-api.js?v=1788179618189"></script>
+  <script src="js/charts.js?v=1788179618189"></script>
+  <script src="js/exporter.js?v=1788179618189"></script>
+  <script src="js/sample-data.js?v=1788179618189"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788178980536"></script>
+  <script src="js/analyzer-app.js?v=1788179618189"></script>
 
-  <script src="js/admin.js?v=1788178980536"></script>
-  <script src="js/preview-app.js?v=1788178980536"></script>
+  <script src="js/admin.js?v=1788179618189"></script>
+  <script src="js/preview-app.js?v=1788179618189"></script>
 
   </body>
   <script>

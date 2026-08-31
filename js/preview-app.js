@@ -1,3 +1,214 @@
+
+function processImageBlob(file, isEdit = false) {
+  if (!file || !file.type.startsWith('image/')) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('이미지 용량은 최대 5MB까지 가능합니다.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const maxDim = 1200;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const base64Data = canvas.toDataURL('image/jpeg', 0.85);
+
+      if (isEdit) {
+        currentEditPostImageData = base64Data;
+        const previewContainer = document.getElementById('edit-post-image-preview-container');
+        const previewImg = document.getElementById('edit-post-image-preview');
+        const compressInfo = document.getElementById('edit-post-image-compress-info');
+        if (previewImg) previewImg.src = base64Data;
+        if (compressInfo) compressInfo.innerHTML = `<span class="text-cyan-400 font-bold">✓ 사진 첨부됨 (붙여넣기)</span> <span class="text-slate-500 font-mono">(${width}x${height}px)</span>`;
+        if (previewContainer) {
+          previewContainer.classList.remove('hidden');
+          previewContainer.style.display = 'block';
+        }
+      } else {
+        currentPostImageData = base64Data;
+        const previewContainer = document.getElementById('post-image-preview-container');
+        const previewImg = document.getElementById('post-image-preview');
+        const compressInfo = document.getElementById('post-image-compress-info');
+        if (previewImg) previewImg.src = base64Data;
+        if (compressInfo) compressInfo.innerHTML = `<span class="text-cyan-400 font-bold">✓ 사진 첨부됨 (붙여넣기)</span> <span class="text-slate-500 font-mono">(${width}x${height}px)</span>`;
+        if (previewContainer) {
+          previewContainer.classList.remove('hidden');
+          previewContainer.style.display = 'block';
+        }
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePostImageSelect(event) {
+  const file = event.target.files[0];
+  if (file) processImageBlob(file, false);
+}
+
+function handleEditPostImageSelect(event) {
+  const file = event.target.files[0];
+  if (file) processImageBlob(file, true);
+}
+
+function removePostImage(event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  currentPostImageData = null;
+  const fileInput = document.getElementById('post-image-file');
+  if (fileInput) fileInput.value = '';
+  const previewContainer = document.getElementById('post-image-preview-container');
+  if (previewContainer) {
+    previewContainer.classList.add('hidden');
+    previewContainer.style.display = 'none';
+  }
+}
+
+function removeEditPostImage(event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  currentEditPostImageData = null;
+  const fileInput = document.getElementById('edit-post-image-file');
+  if (fileInput) fileInput.value = '';
+  const previewContainer = document.getElementById('edit-post-image-preview-container');
+  if (previewContainer) {
+    previewContainer.classList.add('hidden');
+    previewContainer.style.display = 'none';
+  }
+}
+
+let currentEditPostImageData = null;
+let currentEditingPostId = null;
+
+// Post Edit & Delete Handlers
+function openEditPostModal(postId) {
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  currentEditingPostId = postId;
+  currentEditPostImageData = post.image || null;
+
+  const catSelect = document.getElementById('edit-post-category-select');
+  const titleInput = document.getElementById('edit-post-title-input');
+  const contentInput = document.getElementById('edit-post-content-input');
+
+  if (catSelect) catSelect.value = post.category || 'general';
+  if (titleInput) titleInput.value = post.title || '';
+  if (contentInput) contentInput.value = post.content || '';
+
+  const previewContainer = document.getElementById('edit-post-image-preview-container');
+  const previewImg = document.getElementById('edit-post-image-preview');
+  const compressInfo = document.getElementById('edit-post-image-compress-info');
+
+  if (post.image) {
+    if (previewImg) previewImg.src = post.image;
+    if (compressInfo) compressInfo.innerHTML = '<span class="text-cyan-400 font-bold">✓ 첨부된 사진</span>';
+    if (previewContainer) {
+      previewContainer.classList.remove('hidden');
+      previewContainer.style.display = 'block';
+    }
+  } else {
+    if (previewContainer) {
+      previewContainer.classList.add('hidden');
+      previewContainer.style.display = 'none';
+    }
+  }
+
+  closePostDetailModal();
+
+  const modal = document.getElementById('edit-post-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+}
+
+function closeEditPostModal() {
+  const modal = document.getElementById('edit-post-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+  currentEditingPostId = null;
+  currentEditPostImageData = null;
+}
+
+function handleUpdatePost(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (!currentEditingPostId) return;
+
+  const catSelect = document.getElementById('edit-post-category-select');
+  const titleInput = document.getElementById('edit-post-title-input');
+  const contentInput = document.getElementById('edit-post-content-input');
+
+  const category = catSelect ? catSelect.value : 'general';
+  const title = titleInput ? titleInput.value.trim() : '';
+  const content = contentInput ? contentInput.value.trim() : '';
+
+  if (!title || !content) {
+    alert('제목과 내용을 모두 입력해 주세요.');
+    return;
+  }
+
+  const categoryNames = {
+    general: '💬 자유 토론',
+    market: '📊 차트/기술적 분석',
+    altcoin: '🚀 알트코인 분석',
+    ico: '🪙 ICO / 신규 토큰',
+    qna: '❓ 초보 Q&A'
+  };
+
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === currentEditingPostId);
+  if (!post) return;
+
+  post.category = category;
+  post.categoryName = categoryNames[category] || '💬 자유 토론';
+  post.title = title;
+  post.content = content;
+  post.image = currentEditPostImageData || null;
+  post.edited = true;
+  post.time = '수정됨 (방금 전)';
+
+  saveStoredPosts(posts);
+  closeEditPostModal();
+  renderForumPosts();
+  alert('✏️ 게시글이 성공적으로 수정되었습니다!');
+}
+
+function handleDeletePost(postId) {
+  if (!confirm('정말로 이 게시글을 영구 삭제하시겠습니까?')) return;
+
+  let posts = getStoredPosts();
+  posts = posts.filter(p => p.id !== postId);
+  saveStoredPosts(posts);
+
+  closePostDetailModal();
+  renderForumPosts();
+  alert('🗑️ 게시글이 삭제되었습니다.');
+}
+
+
 // ====================================================
 // CryptoPnL – Main Application Engine
 // 100% Client-Side Privacy Architecture
@@ -595,73 +806,7 @@ function closeNewPostModal() {
   }
 }
 
-function handlePostImageSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
 
-  if (!file.type.startsWith('image/')) {
-    alert('이미지 파일(JPG, PNG, GIF, WebP)만 첨부할 수 있습니다.');
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    alert('이미지 용량은 최대 5MB까지 업로드 가능합니다.');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-      const maxDim = 1200;
-
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      currentPostImageData = canvas.toDataURL('image/jpeg', 0.85);
-
-      const previewContainer = document.getElementById('post-image-preview-container');
-      const previewImg = document.getElementById('post-image-preview');
-      const compressInfo = document.getElementById('post-image-compress-info');
-
-      if (previewImg) previewImg.src = currentPostImageData;
-      if (compressInfo) compressInfo.innerHTML = `<span class="text-cyan-400 font-bold">✓ 사진 첨부 완료</span> <span class="text-slate-500 font-mono">(${width}x${height}px)</span>`;
-      if (previewContainer) {
-        previewContainer.classList.remove('hidden');
-        previewContainer.style.display = 'block';
-      }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function removePostImage(event) {
-  if (event && event.stopPropagation) event.stopPropagation();
-  currentPostImageData = null;
-  const fileInput = document.getElementById('post-image-file');
-  if (fileInput) fileInput.value = '';
-  const previewContainer = document.getElementById('post-image-preview-container');
-  if (previewContainer) {
-    previewContainer.classList.add('hidden');
-    previewContainer.style.display = 'none';
-  }
-}
 
 function handleCreatePost(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -764,6 +909,40 @@ function openPostDetailModal(postId) {
       imgElement.src = '';
       imgContainer.classList.add('hidden');
       imgContainer.style.display = 'none';
+    }
+  }
+
+  
+  // Render author/admin controls
+  const controlsEl = document.getElementById('modal-post-author-controls');
+  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  let currentUsername = '';
+  let isAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) currentUsername = u.username;
+    } catch(e) {}
+  }
+
+  const isAuthor = (currentUsername && currentUsername === post.author) || isAdmin;
+
+  if (controlsEl) {
+    if (isAuthor) {
+      controlsEl.innerHTML = `
+        <div class="flex items-center gap-1.5 ml-auto">
+          <button onclick="openEditPostModal(${post.id})" class="px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
+          </button>
+          <button onclick="handleDeletePost(${post.id})" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
+          </button>
+        </div>
+      `;
+      controlsEl.classList.remove('hidden');
+    } else {
+      controlsEl.innerHTML = '';
+      controlsEl.classList.add('hidden');
     }
   }
 
@@ -1383,6 +1562,9 @@ function switchTab(tabId, updateHash = true) {
     fetchMarketData();
     initChart();
   }
+  if (tabId === 'admin' && typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') {
+    AdminApp.checkAdminAccess();
+  }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
     history.replaceState(null, '', `#/${tabId}`);
@@ -1455,6 +1637,40 @@ document.addEventListener('DOMContentLoaded', () => {
   switchTab(initialTab, false);
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  
+  // Clipboard Image Paste Handler for post content
+  const postContentEl = document.getElementById('post-content-input');
+  if (postContentEl) {
+    postContentEl.addEventListener('paste', function (e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            const blob = items[i].getAsFile();
+            processImageBlob(blob, false);
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  const editPostContentEl = document.getElementById('edit-post-content-input');
+  if (editPostContentEl) {
+    editPostContentEl.addEventListener('paste', function (e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            const blob = items[i].getAsFile();
+            processImageBlob(blob, true);
+            break;
+          }
+        }
+      }
+    });
+  }
 
   setInterval(simulateLiveFluctuations, 4000);
 });
