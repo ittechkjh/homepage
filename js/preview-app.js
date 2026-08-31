@@ -193,6 +193,7 @@ function handleUpdatePost(e) {
   saveStoredPosts(posts);
   closeEditPostModal();
   renderForumPosts();
+  renderCalendarEvents();
   alert('✏️ 게시글이 성공적으로 수정되었습니다!');
 }
 
@@ -1492,6 +1493,11 @@ const ROUTE_SEO_MAP = {
     title: "CryptoPnL – 가상자산 세무, 엑셀 분석 & 실전 매매 지식 백서",
     desc: "8편의 전문 가이드와 FAQ 10선"
   },
+  
+  calendar: {
+    title: "CryptoPnL – 2026 주요 가상자산 일정 및 경제 캘린더",
+    desc: "FOMC 금리 결정, 대규모 토큰 락업 해제, 메인넷 업그레이드, 글로벌 컨퍼런스 실시간 D-Day 일정"
+  },
   admin: {
     title: "CryptoPnL – 최고 관리자(Admin) 전용 센터",
     desc: "CryptoPnL 사이트 운영, 방문자 트래픽 모니터링 및 시스템 관리"
@@ -1510,7 +1516,7 @@ function updatePageSEO(tabId) {
 }
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'guides', 'admin'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'guides', 'calendar', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   tabs.forEach(t => {
@@ -1556,6 +1562,9 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
     CoinCalculators.init();
+  }
+  if (tabId === 'calendar') {
+    renderCalendarEvents();
   }
 
   if (tabId === 'market') {
@@ -1681,3 +1690,227 @@ window.addEventListener('hashchange', function () {
     switchTab(h, false);
   }
 });
+
+
+
+// ----------------------------------------------------
+// Section 10: Crypto Events Calendar Engine
+// ----------------------------------------------------
+const CRYPTO_EVENTS = [
+  {
+    id: 1,
+    date: '2026-09-02',
+    dday: 'D-2',
+    time: '21:30 (KST)',
+    category: 'macro',
+    categoryName: '🏦 FOMC/거시경제',
+    coin: 'MACRO',
+    title: '미국 8월 고용보고서 (비농업 고용 및 실업률) 발표',
+    desc: '연준(Fed)의 9월 금리 결정 방향성을 가늠할 핵심 경제 지표. 시장 예상치 하회 시 조기 금리 인하 기대감 고조.',
+    impact: 'HIGH IMPACT',
+    impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+  },
+  {
+    id: 2,
+    date: '2026-09-05',
+    dday: 'D-5',
+    time: '18:00 (KST)',
+    category: 'unlock',
+    categoryName: '🔓 토큰 락업해제',
+    coin: 'SUI',
+    title: '수이(SUI) 6,400만 개 대규모 토큰 락업 해제',
+    desc: '초기 기여자 및 커뮤니티 물량 약 9,500만 달러 상당 해제. 단기 유통량 증가에 따른 가격 변동성 주의 필요.',
+    impact: 'VOLATILE',
+    impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+  },
+  {
+    id: 3,
+    date: '2026-09-10',
+    dday: 'D-10',
+    time: '21:30 (KST)',
+    category: 'macro',
+    categoryName: '🏦 FOMC/거시경제',
+    coin: 'MACRO',
+    title: '미국 8월 소비자물가지수(CPI) 발표',
+    desc: '인플레이션 둔화 추세 지속 여부 확인. 전년 동기 대비 2.8% 하회 시 위험자산 강세 랠리 촉발 가능성.',
+    impact: 'HIGH IMPACT',
+    impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+  },
+  {
+    id: 4,
+    date: '2026-09-16',
+    dday: 'D-16',
+    time: '03:00 (KST)',
+    category: 'macro',
+    categoryName: '🏦 FOMC/거시경제',
+    coin: 'FED',
+    title: '미국 연준(Fed) FOMC 기준금리 결정 및 파월 의장 기자회견',
+    desc: '글로벌 유동성 공급과 암호화폐 시장의 향방을 결정지을 2026년 하반기 최대 이벤트.',
+    impact: 'CRITICAL',
+    impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+  },
+  {
+    id: 5,
+    date: '2026-09-18',
+    dday: 'D-18',
+    time: '15:00 (KST)',
+    category: 'upgrade',
+    categoryName: '🚀 메인넷/업그레이드',
+    coin: 'ETH',
+    title: '이더리움(ETH) 프라하(Pectra) 하드포크 테스트넷 적용',
+    desc: '계정 추상화(EIP-3074) 및 검증자 최대 스테이킹 한도 상향(EIP-7251)을 포함한 대규모 확장성 업그레이드.',
+    impact: 'BULLISH',
+    impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
+  },
+  {
+    id: 6,
+    date: '2026-09-22',
+    dday: 'D-22',
+    time: '10:00 (KST)',
+    category: 'conference',
+    categoryName: '🌐 글로벌 컨퍼런스',
+    coin: 'SOL',
+    title: '솔라나 Breakpoint 2026 글로벌 개발자 컨퍼런스',
+    desc: '파이어댄서(Firedancer) 메인넷 정식 출시 발표 및 솔라나 생태계 주요 디앱 신규 로드맵 공개.',
+    impact: 'BULLISH',
+    impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
+  },
+  {
+    id: 7,
+    date: '2026-09-25',
+    dday: 'D-25',
+    time: '17:00 (KST)',
+    category: 'unlock',
+    categoryName: '🔓 토큰 락업해제',
+    coin: 'ARB',
+    title: '아비트럼(ARB) 9,260만 개 팀 및 고문 물량 락업 해제',
+    desc: 'L2 생태계 핵심 토큰의 정기 락업 해제. 탈중앙화 거버넌스 투표율 및 스테이킹 보상 정책 연계 주목.',
+    impact: 'VOLATILE',
+    impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+  },
+  {
+    id: 8,
+    date: '2026-09-28',
+    dday: 'D-28',
+    time: '23:00 (KST)',
+    category: 'policy',
+    categoryName: '⚖️ 규제/법안',
+    coin: 'SEC',
+    title: '미국 SEC, 신규 가상자산 현물 지수 ETF 승인 심사 기한',
+    desc: '솔라나 및 다중 암호화폐 종합 인덱스 ETF에 대한 SEC 최종 승인 여부 판결 기한.',
+    impact: 'HIGH IMPACT',
+    impactColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
+  }
+];
+
+let activeCalendarFilter = 'all';
+let currentCalendarView = 'list';
+
+function filterCalendar(cat) {
+  activeCalendarFilter = cat;
+  const buttons = document.querySelectorAll('#calendar-filter-buttons .category-btn');
+  buttons.forEach(btn => {
+    if (btn.dataset.calCat === cat) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  renderCalendarEvents();
+}
+
+function switchCalendarView(view) {
+  currentCalendarView = view;
+  const listBtn = document.getElementById('btn-cal-view-list');
+  const monthBtn = document.getElementById('btn-cal-view-month');
+  const listView = document.getElementById('calendar-list-view');
+  const monthView = document.getElementById('calendar-month-view');
+
+  if (view === 'list') {
+    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
+    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
+    if (listView) listView.classList.remove('hidden');
+    if (monthView) monthView.classList.add('hidden');
+  } else {
+    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
+    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
+    if (listView) listView.classList.add('hidden');
+    if (monthView) monthView.classList.remove('hidden');
+    renderMonthCalendar();
+  }
+}
+
+function renderCalendarEvents() {
+  const container = document.getElementById('calendar-events-list');
+  if (!container) return;
+
+  let events = CRYPTO_EVENTS;
+  if (activeCalendarFilter !== 'all') {
+    events = events.filter(e => e.category === activeCalendarFilter);
+  }
+
+  container.innerHTML = events.map(ev => `
+    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
+      <div class="flex items-start gap-4 flex-1">
+        <!-- Date Badge -->
+        <div class="w-16 h-16 rounded-2xl bg-navy-950 border border-navy-800 flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
+          <span class="text-[11px] font-black text-cyan-400 font-mono">${ev.dday}</span>
+          <span class="text-xs font-bold text-slate-200 mt-0.5">${ev.date.slice(5)}</span>
+        </div>
+
+        <!-- Info -->
+        <div class="space-y-1.5 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-bold font-mono">${ev.coin}</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold">${ev.categoryName}</span>
+            <span class="text-xs text-slate-500 font-mono">${ev.time}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto md:ml-0">${ev.impact}</span>
+          </div>
+          <h3 class="text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(ev.title)}</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(ev.desc)}</p>
+        </div>
+      </div>
+
+      <!-- Action -->
+      <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+        <button onclick="alert('Google 캘린더 일정 추가 기능이 준비되었습니다.');" class="px-3.5 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-cyan-500/40 text-xs text-slate-300 font-medium transition flex items-center gap-1.5">
+          <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-cyan-400"></i> 일정 저장
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderMonthCalendar() {
+  const container = document.getElementById('month-calendar-grid');
+  if (!container) return;
+
+  const daysInMonth = 30; // Sep 2026
+  let gridHtml = '';
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
+    const dayEvents = CRYPTO_EVENTS.filter(e => e.date === dateStr);
+    const hasEvents = dayEvents.length > 0;
+
+    gridHtml += `
+      <div class="min-h-[90px] p-2.5 rounded-2xl bg-navy-950 border ${hasEvents ? 'border-cyan-500/40 bg-cyan-950/20' : 'border-navy-800/80'} flex flex-col justify-between transition hover:border-cyan-400 group">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold ${hasEvents ? 'text-cyan-400 font-mono' : 'text-slate-400'}">9/${day}</span>
+          ${hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : ''}
+        </div>
+        <div class="space-y-1 mt-1">
+          ${dayEvents.map(e => `
+            <div class="text-[10px] px-1.5 py-0.5 rounded bg-navy-900 border border-navy-800 text-slate-200 truncate font-medium" title="${escapeHtml(e.title)}">
+              ${escapeHtml(e.coin)}: ${escapeHtml(e.title)}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = gridHtml;
+}

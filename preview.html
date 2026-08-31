@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788179618189">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788179618189">
+  <link rel="stylesheet" href="styles.css?v=1788180716204">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788180716204">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -600,8 +600,8 @@
 
   
   <!-- Modal 1: Post Detail & Comments Modal -->
-  <div id="post-detail-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 flex" style="display: none !important;">
-    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in">
+  <div id="post-detail-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4 sm:p-6 flex" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in">
       <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/80">
         <span id="modal-post-category" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">카테고리</span>
         <button onclick="closePostDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition">
@@ -805,6 +805,9 @@
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="newspaper" class="w-4 h-4"></i> 속보
         </button>
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100">
+          <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i> 코인 일정
+        </button>
         <button onclick="switchTab('guides')" id="nav-guides" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-indigo-300 hover:text-indigo-100">
           <i data-lucide="book-open" class="w-4 h-4 text-indigo-400"></i> 지식 가이드
         </button>
@@ -848,6 +851,9 @@
     </button>
     <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-1 text-amber-400 text-[10px] font-medium">
       <i data-lucide="calculator" class="w-4 h-4"></i> 계산기
+    </button>
+    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
+      <i data-lucide="calendar" class="w-4 h-4"></i> 일정
     </button>
     <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
       <i data-lucide="newspaper" class="w-4 h-4"></i> 뉴스
@@ -3012,94 +3018,25 @@
        MODALS & DIALOGS
        ============================================== -->
 
-  <!-- Professional 4-Column Footer -->
-  <footer class="bg-navy-900 border-t border-navy-800 text-xs text-slate-400 mt-auto">
-    <!-- Main Footer Grid -->
-    <div class="container mx-auto px-4 py-12">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        
-        <!-- Col 1: Brand Story & Trust -->
-        <div class="space-y-3.5">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-navy-950 font-black text-sm shadow-md">
-              C
-            </div>
-            <div>
-              <span class="font-extrabold text-base text-white tracking-tight">CryptoPnL</span>
-              <span class="block text-[10px] text-cyan-400 font-mono">100% CLIENT-SIDE ONLY</span>
-            </div>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            국내 최초 100% 클라이언트 사이드 가상자산 손익 정밀 분석 플랫폼. 업비트·빗썸 엑셀 거래내역을 서버 전송 없이 1초 만에 로컬에서 무료 분석합니다.
-          </p>
-          <div class="flex items-center gap-2 pt-1">
-            <span class="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold">
-              🔒 프라이버시 100% 보장
-            </span>
-            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-              ⚡ 평생 무료 개방
-            </span>
-          </div>
-        </div>
-
-        <!-- Col 2: Core Killer Tools -->
-        <div class="space-y-3">
-          <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
-            <i data-lucide="calculator" class="w-4 h-4 text-cyan-400"></i> 실전 트레이딩 도구
-          </h4>
-          <ul class="space-y-2 text-xs">
-            <li><button onclick="switchTab('analyzer')" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>📊</span> 엑셀 손익 정밀 분석기 (HOT)</button></li>
-            <li><button onclick="switchTab('calculators'); CoinCalculators.switchSubTab('water');" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>💧</span> 물타기/불타기 평단가 & 분할매도</button></li>
-            <li><button onclick="switchTab('calculators'); CoinCalculators.switchSubTab('kimp');" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>⚡</span> 실시간 김치프리미엄 & 보따리</button></li>
-            <li><button onclick="switchTab('calculators'); CoinCalculators.switchSubTab('tax');" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>📑</span> 2026 가상자산 양도소득세 계산기</button></li>
-            <li><button onclick="switchTab('calculators'); CoinCalculators.switchSubTab('futures');" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>📊</span> 선물 레버리지 강제 청산가 계산</button></li>
-            <li><button onclick="switchTab('calculators'); CoinCalculators.switchSubTab('card');" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>🖼️</span> 트레이딩 수익률 인증 카드 생성</button></li>
-          </ul>
-        </div>
-
-        <!-- Col 3: Trust, Legal & Policies -->
-        <div class="space-y-3">
-          <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 신뢰 & 공식 정책
-          </h4>
-          <ul class="space-y-2 text-xs">
-            <li><button onclick="openLegalModal('privacy')" class="hover:text-cyan-400 transition flex items-center gap-1.5 text-cyan-300 font-semibold"><span>🛡️</span> 개인정보처리방침 (Privacy Policy)</button></li>
-            <li><button onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>⚖️</span> 서비스 이용약관 & 투자면책</button></li>
-            <li><button onclick="openLegalModal('about')" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>🏢</span> CryptoPnL 소개 & 보안철학</button></li>
-            <li><button onclick="openLegalModal('contact')" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>📩</span> 고객 지원 및 제휴 문의</button></li>
-            <li><a href="https://github.com/ittechkjh/homepage" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition flex items-center gap-1.5"><span>💻</span> GitHub 오픈소스 저장소</a></li>
-          </ul>
-        </div>
-
-        <!-- Col 4: Knowledge Hub & Community -->
-        <div class="space-y-3">
-          <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
-            <i data-lucide="book-open" class="w-4 h-4 text-indigo-400"></i> 지식 가이드 & 지원
-          </h4>
-          <ul class="space-y-2 text-xs">
-            <li><button onclick="switchTab('guides')" class="hover:text-indigo-400 transition flex items-center gap-1.5 text-indigo-300 font-semibold"><span>📚</span> 지식 가이드 & 백서 허브</button></li>
-            <li><button onclick="window.openExcelGuideModal()" class="hover:text-indigo-400 transition flex items-center gap-1.5"><span>📌</span> 엑셀 다운로드 3초 가이드</button></li>
-            <li><button onclick="switchTab('forum')" class="hover:text-indigo-400 transition flex items-center gap-1.5"><span>💬</span> 투자자 커뮤니티 포럼</button></li>
-            <li><button onclick="switchTab('chat')" class="hover:text-indigo-400 transition flex items-center gap-1.5"><span>📻</span> 24시간 실시간 트레이더 채팅</button></li>
-            <li><button onclick="switchTab('news')" class="hover:text-indigo-400 transition flex items-center gap-1.5"><span>⚡</span> 글로벌 암호화폐 실시간 속보</button></li>
-            <li class="pt-1 border-t border-navy-800"><button onclick="openAuthModal();" class="text-slate-400 hover:text-cyan-400 font-medium transition flex items-center gap-1"><span>🔐</span> 로그인</button></li>
-          </ul>
-        </div>
-
-      </div>
-
-      <!-- Financial Advice Disclaimer Banner (Essential) -->
-      <div class="mt-10 pt-6 border-t border-navy-800 text-[11px] text-slate-400 leading-relaxed space-y-2">
-        <p class="p-3.5 rounded-2xl bg-navy-950 border border-navy-800 text-slate-400">
-          ⚠️ <strong>법적 면책 고지 (Disclaimer):</strong> CryptoPnL는 가상자산 정보 제공 및 편의 목적의 분석 소프트웨어이며, 「자본시장과 금융투자업에 관한 법률」에 따른 금융투자업자 또는 유사투자자문업자가 아닙니다. 사이트에서 제공하는 모든 시세, 통계, 엑셀 손익 분석 결과 및 계산기 데이터는 참고용 시뮬레이션 수치일 뿐이며, 특정 자산의 매수/매도를 권유하거나 투자 자문(Financial Advice)에 해당하지 않습니다. 가상자산은 높은 가격 변동성으로 인해 원금 손실이 발생할 수 있으며 모든 투자 판단과 책임은 투자자 본인에게 있습니다.
-        </p>
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-2 pt-2 text-[11px] text-slate-500 font-mono">
-          <div>© 2026 CryptoPnL Platform. All rights reserved. Built with 100% Client-Side Privacy Architecture.</div>
-          <div>Contact: ittechkjh@gmail.com | ittechkjh@gmail.com</div>
-        </div>
+  
+  <!-- Simplified Lightweight Footer (AdSense Compliant) -->
+  <footer class="bg-navy-950 border-t border-navy-800/80 py-8 px-4 text-center mt-auto">
+    <div class="max-w-4xl mx-auto space-y-3">
+      <p class="text-xs text-slate-400 font-medium">© 2026 CryptoPnL</p>
+      <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs text-slate-400">
+        <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hover:text-cyan-400 transition">개인정보처리방침</button>
+        <span class="text-slate-700">|</span>
+        <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">이용약관</button>
+        <span class="text-slate-700">|</span>
+        <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">면책조항</button>
+        <span class="text-slate-700">|</span>
+        <button type="button" data-open-legal="contact" onclick="openLegalModal('contact')" class="hover:text-cyan-400 transition">문의</button>
+        <span class="text-slate-700">|</span>
+        <button type="button" data-open-legal="about" onclick="openLegalModal('about')" class="hover:text-cyan-400 transition">소개</button>
       </div>
     </div>
   </footer>
+
 
   <!-- Global Loader Overlay -->
     <div class="global-loader" id="globalLoader">
@@ -3117,17 +3054,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788179618189"></script>
-  <script src="js/calculator.js?v=1788179618189"></script>
-  <script src="js/upbit-api.js?v=1788179618189"></script>
-  <script src="js/charts.js?v=1788179618189"></script>
-  <script src="js/exporter.js?v=1788179618189"></script>
-  <script src="js/sample-data.js?v=1788179618189"></script>
+  <script src="js/parser.js?v=1788180716204"></script>
+  <script src="js/calculator.js?v=1788180716204"></script>
+  <script src="js/upbit-api.js?v=1788180716204"></script>
+  <script src="js/charts.js?v=1788180716204"></script>
+  <script src="js/exporter.js?v=1788180716204"></script>
+  <script src="js/sample-data.js?v=1788180716204"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788179618189"></script>
+  <script src="js/analyzer-app.js?v=1788180716204"></script>
 
-  <script src="js/admin.js?v=1788179618189"></script>
-  <script src="js/preview-app.js?v=1788179618189"></script>
+  <script src="js/admin.js?v=1788180716204"></script>
+  <script src="js/preview-app.js?v=1788180716204"></script>
 
   </body>
   <script>
