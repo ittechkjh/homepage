@@ -1,4 +1,4 @@
-# 🚀 CoinHub (Coin Community & Real-Time Market Platform)
+# 🚀 CryptoPnL (Coin Community & Real-Time Market Platform)
 
 > 암호화폐 투자자들을 위한 실시간 시세 분석, 커뮤니티 포럼, 실시간 채팅 및 뉴스 애그리게이터 종합 플랫폼입니다.
 
@@ -54,4 +54,4 @@
 
 ---
 
-© 2026 CoinHub. All rights reserved.
+© 2026 CryptoPnL. All rights reserved.

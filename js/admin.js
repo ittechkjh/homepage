@@ -919,7 +919,7 @@ const AdminApp = {
         const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backup, null, 2));
         const a = document.createElement('a');
         a.href = dataStr;
-        a.download = 'coinhub_full_backup_' + new Date().toISOString().slice(0,10) + '.json';
+        a.download = 'cryptopnl_full_backup_' + new Date().toISOString().slice(0,10) + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

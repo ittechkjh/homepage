@@ -283,7 +283,7 @@ const Exporter = {
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>CoinHub 가상자산 포트폴리오 및 손익 분석 보고서 - ${userName}</title>
+  <title>CryptoPnL 가상자산 포트폴리오 및 손익 분석 보고서 - ${userName}</title>
   <style>
     @page {
       size: A4 portrait;
@@ -470,7 +470,7 @@ const Exporter = {
 
   <div class="no-print-bar">
     <div>
-      <strong>CoinHub 금융 & 세무 분석 보고서 미리보기</strong>
+      <strong>CryptoPnL 금융 & 세무 분석 보고서 미리보기</strong>
       <span style="font-size: 11px; opacity: 0.8; margin-left: 8px;">(PDF로 저장하려면 대상 프린터를 'PDF로 저장'으로 선택하세요)</span>
     </div>
     <button class="btn-print-action" onclick="window.print()">🖨️ 인쇄 / PDF 저장하기</button>
@@ -479,7 +479,7 @@ const Exporter = {
   <div class="report-header">
     <div class="report-title-group">
       <h1>가상자산 종합 거래내역 & 손익 분석 보고서</h1>
-      <p>CoinHub Crypto Portfolio Financial & Tax Statement</p>
+      <p>CryptoPnL Crypto Portfolio Financial & Tax Statement</p>
     </div>
     <table class="report-meta-table">
       <tr><td><strong>투자자 계정:</strong></td><td>${userName}</td></tr>
@@ -638,7 +638,7 @@ const Exporter = {
   </table>
 
   <div class="footer-note">
-    <span>CoinHub Cryptocurrency Analytical Platform • 본 보고서는 거래소 원본 체결 내역을 바탕으로 산출되었습니다.</span>
+    <span>CryptoPnL Cryptocurrency Analytical Platform • 본 보고서는 거래소 원본 체결 내역을 바탕으로 산출되었습니다.</span>
     <span>Page 1 / 1</span>
   </div>
 

@@ -1,6 +1,6 @@
 /**
  * tools-calculators.js
- * 코인허브(CoinHub) 코인 계산기 5대 킬러 도구 엔진
+ * 크립토PnL(CryptoPnL) 코인 계산기 5대 킬러 도구 엔진
  * 1. 물타기 & 불타기 다중 차수(DCA) 평단가/탈출 시뮬레이터
  * 2. 김치프리미엄(김프) & 거래소 간 보따리(아비트라지) 계산기 (실시간 연동)
  * 3. 가상자산 소득세(코인 세금) 정밀 계산기
@@ -729,7 +729,7 @@ const CoinCalculators = {
 
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 24px Inter, sans-serif';
-        ctx.fillText('CoinHub PRO', 48, 64);
+        ctx.fillText('CryptoPnL PRO', 48, 64);
 
         ctx.fillStyle = '#06b6d4';
         ctx.font = 'bold 13px Inter, sans-serif';
@@ -780,18 +780,18 @@ const CoinCalculators = {
 
         ctx.fillStyle = '#64748b';
         ctx.font = '12px Inter, sans-serif';
-        ctx.fillText('⚡ 100% 로컬 독립 연산 엔진 • https://coinhub.kr', 48, 430);
+        ctx.fillText('⚡ 100% 로컬 독립 연산 엔진 • https://cryptopnl.com', 48, 430);
 
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 12px Inter, sans-serif';
-        ctx.fillText('CoinHub Certified Trade Result', 570, 430);
+        ctx.fillText('CryptoPnL Certified Trade Result', 570, 430);
     },
 
     downloadProfitCard: function () {
         const canvas = document.getElementById('profitCardCanvas');
         if (!canvas) return;
         const link = document.createElement('a');
-        link.download = `CoinHub_수익인증_${Date.now()}.png`;
+        link.download = `CryptoPnL_수익인증_${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     },
