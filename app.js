@@ -113,23 +113,22 @@ window.showExchangeGuide = function(exchange) {
 };
 
 function updateAdminNavVisibility() {
-  const isAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
-  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
-  let isAdminUser = false;
-  if (storedUser) {
-    try {
-      const u = JSON.parse(storedUser);
-      if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
-        isAdminUser = true;
-      }
-    } catch(e) {}
-  }
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+  let isLocalAdmin = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+    if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
+      isLocalAdmin = true;
+    }
+  } catch(e) {}
+
+  const isAuth = isSessionAuth || isLocalAdmin;
 
   const navAdmin = document.getElementById('nav-admin');
   const mNavAdmin = document.getElementById('m-nav-admin');
 
   if (navAdmin) {
-    if (isAuth || isAdminUser) {
+    if (isAuth) {
       navAdmin.classList.remove('hidden');
       navAdmin.classList.add('flex');
     } else {
@@ -139,7 +138,7 @@ function updateAdminNavVisibility() {
   }
 
   if (mNavAdmin) {
-    if (isAuth || isAdminUser) {
+    if (isAuth) {
       mNavAdmin.classList.remove('hidden');
       mNavAdmin.classList.add('flex');
     } else {
@@ -150,10 +149,9 @@ function updateAdminNavVisibility() {
 }
 window.updateAdminNavVisibility = updateAdminNavVisibility;
 
-
 function updateAuthUI() {
-  const isAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
-  const stored = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+  const stored = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let user = null;
   let isAdminUser = false;
   if (stored) {
@@ -165,9 +163,10 @@ function updateAuthUI() {
     } catch(e) {}
   }
 
+  const isAuth = isSessionAuth || isAdminUser;
   const authBtn = document.getElementById('btn-header-auth');
 
-  if (isAuth || isAdminUser) {
+  if (isAuth) {
     if (authBtn) {
       authBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i><span>admin (로그아웃)</span>';
       authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
@@ -191,7 +190,6 @@ function updateAuthUI() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 }
 window.updateAuthUI = updateAuthUI;
-
 
 
 // ----------------------------------------------------
@@ -743,13 +741,14 @@ function openPostDetailModal(postId) {
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
 
   const controlsEl = document.getElementById('cafe-post-author-controls');
-  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '';
   let isAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
   if (storedUser) {
     try {
       const u = JSON.parse(storedUser);
       if (u && u.username) currentUsername = u.username;
+      if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN')) isAdmin = true;
     } catch(e) {}
   }
 
@@ -811,7 +810,7 @@ function handleCafeAddComment() {
   const post = posts.find(p => p.id === currentCafePostId);
   if (!post) return;
 
-  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let author = '익명 트레이더';
   if (storedUser) {
     try {
@@ -938,7 +937,7 @@ function handleCafeSubmitPost(e) {
     qna: '❓ 초보 Q&A'
   };
 
-  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let authorName = '익명 트레이더';
   let authorRank = 'PRO';
   if (storedUser) {
@@ -1052,7 +1051,7 @@ function handleSendChat(e) {
   const text = input ? input.value.trim() : '';
   if (!text) return;
 
-  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let user = '익명 트레이더';
   let rank = 'USER';
   if (storedUser) {
@@ -1084,7 +1083,7 @@ window.handleSendChat = handleSendChat;
 
 // ----------------------------------------------------
 // Section 5: Multi-Media Real-Time Crypto News Aggregator
-// (연합뉴스, 한국경제, 매일경제, 블록미디어, 디센터, 코인니스, 코인데스크, 블룸버그 등)
+// (한국경제, 연합뉴스, 매일경제, 블록미디어, 디센터, 코인니스, 코인데스크, 블룸버그 등)
 // ----------------------------------------------------
 const MULTI_SOURCE_NEWS_POOL = [
   {
@@ -1211,6 +1210,129 @@ const MULTI_SOURCE_NEWS_POOL = [
 ];
 
 let NEWS_ITEMS = [...MULTI_SOURCE_NEWS_POOL];
+let activeNewsCategory = 'ALL';
+let newsCountdownSeconds = 30;
+let newsCountdownTimer = null;
+
+function filterNews(cat) {
+  activeNewsCategory = cat || 'ALL';
+  const buttons = document.querySelectorAll('#news-category-filters .category-btn');
+  buttons.forEach(btn => {
+    if (btn.dataset.newsCat === cat) {
+      btn.classList.add('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
+      btn.classList.remove('bg-navy-950', 'text-slate-400');
+    } else {
+      btn.classList.remove('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
+      btn.classList.add('bg-navy-950', 'text-slate-400');
+    }
+  });
+  renderNews();
+}
+window.filterNews = filterNews;
+
+function renderNews() {
+  const grid = document.getElementById('news-grid');
+  if (!grid) return;
+
+  let items = (NEWS_ITEMS && NEWS_ITEMS.length > 0) ? NEWS_ITEMS : MULTI_SOURCE_NEWS_POOL;
+
+  if (activeNewsCategory !== 'ALL') {
+    const targetCat = activeNewsCategory.toUpperCase();
+    items = items.filter(i => {
+      const itemCat = (i.category || '').toUpperCase();
+      if (targetCat === 'REGULATION' || targetCat === 'POLICY') {
+        return itemCat === 'REGULATION' || itemCat === 'POLICY';
+      }
+      if (targetCat === 'MARKET' || targetCat === 'BTC') {
+        return itemCat === 'MARKET' || itemCat === 'BTC';
+      }
+      if (targetCat === 'ALTCOIN' || targetCat === 'ALT') {
+        return itemCat === 'ALTCOIN' || itemCat === 'ALT';
+      }
+      if (targetCat === 'TECH' || targetCat === 'DEFI') {
+        return itemCat === 'TECH' || itemCat === 'DEFI';
+      }
+      return itemCat === targetCat;
+    });
+  }
+
+  if (items.length === 0) {
+    grid.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800 col-span-full">해당 카테고리의 속보 기사가 없습니다.</div>';
+    return;
+  }
+
+  grid.innerHTML = items.map(item => `
+    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-lg hover:border-cyan-500/40 transition flex flex-col justify-between space-y-4 group">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-mono font-bold">${escapeHtml(item.categoryName || item.category)}</span>
+          <span class="text-xs text-slate-400 font-mono">${escapeHtml(item.source)} • ${escapeHtml(item.time)}</span>
+        </div>
+        <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(item.title)}</h3>
+        <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed">${escapeHtml(item.content)}</p>
+      </div>
+
+      <div class="pt-3 border-t border-navy-800 flex items-center justify-between text-xs">
+        <button onclick="openNewsDetailModal(${item.id})" class="text-cyan-400 font-bold hover:underline flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI 요약 분석
+        </button>
+        <button onclick="openNewsDetailModal(${item.id})" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-slate-300 font-bold transition flex items-center gap-1 border border-navy-800">
+          <span>전문 읽기</span> <i data-lucide="arrow-right" class="w-3 h-3"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.renderNews = renderNews;
+
+function openNewsDetailModal(id) {
+  const item = (NEWS_ITEMS || []).find(n => n.id === id) || MULTI_SOURCE_NEWS_POOL.find(n => n.id === id);
+  if (!item) return;
+
+  const catEl = document.getElementById('modal-news-category');
+  const srcEl = document.getElementById('modal-news-source');
+  const timeEl = document.getElementById('modal-news-time');
+  const titleEl = document.getElementById('modal-news-title');
+  const contentEl = document.getElementById('modal-news-content');
+  const takeawaysEl = document.getElementById('modal-news-takeaways');
+
+  if (catEl) catEl.innerText = item.categoryName || item.category;
+  if (srcEl) srcEl.innerText = item.source;
+  if (timeEl) timeEl.innerText = item.time;
+  if (titleEl) titleEl.innerText = item.title;
+  if (contentEl) contentEl.innerText = item.content;
+
+  if (takeawaysEl) {
+    takeawaysEl.innerHTML = (item.takeaways || [
+      '글로벌 시장의 주요 가상자산 시세 흐름에 직접적 영향 요인',
+      '투자 심리 및 온체인 유동성 지표에 긍정적 시그널 제공'
+    ]).map(t => `<li class="leading-relaxed">${escapeHtml(t)}</li>`).join('');
+  }
+
+  const modal = document.getElementById('news-detail-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+window.openNewsDetailModal = openNewsDetailModal;
+
+function closeNewsDetailModal() {
+  const modal = document.getElementById('news-detail-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+}
+window.closeNewsDetailModal = closeNewsDetailModal;
+
+function copyNewsLink() {
+  alert('기사 링크가 클립보드에 복사되었습니다!');
+}
+window.copyNewsLink = copyNewsLink;
 
 async function fetchRealCryptoNews() {
   try {
@@ -1233,7 +1355,6 @@ async function fetchRealCryptoNews() {
           else if (title.includes('금융') || title.includes('법') || title.includes('규제') || title.includes('SEC') || title.includes('국회') || title.includes('당국')) category = 'REGULATION';
           else if (title.includes('기술') || title.includes('하드포크') || title.includes('메인넷') || title.includes('L2') || title.includes('디파이')) category = 'TECH';
 
-          // Extract real media publisher name if present (e.g., "한국경제", "연합뉴스", "매일경제", "블록미디어")
           let sourceName = item.author || '국내외 경제 미디어';
           if (title.includes(' - ')) {
             const parts = title.split(' - ');
@@ -1261,7 +1382,7 @@ async function fetchRealCryptoNews() {
       }
     }
   } catch (e) {
-    console.warn('Real RSS news fetch fallback to verified multi-source pool:', e);
+    console.warn('Real RSS fallback to multi-source pool:', e);
   }
   return MULTI_SOURCE_NEWS_POOL;
 }
@@ -1312,7 +1433,7 @@ window.initNewsPeriodicUpdater = initNewsPeriodicUpdater;
 
 
 // ----------------------------------------------------
-// Section 6: Crypto Events Calendar Engine
+// Section 6: Comprehensive 2026 Crypto Events Calendar Engine
 // ----------------------------------------------------
 const CRYPTO_EVENTS = [
   {
@@ -1323,13 +1444,26 @@ const CRYPTO_EVENTS = [
     category: 'macro',
     categoryName: '🏦 FOMC/거시경제',
     coin: 'MACRO',
-    title: '미국 8월 고용보고서 (비농업 고용 및 실업률) 발표',
+    title: '미국 8월 비농업 고용보고서 및 실업률 발표',
     desc: '연준(Fed)의 9월 금리 결정 방향성을 가늠할 핵심 경제 지표. 시장 예상치 하회 시 조기 금리 인하 기대감 고조.',
     impact: 'HIGH IMPACT',
     impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
   },
   {
     id: 2,
+    date: '2026-09-04',
+    dday: 'D-4',
+    time: '10:00 (KST)',
+    category: 'conference',
+    categoryName: '🌐 글로벌 컨퍼런스',
+    coin: 'KBW',
+    title: '코리아 블록체인 위크 (KBW 2026) 서울 개막',
+    desc: '아시아 최대 블록체인 행사로 글로벌 주요 L1/L2 파운더 및 국내 기관 투자자 대거 참석.',
+    impact: 'BULLISH',
+    impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
+  },
+  {
+    id: 3,
     date: '2026-09-05',
     dday: 'D-5',
     time: '18:00 (KST)',
@@ -1342,7 +1476,20 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
-    id: 3,
+    id: 4,
+    date: '2026-09-08',
+    dday: 'D-8',
+    time: '19:00 (KST)',
+    category: 'upgrade',
+    categoryName: '🚀 메인넷/업그레이드',
+    coin: 'ADA',
+    title: '카르다노(ADA) 창(Chang) 하드포크 거버넌스 2단계 전환',
+    desc: '완전한 온체인 탈중앙화 거버넌스 투표 체계 개시 및 헌법 위원회 공식 출범.',
+    impact: 'BULLISH',
+    impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
+  },
+  {
+    id: 5,
     date: '2026-09-10',
     dday: 'D-10',
     time: '21:30 (KST)',
@@ -1355,7 +1502,33 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
   },
   {
-    id: 4,
+    id: 6,
+    date: '2026-09-11',
+    dday: 'D-11',
+    time: '18:00 (KST)',
+    category: 'unlock',
+    categoryName: '🔓 토큰 락업해제',
+    coin: 'APT',
+    title: '앱토스(APT) 1,130만 개 팀 및 재단 락업 해제',
+    desc: '약 7,200만 달러 규모 물량 언락. 온체인 스테이킹 비율 변동 및 DEX 유동성 추이 주목.',
+    impact: 'VOLATILE',
+    impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+  },
+  {
+    id: 7,
+    date: '2026-09-14',
+    dday: 'D-14',
+    time: '10:00 (KST)',
+    category: 'conference',
+    categoryName: '🌐 글로벌 컨퍼런스',
+    coin: 'TOKEN2049',
+    title: 'TOKEN2049 싱가포르 글로벌 암호화폐 서밋',
+    desc: '전 세계 10,000명 이상의 웹3 리더들이 집결하여 하반기 유망 테마 및 VC 투자 전략 공유.',
+    impact: 'HIGH IMPACT',
+    impactColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
+  },
+  {
+    id: 8,
     date: '2026-09-16',
     dday: 'D-16',
     time: '03:00 (KST)',
@@ -1368,7 +1541,7 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
   },
   {
-    id: 5,
+    id: 9,
     date: '2026-09-18',
     dday: 'D-18',
     time: '15:00 (KST)',
@@ -1381,7 +1554,20 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
   },
   {
-    id: 6,
+    id: 10,
+    date: '2026-09-20',
+    dday: 'D-20',
+    time: '18:00 (KST)',
+    category: 'unlock',
+    categoryName: '🔓 토큰 락업해제',
+    coin: 'AVAX',
+    title: '아발란체(AVAX) 950만 개 서브넷 보상 락업 해제',
+    desc: '재단 및 전략 파트너사 보상 물량 해제. C체인 및 서브넷 TVL 추이 확인 필요.',
+    impact: 'VOLATILE',
+    impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+  },
+  {
+    id: 11,
     date: '2026-09-22',
     dday: 'D-22',
     time: '10:00 (KST)',
@@ -1394,7 +1580,7 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
   },
   {
-    id: 7,
+    id: 12,
     date: '2026-09-25',
     dday: 'D-25',
     time: '17:00 (KST)',
@@ -1407,17 +1593,30 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
-    id: 8,
+    id: 13,
     date: '2026-09-28',
     dday: 'D-28',
     time: '23:00 (KST)',
     category: 'policy',
     categoryName: '⚖️ 규제/법안',
     coin: 'SEC',
-    title: '미국 SEC, 신규 가상자산 현물 지수 ETF 승인 심사 기한',
-    desc: '솔라나 및 다중 암호화폐 종합 인덱스 ETF에 대한 SEC 최종 승인 여부 판결 기한.',
-    impact: 'HIGH IMPACT',
-    impactColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
+    title: '미국 SEC, 솔라나(SOL) 현물 ETF 1차 심사 결과 발표',
+    desc: '반에크 및 21Shares가 신청한 솔라나 현물 ETF 상품에 대한 규제 승인 여부 판결 기한.',
+    impact: 'CRITICAL',
+    impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+  },
+  {
+    id: 14,
+    date: '2026-09-30',
+    dday: 'D-30',
+    time: '18:00 (KST)',
+    category: 'unlock',
+    categoryName: '🔓 토큰 락업해제',
+    coin: 'OP',
+    title: '옵티미즘(OP) 3,130만 개 핵심 기여자 물량 해제',
+    desc: '슈퍼체인(Superchain) 생태계 보상 및 초기 투자자 물량 해제.',
+    impact: 'VOLATILE',
+    impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   }
 ];
 
@@ -1545,7 +1744,7 @@ window.renderMonthCalendar = renderMonthCalendar;
 
 
 // ----------------------------------------------------
-// Section 7: Unified User & Admin Authentication
+// Section 7: Unified User & Admin Authentication (NO MASTER PIN)
 // ----------------------------------------------------
 function openAuthModal() {
   const modal = document.getElementById('auth-modal');
@@ -1584,7 +1783,8 @@ function handleUnifiedLoginSubmit(e) {
     ? AdminApp.getAdminPassword() 
     : (localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
 
-  const isAdmin = (id.toLowerCase() === 'admin' && (pw === savedAdminPw || pw === '7777'));
+  // Strict check: ONLY configured password is valid! NO master pin!
+  const isAdmin = (id.toLowerCase() === 'admin' && pw === savedAdminPw);
 
   if (isAdmin) {
     sessionStorage.setItem('cryptopnl_admin_authenticated', '1');
@@ -1609,7 +1809,7 @@ function handleUnifiedLoginSubmit(e) {
     return;
   }
 
-  // If username is admin but password is incorrect -> STRICT REJECTION!
+  // If username is admin but password does not match -> STRICT ERROR
   if (id.toLowerCase() === 'admin') {
     alert('❌ 관리자 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
     if (pwInput) {
@@ -1875,16 +2075,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
-
-  
-  const cafeEditor = document.getElementById('cafe-write-content');
-  if (cafeEditor) {
-    cafeEditor.addEventListener('focus', function () {
-      if (cafeEditor.innerText.trim() === '자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요...') {
-        cafeEditor.innerHTML = '';
-      }
-    });
-  }
 
   setInterval(simulateLiveFluctuations, 4000);
 });

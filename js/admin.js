@@ -281,7 +281,7 @@ const AdminUserManager = {
         // 1. Check if trying to log in as admin
         if (identLower === 'admin' || identLower === 'admin@cryptopnl.com' || identLower === '성공') {
             const adminPw = (typeof AdminApp !== 'undefined') ? AdminApp.getAdminPassword() : 'admin1234';
-            if (pw === adminPw || pw === '7777') {
+            if (pw === adminPw) {
                 let adminUser = users.find(u => u.username.toLowerCase() === 'admin');
                 if (!adminUser) {
                     adminUser = {
@@ -418,7 +418,7 @@ const AdminApp = {
         const inputOld = prompt('현재 관리자 비밀번호를 입력하세요 (초기 비밀번호: admin1234):');
         if (inputOld === null) return;
         
-        if (inputOld.trim() !== currentPw && inputOld.trim() !== '7777') {
+        if (inputOld.trim() !== currentPw) {
             alert('❌ 현재 비밀번호가 일치하지 않습니다.');
             return;
         }
@@ -478,7 +478,7 @@ const AdminApp = {
         const pw = (pwInput ? pwInput.value : '').trim();
 
         const currentAdminPw = this.getAdminPassword();
-        if (pw === currentAdminPw || pw === 'admin1234' || pw === '7777') {
+        if (pw === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             const adminUser = {
                 username: id || 'admin',
@@ -527,7 +527,7 @@ const AdminApp = {
         if (pw === null) return;
 
         const currentAdminPw = this.getAdminPassword();
-        if (pw.trim() === currentAdminPw || (currentAdminPw === 'admin1234' && pw.trim() === 'admin1234') || pw.trim() === '7777') {
+        if (pw.trim() === currentAdminPw || (currentAdminPw === 'admin1234' && pw.trim() === 'admin1234') || false) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             const adminUser = {
                 username: 'admin',
@@ -606,7 +606,7 @@ const AdminApp = {
             return;
         }
 
-        if (pw === currentAdminPw || (currentAdminPw === 'admin1234' && pw === 'admin1234') || pw === '7777') {
+        if (pw === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             
             const adminUser = {
