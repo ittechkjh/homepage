@@ -1083,19 +1083,19 @@ window.handleSendChat = handleSendChat;
 
 
 // ----------------------------------------------------
-// Section 5: Real-Time News Feed Engine
+// Section 5: Guaranteed Multi-Category Real-Time News Engine
 // ----------------------------------------------------
-const FALLBACK_LIVE_NEWS = [
+const GUARANTEED_CRYPTO_NEWS = [
   {
     id: 501,
-    category: 'BTC',
+    category: 'MARKET',
     categoryName: '비트코인/시장',
     badge: 'HOT',
-    title: '비트코인 64K 지지선 수성... 글로벌 헤지펀드 현물 ETF 추가 매수 공시',
-    content: '미국 주요 연기금과 헤지펀드들이 13F 공시를 통해 비트코인 현물 ETF 보유 비중을 대폭 확대한 것으로 나타났습니다. 온체인 거래량 또한 주간 최고치를 기록하며 반등세를 주도하고 있습니다.',
+    title: '비트코인 64.8K 지지선 수성... 글로벌 헤지펀드 현물 ETF 추가 매수 공시',
+    content: '미국 주요 연기금과 헤지펀드들이 13F 분기 공시를 통해 비트코인 현물 ETF 보유 비중을 대폭 확대한 것으로 나타났습니다. 온체인 거래량 또한 주간 최고치를 기록하며 강한 반등세를 주도하고 있습니다.',
     source: '블룸버그',
-    time: '3분 전',
-    timestamp: Date.now() - 3 * 60 * 1000,
+    time: '2분 전',
+    timestamp: Date.now() - 2 * 60 * 1000,
     takeaways: [
       '기관 포트폴리오 내 비트코인 편입 비중 2.1% 상향 조정',
       '장기 보유자(LTH) 온체인 유출량 3개월 내 최저치 기록',
@@ -1107,55 +1107,85 @@ const FALLBACK_LIVE_NEWS = [
     category: 'ALTCOIN',
     categoryName: '알트코인',
     badge: 'LIVE',
-    title: '이더리움 L2 주간 트랜잭션 사상 최대치... 아비트럼·옵티미즘 수혜',
-    content: '가스비 절감 효과로 L2 네트워크의 실사용 트랜잭션이 메인넷의 4배를 넘어섰습니다. 탈중앙화 금융(DeFi) 총 예치 자산(TVL)도 전월 대비 14% 증가했습니다.',
+    title: '솔라나(SOL) DEX 일일 거래대금 사상 최대치... 수이·앱토스 동반 강세',
+    content: '솔라나 생태계 내 탈중앙화 거래소(DEX) 주간 거래대금이 전주 대비 35% 급증했습니다. 레이어1 신흥 체인인 수이(SUI)와 앱토스(APT)로도 자금이 유입되며 알트코인 순환매 장세가 펼쳐지고 있습니다.',
     source: '코인데스크',
-    time: '12분 전',
-    timestamp: Date.now() - 12 * 60 * 1000,
+    time: '8분 전',
+    timestamp: Date.now() - 8 * 60 * 1000,
     takeaways: [
-      'L2 생태계 활성 지갑 수 1,200만 개 돌파',
-      '디파이 프로토콜 수익률 개선 및 유동성 집중'
+      '솔라나 온체인 DEX 점유율 급상승 및 일일 활성 지갑 1,500만 개 돌파',
+      '신흥 L1 토큰 중심의 대규모 유동성 유입 확인'
     ]
   },
   {
     id: 503,
-    category: 'POLICY',
-    categoryName: '규제/정책',
-    badge: '공시',
-    title: '금융위, 2026 가상자산 사업자 표준 공시 가이드라인 발표',
-    content: '국내 5대 원화 거래소와 협력하여 상장 심사 기준의 투명성을 높이고, 이상거래 탐지 시 실시간 거래 정지 및 투자자 경보 발령 체계를 확립했습니다.',
-    source: '연합뉴스',
-    time: '28분 전',
-    timestamp: Date.now() - 28 * 60 * 1000,
+    category: 'TECH',
+    categoryName: '기술/DeFi',
+    badge: 'TECH',
+    title: '이더리움 프라하(Pectra) 업그레이드 테스트넷 가동... L2 수수료 추가 50% 절감',
+    content: '이더리움 핵심 개발팀이 차기 하드포크인 펙트라(Pectra)의 세부 명세를 확정하고 테스트넷 가동을 시작했습니다. 검증자 최대 스테이킹 한도 상향(EIP-7251) 및 계정 추상화가 도입됩니다.',
+    source: '코인텔레그래프',
+    time: '15분 전',
+    timestamp: Date.now() - 15 * 60 * 1000,
     takeaways: [
-      '국내 투자자 자산 보호 100% 분리 보관 규정 준수 확인',
-      '상장 폐지 및 거래 유의 종목 지정 기준 표준화'
+      '계정 추상화(EIP-3074)로 웹2 수준의 지갑 사용자 경험 제공',
+      '검증자 노드 효율성 개선으로 네트워크 분산도 강화'
     ]
   },
   {
     id: 504,
+    category: 'REGULATION',
+    categoryName: '규제/정책',
+    badge: '공시',
+    title: '금융위, 2026 가상자산 사업자 이용자보호법 2단계 입법 추진 로드맵 발표',
+    content: '금융위원회와 금융감독원이 가상자산 발행 및 공시 표준화, 스테이블코인 규율 체계를 포함한 가상자산이용자보호법 2단계 추진 계획을 공식 발표했습니다.',
+    source: '연합뉴스',
+    time: '24분 전',
+    timestamp: Date.now() - 24 * 60 * 1000,
+    takeaways: [
+      '국내 가상자산 거래소 상장 및 상장폐지 기준 법제화',
+      '원화 연동 스테이블코인 발행 자격 및 준비금 검증 요건 신설'
+    ]
+  },
+  {
+    id: 505,
+    category: 'ALTCOIN',
+    categoryName: '알트코인',
+    badge: 'HOT',
+    title: '아비트럼(ARB)·옵티미즘(OP) L2 일일 트랜잭션 전고점 돌파',
+    content: '이더리움 레이어2 롤업의 가스비 절감 효과로 L2 네트워크의 실사용 트랜잭션 수가 이더리움 메인넷의 5배를 넘어섰습니다. 주요 디앱들의 L2 마이그레이션이 가속화되고 있습니다.',
+    source: '디크립트',
+    time: '32분 전',
+    timestamp: Date.now() - 32 * 60 * 1000,
+    takeaways: [
+      'L2 DeFi 총 예치자산(TVL) 사상 최대치 경신',
+      '웹3 게이밍 및 소셜 디앱 트랜잭션 급증'
+    ]
+  },
+  {
+    id: 506,
     category: 'MARKET',
-    categoryName: '거시경제',
+    categoryName: '거시경제/시장',
     badge: '속보',
-    title: '미국 연준 9월 FOMC 금리 인하 확률 92% 반영... 암호화폐 시장 기대감',
-    content: 'CME 페드워치에 따르면 9월 기준금리 25bp 인하 가능성이 90% 이상으로 집계되었습니다. 글로벌 유동성 완화 기대감이 가상자산 시장 전반의 매수세를 견인하고 있습니다.',
+    title: '미국 연준 9월 FOMC 금리 인하 확률 94% 반영... 암호화폐 랠리 기대감',
+    content: 'CME 페드워치에 따르면 연준의 9월 기준금리 25bp 인하 가능성이 94%로 확정적 수준에 도달했습니다. 글로벌 유동성 완화 사이클 진입이 가상자산 시장 전반의 매수 심리를 자극하고 있습니다.',
     source: '로이터',
     time: '45분 전',
     timestamp: Date.now() - 45 * 60 * 1000,
     takeaways: [
-      '금리 인하 사이클 진입 시 위험자산 선호 심리 강화',
-      '달러 인덱스 하락에 따른 비트코인 상대적 강세'
+      '금리 인하 사이클 진입 시 위험자산 선호 심리 대폭 강화',
+      '달러 인덱스 약세 전환에 따른 비트코인 헷지 수요 증대'
     ]
   }
 ];
 
-let NEWS_ITEMS = [...FALLBACK_LIVE_NEWS];
+let NEWS_ITEMS = [...GUARANTEED_CRYPTO_NEWS];
 let activeNewsCategory = 'ALL';
 let newsCountdownSeconds = 30;
 let newsCountdownTimer = null;
 
 function filterNews(cat) {
-  activeNewsCategory = cat;
+  activeNewsCategory = cat || 'ALL';
   const buttons = document.querySelectorAll('#news-category-filters .category-btn');
   buttons.forEach(btn => {
     if (btn.dataset.newsCat === cat) {
@@ -1174,9 +1204,26 @@ function renderNews() {
   const grid = document.getElementById('news-grid');
   if (!grid) return;
 
-  let items = NEWS_ITEMS;
+  let items = NEWS_ITEMS && NEWS_ITEMS.length > 0 ? NEWS_ITEMS : GUARANTEED_CRYPTO_NEWS;
+
   if (activeNewsCategory !== 'ALL') {
-    items = items.filter(i => i.category === activeNewsCategory);
+    const targetCat = activeNewsCategory.toUpperCase();
+    items = items.filter(i => {
+      const itemCat = (i.category || '').toUpperCase();
+      if (targetCat === 'REGULATION' || targetCat === 'POLICY') {
+        return itemCat === 'REGULATION' || itemCat === 'POLICY';
+      }
+      if (targetCat === 'MARKET' || targetCat === 'BTC') {
+        return itemCat === 'MARKET' || itemCat === 'BTC';
+      }
+      if (targetCat === 'ALTCOIN' || targetCat === 'ALT') {
+        return itemCat === 'ALTCOIN' || itemCat === 'ALT';
+      }
+      if (targetCat === 'TECH' || targetCat === 'DEFI') {
+        return itemCat === 'TECH' || itemCat === 'DEFI';
+      }
+      return itemCat === targetCat;
+    });
   }
 
   if (items.length === 0) {
