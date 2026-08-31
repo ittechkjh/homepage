@@ -793,3 +793,181 @@ input[type="date"] {
     color: #ffffff;
     box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
+
+
+html.theme-light,
+html.theme-light :root {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --border-color: #cbd5e1;
+    --border-light: #e2e8f0;
+
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #475569;
+
+    --brand-primary: #0284c7;
+    --brand-hover: #0369a1;
+    --brand-glow: rgba(2, 132, 199, 0.15);
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+html.theme-light .stat-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+html.theme-light .stat-title {
+    color: #334155 !important;
+    font-weight: 700 !important;
+}
+
+html.theme-light .stat-value {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+}
+
+html.theme-light .stat-footer {
+    color: #475569 !important;
+}
+
+html.theme-light .stat-footer strong {
+    color: #0f172a !important;
+}
+
+html.theme-light .analyzer-subnav {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html.theme-light .analyzer-subtab {
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+html.theme-light .analyzer-subtab:hover {
+    color: #0f172a !important;
+    background: #ffffff !important;
+}
+
+html.theme-light .analyzer-subtab.active {
+    background: #ffffff !important;
+    color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    font-weight: 800 !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+}
+
+html.theme-light .chart-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+html.theme-light .chart-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+html.theme-light .data-table-container {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html.theme-light .table-toolbar {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+html.theme-light .filter-input,
+html.theme-light .select-control {
+    background: #ffffff !important;
+    border: 1px solid #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .table th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+html.theme-light .table td {
+    color: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html.theme-light .table tr:hover td {
+    background: #f8fafc !important;
+}
+
+html.theme-light .btn-outline {
+    background: #ffffff !important;
+    border: 1px solid #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .btn-outline:hover {
+    background: #f1f5f9 !important;
+    border-color: #0284c7 !important;
+    color: #0284c7 !important;
+}
+
+html.theme-light .btn-primary {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+html.theme-light .btn-primary:hover {
+    background: #0369a1 !important;
+}
+
+html.theme-light .pagination-container {
+    background: #f8fafc !important;
+    border-top: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+html.theme-light .page-btn {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .page-btn.active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+html.theme-light .modal-content {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .summary-box,
+html.theme-light .setting-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html.theme-light .setting-row {
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html.theme-light .setting-label {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+html.theme-light .setting-desc {
+    color: #475569 !important;
+}
