@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=1788180716204">
-  <link rel="stylesheet" href="css/analyzer.css?v=1788180716204">
+  <link rel="stylesheet" href="styles.css?v=1788181081563">
+  <link rel="stylesheet" href="css/analyzer.css?v=1788181081563">
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -825,10 +825,6 @@
         </div>
 
         <div id="auth-section" class="flex items-center gap-2">
-          <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 hover:border-cyan-500/40 text-[11px] font-semibold text-slate-300 hover:text-cyan-400 transition shadow-sm" title="개인정보처리방침 & 약관 보기">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
-            <span>약관·개인정보</span>
-          </button>
           <button type="button" onclick="openAuthModal()" id="btn-header-auth" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm" title="로그인">
             <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
             <span>로그인</span>
@@ -1063,48 +1059,234 @@
     </section>
 
     <!-- ==============================================
-         TAB 2: COMMUNITY FORUM
+         TAB 2: COMMUNITY FORUM (Full Page Cafe Style)
          ============================================== -->
-    <section id="tab-forum" class="tab-content hidden space-y-6">
-      
-      <!-- Forum Header & Controls -->
-      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 class="text-xl font-extrabold text-white flex items-center gap-2.5">
-            <i data-lucide="messages-square" class="w-6 h-6 text-cyan-400"></i> 코인 토론 포럼
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">투자자들과 자유롭게 매매 전략, 차트 분석, 알트코인 정보 및 인사이트를 공유하세요.</p>
+    <section id="tab-forum" class="tab-content hidden w-full space-y-6">
+
+      <!-- ============================================
+           FORUM VIEW 1: POST LIST VIEW (목록 뷰)
+           ============================================ -->
+      <div id="forum-list-view" class="space-y-6">
+        <!-- Forum Header -->
+        <div class="bg-gradient-to-r from-cyan-950/80 via-navy-900 to-blue-950/80 border border-cyan-500/30 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold">
+              <i data-lucide="messages-square" class="w-3.5 h-3.5"></i>
+              <span>전국 가상자산 투자자 열린 광장</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              실전 트레이더 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">토론 & 정보 공유 포럼</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300">
+              차트 기술적 분석, 알트코인 호재, 온체인 데이터 및 매매 일지를 자유롭게 소통하세요.
+            </p>
+          </div>
+
+          <button onclick="showForumWriteView()" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-sm shadow-xl shadow-cyan-500/25 transition flex items-center gap-2.5 shrink-0 transform hover:-translate-y-0.5">
+            <i data-lucide="edit-3" class="w-4 h-4"></i>
+            <span>새 게시글 작성하기</span>
+          </button>
         </div>
-        <button onclick="openNewPostModal()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 shrink-0">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> 새 게시글 작성
-        </button>
+
+        <!-- Filter & Sort Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2" id="forum-category-filters">
+            <button onclick="filterForum('all')" data-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition">전체</button>
+            <button onclick="filterForum('general')" data-cat="general" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💬 자유 토론</button>
+            <button onclick="filterForum('market')" data-cat="market" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">📊 차트/분석</button>
+            <button onclick="filterForum('altcoin')" data-cat="altcoin" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">🚀 알트코인</button>
+            <button onclick="filterForum('ico')" data-cat="ico" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">🪙 ICO/신규</button>
+            <button onclick="filterForum('qna')" data-cat="qna" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">❓ 초보 Q&A</button>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-auto text-xs">
+            <span class="text-slate-500">정렬:</span>
+            <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-950 border border-navy-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
+              <option value="latest">최신 등록순</option>
+              <option value="popular">추천 많은순</option>
+              <option value="comments">댓글 많은순</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Post Cards List -->
+        <div id="forum-posts-list" class="space-y-3.5">
+          <!-- Rendered by JS -->
+        </div>
       </div>
 
-      <!-- Categories & Filters -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-1.5" id="forum-category-filters">
-          <button onclick="filterForum('all')" class="category-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="all">전체보기</button>
-          <button onclick="filterForum('general')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="general">💬 자유 토론</button>
-          <button onclick="filterForum('market')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="market">📊 차트/기술적 분석</button>
-          <button onclick="filterForum('altcoin')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="altcoin">🚀 알트코인 분석</button>
-          <button onclick="filterForum('ico')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="ico">🪙 ICO / 신규 토큰</button>
-          <button onclick="filterForum('qna')" class="category-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition" data-cat="qna">❓ 초보 Q&A</button>
+
+      <!-- ============================================
+           FORUM VIEW 2: FULL PAGE DETAIL VIEW (카페 글보기 뷰)
+           ============================================ -->
+      <div id="forum-detail-view" class="hidden space-y-6">
+        <!-- Top Back Navigation -->
+        <div class="flex items-center justify-between bg-navy-900 border border-navy-800 rounded-2xl p-4">
+          <button onclick="showForumListView()" class="px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-cyan-400 hover:text-cyan-300 border border-navy-800 text-xs font-bold transition flex items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> 전체 포럼 목록으로 돌아가기
+          </button>
+          <div id="cafe-post-author-controls" class="hidden flex items-center gap-2">
+            <!-- Edit / Delete buttons -->
+          </div>
         </div>
 
-        <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-400">정렬:</span>
-          <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-900 border border-navy-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-500">
-            <option value="latest">최신순</option>
-            <option value="popular">인기순 (추천 많은순)</option>
-            <option value="comments">댓글 많은순</option>
-          </select>
-        </div>
+        <!-- Main Article Container -->
+        <article class="bg-navy-900 border border-navy-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+          <!-- Header Area -->
+          <div class="space-y-4 pb-6 border-b border-navy-800">
+            <div class="flex items-center gap-3 flex-wrap">
+              <span id="cafe-post-category" class="px-3 py-1 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold font-mono">카테고리</span>
+              <span class="text-xs text-slate-400">•</span>
+              <span id="cafe-post-author" class="text-xs font-bold text-slate-200">작성자</span>
+              <span class="text-xs text-slate-400">•</span>
+              <span id="cafe-post-time" class="text-xs text-slate-400">시간</span>
+              <span class="text-xs text-slate-400">•</span>
+              <span class="text-xs text-slate-400">조회수 <span id="cafe-post-views" class="font-mono text-cyan-400">0</span></span>
+            </div>
+
+            <h1 id="cafe-post-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+              게시글 제목
+            </h1>
+          </div>
+
+          <!-- Attached Image Area -->
+          <div id="cafe-post-image-container" class="hidden rounded-3xl overflow-hidden border border-navy-800 bg-navy-950 p-3 max-w-4xl mx-auto flex items-center justify-center">
+            <img id="cafe-post-image" src="" alt="Post Image" class="max-h-[600px] w-auto max-w-full rounded-2xl object-contain shadow-2xl">
+          </div>
+
+          <!-- Article Body Content -->
+          <div id="cafe-post-content" class="text-slate-100 text-base sm:text-lg leading-relaxed whitespace-pre-wrap font-sans py-4">
+            본문 내용...
+          </div>
+
+          <!-- Upvote & Share Action Bar -->
+          <div class="pt-6 border-t border-navy-800 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <button id="cafe-upvote-btn" onclick="handleVoteInModal(1)" class="px-6 py-3 rounded-2xl bg-navy-950 hover:bg-cyan-500/10 border border-navy-800 hover:border-cyan-500 text-sm font-bold text-slate-200 hover:text-cyan-400 transition flex items-center gap-2.5 shadow-md">
+                <i data-lucide="thumbs-up" class="w-4 h-4 text-cyan-400"></i> 추천 <span id="cafe-post-upvotes" class="font-mono text-cyan-400 font-extrabold">0</span>
+              </button>
+              <button onclick="handleVoteInModal(-1)" class="px-5 py-3 rounded-2xl bg-navy-950 hover:bg-rose-950/30 border border-navy-800 hover:border-rose-500/50 text-sm font-bold text-slate-400 hover:text-rose-400 transition flex items-center gap-2">
+                <i data-lucide="thumbs-down" class="w-4 h-4"></i> 비추천
+              </button>
+            </div>
+
+            <button onclick="alert('게시글 링크가 복사되었습니다!');" class="px-5 py-3 rounded-2xl bg-navy-950 hover:bg-navy-800 border border-navy-800 text-xs font-bold text-slate-300 transition flex items-center gap-2">
+              <i data-lucide="share-2" class="w-4 h-4 text-cyan-400"></i> 게시글 공유하기
+            </button>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="pt-8 border-t border-navy-800 space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-extrabold text-white flex items-center gap-2.5">
+                <i data-lucide="messages-square" class="w-5 h-5 text-cyan-400"></i> 댓글 (<span id="cafe-comments-count" class="text-cyan-400 font-mono">0</span>)
+              </h3>
+            </div>
+
+            <!-- Comment Input Box -->
+            <div class="flex flex-col sm:flex-row gap-3 bg-navy-950 p-3 rounded-2xl border border-navy-800">
+              <input type="text" id="cafe-new-comment-input" placeholder="댓글을 작성해 보세요 (익명 또는 회원 닉네임 자동 반영)..." class="flex-1 bg-transparent px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none">
+              <button onclick="handleCafeAddComment()" class="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition shrink-0 shadow-md">
+                댓글 등록
+              </button>
+            </div>
+
+            <!-- Comment List -->
+            <div id="cafe-comments-list" class="space-y-3 pt-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </article>
       </div>
 
-      <!-- Post List Container -->
-      <div class="space-y-3" id="forum-posts-list">
-        <!-- Posts will be rendered by JS -->
+
+      <!-- ============================================
+           FORUM VIEW 3: FULL PAGE WRITE/EDIT VIEW (카페 글쓰기/수정 뷰)
+           ============================================ -->
+      <div id="forum-write-view" class="hidden space-y-6">
+        <!-- Top Back Navigation -->
+        <div class="flex items-center justify-between bg-navy-900 border border-navy-800 rounded-2xl p-4">
+          <button onclick="showForumListView()" class="px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800 text-xs font-bold transition flex items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> 작성 취소하고 목록으로
+          </button>
+          <span id="forum-write-title-badge" class="text-xs font-bold text-cyan-400 font-mono">✍️ CAFE STYLE EDITOR</span>
+        </div>
+
+        <!-- Editor Container -->
+        <form onsubmit="handleCafeSubmitPost(event)" class="bg-navy-900 border border-navy-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-navy-800">
+            <div>
+              <h2 id="cafe-editor-heading" class="text-xl sm:text-2xl font-black text-white">커뮤니티 게시글 작성</h2>
+              <p class="text-xs text-slate-400 mt-1">자유롭게 매매 전략, 차트 분석, 호재 정보를 공유하세요.</p>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
+            <select id="cafe-write-category" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3.5 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
+              <option value="general">💬 자유 토론 (General Discussion)</option>
+              <option value="market">📊 차트 / 기술적 분석 (Technical Analysis)</option>
+              <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
+              <option value="ico">🪙 ICO / 신규 토큰 세일</option>
+              <option value="qna">❓ 초보 Q&A 코너</option>
+            </select>
+          </div>
+
+          <!-- Title -->
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-2">게시글 제목</label>
+            <input type="text" id="cafe-write-title" required placeholder="제목을 입력하세요 (예: 비트코인 65K 지지선 및 9월 FOMC 시나리오 분석)" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-5 py-4 text-base font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+          </div>
+
+          <!-- Body Textarea with Clipboard Paste -->
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-2 flex items-center justify-between">
+              <span>본문 내용</span>
+              <span class="text-[11px] text-cyan-400 font-mono">💡 스크린샷 직접 붙여넣기(Ctrl+V) 지원</span>
+            </label>
+            <textarea id="cafe-write-content" required rows="14" placeholder="자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요...&#10;&#10;※ 차트 스크린샷 복사(Win+Shift+S 또는 Ctrl+C) 후 여기서 Ctrl+V 를 누르면 사진이 본문에 즉시 첨부됩니다." class="w-full bg-navy-950 border border-navy-700 rounded-2xl p-5 text-base text-slate-100 placeholder-slate-500 leading-relaxed focus:outline-none focus:border-cyan-500 font-sans"></textarea>
+          </div>
+
+          <!-- Image Area -->
+          <div class="space-y-3">
+            <label class="block text-xs font-bold text-slate-200 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-cyan-400"></i> 차트 / 사진 첨부 (선택)</span>
+              <span class="text-[11px] text-slate-500 font-mono">JPG, PNG, WebP (최대 5MB)</span>
+            </label>
+            <input type="file" id="cafe-write-image-file" accept="image/*" onchange="handleCafeImageSelect(event)" class="hidden">
+            
+            <div onclick="document.getElementById('cafe-write-image-file').click()" class="border-2 border-dashed border-navy-700 hover:border-cyan-500/60 rounded-2xl p-6 text-center cursor-pointer transition bg-navy-950/60 group">
+              <div class="flex items-center justify-center gap-2 text-slate-400 group-hover:text-cyan-400 transition text-xs font-semibold">
+                <i data-lucide="camera" class="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
+                <span>클릭하여 사진 파일 추가 또는 본문에서 바로 Ctrl+V 붙여넣기</span>
+              </div>
+            </div>
+
+            <!-- Preview Box -->
+            <div id="cafe-write-image-preview-container" class="hidden rounded-2xl border border-cyan-500/40 bg-navy-950 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div id="cafe-write-image-compress-info" class="text-xs font-bold text-cyan-400">✓ 사진 첨부 완료</div>
+                <button type="button" onclick="removeCafeImage(event)" class="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 transition text-xs font-bold flex items-center gap-1">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 사진 삭제
+                </button>
+              </div>
+              <div class="max-h-96 overflow-hidden flex items-center justify-center bg-navy-900 rounded-2xl p-3">
+                <img id="cafe-write-image-preview" src="" alt="Preview" class="max-h-80 max-w-full rounded-xl object-contain">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Submit Buttons -->
+          <div class="flex justify-end gap-3 pt-6 border-t border-navy-800">
+            <button type="button" onclick="showForumListView()" class="px-6 py-3.5 rounded-2xl bg-navy-950 border border-navy-700 text-slate-300 text-xs font-bold hover:bg-navy-800 transition">취소</button>
+            <button type="submit" id="cafe-write-submit-btn" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-sm shadow-xl shadow-cyan-500/25 transition flex items-center gap-2">
+              <i data-lucide="send" class="w-4 h-4"></i> 게시글 등록 완료
+            </button>
+          </div>
+        </form>
       </div>
+
     </section>
 
     <!-- ==============================================
@@ -1248,6 +1430,70 @@
     <!-- ==============================================
          TAB 7: CRYPTO KNOWLEDGE & GUIDE HUB (SEO & ADSENSE ESSENTIAL)
          ============================================== -->
+    
+    <!-- ==============================================
+         TAB: CRYPTO EVENTS CALENDAR (주요 코인 일정 캘린더 & D-Day)
+         ============================================== -->
+    <section id="tab-calendar" class="tab-content hidden w-full space-y-6">
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-cyan-950/80 via-navy-900 to-indigo-950/80 border border-cyan-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xl">
+        <div class="max-w-3xl space-y-2 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <span>2026 하반기 가상자산 주요 경제 & 토큰 일정</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            놓치면 안 될 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">코인 주요 일정 & D-Day</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            미국 연준(FOMC) 금리 결정, 주요 알트코인 대규모 락업 해제, 하드포크 및 글로벌 컨퍼런스 일정을 실시간 D-Day 카운트다운으로 한눈에 파악하세요.
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls: Category Filters & View Toggle -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
+        <div id="calendar-filter-buttons" class="flex flex-wrap items-center gap-2 text-xs">
+          <button type="button" onclick="filterCalendar('all')" data-cal-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-bold transition">전체 일정</button>
+          <button type="button" onclick="filterCalendar('macro')" data-cal-cat="macro" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">🏦 FOMC/거시경제</button>
+          <button type="button" onclick="filterCalendar('unlock')" data-cal-cat="unlock" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">🔓 토큰 락업해제</button>
+          <button type="button" onclick="filterCalendar('upgrade')" data-cal-cat="upgrade" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">🚀 메인넷/업그레이드</button>
+          <button type="button" onclick="filterCalendar('conference')" data-cal-cat="conference" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">🌐 글로벌 컨퍼런스</button>
+          <button type="button" onclick="filterCalendar('policy')" data-cal-cat="policy" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">⚖️ 규제/법안</button>
+        </div>
+
+        <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
+          <button id="btn-cal-view-list" onclick="switchCalendarView('list')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i> 리스트 뷰
+          </button>
+          <button id="btn-cal-view-month" onclick="switchCalendarView('month')" class="px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 월간 달력
+          </button>
+        </div>
+      </div>
+
+      <!-- View 1: List View -->
+      <div id="calendar-list-view" class="space-y-4">
+        <div id="calendar-events-list" class="space-y-3.5">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- View 2: Month Calendar Grid View -->
+      <div id="calendar-month-view" class="hidden bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+          <h3 class="font-extrabold text-lg text-white flex items-center gap-2">
+            <span>📅</span> 2026년 9월 가상자산 월간 캘린더
+          </h3>
+          <span class="text-xs text-cyan-400 font-mono font-bold">※ 주요 이벤트 자동 하이라이트</span>
+        </div>
+        <div id="month-calendar-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-3">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+
     <section id="tab-guides" class="tab-content hidden space-y-8">
       
       <!-- Guides Hero -->
@@ -3054,17 +3300,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=1788180716204"></script>
-  <script src="js/calculator.js?v=1788180716204"></script>
-  <script src="js/upbit-api.js?v=1788180716204"></script>
-  <script src="js/charts.js?v=1788180716204"></script>
-  <script src="js/exporter.js?v=1788180716204"></script>
-  <script src="js/sample-data.js?v=1788180716204"></script>
+  <script src="js/parser.js?v=1788181081563"></script>
+  <script src="js/calculator.js?v=1788181081563"></script>
+  <script src="js/upbit-api.js?v=1788181081563"></script>
+  <script src="js/charts.js?v=1788181081563"></script>
+  <script src="js/exporter.js?v=1788181081563"></script>
+  <script src="js/sample-data.js?v=1788181081563"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=1788180716204"></script>
+  <script src="js/analyzer-app.js?v=1788181081563"></script>
 
-  <script src="js/admin.js?v=1788180716204"></script>
-  <script src="js/preview-app.js?v=1788180716204"></script>
+  <script src="js/admin.js?v=1788181081563"></script>
+  <script src="js/preview-app.js?v=1788181081563"></script>
 
   </body>
   <script>

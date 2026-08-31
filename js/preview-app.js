@@ -1,4 +1,382 @@
 
+// ====================================================
+// Section 3: Full Page Cafe Style Forum Engine
+// ====================================================
+let activeCategory = 'all';
+let currentCafePostId = null;
+let currentCafeImageData = null;
+let isCafeEditMode = false;
+
+function showForumListView() {
+  const listView = document.getElementById('forum-list-view');
+  const detailView = document.getElementById('forum-detail-view');
+  const writeView = document.getElementById('forum-write-view');
+
+  if (listView) listView.classList.remove('hidden');
+  if (detailView) detailView.classList.add('hidden');
+  if (writeView) writeView.classList.add('hidden');
+
+  currentCafePostId = null;
+  currentCafeImageData = null;
+  isCafeEditMode = false;
+  renderForumPosts();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.showForumListView = showForumListView;
+
+function showForumWriteView(editPostId = null) {
+  const listView = document.getElementById('forum-list-view');
+  const detailView = document.getElementById('forum-detail-view');
+  const writeView = document.getElementById('forum-write-view');
+
+  if (listView) listView.classList.add('hidden');
+  if (detailView) detailView.classList.add('hidden');
+  if (writeView) writeView.classList.remove('hidden');
+
+  const heading = document.getElementById('cafe-editor-heading');
+  const submitBtn = document.getElementById('cafe-write-submit-btn');
+  const titleInput = document.getElementById('cafe-write-title');
+  const contentInput = document.getElementById('cafe-write-content');
+  const catSelect = document.getElementById('cafe-write-category');
+  const previewContainer = document.getElementById('cafe-write-image-preview-container');
+  const previewImg = document.getElementById('cafe-write-image-preview');
+
+  if (editPostId) {
+    isCafeEditMode = true;
+    currentCafePostId = editPostId;
+    const posts = getStoredPosts();
+    const post = posts.find(p => p.id === editPostId);
+    if (post) {
+      if (heading) heading.innerText = '게시글 수정하기';
+      if (submitBtn) submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> 수정 내용 저장하기';
+      if (titleInput) titleInput.value = post.title || '';
+      if (contentInput) contentInput.value = post.content || '';
+      if (catSelect) catSelect.value = post.category || 'general';
+      currentCafeImageData = post.image || null;
+
+      if (post.image) {
+        if (previewImg) previewImg.src = post.image;
+        if (previewContainer) previewContainer.classList.remove('hidden');
+      } else {
+        if (previewContainer) previewContainer.classList.add('hidden');
+      }
+    }
+  } else {
+    isCafeEditMode = false;
+    currentCafePostId = null;
+    currentCafeImageData = null;
+    if (heading) heading.innerText = '커뮤니티 게시글 작성';
+    if (submitBtn) submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> 게시글 등록 완료';
+    if (titleInput) titleInput.value = '';
+    if (contentInput) contentInput.value = '';
+    if (catSelect) catSelect.value = 'general';
+    if (previewContainer) previewContainer.classList.add('hidden');
+  }
+
+  if (titleInput) setTimeout(() => titleInput.focus(), 100);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.showForumWriteView = showForumWriteView;
+
+function openPostDetailModal(postId) {
+  // Seamlessly switch to Full Page Cafe Detail View!
+  const listView = document.getElementById('forum-list-view');
+  const detailView = document.getElementById('forum-detail-view');
+  const writeView = document.getElementById('forum-write-view');
+
+  if (listView) listView.classList.add('hidden');
+  if (writeView) writeView.classList.add('hidden');
+  if (detailView) detailView.classList.remove('hidden');
+
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  currentCafePostId = postId;
+  currentViewingPostId = postId;
+  post.views = (post.views || 0) + 1;
+  saveStoredPosts(posts);
+
+  const catEl = document.getElementById('cafe-post-category');
+  const titleEl = document.getElementById('cafe-post-title');
+  const authorEl = document.getElementById('cafe-post-author');
+  const timeEl = document.getElementById('cafe-post-time');
+  const viewsEl = document.getElementById('cafe-post-views');
+  const contentEl = document.getElementById('cafe-post-content');
+  const upvotesEl = document.getElementById('cafe-post-upvotes');
+
+  if (catEl) catEl.innerText = post.categoryName;
+  if (titleEl) titleEl.innerText = post.title;
+  if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
+  if (timeEl) timeEl.innerText = post.time;
+  if (viewsEl) viewsEl.innerText = post.views;
+  if (contentEl) contentEl.innerText = post.content;
+  if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
+
+  const imgContainer = document.getElementById('cafe-post-image-container');
+  const imgElement = document.getElementById('cafe-post-image');
+  if (imgContainer && imgElement) {
+    if (post.image) {
+      imgElement.src = post.image;
+      imgContainer.classList.remove('hidden');
+    } else {
+      imgElement.src = '';
+      imgContainer.classList.add('hidden');
+    }
+  }
+
+  // Author / Admin Controls
+  const controlsEl = document.getElementById('cafe-post-author-controls');
+  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  let currentUsername = '';
+  let isAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) currentUsername = u.username;
+    } catch(e) {}
+  }
+
+  const isAuthor = (currentUsername && currentUsername === post.author) || isAdmin;
+
+  if (controlsEl) {
+    if (isAuthor) {
+      controlsEl.innerHTML = `
+        <button onclick="showForumWriteView(${post.id})" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
+        </button>
+        <button onclick="handleDeleteCafePost(${post.id})" class="px-3.5 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
+        </button>
+      `;
+      controlsEl.classList.remove('hidden');
+    } else {
+      controlsEl.innerHTML = '';
+      controlsEl.classList.add('hidden');
+    }
+  }
+
+  renderCafeComments(post.comments || []);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.openPostDetailModal = openPostDetailModal;
+
+function renderCafeComments(comments) {
+  const container = document.getElementById('cafe-comments-list');
+  const countEl = document.getElementById('cafe-comments-count');
+  if (countEl) countEl.innerText = comments.length;
+  if (!container) return;
+
+  if (comments.length === 0) {
+    container.innerHTML = '<div class="p-6 text-center text-slate-500 text-xs bg-navy-950 rounded-2xl border border-navy-800">첫 번째 댓글을 작성하여 소통을 시작해 보세요!</div>';
+    return;
+  }
+
+  container.innerHTML = comments.map(c => `
+    <div class="bg-navy-950 p-4 rounded-2xl border border-navy-800 text-xs space-y-1.5">
+      <div class="flex justify-between items-center text-slate-400">
+        <span class="font-bold text-slate-200 text-sm">${escapeHtml(c.author)}</span>
+        <span class="text-xs text-slate-500 font-mono">${escapeHtml(c.time)}</span>
+      </div>
+      <p class="text-slate-200 text-sm leading-relaxed">${escapeHtml(c.text)}</p>
+    </div>
+  `).join('');
+}
+
+function handleCafeAddComment() {
+  if (!currentCafePostId) return;
+  const input = document.getElementById('cafe-new-comment-input');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  const posts = getStoredPosts();
+  const post = posts.find(p => p.id === currentCafePostId);
+  if (!post) return;
+
+  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  let author = '익명 트레이더';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) author = u.username;
+    } catch(e) {}
+  }
+
+  if (!post.comments) post.comments = [];
+  post.comments.push({
+    id: Date.now(),
+    author: author,
+    text: text,
+    time: '방금 전'
+  });
+
+  saveStoredPosts(posts);
+  if (input) input.value = '';
+  renderCafeComments(post.comments);
+}
+window.handleCafeAddComment = handleCafeAddComment;
+
+function handleDeleteCafePost(postId) {
+  if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
+  let posts = getStoredPosts();
+  posts = posts.filter(p => p.id !== postId);
+  saveStoredPosts(posts);
+  alert('🗑️ 게시글이 삭제되었습니다.');
+  showForumListView();
+}
+window.handleDeleteCafePost = handleDeleteCafePost;
+
+function handleCafeImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  processCafeImageBlob(file);
+}
+window.handleCafeImageSelect = handleCafeImageSelect;
+
+function processCafeImageBlob(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('이미지 용량은 최대 5MB까지 업로드 가능합니다.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const maxDim = 1400;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      currentCafeImageData = canvas.toDataURL('image/jpeg', 0.85);
+
+      const previewContainer = document.getElementById('cafe-write-image-preview-container');
+      const previewImg = document.getElementById('cafe-write-image-preview');
+      const info = document.getElementById('cafe-write-image-compress-info');
+
+      if (previewImg) previewImg.src = currentCafeImageData;
+      if (info) info.innerHTML = `<span class="text-cyan-400 font-bold">✓ 사진 첨부 완료 (${width}x${height}px)</span>`;
+      if (previewContainer) {
+        previewContainer.classList.remove('hidden');
+        previewContainer.style.display = 'block';
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCafeImage(event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  currentCafeImageData = null;
+  const fileInput = document.getElementById('cafe-write-image-file');
+  if (fileInput) fileInput.value = '';
+  const previewContainer = document.getElementById('cafe-write-image-preview-container');
+  if (previewContainer) {
+    previewContainer.classList.add('hidden');
+    previewContainer.style.display = 'none';
+  }
+}
+window.removeCafeImage = removeCafeImage;
+
+function handleCafeSubmitPost(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const catSelect = document.getElementById('cafe-write-category');
+  const titleInput = document.getElementById('cafe-write-title');
+  const contentInput = document.getElementById('cafe-write-content');
+
+  const category = catSelect ? catSelect.value : 'general';
+  const title = titleInput ? titleInput.value.trim() : '';
+  const content = contentInput ? contentInput.value.trim() : '';
+
+  if (!title || !content) {
+    alert('제목과 내용을 모두 작성해 주세요.');
+    return;
+  }
+
+  const categoryNames = {
+    general: '💬 자유 토론',
+    market: '📊 차트/기술적 분석',
+    altcoin: '🚀 알트코인 분석',
+    ico: '🪙 ICO / 신규 토큰',
+    qna: '❓ 초보 Q&A'
+  };
+
+  const storedUser = localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  let authorName = '익명 트레이더';
+  let authorRank = 'PRO';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) {
+        authorName = u.username;
+        authorRank = u.rank || 'MEMBER';
+      }
+    } catch(err) {}
+  }
+
+  const posts = getStoredPosts();
+
+  if (isCafeEditMode && currentCafePostId) {
+    const post = posts.find(p => p.id === currentCafePostId);
+    if (post) {
+      post.category = category;
+      post.categoryName = categoryNames[category] || '💬 자유 토론';
+      post.title = title;
+      post.content = content;
+      post.image = currentCafeImageData || null;
+      post.time = '수정됨 (방금 전)';
+      saveStoredPosts(posts);
+      alert('✏️ 게시글이 성공적으로 수정되었습니다!');
+      openPostDetailModal(currentCafePostId);
+      return;
+    }
+  }
+
+  const newPost = {
+    id: Date.now(),
+    category,
+    categoryName: categoryNames[category] || '💬 자유 토론',
+    title,
+    content,
+    image: currentCafeImageData || null,
+    author: authorName,
+    authorRank: authorRank,
+    upvotes: 1,
+    views: 1,
+    time: '방금 전',
+    timestamp: Date.now(),
+    comments: []
+  };
+
+  posts.unshift(newPost);
+  saveStoredPosts(posts);
+
+  alert('🎉 게시글이 성공적으로 등록되었습니다!');
+  showForumListView();
+}
+window.handleCafeSubmitPost = handleCafeSubmitPost;
+
+
+
 function processImageBlob(file, isEdit = false) {
   if (!file || !file.type.startsWith('image/')) return;
   if (file.size > 5 * 1024 * 1024) {
@@ -690,7 +1068,7 @@ const INITIAL_FORUM_POSTS = [
   }
 ];
 
-let activeCategory = 'all';
+activeCategory = 'all';
 let currentViewingPostId = null;
 let currentPostImageData = null;
 
@@ -1674,6 +2052,23 @@ document.addEventListener('DOMContentLoaded', () => {
           if (items[i].type.startsWith('image/')) {
             const blob = items[i].getAsFile();
             processImageBlob(blob, true);
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  
+  const cafeTextarea = document.getElementById('cafe-write-content');
+  if (cafeTextarea) {
+    cafeTextarea.addEventListener('paste', function (e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            const blob = items[i].getAsFile();
+            processCafeImageBlob(blob);
             break;
           }
         }
