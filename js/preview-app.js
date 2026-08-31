@@ -1,5 +1,3 @@
-
-
 // ====================================================
 // Legal Policy & Terms Modal Handlers (AdSense & 4-Tab Compliant)
 // ====================================================
@@ -69,71 +67,15 @@ function switchLegalTab(tab) {
 }
 window.switchLegalTab = switchLegalTab;
 
-
-// Global Document Event Delegation for Legal Modal (AdSense 100% Guarantee)
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('button, a');
-    if (!btn) return;
-    const onclickAttr = btn.getAttribute('onclick') || '';
-    const dataLegal = btn.getAttribute('data-open-legal');
-    if (dataLegal || onclickAttr.includes('openLegalModal')) {
-      const tab = dataLegal || (onclickAttr.includes('terms') ? 'terms' : 'privacy');
-      openLegalModal(tab);
-    }
-  });
-}
-
-
-function closeLegalModal() {
-  var modal = document.getElementById('legal-modal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-window.closeLegalModal = closeLegalModal;
-
-function switchLegalTab(tab) {
-  var privacyContent = document.getElementById('legal-content-privacy');
-  var termsContent = document.getElementById('legal-content-terms');
-  var tabPrivacy = document.getElementById('tab-legal-privacy');
-  var tabTerms = document.getElementById('tab-legal-terms');
-  var titleText = document.getElementById('legal-modal-title');
-
-  if (tab === 'privacy') {
-    if (privacyContent) privacyContent.style.display = 'block';
-    if (termsContent) termsContent.style.display = 'none';
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
-    }
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
-  } else {
-    if (privacyContent) privacyContent.style.display = 'none';
-    if (termsContent) termsContent.style.display = 'block';
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
-    }
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
-  }
-  if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try { lucide.createIcons(); } catch(e) {}
-  }
-}
-window.switchLegalTab = switchLegalTab;
-
 window.openExcelGuideModal = function() {
   const modal = document.getElementById('excel-guide-modal');
   if (modal) {
     modal.classList.remove('hidden');
     modal.style.setProperty('display', 'flex', 'important');
     window.showExchangeGuide('upbit');
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
   }
 };
 
@@ -152,23 +94,49 @@ window.showExchangeGuide = function(exchange) {
   const tabBithumb = document.getElementById('tab-guide-bithumb');
 
   if (exchange === 'upbit') {
-    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.display = 'block'; }
-    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.display = 'none'; }
+    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.setProperty('display', 'block', 'important'); }
+    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.setProperty('display', 'none', 'important'); }
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   } else {
-    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.display = 'none'; }
-    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.display = 'block'; }
+    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.setProperty('display', 'none', 'important'); }
+    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.setProperty('display', 'block', 'important'); }
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   }
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
 };
 
+// Admin Navigation Visibility Guard
+function updateAdminNavVisibility() {
+  const isAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1';
+  const navAdmin = document.getElementById('nav-admin');
+  const mNavAdmin = document.getElementById('m-nav-admin');
 
-// ====================================================
-// Guest Nickname & Admin Access Management
-// ====================================================
+  if (navAdmin) {
+    if (isAuth) {
+      navAdmin.classList.remove('hidden');
+      navAdmin.classList.add('flex');
+    } else {
+      navAdmin.classList.add('hidden');
+      navAdmin.classList.remove('flex');
+    }
+  }
+
+  if (mNavAdmin) {
+    if (isAuth) {
+      mNavAdmin.classList.remove('hidden');
+      mNavAdmin.classList.add('flex');
+    } else {
+      mNavAdmin.classList.add('hidden');
+      mNavAdmin.classList.remove('flex');
+    }
+  }
+}
+window.updateAdminNavVisibility = updateAdminNavVisibility;
+
 function getNickname() {
   return localStorage.getItem('coinhub_nickname') || '익명 트레이더';
 }
@@ -178,7 +146,7 @@ function setNickname(name) {
   if (clean) {
     localStorage.setItem('coinhub_nickname', clean);
   }
-  updateAuthUI();
+  if (typeof updateAuthUI === 'function') updateAuthUI();
   updateAdminNavVisibility();
 }
 
@@ -197,10 +165,6 @@ function openNicknameModal() {
 }
 
 
-
-// ====================================================
-// CryptoPnL Core Global State & Default Data
-// ====================================================
 const DEFAULT_COINS = [
   { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', korean_name: '비트코인', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
   { id: 'ethereum', symbol: 'eth', name: 'Ethereum', korean_name: '이더리움', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
@@ -1390,4 +1354,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 10. Live ticker fluctuation simulation every 4 seconds
   setInterval(simulateLiveFluctuations, 4000);
+});
+
+
+// Hash routing auto-sync
+window.addEventListener('hashchange', function () {
+  const h = (window.location.hash || '').replace('#/', '').replace('#', '');
+  if (h && typeof switchTab === 'function') {
+    switchTab(h, false);
+  }
 });

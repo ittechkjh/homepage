@@ -1,7 +1,5 @@
-
-
 // ====================================================
-// Legal Policy & Terms Modal Handlers (AdSense Compliance)
+// Legal Policy & Terms Modal Handlers (AdSense & 4-Tab Compliant)
 // ====================================================
 function openLegalModal(tab) {
   tab = tab || 'privacy';
@@ -21,95 +19,48 @@ function closeLegalModal() {
   var modal = document.getElementById('legal-modal');
   if (modal) {
     modal.style.setProperty('display', 'none', 'important');
+    modal.classList.add('hidden');
   }
 }
 window.closeLegalModal = closeLegalModal;
 
 function switchLegalTab(tab) {
-  var privacyContent = document.getElementById('legal-content-privacy');
-  var termsContent = document.getElementById('legal-content-terms');
-  var tabPrivacy = document.getElementById('tab-legal-privacy');
-  var tabTerms = document.getElementById('tab-legal-terms');
-  var titleText = document.getElementById('legal-modal-title');
+  tab = tab || 'privacy';
+  const tabs = ['privacy', 'terms', 'about', 'contact'];
+  const titles = {
+    privacy: '개인정보처리방침 (Privacy Policy)',
+    terms: '서비스 이용약관 & 투자 면책 (Terms of Service)',
+    about: 'CryptoPnL 소개 & 100% 로컬 보안 백서 (About)',
+    contact: '고객 지원 & 제휴 문의 (Contact: ittechkjh@gmail.com)'
+  };
 
-  if (tab === 'privacy') {
-    if (privacyContent) privacyContent.style.setProperty('display', 'block', 'important');
-    if (termsContent) termsContent.style.setProperty('display', 'none', 'important');
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
-    }
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
-  } else {
-    if (privacyContent) privacyContent.style.setProperty('display', 'none', 'important');
-    if (termsContent) termsContent.style.setProperty('display', 'block', 'important');
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
-    }
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
-  }
-  if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try { lucide.createIcons(); } catch(e) {}
-  }
-}
-window.switchLegalTab = switchLegalTab;
-
-// Global Document Event Delegation for Legal Modal (AdSense 100% Guarantee)
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('button, a');
-    if (!btn) return;
-    const onclickAttr = btn.getAttribute('onclick') || '';
-    const dataLegal = btn.getAttribute('data-open-legal');
-    if (dataLegal || onclickAttr.includes('openLegalModal')) {
-      const tab = dataLegal || (onclickAttr.includes('terms') ? 'terms' : 'privacy');
-      openLegalModal(tab);
+  tabs.forEach(t => {
+    const content = document.getElementById('legal-content-' + t);
+    const btn = document.getElementById('tab-legal-' + t);
+    if (t === tab) {
+      if (content) {
+        content.style.setProperty('display', 'block', 'important');
+        content.classList.remove('hidden');
+      }
+      if (btn) {
+        btn.className = 'py-2.5 px-2 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+      }
+    } else {
+      if (content) {
+        content.style.setProperty('display', 'none', 'important');
+        content.classList.add('hidden');
+      }
+      if (btn) {
+        btn.className = 'py-2.5 px-2 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent font-medium';
+      }
     }
   });
-}
 
-
-function closeLegalModal() {
-  var modal = document.getElementById('legal-modal');
-  if (modal) {
-    modal.style.display = 'none';
+  const titleText = document.getElementById('legal-modal-title');
+  if (titleText && titles[tab]) {
+    titleText.innerText = titles[tab];
   }
-}
-window.closeLegalModal = closeLegalModal;
 
-function switchLegalTab(tab) {
-  var privacyContent = document.getElementById('legal-content-privacy');
-  var termsContent = document.getElementById('legal-content-terms');
-  var tabPrivacy = document.getElementById('tab-legal-privacy');
-  var tabTerms = document.getElementById('tab-legal-terms');
-  var titleText = document.getElementById('legal-modal-title');
-
-  if (tab === 'privacy') {
-    if (privacyContent) privacyContent.style.display = 'block';
-    if (termsContent) termsContent.style.display = 'none';
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
-    }
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '개인정보처리방침 (Privacy Policy)';
-  } else {
-    if (privacyContent) privacyContent.style.display = 'none';
-    if (termsContent) termsContent.style.display = 'block';
-    if (tabTerms) {
-      tabTerms.className = 'py-2.5 rounded-xl transition text-center bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold';
-    }
-    if (tabPrivacy) {
-      tabPrivacy.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white border border-transparent';
-    }
-    if (titleText) titleText.innerText = '서비스 이용약관 (Terms of Service)';
-  }
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     try { lucide.createIcons(); } catch(e) {}
   }
@@ -122,7 +73,9 @@ window.openExcelGuideModal = function() {
     modal.classList.remove('hidden');
     modal.style.setProperty('display', 'flex', 'important');
     window.showExchangeGuide('upbit');
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
   }
 };
 
@@ -141,23 +94,49 @@ window.showExchangeGuide = function(exchange) {
   const tabBithumb = document.getElementById('tab-guide-bithumb');
 
   if (exchange === 'upbit') {
-    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.display = 'block'; }
-    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.display = 'none'; }
+    if (upbitContent) { upbitContent.classList.remove('hidden'); upbitContent.style.setProperty('display', 'block', 'important'); }
+    if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.setProperty('display', 'none', 'important'); }
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   } else {
-    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.display = 'none'; }
-    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.display = 'block'; }
+    if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.setProperty('display', 'none', 'important'); }
+    if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.setProperty('display', 'block', 'important'); }
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   }
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
 };
 
+// Admin Navigation Visibility Guard
+function updateAdminNavVisibility() {
+  const isAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1';
+  const navAdmin = document.getElementById('nav-admin');
+  const mNavAdmin = document.getElementById('m-nav-admin');
 
-// ====================================================
-// Guest Nickname & Admin Access Management
-// ====================================================
+  if (navAdmin) {
+    if (isAuth) {
+      navAdmin.classList.remove('hidden');
+      navAdmin.classList.add('flex');
+    } else {
+      navAdmin.classList.add('hidden');
+      navAdmin.classList.remove('flex');
+    }
+  }
+
+  if (mNavAdmin) {
+    if (isAuth) {
+      mNavAdmin.classList.remove('hidden');
+      mNavAdmin.classList.add('flex');
+    } else {
+      mNavAdmin.classList.add('hidden');
+      mNavAdmin.classList.remove('flex');
+    }
+  }
+}
+window.updateAdminNavVisibility = updateAdminNavVisibility;
+
 function getNickname() {
   return localStorage.getItem('coinhub_nickname') || '익명 트레이더';
 }
@@ -167,7 +146,8 @@ function setNickname(name) {
   if (clean) {
     localStorage.setItem('coinhub_nickname', clean);
   }
-  updateAuthUI();
+  if (typeof updateAuthUI === 'function') updateAuthUI();
+  updateAdminNavVisibility();
 }
 
 function openNicknameModal() {
@@ -185,10 +165,6 @@ function openNicknameModal() {
 }
 
 
-
-// ====================================================
-// CoinHub Core Global State & Default Data
-// ====================================================
 const DEFAULT_COINS = [
   { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', korean_name: '비트코인', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
   { id: 'ethereum', symbol: 'eth', name: 'Ethereum', korean_name: '이더리움', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
@@ -239,48 +215,100 @@ const INITIAL_FORUM_POSTS = [
     id: 1,
     category: 'market',
     categoryName: '📊 차트/기술적 분석',
-    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표 분석',
-    content: '최근 거래소 유출량 증가와 고래들의 매집 패턴이 뚜렷하게 관찰되고 있습니다. RSI 4시간봉 다이버전스 확인 후 진입 전략을 추천합니다.',
+    title: '비트코인 65K 저항선 돌파 시나리오 및 주요 온체인 지표(MVRV, SOPR) 분석',
+    content: '최근 미국 현물 ETF로의 기관 자금 순유입세가 3일 연속 확대되면서 65,000달러 부근의 주요 매물대 소화 과정이 진행되고 있습니다. 단기 홀더 SOPR 지표가 1.0 위에서 지지받고 있어 분할 매수 전략이 유효해 보입니다.',
     author: 'CryptoWhale',
     authorRank: 'Master',
-    upvotes: 42,
-    views: 890,
-    time: '2시간 전',
-    timestamp: Date.now() - 2 * 3600 * 1000,
+    upvotes: 48,
+    views: 1240,
+    time: '1시간 전',
+    timestamp: Date.now() - 3600 * 1000,
     comments: [
-      { id: 101, author: 'Satoshi_Fan', text: '68K까지는 열려있는 것으로 보입니다!', time: '1시간 전' }
+      { id: 101, author: 'Satoshi_Fan', text: '68K 돌파 시 알트코인 순환매도 기대됩니다!', time: '40분 전' },
+      { id: 102, author: 'AlphaBot', text: '좋은 분석 감사합니다. 손절 라인은 어디로 보시나요?', time: '20분 전' }
     ]
   },
   {
     id: 2,
     category: 'altcoin',
     categoryName: '🚀 알트코인 분석',
-    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 알트코인은?',
-    content: '솔라나 기반 밈코인 및 DeFi 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 관련 생태계 토큰들 분할 매수 고려 중입니다.',
+    title: '솔라나(SOL) 생태계 DEX 거래대금 폭증, 다음 타깃 DePIN & AI 알트코인은?',
+    content: '솔라나 기반 탈중앙화 거래소(DEX) 일일 거래량이 이더리움을 넘어서며 생태계 전체 TVL이 급상승 중입니다. 특히 DePIN(탈중앙화 물리 인프라) 및 AI 연계 프로젝트들에 스마트 머니가 유입되고 있습니다.',
     author: 'SolanaKing',
     authorRank: 'PRO',
-    upvotes: 28,
-    views: 654,
-    time: '4시간 전',
-    timestamp: Date.now() - 4 * 3600 * 1000,
-    comments: []
+    upvotes: 35,
+    views: 890,
+    time: '3시간 전',
+    timestamp: Date.now() - 3 * 3600 * 1000,
+    comments: [
+      { id: 103, author: 'PeacefulTrader', text: '렌더(RNDR)랑 아이오넷(IO) 관심있게 보고 있습니다.', time: '2시간 전' }
+    ]
   },
   {
     id: 3,
     category: 'general',
     categoryName: '💬 자유 토론',
-    title: '2026년 하반기 가상자산 세금 및 규제 정책 방향성에 대한 생각',
-    content: '가상자산이용자보호법 2단계 추진과 함께 실명계좌 발급 요건이 완화될지 주목됩니다. 장기 투자자분들은 어떻게 대비하고 계신가요?',
+    title: '2026년 가상자산 소득세 22% & 기본공제 5,000만원 유예/개정 이슈 총정리',
+    content: '가상자산이용자보호법 2단계 추진과 함께 소득세법 개정안에 대한 논의가 활발합니다. 국내 투자자분들은 연말 손익통산(손실 확정)을 통해 미리 과세표준을 관리하시는 것을 추천합니다.',
     author: 'PeacefulTrader',
     authorRank: 'PRO',
-    upvotes: 19,
-    views: 420,
+    upvotes: 29,
+    views: 750,
+    time: '5시간 전',
+    timestamp: Date.now() - 5 * 3600 * 1000,
+    comments: [
+      { id: 104, author: 'CoinTaxPro', text: '선입선출법(FIFO)으로 매매내역 엑셀 미리 정리해두면 절세에 큰 도움 됩니다.', time: '3시간 전' }
+    ]
+  },
+  {
+    id: 4,
+    category: 'qna',
+    categoryName: '❓ 초보 Q&A',
+    title: '업비트 엑셀 다운로드해서 손익분석기에 넣었는데 선입선출(FIFO) 평단가가 뭔가요?',
+    content: '거래소 앱에 나오는 평단가랑 손익분석기 평단가가 조금 다른데, 국세청 세무 기준인 선입선출법(FIFO)이 왜 더 정확한지 궁금합니다! 상세히 설명해 주실 분 계신가요?',
+    author: 'CoinBeginner',
+    authorRank: 'Member',
+    upvotes: 18,
+    views: 520,
     time: '6시간 전',
     timestamp: Date.now() - 6 * 3600 * 1000,
-    comments: []
+    comments: [
+      { id: 105, author: 'CryptoWhale', text: '거래소는 단순 이동평균이지만 세법은 먼저 산 걸 먼저 판 걸로 계산하기 때문입니다. [지식 가이드 #3]에 잘 정리되어 있어요!', time: '5시간 전' }
+    ]
+  },
+  {
+    id: 5,
+    category: 'market',
+    categoryName: '📊 차트/기술적 분석',
+    title: '김치프리미엄(김프) 1% 미만 진입... 해외 거래소 보따리 차익거래 진입 타이밍',
+    content: '현재 국내 업비트/빗썸 대비 바이낸스 가격 차이가 0.8% 내외로 매우 좁혀졌습니다. 과거 패턴상 1% 미만에서 테더(USDT)를 분할 매수한 뒤 5% 이상 벌어졌을 때 회수하는 전략이 유효했습니다.',
+    author: 'KimpMaster',
+    authorRank: 'PRO',
+    upvotes: 41,
+    views: 1100,
+    time: '8시간 전',
+    timestamp: Date.now() - 8 * 3600 * 1000,
+    comments: [
+      { id: 106, author: 'SolanaKing', text: '송금 코인으로는 리플(XRP)이나 트론(TRX)이 수수료가 제일 저렴하네요.', time: '7시간 전' }
+    ]
+  },
+  {
+    id: 6,
+    category: 'general',
+    categoryName: '💬 자유 토론',
+    title: '물타기 계산기 써보고 본전 탈출 계획 세웠습니다 (DCA 3차 분할 매수 후기)',
+    content: '고점에 물렸던 알트코인을 물타기 계산기로 시뮬레이션해보고 -15%, -30% 지지선에서 정확히 분할 매수 걸어놨더니 평단가가 40% 이상 확 내려갔네요. 본전 오면 50% 분할 매도부터 걸어둘 예정입니다.',
+    author: 'Survivor2026',
+    authorRank: 'PRO',
+    upvotes: 52,
+    views: 1450,
+    time: '12시간 전',
+    timestamp: Date.now() - 12 * 3600 * 1000,
+    comments: [
+      { id: 107, author: 'PeacefulTrader', text: '분할 매수와 분할 익절이 하락장에서 살아남는 유일한 길입니다!', time: '10시간 전' }
+    ]
   }
 ];
-
 
 const INITIAL_NEWS_ITEMS = [
   {
@@ -363,32 +391,32 @@ let NEWS_ROTATION_POOL = [...INITIAL_NEWS_ITEMS];
 
 
 // ====================================================
-// CoinHub 2.0 Dynamic SEO & Hash-based Router
+// CryptoPnL Dynamic SEO & Hash-based Router
 // ====================================================
 const ROUTE_SEO_MAP = {
   analyzer: {
-    title: "CoinHub 2.0 – 업비트·빗썸 엑셀 거래내역 실현손익 정밀 분석기",
+    title: "CryptoPnL – 업비트·빗썸 엑셀 거래내역 실현손익 정밀 분석기",
     desc: "1초 만에 확인하는 내 업비트·빗썸 실현손익, 평단가, 거래소별 수수료, 월별 통계. 서버 전송 없는 100% 로컬 암호화 계산기"
   },
   market: {
-    title: "CoinHub 2.0 – 가상자산 실시간 시세 및 트레이딩뷰 차트 분석",
+    title: "CryptoPnL – 가상자산 실시간 시세 및 트레이딩뷰 차트 분석",
     desc: "비트코인, 이더리움, 주요 알트코인 실시간 시세, 24시간 변동률, 시가총액 순위 및 인터랙티브 인터벌 차트"
   },
   forum: {
-    title: "CoinHub 2.0 – 코인 토론 포럼 및 전문 트레이더 인사이트",
+    title: "CryptoPnL – 코인 토론 포럼 및 전문 트레이더 인사이트",
     desc: "실시간 거래소 상장 공시, 차트 분석, 알트코인 전망 및 트레이더 커뮤니티 토론장"
   },
   chat: {
-    title: "CoinHub 2.0 – 실시간 글로벌 암호화폐 라이브 채팅방",
+    title: "CryptoPnL – 실시간 글로벌 암호화폐 라이브 채팅방",
     desc: "실시간 시장 반응과 트레이딩 아이디어를 나누는 라이브 채팅 및 텔레그램/디스코드 커뮤니티"
   },
   news: {
-    title: "CoinHub 2.0 – 실시간 가상자산 글로벌 속보 및 공시 피드",
+    title: "CryptoPnL – 실시간 가상자산 글로벌 속보 및 공시 피드",
     desc: "주요 글로벌 블록체인 미디어 및 금융위 규제 속보를 30초 주기로 자동 수집·업데이트"
   },
   admin: {
-    title: "CoinHub 2.0 – 최고 관리자(Admin) 전용 센터",
-    desc: "코인허브 사이트 운영, 방문자 트래픽 모니터링 및 회원 관리 센터"
+    title: "CryptoPnL – 최고 관리자(Admin) 전용 센터",
+    desc: "CryptoPnL 사이트 운영, 방문자 트래픽 모니터링 및 회원 관리 센터"
   }
 };
 
@@ -405,7 +433,7 @@ function updatePageSEO(tabId) {
 
 // Update switchTab to support URL Hash & Dynamic SEO
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'admin'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'guides', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   tabs.forEach(t => {
@@ -417,706 +445,51 @@ function switchTab(tabId, updateHash = true) {
       if (el) {
         el.classList.remove('hidden');
         el.classList.add('block');
+        el.style.setProperty('display', 'block', 'important');
       }
       if (navBtn) {
         navBtn.classList.add('active');
         if (t === 'analyzer') {
           navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400');
+        } else if (t === 'guides') {
+          navBtn.classList.add('bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300');
+        } else if (t === 'calculators') {
+          navBtn.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
         }
       }
       if (mNavBtn) {
-        mNavBtn.classList.add('text-cyan-400');
+        mNavBtn.classList.add('text-cyan-400', 'font-bold');
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
       if (el) {
         el.classList.remove('block');
         el.classList.add('hidden');
+        el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active');
-        if (t === 'analyzer') {
-          navBtn.classList.remove('bg-cyan-500/10', 'border-cyan-500/30');
-        }
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
       }
       if (mNavBtn) {
-        mNavBtn.classList.remove('text-cyan-400');
+        mNavBtn.classList.remove('text-cyan-400', 'font-bold');
         mNavBtn.classList.add('text-slate-400');
       }
     }
   });
 
-  if (updateHash && window.location.hash !== `#/${tabId}`) {
-    history.replaceState(null, '', `#/${tabId}`);
+  if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
+    CoinCalculators.init();
+  }
+
+  if (updateHash) {
+    window.location.hash = '#/' + tabId;
   }
 
   updatePageSEO(tabId);
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
-    AdminAnalytics.recordVisit(tabId);
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch(e) {}
   }
-
-  // Initialize analyzer when user switches to analyzer tab
-  if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
-    CoinCalculators.switchSubTab(CoinCalculators.activeSubTab || 'water');
-  }
-
-  if (tabId === 'analyzer' && typeof App !== 'undefined') {
-    if (!App._initialized) {
-      App.init();
-      App._initialized = true;
-    } else {
-      App.checkAuthStatus();
-    }
-  }
-
-  // Check admin access when switching to admin tab
-  if (tabId === 'admin' && typeof AdminApp !== 'undefined') {
-    AdminApp.checkAdminAccess();
-  }
-}
-
-// Listen to Hash Changes
-window.addEventListener('hashchange', () => {
-  const hash = (window.location.hash || '').replace('#/', '').replace('#', '');
-  if (hash) {
-    switchTab(hash, false);
-  }
-});
-
-
-// Market Data & Ticker Logic
-// ----------------------------------------------------
-async function fetchMarketData() {
-  const refreshIcon = document.getElementById('refresh-icon');
-  if (refreshIcon) refreshIcon.classList.add('animate-spin');
-
-  // Immediately render fallback to eliminate any blank loading state
-  renderMarketUI();
-
-  try {
-    // 1. First fetch high-speed Upbit Ticker for instant zero-latency KRW/USD updates
-    try {
-      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
-      const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
-      if (upbitRes.ok) {
-        const upbitData = await upbitRes.json();
-        const usdRate = 1380; // approximate KRW/USD exchange rate
-        upbitData.forEach(item => {
-          const sym = item.market.replace('KRW-', '').toLowerCase();
-          const target = marketCoins.find(c => c.symbol.toLowerCase() === sym);
-          if (target) {
-            target.current_price = Number((item.trade_price / usdRate).toFixed(2));
-            target.price_change_percentage_24h = Number((item.signed_change_rate * 100).toFixed(2));
-            target.total_volume = Number((item.acc_trade_price_24h / usdRate).toFixed(0));
-          }
-        });
-        renderMarketUI();
-      }
-    } catch (e) {
-      console.warn('Upbit ticker fetch skipped:', e);
-    }
-
-    // 2. Secondary fetch CoinGecko with 3s timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=true&price_change_percentage=24h',
-      { signal: controller.signal }
-    );
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        marketCoins = data;
-      }
-    }
-  } catch (err) {
-    console.warn('CoinGecko fetch fallback active (using instant cached data):', err);
-    if (!marketCoins || marketCoins.length === 0) {
-      marketCoins = DEFAULT_COINS;
-    }
-  } finally {
-    if (refreshIcon) refreshIcon.classList.remove('animate-spin');
-    renderMarketUI();
-  }
-}
-
-
-function renderMarketSkeletonUI() {
-  const tableBody = document.getElementById('market-table-body');
-  if (tableBody) {
-    tableBody.innerHTML = Array(6).fill(0).map(() => `
-      <tr class="animate-pulse border-b border-navy-800/40">
-        <td class="p-3.5"><div class="h-4 bg-navy-800 rounded w-4"></div></td>
-        <td class="p-3.5"><div class="flex items-center gap-2"><div class="w-7 h-7 bg-navy-800 rounded-full"></div><div class="h-4 bg-navy-800 rounded w-20"></div></div></td>
-        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-16 ml-auto"></div></td>
-        <td class="p-3.5 text-right"><div class="h-4 bg-navy-800 rounded w-12 ml-auto"></div></td>
-        <td class="p-3.5 text-right hidden md:table-cell"><div class="h-4 bg-navy-800 rounded w-24 ml-auto"></div></td>
-        <td class="p-3.5 text-right hidden lg:table-cell"><div class="h-4 bg-navy-800 rounded w-20 ml-auto"></div></td>
-      </tr>
-    `).join('');
-  }
-}
-
-function renderMarketUI() {
-  // 1. Render Top Ticker Bar
-  const tickerBar = document.getElementById('ticker-bar');
-  if (tickerBar && marketCoins.length > 0) {
-    tickerBar.innerHTML = marketCoins.slice(0, 6).map(coin => {
-      const isUp = (coin.price_change_percentage_24h || 0) >= 0;
-      const colorClass = isUp ? 'text-crypto-green' : 'text-crypto-red';
-      const sign = isUp ? '+' : '';
-      return `
-        <div class="inline-flex items-center gap-2 cursor-pointer hover:text-cyan-400 transition" onclick="selectCoinForChart('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}')">
-          <span class="font-bold text-slate-200">${coin.symbol.toUpperCase()}</span>
-          <span>$${formatNumber(coin.current_price)}</span>
-          <span class="${colorClass} font-semibold">${sign}${(coin.price_change_percentage_24h || 0).toFixed(2)}%</span>
-        </div>
-      `;
-    }).join('<span class="text-slate-700">|</span>');
-  }
-
-  // 2. Update Top 3 Cards
-  const btc = marketCoins.find(c => c.symbol.toLowerCase() === 'btc') || marketCoins[0];
-  const eth = marketCoins.find(c => c.symbol.toLowerCase() === 'eth') || marketCoins[1];
-  const gainer = [...marketCoins].sort((a,b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0))[0];
-
-  if (btc) {
-    document.getElementById('btc-price').innerText = `$${formatNumber(btc.current_price)}`;
-    const btcBadge = document.getElementById('btc-badge');
-    const isUp = (btc.price_change_percentage_24h || 0) >= 0;
-    btcBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
-    btcBadge.innerText = `${isUp ? '+' : ''}${(btc.price_change_percentage_24h || 0).toFixed(2)}%`;
-  }
-
-  if (eth) {
-    document.getElementById('eth-price').innerText = `$${formatNumber(eth.current_price)}`;
-    const ethBadge = document.getElementById('eth-badge');
-    const isUp = (eth.price_change_percentage_24h || 0) >= 0;
-    ethBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
-    ethBadge.innerText = `${isUp ? '+' : ''}${(eth.price_change_percentage_24h || 0).toFixed(2)}%`;
-  }
-
-  if (gainer) {
-    document.getElementById('gainer-name').innerText = `${gainer.name} (${gainer.symbol.toUpperCase()})`;
-    document.getElementById('gainer-price').innerText = `$${formatNumber(gainer.current_price)}`;
-    const gBadge = document.getElementById('gainer-badge');
-    const isUp = (gainer.price_change_percentage_24h || 0) >= 0;
-    gBadge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
-    gBadge.innerText = `${isUp ? '+' : ''}${(gainer.price_change_percentage_24h || 0).toFixed(2)}%`;
-  }
-
-  // 3. Render Table Rows
-  renderCoinTable(marketCoins);
-}
-
-function renderCoinTable(coins) {
-  const tbody = document.getElementById('crypto-table-body');
-  if (!tbody) return;
-
-  tbody.innerHTML = coins.map((coin, index) => {
-    const isUp = (coin.price_change_percentage_24h || 0) >= 0;
-    const changeClass = isUp ? 'text-crypto-green' : 'text-crypto-red';
-    const sign = isUp ? '+' : '';
-
-    return `
-      <tr class="hover:bg-navy-800/40 transition cursor-pointer group" onclick="selectCoinForChart('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}')">
-        <td class="py-3.5 px-3 text-slate-500 text-xs">${index + 1}</td>
-        <td class="py-3.5 px-3">
-          <div class="flex items-center gap-2.5">
-            <img src="${coin.image}" alt="${coin.name}" class="w-6 h-6 rounded-full" onerror="this.src='https://assets.coingecko.com/coins/images/1/small/bitcoin.png'">
-            <div>
-              <span class="font-bold text-slate-100 font-sans group-hover:text-cyan-400 transition">${coin.name}</span>
-              <span class="text-xs text-slate-500 font-mono ml-1 uppercase">${coin.symbol}</span>
-            </div>
-          </div>
-        </td>
-        <td class="py-3.5 px-3 text-right font-bold text-slate-100">$${formatNumber(coin.current_price)}</td>
-        <td class="py-3.5 px-3 text-right font-bold ${changeClass}">${sign}${(coin.price_change_percentage_24h || 0).toFixed(2)}%</td>
-        <td class="py-3.5 px-3 text-right text-slate-400 hidden sm:table-cell text-xs">$${formatCompact(coin.total_volume)}</td>
-        <td class="py-3.5 px-3 text-center">
-          <button class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 group-hover:border-cyan-500 text-cyan-400 text-xs font-sans font-medium transition">
-            차트 보기
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function handleSearch(query) {
-  const q = (query || '').trim().toLowerCase();
-  
-  // If on Market tab or global search
-  if (!q) {
-    renderCoinTable(marketCoins);
-  } else {
-    const filtered = marketCoins.filter(c => 
-      c.name.toLowerCase().includes(q) || 
-      c.symbol.toLowerCase().includes(q) ||
-      (c.korean_name && c.korean_name.toLowerCase().includes(q)) ||
-      (c.id && c.id.toLowerCase().includes(q))
-    );
-    renderCoinTable(filtered);
-  }
-
-  // If on Analyzer tab, forward search query to active analyzer sub-tab filter
-  if (typeof App !== 'undefined' && App.state) {
-    const activeSubTab = App.state.activeTab || 'dashboard';
-    if (activeSubTab === 'coins') {
-      const searchEl = document.getElementById('coinFilterSearch');
-      if (searchEl) { searchEl.value = q; App.renderCoinsTable(); }
-    } else if (activeSubTab === 'activities') {
-      const searchEl = document.getElementById('activitySearchInput');
-      if (searchEl) { searchEl.value = q; App.state.activityFilter.search = q; App.state.activityFilter.page = 1; App.renderAllActivitiesTable(); }
-    } else if (activeSubTab === 'transfers') {
-      const searchEl = document.getElementById('transferSearchInput');
-      if (searchEl) { searchEl.value = q; App.state.transferFilter.search = q; App.state.transferFilter.page = 1; App.renderTransfersTable(); }
-    }
-  }
-}
-
-// ----------------------------------------------------
-// Interactive Price Chart (Chart.js)
-// ----------------------------------------------------
-function initChart() {
-  const ctx = document.getElementById('priceChart').getContext('2d');
-  
-  // Generate Mock historical data based on timeframe
-  const points = generateChartData(selectedCoin.price || 64820, currentChartTimeframe);
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-  gradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
-  gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
-
-  priceChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: points.labels,
-      datasets: [{
-        label: `${selectedCoin.name} (USD)`,
-        data: points.data,
-        borderColor: '#06b6d4',
-        borderWidth: 2,
-        backgroundColor: gradient,
-        fill: true,
-        tension: 0.35,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        pointHoverBackgroundColor: '#06b6d4',
-        pointHoverBorderColor: '#ffffff',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          backgroundColor: '#0b0f19',
-          titleColor: '#94a3b8',
-          bodyColor: '#38bdf8',
-          borderColor: '#1e294b',
-          borderWidth: 1,
-          padding: 10,
-          displayColors: false,
-          callbacks: {
-            label: function(context) {
-              return `$${formatNumber(context.parsed.y)}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
-        },
-        y: {
-          grid: { color: 'rgba(30, 41, 75, 0.4)' },
-          ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
-        }
-      }
-    }
-  });
-
-  updateChartStats(points.data);
-}
-
-function selectCoinForChart(id, name, symbol) {
-  const coin = marketCoins.find(c => c.id === id) || { current_price: 64820 };
-  selectedCoin = { id, name, symbol, price: coin.current_price };
-
-  document.getElementById('chart-coin-name').innerText = name;
-  document.getElementById('chart-coin-symbol').innerText = symbol;
-
-  updateChartData();
-}
-
-function changeChartTimeframe(tf) {
-  currentChartTimeframe = tf;
-  const container = document.getElementById('timeframe-buttons');
-  if (container) {
-    const btns = container.querySelectorAll('.tf-btn');
-    btns.forEach(b => {
-      if (b.innerText.toLowerCase() === tf.toLowerCase()) {
-        b.className = 'tf-btn px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400';
-      } else {
-        b.className = 'tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white';
-      }
-    });
-  }
-  updateChartData();
-}
-
-function updateChartData() {
-  if (!priceChart) return;
-  const points = generateChartData(selectedCoin.price, currentChartTimeframe);
-  priceChart.data.labels = points.labels;
-  priceChart.data.datasets[0].label = `${selectedCoin.name} (USD)`;
-  priceChart.data.datasets[0].data = points.data;
-  priceChart.update();
-  updateChartStats(points.data);
-}
-
-function updateChartStats(data) {
-  if (!data || data.length === 0) return;
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  document.getElementById('chart-high').innerText = `$${formatNumber(max)}`;
-  document.getElementById('chart-low').innerText = `$${formatNumber(min)}`;
-}
-
-function generateChartData(basePrice, tf) {
-  let count = 24;
-  let labels = [];
-  let data = [];
-  let current = basePrice * 0.96;
-
-  if (tf === '24h') {
-    count = 24;
-    for (let i = 0; i < count; i++) {
-      labels.push(`${i}:00`);
-      current += (Math.random() - 0.48) * (basePrice * 0.015);
-      data.push(Number(current.toFixed(2)));
-    }
-  } else if (tf === '7d') {
-    count = 7;
-    const days = ['월', '화', '수', '목', '금', '토', '일'];
-    for (let i = 0; i < count; i++) {
-      labels.push(days[i]);
-      current += (Math.random() - 0.46) * (basePrice * 0.04);
-      data.push(Number(current.toFixed(2)));
-    }
-  } else {
-    count = 15;
-    for (let i = 1; i <= count; i++) {
-      labels.push(`8/${i * 2}`);
-      current += (Math.random() - 0.45) * (basePrice * 0.08);
-      data.push(Number(current.toFixed(2)));
-    }
-  }
-  data[data.length - 1] = basePrice;
-  return { labels, data };
-}
-
-// ----------------------------------------------------
-// Community Forum Logic (CRUD & LocalStorage)
-// ----------------------------------------------------
-function getStoredPosts() {
-  return JSON.parse(localStorage.getItem('coinhub_forum_posts')) || INITIAL_FORUM_POSTS;
-}
-
-function saveStoredPosts(posts) {
-  localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-}
-
-function filterForum(category) {
-  activeCategory = category;
-  const buttons = document.querySelectorAll('#forum-category-filters .category-btn');
-  buttons.forEach(btn => {
-    if (btn.dataset.cat === category) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-  renderForumPosts();
-}
-
-function renderForumPosts() {
-  const container = document.getElementById('forum-posts-list');
-  if (!container) return;
-
-  let posts = getStoredPosts();
-
-  // Category filter
-  if (activeCategory !== 'all') {
-    posts = posts.filter(p => p.category === activeCategory);
-  }
-
-  // Sorting
-  const sortType = document.getElementById('forum-sort')?.value || 'latest';
-  if (sortType === 'popular') {
-    posts.sort((a, b) => b.upvotes - a.upvotes);
-  } else if (sortType === 'comments') {
-    posts.sort((a, b) => (b.comments?.length || 0) - (a.comments?.length || 0));
-  } else {
-    posts.sort((a, b) => b.timestamp - a.timestamp);
-  }
-
-  if (posts.length === 0) {
-    container.innerHTML = `
-      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
-        <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600 mb-3"></i>
-        <p class="text-sm">작성된 게시글이 없습니다. 첫 번째 토론 글을 남겨보세요!</p>
-      </div>
-    `;
-    lucide.createIcons();
-    return;
-  }
-
-  container.innerHTML = posts.map(post => {
-    const commentsCount = post.comments ? post.comments.length : 0;
-    return `
-      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal(${post.id})">
-        <div class="flex-1 space-y-2">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${post.categoryName}</span>
-            ${post.image ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진첨부</span>' : ''}
-            <span class="text-xs text-slate-400">• ${post.time}</span>
-            <span class="text-xs font-semibold text-slate-300">• ${post.author}</span>
-            ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${post.authorRank}</span>` : ''}
-          </div>
-          <h3 class="font-bold text-base text-white group-hover:text-cyan-400 transition">${escapeHtml(post.title)}</h3>
-          <p class="text-xs text-slate-400 line-clamp-2">${escapeHtml(post.content)}</p>
-        </div>
-
-        <div class="flex items-center gap-3 self-end sm:self-center shrink-0 text-xs">
-          ${post.image ? `<div class="w-14 h-14 rounded-xl overflow-hidden border border-navy-800 bg-navy-950 shrink-0"><img src="${post.image}" class="w-full h-full object-cover" alt="Thumb"></div>` : ''}
-          <!-- Upvote Count -->
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono">
-            <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
-            <span>${post.upvotes}</span>
-          </div>
-
-          <!-- Comments Count -->
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">
-            <i data-lucide="message-square" class="w-3.5 h-3.5 text-slate-400"></i>
-            <span>${commentsCount}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  lucide.createIcons();
-}
-
-function openNewPostModal() {
-  document.getElementById('new-post-modal').classList.remove('hidden');
-}
-
-function closeNewPostModal() {
-  document.getElementById('new-post-modal').classList.add('hidden');
-}
-
-function handleCreatePost(e) {
-  e.preventDefault();
-  const category = document.getElementById('post-category-select').value;
-  const title = document.getElementById('post-title-input').value.trim();
-  const content = document.getElementById('post-content-input').value.trim();
-
-  if (!title || !content) return;
-
-  const categoryNames = {
-    general: '💬 자유 토론',
-    market: '📊 차트/기술적 분석',
-    altcoin: '🚀 알트코인 분석',
-    ico: '🪙 ICO / 신규 토큰',
-    qna: '❓ 초보 Q&A'
-  };
-
-  const newPost = {
-    id: Date.now(),
-    category,
-    categoryName: categoryNames[category] || '💬 자유 토론',
-    title,
-    content,
-    image: currentPostImageData || null,
-    author: getNickname(),
-    authorRank: "PRO",
-    upvotes: 1,
-    views: 1,
-    time: '방금 전',
-    timestamp: Date.now(),
-    comments: []
-  };
-
-  const posts = getStoredPosts();
-  posts.unshift(newPost);
-  saveStoredPosts(posts);
-
-  closeNewPostModal();
-  document.getElementById('post-title-input').value = '';
-  document.getElementById('post-content-input').value = '';
-  removePostImage();
-
-  renderForumPosts();
-  alert('게시글(사진 포함)이 성공적으로 등록되었습니다!');
-}
-
-function openPostDetailModal(postId) {
-  const posts = getStoredPosts();
-  const post = posts.find(p => p.id === postId);
-  if (!post) return;
-
-  currentViewingPostId = postId;
-  post.views = (post.views || 0) + 1;
-  saveStoredPosts(posts);
-
-  document.getElementById('modal-post-category').innerText = post.categoryName;
-  document.getElementById('modal-post-title').innerText = post.title;
-  document.getElementById('modal-post-author').innerText = `${post.author} (${post.authorRank || 'Member'})`;
-  document.getElementById('modal-post-time').innerText = post.time;
-  document.getElementById('modal-post-views').innerText = post.views;
-  document.getElementById('modal-post-content').innerText = post.content;
-  document.getElementById('modal-post-upvotes').innerText = post.upvotes;
-
-  // Render attached image in detail modal
-  const imgContainer = document.getElementById('modal-post-image-container');
-  const imgElement = document.getElementById('modal-post-image');
-  if (imgContainer && imgElement) {
-    if (post.image) {
-      imgElement.src = post.image;
-      imgContainer.classList.remove('hidden');
-    } else {
-      imgElement.src = '';
-      imgContainer.classList.add('hidden');
-    }
-  }
-
-  renderModalComments(post.comments || []);
-
-  document.getElementById('post-detail-modal').classList.remove('hidden');
-  lucide.createIcons();
-}
-
-function closePostDetailModal() {
-  document.getElementById('post-detail-modal').classList.add('hidden');
-  currentViewingPostId = null;
-  renderForumPosts();
-}
-
-function handleVoteInModal(delta) {
-  if (!currentViewingPostId) return;
-  const posts = getStoredPosts();
-  const post = posts.find(p => p.id === currentViewingPostId);
-  if (!post) return;
-
-  post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
-  saveStoredPosts(posts);
-
-  document.getElementById('modal-post-upvotes').innerText = post.upvotes;
-}
-
-function renderModalComments(comments) {
-  const container = document.getElementById('modal-comments-list');
-  document.getElementById('modal-comments-count').innerText = comments.length;
-
-  if (comments.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-500 py-3">첫 번째 댓글을 남겨보세요!</p>`;
-    return;
-  }
-
-  container.innerHTML = comments.map(c => `
-    <div class="bg-navy-950 p-3 rounded-xl border border-navy-800 text-xs">
-      <div class="flex justify-between items-center text-slate-400 mb-1">
-        <span class="font-bold text-slate-200">${c.author}</span>
-        <span class="text-[10px]">${c.time}</span>
-      </div>
-      <p class="text-slate-300 leading-normal">${escapeHtml(c.text)}</p>
-    </div>
-  `).join('');
-}
-
-function handleAddComment() {
-  if (!currentViewingPostId) return;
-  const input = document.getElementById('new-comment-input');
-  const text = input.value.trim();
-  if (!text) return;
-
-  const posts = getStoredPosts();
-  const post = posts.find(p => p.id === currentViewingPostId);
-  if (!post) return;
-
-  if (!post.comments) post.comments = [];
-  post.comments.push({
-    id: Date.now(),
-    author: currentUser ? currentUser.username : '익명 트레이더',
-    text,
-    time: '방금 전'
-  });
-
-  saveStoredPosts(posts);
-  input.value = '';
-  renderModalComments(post.comments);
-}
-
-// ----------------------------------------------------
-// Real-Time Chat System
-// ----------------------------------------------------
-function renderChatMessages() {
-  const container = document.getElementById('chat-messages');
-  if (!container) return;
-
-  // Filter out any mock users
-  chatMessages = (chatMessages || []).filter(m => 
-    m && m.user && 
-    !['Satoshi_Fan', 'CryptoWhale', 'SolanaKing', 'CoinBeginner', 'PeacefulTrader', 'AlphaBot'].includes(m.user)
-  );
-  try {
-    localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages));
-  } catch(e) {}
-
-  if (!chatMessages || chatMessages.length === 0) {
-    container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-3">
-        <div class="w-12 h-12 rounded-2xl bg-navy-850 border border-navy-800 flex items-center justify-center text-slate-400">
-          <i data-lucide="message-square-dashed" class="w-6 h-6"></i>
-        </div>
-        <p class="text-xs">현재 작성된 채팅 메시지가 없습니다.<br><span class="text-cyan-400 font-semibold">첫 번째 메시지를 전송</span>하여 실시간 대화를 시작해 보세요!</p>
-      </div>
-    `;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    renderChatActiveUsers();
-    return;
-  }
-
-  container.innerHTML = chatMessages.map(msg => `
-    <div class="flex items-start gap-3 animate-in">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md font-mono">
-        ${(msg.user || 'U').substring(0, 2).toUpperCase()}
-      </div>
-      <div class="flex-1 bg-navy-950 p-3 rounded-2xl rounded-tl-none border border-navy-800/80">
-        <div class="flex items-center gap-2 mb-1">
-          <span class="font-bold text-xs text-slate-200">${escapeHtml(msg.user)}</span>
-          <span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-900 border border-navy-800 text-cyan-400 font-mono">${msg.rank || 'USER'}</span>
-          <span class="text-[10px] text-slate-500 ml-auto font-mono">${msg.time}</span>
-        </div>
-        <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(msg.text)}</p>
-      </div>
-    </div>
-  `).join('');
-
-  container.scrollTop = container.scrollHeight;
-  renderChatActiveUsers();
-  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function renderChatActiveUsers() {
@@ -1369,7 +742,7 @@ function setAuthMode(mode) {
     if (tabSignup) { tabSignup.classList.remove('bg-navy-800', 'text-cyan-400'); tabSignup.classList.add('text-slate-400'); }
     if (modalTitle) modalTitle.innerText = '로그인';
     if (modalIcon) modalIcon.innerText = '🔐';
-    if (modalDesc) modalDesc.innerText = 'CoinHub 가상자산 플랫폼에 로그인하세요.';
+    if (modalDesc) modalDesc.innerText = 'CryptoPnL 가상자산 플랫폼에 로그인하세요.';
   } else if (mode === 'signup') {
     if (loginForm) loginForm.classList.add('hidden');
     if (signupForm) signupForm.classList.remove('hidden');
@@ -1925,7 +1298,7 @@ function simulateLiveFluctuations() {
 
 
 // ====================================================
-// CoinHub Core Initialization (DOMContentLoaded)
+// CryptoPnL Core Initialization (DOMContentLoaded)
 // ====================================================
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Clear any corrupted legacy mojibake or mock chat from localStorage
@@ -1981,4 +1354,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 10. Live ticker fluctuation simulation every 4 seconds
   setInterval(simulateLiveFluctuations, 4000);
+});
+
+
+// Hash routing auto-sync
+window.addEventListener('hashchange', function () {
+  const h = (window.location.hash || '').replace('#/', '').replace('#', '');
+  if (h && typeof switchTab === 'function') {
+    switchTab(h, false);
+  }
 });
