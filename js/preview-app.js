@@ -13,13 +13,15 @@ function applyTheme(theme) {
   const text = document.getElementById('theme-toggle-text');
 
   if (theme === 'light') {
+    html.classList.remove('dark');
     html.classList.add('theme-light');
     if (icon) {
       icon.setAttribute('data-lucide', 'moon');
-      icon.className = 'w-4 h-4 text-indigo-400';
+      icon.className = 'w-4 h-4 text-indigo-500';
     }
     if (text) text.innerText = '다크';
   } else {
+    html.classList.add('dark');
     html.classList.remove('theme-light');
     if (icon) {
       icon.setAttribute('data-lucide', 'sun');
