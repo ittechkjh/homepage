@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="ko" class="dark">
+<html lang="ko" class="theme-light">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -129,8 +129,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260902_4">
-  <link rel="stylesheet" href="css/analyzer.css?v=20260902_4">
+  <link rel="stylesheet" href="styles.css?v=20260902_5">
+  <link rel="stylesheet" href="css/analyzer.css?v=20260902_5">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -2055,6 +2055,29 @@
 
           <!-- TAB 1: 종합 대시보드 & 차트 -->
           <div class="analyzer-tab-pane active" id="dashboardTab">
+            <!-- Simple Portfolio Tracker & Verification Action -->
+            <div class="mb-6 bg-navy-900 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col lg:flex-row gap-6 justify-between items-center">
+              <div class="flex-1 w-full grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                  <div class="text-xs text-slate-400 font-medium">총 보유 자산</div>
+                  <div class="text-lg font-bold text-slate-100" id="tracker-total-assets">0 ₩</div>
+                </div>
+                <div class="space-y-1">
+                  <div class="text-xs text-slate-400 font-medium">실시간 평가손익</div>
+                  <div class="text-lg font-bold" id="tracker-unrealized-pnl">0 ₩</div>
+                </div>
+                <div class="space-y-1 col-span-2 md:col-span-2">
+                  <div class="text-xs text-slate-400 font-medium">주요 보유 비중</div>
+                  <div class="text-sm font-semibold text-slate-200 truncate" id="tracker-top-holdings">-</div>
+                  <div class="w-full bg-navy-950 h-1.5 rounded-full mt-2 overflow-hidden flex" id="tracker-holdings-bar"></div>
+                </div>
+              </div>
+              <div class="shrink-0 flex items-center gap-3 w-full lg:w-auto">
+                <button onclick="window.AnalyzerApp && window.AnalyzerApp.openVerificationModal()" class="w-full lg:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                  <i data-lucide="camera" class="w-4 h-4"></i> 수익 인증카드 생성
+                </button>
+              </div>
+            </div>
             <div class="charts-grid">
               <!-- 누적 손익 추이 -->
               <div class="chart-card full-width">
@@ -3275,19 +3298,61 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=20260902_4"></script>
-  <script src="js/calculator.js?v=20260902_4"></script>
-  <script src="js/upbit-api.js?v=20260902_4"></script>
-  <script src="js/charts.js?v=20260902_4"></script>
-  <script src="js/exporter.js?v=20260902_4"></script>
-  <script src="js/sample-data.js?v=20260902_4"></script>
+  <script src="js/parser.js?v=20260902_5"></script>
+  <script src="js/calculator.js?v=20260902_5"></script>
+  <script src="js/upbit-api.js?v=20260902_5"></script>
+  <script src="js/charts.js?v=20260902_5"></script>
+  <script src="js/exporter.js?v=20260902_5"></script>
+  <script src="js/sample-data.js?v=20260902_5"></script>
   <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=20260902_4"></script>
+  <script src="js/analyzer-app.js?v=20260902_5"></script>
 
-  <script src="js/admin.js?v=20260902_4"></script>
-  <script src="js/preview-app-v2.js?v=20260902_4"></script>
+  <script src="js/admin.js?v=20260902_5"></script>
+  <script src="js/preview-app-v2.js?v=20260902_5"></script>
 
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"65e457de82054b2cb5322b8c9a0235fb","r":1}' crossorigin="anonymous"></script>
+  <!-- PnL Verification Modal -->
+  <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-navy-950/80 backdrop-blur-sm" onclick="this.parentElement.classList.add('hidden')"></div>
+    <div class="relative bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-navy-800 flex justify-between items-center bg-navy-950/50">
+        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="camera" class="w-5 h-5 text-indigo-400"></i> 수익 인증 카드 생성
+        </h2>
+        <button onclick="document.getElementById('modal-pnl-verification').classList.add('hidden')" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">시작일 (선택)</label>
+            <input type="date" id="pnl-card-start" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-cyan-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">종료일 (선택)</label>
+            <input type="date" id="pnl-card-end" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-cyan-500 outline-none">
+          </div>
+        </div>
+        <button onclick="window.AnalyzerApp && window.AnalyzerApp.renderVerificationCard()" class="w-full py-2.5 rounded-xl border border-indigo-500/50 text-indigo-400 hover:bg-indigo-500/10 font-bold text-sm transition">
+          미리보기 새로고침
+        </button>
+        
+        <!-- Canvas Container -->
+        <div class="rounded-xl overflow-hidden border border-navy-700 bg-navy-950 flex justify-center items-center relative min-h-[200px]" id="pnl-card-preview-container">
+           <canvas id="pnl-card-canvas" width="600" height="360" class="max-w-full h-auto shadow-md"></canvas>
+        </div>
+      </div>
+      <div class="p-6 border-t border-navy-800 flex flex-col sm:flex-row gap-3 bg-navy-950/50">
+        <button onclick="window.AnalyzerApp && window.AnalyzerApp.downloadVerificationCard()" class="flex-1 py-3 rounded-xl bg-navy-800 hover:bg-navy-700 text-white font-bold text-sm transition flex justify-center items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4"></i> 이미지 다운로드
+        </button>
+        <button onclick="window.AnalyzerApp && window.AnalyzerApp.shareVerificationCardToForum()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-sm shadow-lg shadow-cyan-500/20 transition flex justify-center items-center gap-2">
+          <i data-lucide="share-2" class="w-4 h-4"></i> 포럼에 공유하기
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
@@ -3307,6 +3372,9 @@
     });
   </script>
 </html>
+
+
+
 
 
 

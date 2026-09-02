@@ -23,7 +23,7 @@ if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined')
 // Section 0: Theme Management Engine (Dark / Light)
 // ----------------------------------------------------
 function initTheme() {
-  const savedTheme = localStorage.getItem('cryptopnl_theme') || 'dark';
+  const savedTheme = localStorage.getItem('cryptopnl_theme') || 'light';
   applyTheme(savedTheme);
 }
 
