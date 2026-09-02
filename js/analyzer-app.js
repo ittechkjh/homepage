@@ -701,6 +701,7 @@ const App = {
 
         this.updateCoinFilterOptions();
         this.renderAll();
+        this.fetchLiveTickers(false);
         if (typeof CoinCalculators !== 'undefined' && CoinCalculators.importProfitCardFromAnalyzer) {
             try { CoinCalculators.importProfitCardFromAnalyzer(false); } catch (e) {}
         }

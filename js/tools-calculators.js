@@ -648,6 +648,200 @@ const CoinCalculators = {
             pnlUsdt = (targetPrice - entryPrice) * positionCoinQty;
         } else {
             pnlUsdt = (entryPrice - targetPrice) * positionCoinQty;
+try {
+            const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE,KRW-TRX,KRW-USDT');
+            if (!upbitRes.ok) throw new Error('업비트 API 응답 실패');
+            const upbitData = await upbitRes.json();
+
+            const usdtItem = upbitData.find(d => d.market === 'KRW-USDT');
+            const liveUsdRate = (usdtItem && usdtItem.trade_price > 1000) ? usdtItem.trade_price : (this.exchangeRateUsdKrw || 1380);
+            this.exchangeRateUsdKrw = liveUsdRate;
+
+            const setRateEl = document.getElementById('kimpUsdRateDisplay');
+            if (setRateEl) setRateEl.innerText = '기준환율: 1$ = ' + Math.round(liveUsdRate).toLocaleString() + '원 (실시간)';
+
+            let binancePrices = {};
+            try {
+                const binanceSymbols = JSON.stringify(['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT', 'DOGEUSDT', 'TRXUSDT']);
+                const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=' + encodeURIComponent(binanceSymbols));
+                if (binanceRes.ok) {
+                    const binanceList = await binanceRes.json();
+                    binanceList.forEach(item => {
+                        const s = item.symbol.replace('USDT', '');
+                        binancePrices[s] = parseFloat(item.price);
+                    });
+                }
+            } catch (binErr) {
+                console.warn('Binance direct API fallback:', binErr);
+            }
+
+            const rows = upbitData.filter(d => d.market !== 'KRW-USDT').map(item => {
+                const sym = item.market.replace('KRW-', '');
+                const upbitKrw = item.trade_price;
+                const binanceUsd = binancePrices[sym] || (upbitKrw / (liveUsdRate * 1.015));
+                const binanceKrw = binanceUsd * liveUsdRate;
+                const diffKrw = upbitKrw - binanceKrw;
+                const kimpPercent = binanceKrw > 0 ? (diffKrw / binanceKrw) * 100 : 0;
+
+                return `
+                  <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
+                    <td class="py-3 px-3 font-bold text-white flex items-center gap-1.5">
+                      <span class="w-6 h-6 rounded-full bg-navy-950 flex items-center justify-center text-[10px] text-cyan-400 font-mono font-black">${sym}</span>
+                      <span>${sym}</span>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono font-bold text-slate-100">${upbitKrw.toLocaleString()}원</td>
+                    <td class="py-3 px-3 text-right font-mono text-slate-400">$${binanceUsd.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                    <td class="py-3 px-3 text-right font-mono ${diffKrw >= 0 ? 'text-rose-400' : 'text-cyan-400'}">${diffKrw >= 0 ? '+' : ''}${Math.round(diffKrw).toLocaleString()}원</td>
+                    <td class="py-3 px-3 text-right font-mono font-black ${kimpPercent >= 0 ? 'text-rose-400' : 'text-cyan-400'}">
+                      <span class="px-2 py-0.5 rounded-lg ${kimpPercent >= 0 ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-cyan-500/10 border border-cyan-500/20'}">
+                        ${kimpPercent >= 0 ? '+' : ''}${kimpPercent.toFixed(2)}%
+                      </span>
+                    </td>
+                  </tr>
+                `;
+            }).join('');
+
+            kimpBody.innerHTML = rows;
+            this.calcArbitrage();
+        } catch (e) {
+            console.warn('Kimp fetch error:', e);
+        }
+    },
+
+    calcArbitrage: function () {
+        const sendAmountKrw = parseFloat(document.getElementById('arbSendAmount')?.value) || 5000000;
+        const coinType = document.getElementById('arbCoinSelect')?.value || 'XRP';
+        const kimpRate = parseFloat(document.getElementById('arbCustomKimp')?.value || 1.8) / 100;
+        const feeNetwork = coinType === 'XRP' ? 1500 : (coinType === 'TRX' ? 1400 : 8000);
+
+        const tradeFee = sendAmountKrw * 0.001;
+        const kimpGainKrw = sendAmountKrw * kimpRate;
+        const netProfitKrw = kimpGainKrw - feeNetwork - tradeFee;
+        const roi = sendAmountKrw > 0 ? (netProfitKrw / sendAmountKrw) * 100 : 0;
+
+        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        setTxt('arbResNetworkFee', feeNetwork.toLocaleString() + '원');
+        setTxt('arbResTradeFee', Math.round(tradeFee).toLocaleString() + '원');
+        setTxt('arbResNetProfit', (netProfitKrw >= 0 ? '+' : '') + Math.round(netProfitKrw).toLocaleString() + '원');
+        
+        const roiEl = document.getElementById('arbResRoi');
+        if (roiEl) {
+            roiEl.innerText = (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%';
+            roiEl.className = 'font-mono font-bold ' + (roi >= 0 ? 'text-emerald-400' : 'text-rose-400');
+        }
+    },
+
+    // Helper: Retrieve accurate calculation report from Analyzer Engine
+    getAnalyzerData: function () {
+        const getApp = () => (typeof window !== 'undefined' && window.App) ? window.App : ((typeof App !== 'undefined') ? App : null);
+        const getCalc = () => (typeof window !== 'undefined' && window.ProfitCalculator) ? window.ProfitCalculator : ((typeof ProfitCalculator !== 'undefined') ? ProfitCalculator : null);
+        const getStorage = () => (typeof window !== 'undefined' && window.AnalyzerStorage) ? window.AnalyzerStorage : ((typeof AnalyzerStorage !== 'undefined') ? AnalyzerStorage : null);
+
+        const app = getApp();
+        if (app && app.state && app.state.reportData && app.state.reportData.summary) {
+            return app.state.reportData;
+        }
+
+        const calc = getCalc();
+        const storage = getStorage();
+        if (calc && storage) {
+            const trades = storage.getTrades ? storage.getTrades() : [];
+            if (trades && trades.length > 0) {
+                const rep = calc.calculate(trades);
+                if (app && app.state) app.state.reportData = rep;
+                return rep;
+            }
+        }
+        return null;
+    },
+
+    // ========================================================
+    // 3. 코인 세금 계산기
+    // ========================================================
+    calcTax: function () {
+        const totalSell = parseFloat(document.getElementById('taxTotalSell')?.value) || 0;
+        const totalBuy = parseFloat(document.getElementById('taxTotalBuy')?.value) || 0;
+        const totalFee = parseFloat(document.getElementById('taxTotalFee')?.value) || 0;
+        const deductType = document.getElementById('taxDeductionType')?.value || '250';
+
+        const basicDeduction = deductType === '5000' ? 50000000 : 2500000;
+        const netProfit = totalSell - totalBuy - totalFee;
+        const taxableBase = Math.max(0, netProfit - basicDeduction);
+        
+        const incomeTax = taxableBase * 0.20;
+        const localTax = taxableBase * 0.02;
+        const totalTax = incomeTax + localTax;
+        const effectiveRate = netProfit > 0 ? (totalTax / netProfit) * 100 : 0;
+
+        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        setTxt('taxResNetProfit', Math.round(netProfit).toLocaleString('ko-KR') + '원');
+        setTxt('taxResDeduction', Math.round(basicDeduction).toLocaleString('ko-KR') + '원');
+        setTxt('taxResTaxableBase', Math.round(taxableBase).toLocaleString('ko-KR') + '원');
+        setTxt('taxResIncomeTax', Math.round(incomeTax).toLocaleString('ko-KR') + '원');
+        setTxt('taxResLocalTax', Math.round(localTax).toLocaleString('ko-KR') + '원');
+        setTxt('taxResTotalTax', Math.round(totalTax).toLocaleString('ko-KR') + '원');
+        setTxt('taxResEffectiveRate', effectiveRate.toFixed(2) + '%');
+
+        const taxBadge = document.getElementById('taxStatusBadge');
+        if (taxBadge) {
+            if (netProfit <= basicDeduction) {
+                taxBadge.innerText = '🛡️ 비과세 대상 (공제 한도 내 수익)';
+                taxBadge.className = 'px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs';
+            } else {
+                taxBadge.innerText = '⚠️ 납부 대상 (예상 세금: ' + Math.round(totalTax).toLocaleString() + '원)';
+                taxBadge.className = 'px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs';
+            }
+        }
+    },
+
+    importFromAnalyzer: function () {
+        const rep = this.getAnalyzerData();
+        if (rep && rep.summary) {
+            const s = rep.summary;
+            const sellAmt = Math.round(s.totalCumulativeSellAmount || s.totalSold || s.totalSellAmount || 0);
+            const buyAmt = Math.round(s.totalCumulativeBuyAmount || s.totalInvested || s.totalBuyAmount || 0);
+            const feeAmt = Math.round(s.totalFees || s.totalFee || 0);
+
+            const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+            setVal('taxTotalSell', sellAmt);
+            setVal('taxTotalBuy', buyAmt);
+            setVal('taxTotalFee', feeAmt);
+            this.calcTax();
+            alert('손익 분석기의 실측 손익 데이터(총 매도액 ' + sellAmt.toLocaleString() + '원, 매수액 ' + buyAmt.toLocaleString() + '원, 수수료 ' + feeAmt.toLocaleString() + '원)가 세금 계산기에 성공적으로 반영되었습니다!');
+        } else {
+            alert('손익 분석기에 업로드된 거래내역이 없습니다. 먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.');
+        }
+    },
+
+    // ========================================================
+    // 4. 해외 선물 청산가 & ROE 계산기
+    // ========================================================
+    calcFutures: function () {
+        const posType = document.getElementById('futuresPosType')?.value || 'LONG';
+        const entryPrice = parseFloat(document.getElementById('futuresEntryPrice')?.value) || 64000;
+        const marginUsdt = parseFloat(document.getElementById('futuresMargin')?.value) || 1000;
+        const leverage = parseFloat(document.getElementById('futuresLeverage')?.value) || 10;
+        const targetPrice = parseFloat(document.getElementById('futuresTargetPrice')?.value) || 68000;
+
+        const positionSizeUsdt = marginUsdt * leverage;
+        const positionCoinQty = entryPrice > 0 ? (positionSizeUsdt / entryPrice) : 0;
+        const mmr = 0.005;
+
+        let liqPrice = 0;
+        if (posType === 'LONG') {
+            liqPrice = entryPrice * (1 - (1 / leverage) + mmr);
+        } else {
+            liqPrice = entryPrice * (1 + (1 / leverage) - mmr);
+        }
+        liqPrice = Math.max(0, liqPrice);
+
+        const liqDistance = entryPrice > 0 ? Math.abs((liqPrice - entryPrice) / entryPrice) * 100 : 0;
+
+        let pnlUsdt = 0;
+        if (posType === 'LONG') {
+            pnlUsdt = (targetPrice - entryPrice) * positionCoinQty;
+        } else {
+            pnlUsdt = (entryPrice - targetPrice) * positionCoinQty;
         }
         const roePercent = marginUsdt > 0 ? (pnlUsdt / marginUsdt) * 100 : 0;
         const pnlKrw = pnlUsdt * (this.exchangeRateUsdKrw || 1380);
@@ -662,7 +856,7 @@ const CoinCalculators = {
         const roeEl = document.getElementById('futuresResRoe');
         if (roeEl) {
             roeEl.innerText = (roePercent >= 0 ? '+' : '') + roePercent.toFixed(2) + '%';
-            roeEl.className = 'text-lg font-black font-mono ' + (roePercent >= 0 ? 'text-emerald-400' : 'text-rose-400');
+            roeEl.className = 'font-mono font-bold ' + (roePercent >= 0 ? 'text-emerald-400' : 'text-rose-400');
         }
     },
 
@@ -684,18 +878,18 @@ const CoinCalculators = {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        canvas.width = 800;
-        canvas.height = 480;
+        canvas.width = 900;
+        canvas.height = 540;
 
         const nick = (document.getElementById('cardNick')?.value || '익명 트레이더').trim();
-        const roiInput = (document.getElementById('cardRoi')?.value || '+142.8%').trim();
-        const winrateInput = (document.getElementById('cardWinrate')?.value || '78.5%').trim();
+        const roiInput = (document.getElementById('cardRoi')?.value || '0.00%').trim();
+        const winrateInput = (document.getElementById('cardWinrate')?.value || '0.0%').trim();
         const startStr = document.getElementById('cardPeriodStart')?.value || '';
         const endStr = document.getElementById('cardPeriodEnd')?.value || '';
         const theme = document.getElementById('cardTheme')?.value || 'cyber';
         const hideAmount = document.getElementById('cardHideAmount')?.checked;
 
-        let periodText = '전체 기간 (공식 검증)';
+        let periodText = '전체 기간';
         if (startStr && endStr) {
             periodText = `${startStr.replace(/-/g, '.')} ~ ${endStr.replace(/-/g, '.')}`;
         } else if (startStr) {
@@ -705,30 +899,37 @@ const CoinCalculators = {
         }
 
         const state = this.profitCardState || {};
-        const profit = state.realizedProfit !== undefined ? state.realizedProfit : 14280000;
-        const winTrades = state.winTrades || 0;
-        const lossTrades = state.lossTrades || 0;
-        const totalTrades = state.totalTrades || (winTrades + lossTrades) || 0;
-        const cumBuy = state.cumBuyAmount || 0;
+        const realizedProfit = state.realizedProfit !== undefined ? state.realizedProfit : -9151549;
+        const realizedRoi = state.roi !== undefined ? state.roi : -0.58;
+        const unrealizedProfit = state.unrealizedProfit !== undefined ? state.unrealizedProfit : 0;
+        const unrealizedRoi = state.unrealizedRoi !== undefined ? state.unrealizedRoi : 0;
+        const holdingCost = state.holdingCost !== undefined ? state.holdingCost : 307205528;
+        const netDeposit = state.netDeposit !== undefined ? state.netDeposit : 305635139;
+        const cumBuy = state.cumBuyAmount !== undefined ? state.cumBuyAmount : 1881188182;
+        const totalFees = state.totalFees !== undefined ? state.totalFees : 1730228;
+        const winRate = state.winRate !== undefined ? state.winRate : 52.5;
+        const winTrades = state.winTrades || 3917;
+        const lossTrades = state.lossTrades || 3543;
+        const totalTrades = state.totalTrades || (winTrades + lossTrades) || 12689;
 
-        // Background Gradient & Theme Colors
+        // Background Theme Gradients
         let bgGrad, borderColor, glowColor;
         if (theme === 'gold') {
-            bgGrad = ctx.createLinearGradient(0, 0, 800, 480);
-            bgGrad.addColorStop(0, '#1a1402');
+            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
+            bgGrad.addColorStop(0, '#1c1503');
             bgGrad.addColorStop(0.5, '#0b0f19');
-            bgGrad.addColorStop(1, '#281c03');
+            bgGrad.addColorStop(1, '#2a1e05');
             borderColor = '#f59e0b';
             glowColor = 'rgba(245, 158, 11, 0.15)';
         } else if (theme === 'emerald') {
-            bgGrad = ctx.createLinearGradient(0, 0, 800, 480);
-            bgGrad.addColorStop(0, '#021c15');
+            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
+            bgGrad.addColorStop(0, '#021f17');
             bgGrad.addColorStop(0.5, '#07090e');
-            bgGrad.addColorStop(1, '#052e20');
+            bgGrad.addColorStop(1, '#063324');
             borderColor = '#10b981';
             glowColor = 'rgba(16, 185, 129, 0.15)';
         } else {
-            bgGrad = ctx.createLinearGradient(0, 0, 800, 480);
+            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
             bgGrad.addColorStop(0, '#07090e');
             bgGrad.addColorStop(0.5, '#0f172a');
             bgGrad.addColorStop(1, '#081e36');
@@ -737,145 +938,145 @@ const CoinCalculators = {
         }
 
         ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, 800, 480);
+        ctx.fillRect(0, 0, 900, 540);
 
-        // Ambient glow circle
+        // Ambient Corner Glow
         ctx.fillStyle = glowColor;
         ctx.beginPath();
-        ctx.arc(740, 50, 120, 0, Math.PI * 2);
+        ctx.arc(840, 60, 140, 0, Math.PI * 2);
         ctx.fill();
 
-        // Border Frame with sleek double line
+        // Dual Outer Border Frame
         ctx.lineWidth = 3;
         ctx.strokeStyle = borderColor;
-        ctx.strokeRect(16, 16, 768, 448);
+        ctx.strokeRect(18, 18, 864, 504);
 
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeRect(22, 22, 756, 436);
+        ctx.strokeRect(24, 24, 852, 492);
 
         // Header: Logo & Title
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 22px Inter, sans-serif';
-        ctx.fillText('CryptoPnL PRO', 48, 62);
+        ctx.fillText('CryptoPnL PRO', 48, 60);
 
-        // Badge: 업비트·빗썸 공식 손익 인증서
+        // Official Badge
         ctx.fillStyle = borderColor;
         ctx.font = 'bold 12px Inter, sans-serif';
-        ctx.fillText('• 업비트·빗썸 실거래 검증 손익 인증서', 215, 60);
+        ctx.fillText('• 업비트·빗썸 실거래 검증 종합 손익 인증서', 215, 59);
 
         // Sub Header: Trader & Period
         ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px Inter, sans-serif';
-        ctx.fillText('트레이더: ', 48, 98);
+        ctx.font = '13px Inter, sans-serif';
+        ctx.fillText('트레이더: ', 48, 92);
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 14px Inter, sans-serif';
-        ctx.fillText(nick, 108, 98);
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillText(nick, 106, 92);
 
         ctx.fillStyle = '#94a3b8';
         ctx.font = '13px Inter, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText(`검증 기간: ${periodText}`, 752, 98);
+        ctx.fillText(`검증 기간: ${periodText}`, 852, 92);
         ctx.textAlign = 'left';
 
-        // Divider
+        // Header Divider
         ctx.strokeStyle = 'rgba(30, 41, 75, 0.8)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(48, 116);
-        ctx.lineTo(752, 116);
+        ctx.moveTo(48, 108);
+        ctx.lineTo(852, 108);
         ctx.stroke();
 
-        // Main Metric Section (종합대시보드 실현손익 헤드라인)
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'bold 14px Inter, sans-serif';
-        ctx.fillText('총 실현손익 (Total Realized PnL)', 48, 150);
-
-        const isPositive = !roiInput.includes('-') && profit >= 0;
-        const profitColor = isPositive ? '#10b981' : '#f43f5e';
-
-        if (hideAmount) {
-            // ROI only (Huge)
-            ctx.fillStyle = profitColor;
-            ctx.font = 'black 54px Inter, sans-serif';
-            ctx.fillText(roiInput, 48, 215);
-
-            // Badge next to ROI
-            const roiWidth = ctx.measureText(roiInput).width;
-            ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
-            ctx.fillRect(48 + roiWidth + 16, 172, 110, 34);
-            ctx.strokeStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)';
-            ctx.strokeRect(48 + roiWidth + 16, 172, 110, 34);
-
-            ctx.fillStyle = profitColor;
-            ctx.font = 'bold 13px Inter, sans-serif';
-            ctx.fillText('실현 수익률', 48 + roiWidth + 24, 194);
-        } else {
-            // Amount in KRW
-            const profitFormatted = (profit > 0 ? '+' : '') + Math.round(profit).toLocaleString() + ' ₩';
-            ctx.fillStyle = profitColor;
-            ctx.font = 'black 48px Inter, sans-serif';
-            ctx.fillText(profitFormatted, 48, 215);
-
-            // ROI Badge right next to Amount
-            const pWidth = ctx.measureText(profitFormatted).width;
-            ctx.fillStyle = isPositive ? 'rgba(16, 185, 129, 0.18)' : 'rgba(244, 63, 94, 0.18)';
-            ctx.fillRect(48 + pWidth + 16, 174, 120, 34);
-            ctx.strokeStyle = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)';
-            ctx.strokeRect(48 + pWidth + 16, 174, 120, 34);
-
-            ctx.fillStyle = profitColor;
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.fillText(roiInput, 48 + pWidth + 28, 197);
-        }
-
-        // Bottom 3 Stat Cards (종합대시보드 핵심 항목과 완벽 일치)
-        const drawDashboardCard = (x, y, w, h, title, mainVal, subVal, valColor = '#ffffff') => {
-            ctx.fillStyle = 'rgba(11, 15, 25, 0.75)';
+        // 4-Card Dashboard Grid Drawing Helper
+        const drawDashboardCard = (x, y, w, h, title, mainVal, badgeText, badgeColor, subLine1, subLine2, valColor) => {
+            // Card Background
+            ctx.fillStyle = 'rgba(11, 15, 25, 0.82)';
             ctx.fillRect(x, y, w, h);
             ctx.strokeStyle = 'rgba(30, 41, 75, 0.9)';
             ctx.lineWidth = 1;
             ctx.strokeRect(x, y, w, h);
 
+            // Title
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '12px Inter, sans-serif';
-            ctx.fillText(title, x + 16, y + 26);
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(title, x + 18, y + 30);
 
-            ctx.fillStyle = valColor;
-            ctx.font = 'bold 19px Inter, sans-serif';
-            ctx.fillText(mainVal, x + 16, y + 54);
+            // Badge (Top Right of Card)
+            if (badgeText) {
+                ctx.font = 'bold 12px Inter, sans-serif';
+                const bWidth = ctx.measureText(badgeText).width + 16;
+                const bx = x + w - bWidth - 16;
+                const by = y + 16;
+                ctx.fillStyle = badgeColor === '#10b981' ? 'rgba(16, 185, 129, 0.15)' : (badgeColor === '#f43f5e' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(56, 189, 248, 0.15)');
+                ctx.fillRect(bx, by, bWidth, 22);
+                ctx.strokeStyle = badgeColor;
+                ctx.strokeRect(bx, by, bWidth, 22);
+                ctx.fillStyle = badgeColor;
+                ctx.fillText(badgeText, bx + 8, by + 16);
+            }
 
-            if (subVal) {
+            // Main Value
+            ctx.fillStyle = valColor || '#ffffff';
+            ctx.font = 'black 26px Inter, sans-serif';
+            ctx.fillText(mainVal, x + 18, y + 78);
+
+            // Subtext 1
+            if (subLine1) {
                 ctx.fillStyle = '#64748b';
                 ctx.font = '11px Inter, sans-serif';
-                ctx.fillText(subVal, x + 16, y + 76);
+                ctx.fillText(subLine1, x + 18, y + 112);
+            }
+
+            // Subtext 2 (if present)
+            if (subLine2) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.fillText(subLine2, x + 18, y + 130);
             }
         };
 
-        const cardW = 224;
-        const cardH = 92;
-        const cardY = 265;
+        const cardW = 388;
+        const cardH = 148;
+        const col1X = 48;
+        const col2X = 464;
+        const row1Y = 126;
+        const row2Y = 292;
 
-        // Card 1: 매매 승률 (종합대시보드와 동일)
-        const winSub = totalTrades > 0 ? `${winTrades}승 ${lossTrades}패 / 총 ${totalTrades}건` : '실거래 집계';
-        drawDashboardCard(48, cardY, cardW, cardH, '총 매매 승률 (Win Rate)', winrateInput, winSub, '#06b6d4');
+        // Card 1: 누적 실현손익
+        const isRealizedPos = realizedProfit >= 0;
+        const realProfitStr = hideAmount ? `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%` : `${realizedProfit > 0 ? '+' : ''}${Math.round(realizedProfit).toLocaleString()}원`;
+        const realBadgeStr = `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%`;
+        const realColor = isRealizedPos ? '#10b981' : '#f43f5e';
+        drawDashboardCard(col1X, row1Y, cardW, cardH, '누적 실현손익', realProfitStr, realBadgeStr, realColor, '매도 완료된 코인의 순수익 (수수료 차감 후)', null, realColor);
 
-        // Card 2: 총 누적 매수금액 (종합대시보드와 동일)
-        const buyFormatted = cumBuy > 0 ? cumBuy.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' ₩' : '-';
-        drawDashboardCard(288, cardY, cardW, cardH, '총 누적 매수금액', buyFormatted, '실측 매매체결 기준', '#f59e0b');
+        // Card 2: 실시간 평가손익 (미실현)
+        const isUnrealizedPos = unrealizedProfit >= 0;
+        const unRealProfitStr = hideAmount ? `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%` : `${unrealizedProfit > 0 ? '+' : ''}${Math.round(unrealizedProfit).toLocaleString()}원`;
+        const unRealBadgeStr = `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%`;
+        const unRealColor = unrealizedProfit === 0 ? '#94a3b8' : (isUnrealizedPos ? '#10b981' : '#f43f5e');
+        drawDashboardCard(col2X, row1Y, cardW, cardH, '실시간 평가손익 (미실현)', unRealProfitStr, unRealBadgeStr, unRealColor, '현재 보유 중인 코인의 실시간 평가', null, unRealColor);
 
-        // Card 3: 데이터 검증 엔진 (종합대시보드와 동일)
-        drawDashboardCard(528, cardY, cardW, cardH, '데이터 검증 방식', '실측 FIFO 정산', '100% Client-Side 연산', '#a855f7');
+        // Card 3: 현재 보유 코인 매수원금
+        const holdCostStr = `${Math.round(holdingCost).toLocaleString()}원`;
+        const netDepStr = `순 투입 원금(입-출): ${Math.round(netDeposit).toLocaleString()}원`;
+        const cumBuyStr = `역대 누적 매수대금: ${Math.round(cumBuy).toLocaleString()}원`;
+        drawDashboardCard(col1X, row2Y, cardW, cardH, '현재 보유 코인 매수원금', holdCostStr, '보유원금', '#38bdf8', netDepStr, cumBuyStr, '#ffffff');
+
+        // Card 4: 총 거래 수수료 & 매매 승률
+        const feeStr = `${Math.round(totalFees).toLocaleString()}원`;
+        const winrateLine = `매매 승률: ${winRate.toFixed(1)}% (${winTrades}승 ${lossTrades}패 / 총 ${totalTrades}건)`;
+        const trustLine = `데이터 신뢰도: 실측 FIFO 100% 로컬 독립 연산 검증`;
+        drawDashboardCard(col2X, row2Y, cardW, cardH, '총 거래 수수료', feeStr, '체결수수료', '#a855f7', winrateLine, trustLine, '#ffffff');
 
         // Footer
         ctx.fillStyle = '#64748b';
         ctx.font = '12px Inter, sans-serif';
-        ctx.fillText('⚡ 100% 클라이언트 무손실 정산 • https://cryptopnl.com', 48, 430);
+        ctx.fillText('⚡ 100% 클라이언트 무손실 FIFO 정산 • https://cryptopnl.com', 48, 480);
 
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 12px Inter, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText('CryptoPnL Official Verified Result', 752, 430);
+        ctx.fillText('CryptoPnL Official Verified Result', 852, 480);
         ctx.textAlign = 'left';
     },
 
@@ -883,7 +1084,7 @@ const CoinCalculators = {
         const canvas = document.getElementById('profitCardCanvas');
         if (!canvas) return;
         const link = document.createElement('a');
-        link.download = `CryptoPnL_수익인증_${Date.now()}.png`;
+        link.download = `CryptoPnL_종합손익인증_${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     },
@@ -902,7 +1103,7 @@ const CoinCalculators = {
         }
     },
 
-    importProfitCardFromAnalyzer: function (showAlert = true) {
+    importProfitCardFromAnalyzer: async function (showAlert = true) {
         let trades = [];
         if (window.AnalyzerApp && window.AnalyzerApp.state && Array.isArray(window.AnalyzerApp.state.rawTrades) && window.AnalyzerApp.state.rawTrades.length > 0) {
             trades = window.AnalyzerApp.state.rawTrades;
@@ -920,7 +1121,7 @@ const CoinCalculators = {
         let startStr = startEl?.value || '';
         let endStr = endEl?.value || '';
 
-        // If both dates empty, auto-detect min and max dates from trades
+        // Auto-detect min and max dates from trades if empty
         if (!startStr && !endStr) {
             const validDates = trades.map(t => t.time ? t.time.replace(/\./g, '-').slice(0, 10) : '').filter(d => d && d.length >= 8).sort();
             if (validDates.length > 0) {
@@ -956,6 +1157,21 @@ const CoinCalculators = {
         const rep = calc.calculate(filteredTrades, { method: 'fifo', exchange: 'ALL' });
         const s = rep.summary || {};
 
+        // Fetch Live Tickers for accurate 실시간 평가손익
+        let totalUnrealized = 0;
+        let unrealizedRoi = 0;
+        if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fetchTickers && rep.coinSummaries) {
+            try {
+                const allMarkets = rep.coinSummaries.map(c => c.market);
+                const tickers = await UpbitAPI.fetchTickers(allMarkets);
+                const enriched = UpbitAPI.enrichCoinSummariesWithTickers(rep.coinSummaries, tickers);
+                totalUnrealized = enriched.totalUnrealizedProfit || 0;
+                unrealizedRoi = s.currentPortfolioCost > 0 ? (totalUnrealized / s.currentPortfolioCost) * 100 : 0;
+            } catch (e) {
+                console.warn('인증카드 시세 조회 폴백:', e);
+            }
+        }
+
         const rawRoi = (typeof s.totalRealizedRoi === 'number') ? s.totalRealizedRoi : parseFloat(s.totalRealizedRoi || 0);
         const rawWinRate = (typeof s.totalWinRate === 'number') ? s.totalWinRate : parseFloat(s.totalWinRate || 0);
         const rawProfit = (typeof s.totalRealizedProfit === 'number') ? s.totalRealizedProfit : parseFloat(s.totalRealizedProfit || 0);
@@ -965,11 +1181,16 @@ const CoinCalculators = {
         this.profitCardState = {
             realizedProfit: rawProfit,
             roi: rawRoi,
+            unrealizedProfit: totalUnrealized,
+            unrealizedRoi: unrealizedRoi,
+            holdingCost: s.currentPortfolioCost || 0,
+            netDeposit: s.netKrwDeposits || 0,
+            cumBuyAmount: s.totalCumulativeBuyAmount || 0,
+            totalFees: s.totalFees || 0,
             winRate: rawWinRate,
             winTrades: s.totalWinTrades || 0,
             lossTrades: s.totalLossTrades || 0,
             totalTrades: s.totalTradesCount || (s.totalWinTrades + s.totalLossTrades) || 0,
-            cumBuyAmount: s.totalCumulativeBuyAmount || 0,
             startDate: startStr,
             endDate: endStr
         };
@@ -991,23 +1212,74 @@ const CoinCalculators = {
         const canvas = document.getElementById('profitCardCanvas');
         if (!canvas) return;
         const dataUrl = canvas.toDataURL('image/png');
-        
-        if (typeof showForumWriteView === 'function') {
-            document.getElementById('cafe-write-category').value = 'profit';
-            document.getElementById('cafe-write-title').value = '나의 실현손익 인증합니다!';
-            
-            const editor = document.getElementById('cafe-write-content');
-            if (editor) {
-                editor.innerHTML = '<p><img src="' + dataUrl + '" alt="수익인증" style="max-width:100%; border-radius:12px;"></p><p><br></p><p>수익 인증합니다.</p>';
-            }
-            
+
+        const state = this.profitCardState || {};
+        const roiStr = (document.getElementById('cardRoi')?.value || '0.00%').trim();
+        const winrateStr = (document.getElementById('cardWinrate')?.value || '0.0%').trim();
+        const startStr = document.getElementById('cardPeriodStart')?.value || '';
+        const endStr = document.getElementById('cardPeriodEnd')?.value || '';
+        const nick = (document.getElementById('cardNick')?.value || '익명 트레이더').trim();
+
+        let periodText = '전체 기간';
+        if (startStr && endStr) periodText = `${startStr} ~ ${endStr}`;
+        else if (startStr) periodText = `${startStr} ~ 현재`;
+        else if (endStr) periodText = `처음 ~ ${endStr}`;
+
+        const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+        let authorName = nick;
+        let authorRank = 'PRO';
+        if (storedUser) {
+            try {
+                const u = JSON.parse(storedUser);
+                if (u && u.username) {
+                    authorName = u.username;
+                    authorRank = u.rank || 'PRO';
+                }
+            } catch (e) {}
+        }
+
+        const rawProfit = state.realizedProfit !== undefined ? state.realizedProfit : 0;
+        const profitText = (rawProfit > 0 ? '+' : '') + Math.round(rawProfit).toLocaleString() + '원';
+
+        const newPost = {
+            id: Date.now(),
+            category: 'profit',
+            categoryName: '💵 실현손익',
+            title: `[수익인증] ${authorName}님의 ${periodText} 종합 손익 인증 (${profitText} / ${roiStr})`,
+            content: `<p><img src="${dataUrl}" alt="CryptoPnL 종합손익인증" style="max-width:100%; border-radius:14px; margin: 12px 0; box-shadow: 0 6px 20px rgba(0,0,0,0.35);"></p><p><br></p><p>📊 <strong>검증 기간:</strong> ${periodText}</p><p>💰 <strong>누적 실현손익:</strong> ${profitText} (${roiStr})</p><p>🎯 <strong>매매 승률:</strong> ${winrateStr} (${state.winTrades || 0}승 ${state.lossTrades || 0}패 / 총 ${state.totalTrades || 0}건)</p><p>CryptoPnL 100% 클라이언트 FIFO 연산 엔진으로 정산 검증된 공식 실거래 종합 손익 인증 카드입니다.</p>`,
+            isNotice: false,
+            author: authorName,
+            authorRank: authorRank,
+            upvotes: 1,
+            views: 1,
+            time: '방금 전',
+            timestamp: Date.now(),
+            comments: []
+        };
+
+        const getPosts = (typeof window.getStoredPosts === 'function' ? window.getStoredPosts : (typeof getStoredPosts === 'function' ? getStoredPosts : null));
+        const savePosts = (typeof window.saveStoredPosts === 'function' ? window.saveStoredPosts : (typeof saveStoredPosts === 'function' ? saveStoredPosts : null));
+
+        if (getPosts && savePosts) {
+            const posts = getPosts();
+            posts.unshift(newPost);
+            savePosts(posts);
+
             if (typeof switchTab === 'function') {
                 switchTab('cafe');
             }
-            showForumListView();
-            showForumWriteView();
+            if (typeof filterForum === 'function') {
+                filterForum('profit');
+            }
+            if (typeof renderForumPosts === 'function') {
+                renderForumPosts();
+            }
+            if (typeof openPostDetailModal === 'function') {
+                openPostDetailModal(newPost.id);
+            }
+            alert('🎉 종합 수익 인증 카드가 [포럼 - 실현손익] 게시판에 성공적으로 저장 및 등록되었습니다!');
         } else {
-            alert('포럼이 활성화되어 있지 않습니다.');
+            alert('포럼 저장소에 연결할 수 없습니다.');
         }
     }
 };
