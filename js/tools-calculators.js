@@ -1098,9 +1098,12 @@ const CoinCalculators = {
             try { saveStoredPosts(posts); } catch(e) {}
         }
 
-        // 4. Navigate to forum tab and show the new post detail
+        // 4. Navigate to forum tab and show the profit category list view
         if (typeof switchTab === 'function') {
             switchTab('forum');
+        }
+        if (typeof showForumListView === 'function') {
+            showForumListView();
         }
         if (typeof filterForum === 'function') {
             filterForum('profit');
@@ -1108,11 +1111,9 @@ const CoinCalculators = {
         if (typeof renderForumPosts === 'function') {
             renderForumPosts();
         }
-        if (typeof openPostDetailModal === 'function') {
-            openPostDetailModal(newPost.id);
-        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        alert('🎉 종합 수익 인증 카드가 [포럼 - 실현손익] 게시판에 성공적으로 저장 및 등록되었습니다!');
+        alert('🎉 종합 수익 인증 카드가 [포럼 - 실현손익] 게시판에 성공적으로 등록되었습니다!');
     }
 };
 

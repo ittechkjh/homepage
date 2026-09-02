@@ -887,7 +887,7 @@ const UpbitAPI = {
 
         coinSummaries.forEach(coin => {
             const { market, symbol } = this.getStandardMarketInfo(coin.market || coin.coinSymbol);
-            const ticker = tickerMap[market] || tickerMap[symbol] || (coin.market ? tickerMap[coin.market] : null) || (coin.coinSymbol ? tickerMap[coin.coinSymbol] : null);
+            const ticker = tickerMap[market] || tickerMap[symbol] || tickerMap['KRW-' + symbol] || (coin.market ? tickerMap[coin.market] : null) || (coin.coinSymbol ? tickerMap[coin.coinSymbol] : null);
 
             coin.koreanName = this.getKoreanName(market || coin.market || coin.coinSymbol);
 
@@ -905,11 +905,19 @@ const UpbitAPI = {
                 coin.unrealizedProfit = 0;
                 coin.unrealizedRoi = 0;
                 coin.change24h = ticker.signedChangeRate * 100;
+            } else if (coin.holdingQty > 1e-8) {
+                coin.currentPrice = coin.currentPrice || coin.avgBuyPrice || 0;
+                coin.currentValue = coin.holdingQty * (coin.currentPrice || coin.avgBuyPrice || 0);
+                coin.unrealizedProfit = coin.currentValue - coin.holdingCost;
+                coin.unrealizedRoi = coin.holdingCost > 0 ? (coin.unrealizedProfit / coin.holdingCost) * 100 : 0;
+                coin.change24h = 0;
+                totalCurrentValue += coin.currentValue;
+                totalUnrealizedProfit += coin.unrealizedProfit;
             } else {
                 coin.currentPrice = coin.currentPrice || 0;
-                coin.currentValue = coin.currentValue || (coin.holdingQty * coin.avgBuyPrice);
-                coin.unrealizedProfit = coin.unrealizedProfit || 0;
-                coin.unrealizedRoi = coin.unrealizedRoi || 0;
+                coin.currentValue = 0;
+                coin.unrealizedProfit = 0;
+                coin.unrealizedRoi = 0;
                 coin.change24h = 0;
             }
 
