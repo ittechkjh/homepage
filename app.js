@@ -2273,7 +2273,7 @@ window.handleSendChat = handleSendChat;
 // === UPDATES FOR ADMIN, CHAT CHANNELS, AND ONLINE COUNT ===
 
 // 1. Admin Logic
-const ADMIN_NAMES = ['admin', '운영자', '관리자', 'ittechkjh'];
+const ADMIN_NAMES = ['admin'];
 window.isAdmin = function(user) {
   if (!user) return false;
   return ADMIN_NAMES.includes(user.toLowerCase());
@@ -2489,3 +2489,4 @@ if (typeof chatListenerUnsubscribe === 'undefined') {
   // the old listener will just update chatMessages variable but renderChatMessages is fine. 
   // We can just rely on the new one.
 }
+
