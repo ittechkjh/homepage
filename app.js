@@ -1,4 +1,4 @@
-﻿
+
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -969,10 +969,6 @@ window.insertInlineImageIntoEditor = insertInlineImageIntoEditor;
 
 function processCafeImageBlob(file) {
   if (!file || !file.type.startsWith('image/')) return;
-  if (file.size > 5 * 1024 * 1024) {
-    alert('이미지 용량은 최대 5MB까지 가능합니다.');
-    return;
-  }
 
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -981,7 +977,7 @@ function processCafeImageBlob(file) {
       const canvas = document.createElement('canvas');
       let width = img.width;
       let height = img.height;
-      const maxDim = 1400;
+      const maxDim = 1280;
 
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -998,7 +994,16 @@ function processCafeImageBlob(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      const base64 = canvas.toDataURL('image/jpeg', 0.85);
+      // Target under 1MB (1,000,000 bytes). Base64 string length <= 1,300,000 chars.
+      let quality = 0.85;
+      let base64 = canvas.toDataURL('image/jpeg', quality);
+      const targetMaxChars = 1000 * 1024 * 1.30; // ~1MB in Base64
+
+      while (base64.length > targetMaxChars && quality > 0.25) {
+        quality -= 0.12;
+        base64 = canvas.toDataURL('image/jpeg', quality);
+      }
+
       insertInlineImageIntoEditor(base64);
     };
     img.src = e.target.result;
