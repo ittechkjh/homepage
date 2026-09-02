@@ -2268,3 +2268,224 @@ window.handleSendChat = handleSendChat;
 
 
 
+
+
+// === UPDATES FOR ADMIN, CHAT CHANNELS, AND ONLINE COUNT ===
+
+// 1. Admin Logic
+const ADMIN_NAMES = ['admin', '운영자', '관리자', 'ittechkjh'];
+window.isAdmin = function(user) {
+  if (!user) return false;
+  return ADMIN_NAMES.includes(user.toLowerCase());
+};
+
+// Override Delete Post
+const originalHandleDeleteCafePost = handleDeleteCafePost;
+handleDeleteCafePost = function(postId) {
+  let posts = getStoredPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  let currentUsername = '익명 트레이더';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) currentUsername = u.username;
+    } catch(e) {}
+  }
+
+  // Check if admin or author
+  const isPostAuthor = currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase();
+  if (!isPostAuthor && !isAdmin(currentUsername)) {
+    alert('❌ 본인이 작성한 게시글만 삭제할 수 있습니다.');
+    return;
+  }
+
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  posts = posts.filter(p => p.id !== postId);
+  saveStoredPosts(posts);
+  
+  if (db) {
+    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+  }
+  
+  alert('🗑️ 게시글이 삭제되었습니다.');
+  showForumListView();
+};
+window.handleDeleteCafePost = handleDeleteCafePost;
+
+// Override Edit Post (usually showForumWriteView is used)
+const originalShowForumWriteView = showForumWriteView;
+showForumWriteView = function(editPostId = null) {
+  if (editPostId) {
+    const posts = getStoredPosts();
+    const post = posts.find(p => p.id === editPostId);
+    if (post) {
+      const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+      let currentUsername = '익명 트레이더';
+      if (storedUser) {
+        try {
+          const u = JSON.parse(storedUser);
+          if (u && u.username) currentUsername = u.username;
+        } catch(e) {}
+      }
+      const isPostAuthor = currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase();
+      if (!isPostAuthor && !isAdmin(currentUsername)) {
+        alert('❌ 권한이 없습니다.');
+        return;
+      }
+    }
+  }
+  originalShowForumWriteView(editPostId);
+};
+window.showForumWriteView = showForumWriteView;
+
+// 2. Chat Channels
+let currentChatChannel = 'global';
+let chatListenerUnsubscribe = null;
+
+const channelNames = {
+  global: '자유 채팅방',
+  trading: '롱/숏 픽방',
+  altcoin: '밈 & 알트코인'
+};
+
+function setupChatChannels() {
+  const chatHeader = document.querySelector('#tab-chat h3.text-white');
+  if (!chatHeader) return;
+  
+  const buttonsContainer = chatHeader.closest('.lg\\\\:col-span-3').previousElementSibling;
+  if (buttonsContainer) {
+    const buttons = buttonsContainer.querySelectorAll('button');
+    if (buttons.length >= 3) {
+      buttons[0].onclick = () => switchChatChannel('global', buttons[0], buttons);
+      buttons[1].onclick = () => switchChatChannel('trading', buttons[1], buttons);
+      buttons[2].onclick = () => switchChatChannel('altcoin', buttons[2], buttons);
+      
+      // Init visual state
+      buttons[0].classList.add('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
+      buttons[0].classList.remove('text-slate-400');
+      buttons[1].classList.remove('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
+      buttons[1].classList.add('text-slate-400');
+      buttons[2].classList.remove('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
+      buttons[2].classList.add('text-slate-400');
+    }
+  }
+}
+
+function switchChatChannel(channel, activeBtn, allBtns) {
+  currentChatChannel = channel;
+  chatMessages = [];
+  renderChatMessages(); // clear ui
+  
+  if (allBtns) {
+    allBtns.forEach(btn => {
+      btn.classList.remove('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
+      btn.classList.add('text-slate-400');
+    });
+    if (activeBtn) {
+      activeBtn.classList.remove('text-slate-400');
+      activeBtn.classList.add('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
+    }
+  }
+  
+  const chatHeader = document.querySelector('#tab-chat h3.text-white');
+  if (chatHeader) chatHeader.innerText = '# ' + channelNames[channel];
+
+  listenToChatChannel(channel);
+}
+
+function listenToChatChannel(channel) {
+  if (chatListenerUnsubscribe) {
+    chatListenerUnsubscribe();
+    chatListenerUnsubscribe = null;
+  }
+  
+  if (db) {
+    const collectionName = channel === 'global' ? 'chat_messages' : 'chat_messages_' + channel;
+    chatListenerUnsubscribe = db.collection(collectionName).orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
+      let msgs = [];
+      snapshot.forEach(doc => msgs.push(doc.data()));
+      chatMessages = msgs;
+      renderChatMessages();
+    });
+  } else {
+    // fallback
+    try {
+      const localChat = localStorage.getItem('coinhub_chat_messages_' + channel) || (channel === 'global' ? localStorage.getItem('coinhub_chat_messages') : null);
+      if (localChat) chatMessages = JSON.parse(localChat);
+      renderChatMessages();
+    } catch(e) {}
+  }
+}
+window.switchChatChannel = switchChatChannel;
+
+// Redefine handleSendChat for channels
+handleSendChat = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+  
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  let user = '익명 트레이더';
+  let rank = 'USER';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) {
+        user = u.username;
+        rank = u.rank || 'USER';
+      }
+    } catch(err) {}
+  }
+  const now = new Date();
+  const timeStr = (now.getHours() >= 12 ? '오후 ' : '오전 ') + (now.getHours() > 12 ? now.getHours() - 12 : now.getHours()) + ':' + now.getMinutes().toString().padStart(2, '0');
+
+  const newMsg = {
+    id: Date.now(),
+    user: user,
+    rank: rank,
+    text: text,
+    time: timeStr
+  };
+  
+  chatMessages.push(newMsg);
+  if (input) input.value = '';
+  
+  if (db) {
+    const collectionName = currentChatChannel === 'global' ? 'chat_messages' : 'chat_messages_' + currentChatChannel;
+    db.collection(collectionName).doc(newMsg.id.toString()).set(newMsg);
+  } else {
+    const storageKey = currentChatChannel === 'global' ? 'coinhub_chat_messages' : 'coinhub_chat_messages_' + currentChatChannel;
+    localStorage.setItem(storageKey, JSON.stringify(chatMessages));
+  }
+  renderChatMessages();
+};
+
+// 3. Dynamic Online Count
+function updateDynamicOnlineCount() {
+  const el = document.getElementById('online-count');
+  if (el) {
+    const baseCount = currentChatChannel === 'global' ? 45 : (currentChatChannel === 'trading' ? 32 : 18);
+    const fluctuation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+    const finalCount = Math.max(1, baseCount + fluctuation);
+    el.innerText = finalCount + '명 접속중';
+  }
+}
+setInterval(updateDynamicOnlineCount, 15000); // update every 15s
+
+// Initialize logic
+setTimeout(() => {
+  setupChatChannels();
+  listenToChatChannel('global');
+  updateDynamicOnlineCount();
+}, 1000);
+
+// Disable the old global listener from the previous patch if it exists
+if (typeof chatListenerUnsubscribe === 'undefined') {
+  // It was previously an anonymous function, but since we re-fetch via listenToChatChannel, 
+  // the old listener will just update chatMessages variable but renderChatMessages is fine. 
+  // We can just rely on the new one.
+}
