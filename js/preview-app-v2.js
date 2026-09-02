@@ -668,8 +668,8 @@ function renderForumPosts() {
 
   const sortType = document.getElementById('forum-sort')?.value || 'latest';
   posts.sort((a, b) => {
-    const isANotice = a.category === 'notice';
-    const isBNotice = b.category === 'notice';
+    const isANotice = a.isNotice === true;
+    const isBNotice = b.isNotice === true;
     if (isANotice && !isBNotice) return -1;
     if (!isANotice && isBNotice) return 1;
 
@@ -702,6 +702,7 @@ function renderForumPosts() {
       <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal(${post.id})">
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
+            ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
             <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml(post.categoryName)}</span>
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
             <span class="text-xs text-slate-400">• ${escapeHtml(post.time)}</span>
@@ -815,7 +816,13 @@ function openPostDetailModal(postId) {
   const contentEl = document.getElementById('cafe-post-content');
   const upvotesEl = document.getElementById('cafe-post-upvotes');
 
-  if (catEl) catEl.innerText = post.categoryName;
+  if (catEl) {
+    if (post.isNotice) {
+      catEl.innerHTML = `<span class="text-rose-400 font-bold mr-2">📢 공지</span>${post.categoryName}`;
+    } else {
+      catEl.innerText = post.categoryName;
+    }
+  }
   if (titleEl) titleEl.innerText = post.title;
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
   if (timeEl) timeEl.innerText = post.time;
@@ -1018,6 +1025,7 @@ function handleCafeSubmitPost(e) {
   const catSelect = document.getElementById('cafe-write-category');
   const titleInput = document.getElementById('cafe-write-title');
   const editor = document.getElementById('cafe-write-content');
+  const isNotice = document.getElementById('cafe-write-is-notice') ? document.getElementById('cafe-write-is-notice').checked : false;
 
   const category = catSelect ? catSelect.value : 'general';
   const title = titleInput ? titleInput.value.trim() : '';
@@ -1033,8 +1041,7 @@ function handleCafeSubmitPost(e) {
     profit: '💵 실현손익',
     altcoin: '🚀 알트코인',
     trading: '📈 트레이딩자료',
-    feature: '💡 추가기능요청',
-    notice: '📢 공지사항'
+    feature: '💡 추가기능요청'
   };
 
   const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
@@ -1059,6 +1066,7 @@ function handleCafeSubmitPost(e) {
       post.categoryName = categoryNames[category] || '💬 자유 토론';
       post.title = title;
       post.content = content;
+      post.isNotice = isNotice;
       post.time = '수정됨 (방금 전)';
       saveStoredPosts(posts);
       alert('✏️ 게시글이 성공적으로 수정되었습니다!');
@@ -1073,6 +1081,7 @@ function handleCafeSubmitPost(e) {
     categoryName: categoryNames[category] || '💬 자유 토론',
     title,
     content,
+    isNotice,
     author: authorName,
     authorRank: authorRank,
     upvotes: 1,
@@ -2414,7 +2423,7 @@ showForumWriteView = function(editPostId = null) {
     }
   }
 
-  // --- Start Admin Notice Category Logic ---
+  // --- Start Admin Notice Checkbox Logic ---
   const storedUserForNotice = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsernameForNotice = '익명 트레이더';
   if (storedUserForNotice) {
@@ -2426,22 +2435,32 @@ showForumWriteView = function(editPostId = null) {
   
   const catSelect = document.getElementById('cafe-write-category');
   if (catSelect) {
-    let noticeOption = Array.from(catSelect.options).find(opt => opt.value === 'notice');
+    let noticeWrapper = document.getElementById('cafe-write-notice-wrapper');
+    if (!noticeWrapper) {
+      noticeWrapper = document.createElement('label');
+      noticeWrapper.id = 'cafe-write-notice-wrapper';
+      noticeWrapper.className = 'flex items-center gap-2 mt-3 text-xs font-bold text-rose-400 cursor-pointer hidden';
+      noticeWrapper.innerHTML = '<input type="checkbox" id="cafe-write-is-notice" class="w-4 h-4 rounded border-navy-700 bg-navy-950 text-rose-500 focus:ring-rose-500"> 📢 이 글을 공지글로 최상단에 고정';
+      catSelect.parentNode.appendChild(noticeWrapper);
+    }
+    
     if (typeof isAdmin === 'function' && isAdmin(currentUsernameForNotice)) {
-      if (!noticeOption) {
-        noticeOption = document.createElement('option');
-        noticeOption.value = 'notice';
-        noticeOption.innerText = '📢 공지사항';
-        catSelect.insertBefore(noticeOption, catSelect.firstChild);
+      noticeWrapper.classList.remove('hidden');
+      if (editPostId) {
+        const posts = getStoredPosts();
+        const existingPost = posts.find(p => p.id === editPostId);
+        if (existingPost) {
+          document.getElementById('cafe-write-is-notice').checked = !!existingPost.isNotice;
+        }
+      } else {
+        document.getElementById('cafe-write-is-notice').checked = false;
       }
     } else {
-      if (noticeOption) {
-        catSelect.removeChild(noticeOption);
-      }
-      if (catSelect.value === 'notice') catSelect.value = 'general';
+      noticeWrapper.classList.add('hidden');
+      document.getElementById('cafe-write-is-notice').checked = false;
     }
   }
-  // --- End Admin Notice Category Logic ---
+  // --- End Admin Notice Checkbox Logic ---
 
   originalShowForumWriteView(editPostId);
 };
