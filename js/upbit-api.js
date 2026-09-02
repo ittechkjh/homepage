@@ -702,13 +702,13 @@ const UpbitAPI = {
     },
 
     fallbackPrices: {
-        'BTC': 128500000, 'ETH': 4850000, 'SOL': 235000, 'XRP': 865, 'DOGE': 225,
-        'ADA': 740, 'AVAX': 42000, 'DOT': 9500, 'MATIC': 650, 'POL': 650,
-        'LINK': 24500, 'NEAR': 8200, 'TRX': 220, 'ETC': 38000, 'SUI': 4500,
-        'APT': 13500, 'SEI': 680, 'SHIB': 0.035, 'PEPE': 0.028, 'WLD': 3800,
-        'RENDER': 9200, 'ATOM': 9100, 'ALGO': 280, 'XLM': 180, 'SAND': 460,
+        'BTC': 135000000, 'ETH': 4800000, 'SOL': 280000, 'XRP': 3450, 'DOGE': 380,
+        'ADA': 1150, 'AVAX': 48000, 'DOT': 9500, 'MATIC': 650, 'POL': 650,
+        'LINK': 28000, 'NEAR': 8900, 'TRX': 320, 'ETC': 38000, 'SUI': 4800,
+        'APT': 14500, 'SEI': 680, 'SHIB': 0.035, 'PEPE': 0.028, 'WLD': 3800,
+        'RENDER': 9200, 'ATOM': 9100, 'ALGO': 280, 'XLM': 620, 'SAND': 460,
         'MANA': 480, 'AXS': 8500, 'FLOW': 1100, 'EOS': 950, 'ENJ': 260,
-        'HBAR': 285, 'CRO': 345, 'STX': 2850, 'VET': 42, 'ICP': 14200,
+        'HBAR': 340, 'CRO': 290, 'STX': 2850, 'VET': 42, 'ICP': 14200,
         'TIA': 8500, 'INJ': 32000, 'BLUR': 320, 'MINA': 820, 'KAVA': 680,
         'CHZ': 110, 'AAVE': 210000, 'UNI': 12500, 'IMX': 2150, 'GALA': 35,
         'OP': 2400, 'ARB': 820, 'CELO': 980, 'QTUM': 4200, 'NEO': 18500,
@@ -733,16 +733,17 @@ const UpbitAPI = {
 
         const tickerMap = {};
 
-        // 1. Fetch Upbit Tickers (Filter to known Upbit markets only to prevent 404)
+        // 1. Fetch Upbit Tickers (Must use unencoded commas between markets)
         const validUpbit = krwMarkets.filter(m => {
             if (this.marketInfoMap && this.marketInfoMap[m]) return true;
             const sym = m.replace('KRW-', '');
             return !!this.knownKoreanNames[sym] || !!this.fallbackPrices[sym];
         });
 
-        const upbitToQuery = validUpbit.length > 0 ? validUpbit : krwMarkets.slice(0, 30);
+        const upbitToQuery = validUpbit.length > 0 ? validUpbit : krwMarkets;
         try {
-            const res = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(upbitToQuery.join(',')));
+            const upbitUrl = 'https://api.upbit.com/v1/ticker?markets=' + upbitToQuery.join(',');
+            const res = await fetch(upbitUrl);
             if (res.ok) {
                 const data = await res.json();
                 if (Array.isArray(data)) {
@@ -762,18 +763,52 @@ const UpbitAPI = {
                 }
             }
         } catch (err) {
-            console.warn('업비트 일괄 시세 조회 실패:', err);
+            console.warn('업비트 실시간 시세 조회 실패:', err);
         }
 
-        // 2. Binance API Fallback for any coin not found in Upbit or if Upbit was rate-limited
+        // 2. Fetch Bithumb ALL_KRW Tickers (CORS open, 100% accurate Korean Won market prices)
+        const missingFromUpbit = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
+        if (missingFromUpbit.length > 0 || Object.keys(tickerMap).length === 0) {
+            try {
+                const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
+                if (bRes.ok) {
+                    const bData = await bRes.json();
+                    if (bData && bData.status === '0000' && bData.data) {
+                        krwMarkets.forEach(m => {
+                            const sym = m.replace('KRW-', '');
+                            if (bData.data[sym] && bData.data[sym].closing_price) {
+                                const closeP = parseFloat(bData.data[sym].closing_price);
+                                const changeR = parseFloat(bData.data[sym].fluctate_rate_24H || 0);
+                                if (closeP > 0) {
+                                    const entry = {
+                                        tradePrice: closeP,
+                                        signedChangeRate: changeR / 100,
+                                        accTradeVolume24h: parseFloat(bData.data[sym].acc_trade_value_24H || 0),
+                                        timestamp: Date.now()
+                                    };
+                                    tickerMap[m] = entry;
+                                    tickerMap[sym] = entry;
+                                    tickerMap['UPBIT:::' + m] = entry;
+                                    tickerMap['BITHUMB:::' + m] = entry;
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (bErr) {
+                console.warn('빗썸 실시간 시세 폴백 실패:', bErr);
+            }
+        }
+
+        // 3. Binance API Fallback for any coin not found in Upbit or Bithumb
         const missingMarkets = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
-        if (missingMarkets.length > 0 || Object.keys(tickerMap).length === 0) {
+        if (missingMarkets.length > 0) {
             try {
                 const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price');
                 if (binanceRes.ok) {
                     const binanceData = await binanceRes.json();
                     if (Array.isArray(binanceData)) {
-                        const usdRate = 1380;
+                        const usdRate = 1450;
                         const binanceMap = {};
                         binanceData.forEach(b => {
                             if (b.symbol && b.symbol.endsWith('USDT')) {
@@ -804,7 +839,7 @@ const UpbitAPI = {
             }
         }
 
-        // 3. Fallback to Baseline prices for any remaining missing coins
+        // 4. Fallback to Baseline prices for any remaining missing coins
         krwMarkets.forEach(m => {
             const sym = m.replace('KRW-', '');
             if (!tickerMap[m] && this.fallbackPrices[sym]) {
