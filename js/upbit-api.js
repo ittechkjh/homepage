@@ -719,16 +719,17 @@ const UpbitAPI = {
         const validUpbitMarkets = krwMarkets.filter(m => this.marketInfoMap[m]);
         const queryList = validUpbitMarkets.length > 0 ? validUpbitMarkets : krwMarkets;
 
-        // 1. Fetch Upbit Tickers in Chunks of 50 (to prevent 400 Bad Request / URL overflow)
-        const chunkSize = 50;
+        // 1. Fetch Upbit Tickers in Chunks of 30 (to prevent 400 Bad Request / URL overflow)
+        const chunkSize = 30;
         for (let i = 0; i < queryList.length; i += chunkSize) {
             const chunk = queryList.slice(i, i + chunkSize);
+            let chunkSuccess = false;
             try {
                 const marketParam = chunk.join(',');
                 const res = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(marketParam));
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && data.length > 0) {
                         data.forEach(item => {
                             const entry = {
                                 tradePrice: item.trade_price,
@@ -742,10 +743,38 @@ const UpbitAPI = {
                             tickerMap['UPBIT:::' + item.market] = entry;
                             tickerMap['BITHUMB:::' + item.market] = entry;
                         });
+                        chunkSuccess = true;
                     }
                 }
             } catch (err) {
-                console.warn('업비트 시세 청크 조회 실패:', err);
+                console.warn('업비트 시세 청크 일괄 조회 실패, 개별 조회로 전환:', err);
+            }
+
+            // Fallback: If chunk failed due to invalid market inside, query individually
+            if (!chunkSuccess) {
+                const indPromises = chunk.map(async m => {
+                    try {
+                        const indRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(m));
+                        if (indRes.ok) {
+                            const indData = await indRes.json();
+                            if (Array.isArray(indData) && indData[0]) {
+                                const item = indData[0];
+                                const entry = {
+                                    tradePrice: item.trade_price,
+                                    signedChangeRate: item.signed_change_rate,
+                                    accTradeVolume24h: item.acc_trade_volume_24h,
+                                    timestamp: item.timestamp
+                                };
+                                tickerMap[item.market] = entry;
+                                const sym = item.market.includes('-') ? item.market.split('-')[1] : item.market;
+                                tickerMap[sym] = entry;
+                                tickerMap['UPBIT:::' + item.market] = entry;
+                                tickerMap['BITHUMB:::' + item.market] = entry;
+                            }
+                        }
+                    } catch (e) {}
+                });
+                await Promise.allSettled(indPromises);
             }
         }
 

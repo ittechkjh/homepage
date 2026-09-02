@@ -1301,13 +1301,13 @@ const App = {
         const elHoldingsBar = document.getElementById('tracker-holdings-bar');
         
         if (elTotalAssets) {
-            const total = (this.state.reportData.totalCurrentValue || 0) + (this.state.reportData.totalTotalBuyAmount || 0) + (this.state.reportData.totalUnrealizedProfit || 0);
+            const total = Math.round(this.state.reportData.totalCurrentValue || 0);
             elTotalAssets.innerText = total.toLocaleString(undefined, {maximumFractionDigits:0}) + ' ₩';
         }
         if (elUnrealized) {
-            const upnl = this.state.reportData.totalUnrealizedProfit || 0;
+            const upnl = Math.round(this.state.reportData.totalUnrealizedProfit || 0);
             elUnrealized.innerText = (upnl > 0 ? '+' : '') + upnl.toLocaleString(undefined, {maximumFractionDigits:0}) + ' ₩';
-            elUnrealized.className = 'text-lg font-bold ' + (upnl > 0 ? 'text-rose-400' : (upnl < 0 ? 'text-blue-400' : 'text-slate-100'));
+            elUnrealized.className = 'text-lg font-bold ' + (upnl > 0 ? 'text-emerald-400' : (upnl < 0 ? 'text-rose-400' : 'text-slate-100'));
         }
         
         if (elTopHoldings && elHoldingsBar) {

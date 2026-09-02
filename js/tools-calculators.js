@@ -1063,30 +1063,56 @@ const CoinCalculators = {
             comments: []
         };
 
-        const getPosts = (typeof window.getStoredPosts === 'function' ? window.getStoredPosts : (typeof getStoredPosts === 'function' ? getStoredPosts : null));
-        const savePosts = (typeof window.saveStoredPosts === 'function' ? window.saveStoredPosts : (typeof saveStoredPosts === 'function' ? saveStoredPosts : null));
-
-        if (getPosts && savePosts) {
-            const posts = getPosts();
-            posts.unshift(newPost);
-            savePosts(posts);
-
-            if (typeof switchTab === 'function') {
-                switchTab('cafe');
-            }
-            if (typeof filterForum === 'function') {
-                filterForum('profit');
-            }
-            if (typeof renderForumPosts === 'function') {
-                renderForumPosts();
-            }
-            if (typeof openPostDetailModal === 'function') {
-                openPostDetailModal(newPost.id);
-            }
-            alert('🎉 종합 수익 인증 카드가 [포럼 - 실현손익] 게시판에 성공적으로 저장 및 등록되었습니다!');
+        // 1. Get existing posts from function or directly from localStorage
+        let posts = [];
+        if (typeof window.getStoredPosts === 'function') {
+            posts = window.getStoredPosts();
+        } else if (typeof getStoredPosts === 'function') {
+            posts = getStoredPosts();
         } else {
-            alert('포럼 저장소에 연결할 수 없습니다.');
+            try {
+                const raw = localStorage.getItem('cryptopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
+                if (raw) posts = JSON.parse(raw);
+            } catch(e) {}
         }
+        if (!Array.isArray(posts) || posts.length === 0) {
+            if (typeof INITIAL_FORUM_POSTS !== 'undefined' && Array.isArray(INITIAL_FORUM_POSTS)) {
+                posts = [...INITIAL_FORUM_POSTS];
+            } else {
+                posts = [];
+            }
+        }
+
+        // 2. Add new post to top
+        posts.unshift(newPost);
+
+        // 3. Save to localStorage under both keys
+        try {
+            localStorage.setItem('cryptopnl_forum_posts', JSON.stringify(posts));
+            localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+        } catch(e) {}
+
+        if (typeof window.saveStoredPosts === 'function') {
+            try { window.saveStoredPosts(posts); } catch(e) {}
+        } else if (typeof saveStoredPosts === 'function') {
+            try { saveStoredPosts(posts); } catch(e) {}
+        }
+
+        // 4. Navigate to forum tab and show the new post detail
+        if (typeof switchTab === 'function') {
+            switchTab('forum');
+        }
+        if (typeof filterForum === 'function') {
+            filterForum('profit');
+        }
+        if (typeof renderForumPosts === 'function') {
+            renderForumPosts();
+        }
+        if (typeof openPostDetailModal === 'function') {
+            openPostDetailModal(newPost.id);
+        }
+
+        alert('🎉 종합 수익 인증 카드가 [포럼 - 실현손익] 게시판에 성공적으로 저장 및 등록되었습니다!');
     }
 };
 
