@@ -1428,54 +1428,58 @@ window.copyNewsLink = copyNewsLink;
 
 async function fetchRealCryptoNews() {
   try {
-    const rssUrl = 'https://news.google.com/rss/search?q=비트코인+OR+가상자산+OR+암호화폐+OR+업비트&hl=ko&gl=KR&ceid=KR:ko';
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    const res = await fetch(apiUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
-        return data.items.slice(0, 15).map((item, idx) => {
-          const title = item.title ? item.title.replace(/<[^>]+>/g, '').trim() : '가상자산 실시간 속보';
-          let category = 'MARKET';
-          if (title.includes('비트코인') || title.includes('BTC') || title.includes('시세') || title.includes('FOMC')) category = 'MARKET';
-          else if (title.includes('알트') || title.includes('이더리움') || title.includes('솔라나') || title.includes('리플') || title.includes('수이')) category = 'ALTCOIN';
-          else if (title.includes('금융') || title.includes('법') || title.includes('규제') || title.includes('SEC') || title.includes('국회') || title.includes('당국')) category = 'REGULATION';
-          else if (title.includes('기술') || title.includes('하드포크') || title.includes('메인넷') || title.includes('L2') || title.includes('디파이')) category = 'TECH';
-
-          let sourceName = item.author || '국내외 경제 미디어';
-          if (title.includes(' - ')) {
-            const parts = title.split(' - ');
-            if (parts.length > 1) {
-              sourceName = parts[parts.length - 1].trim();
-            }
-          }
-
-          return {
-            id: 1000 + idx,
-            category: category,
-            categoryName: category === 'MARKET' ? '비트코인/시장' : category === 'ALTCOIN' ? '알트코인' : category === 'REGULATION' ? '규제/정책' : '기술/DeFi',
-            badge: idx < 2 ? 'HOT' : 'LIVE',
-            title: title,
-            content: item.description ? item.description.replace(/<[^>]+>/g, '').slice(0, 180) + '...' : title,
-            source: sourceName,
-            time: idx === 0 ? '방금 전' : `${idx * 4}분 전`,
-            timestamp: Date.now() - idx * 4 * 60 * 1000,
-            takeaways: [
-              '실시간 시장 수급 및 투자자 심리에 미치는 핵심 변동성 요인',
-              '국내외 거래소 거래량 및 온체인 지표 실시간 영향 분석'
-            ]
-          };
+    const urls = [
+      "https://news.google.com/rss/search?q=비트코인+OR+암호화폐+시장&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=알트코인+OR+이더리움+OR+솔라나+OR+리플+OR+도지코인&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=암호화폐+규제+OR+SEC+OR+비트코인+과세+OR+가상자산법&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=블록체인+기술+OR+웹3+OR+디파이+OR+메인넷&hl=ko&gl=KR&ceid=KR:ko"
+    ];
+    const fetchPromises = urls.map(async (url, idx) => {
+      const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          return { idx, items: (data && data.items) ? data.items.slice(0, 5) : [] };
+        }
+      } catch (e) {}
+      return { idx, items: [] };
+    });
+    const results = await Promise.all(fetchPromises);
+    let combined = [];
+    const catMap = ["MARKET", "ALTCOIN", "REGULATION", "TECH"];
+    const catNameMap = ["비트코인/시장", "알트코인", "규제/정책", "기술/DeFi"];
+    let idCounter = 1000;
+    results.forEach(res => {
+      const cat = catMap[res.idx];
+      const catName = catNameMap[res.idx];
+      res.items.forEach((item, innerIdx) => {
+        const title = item.title ? item.title.replace(/<[^>]+>/g, "").trim() : "가상자산 실시간 속보";
+        let sourceName = item.author || "주요 매체";
+        if (title.includes(" - ")) {
+          const parts = title.split(" - ");
+          if (parts.length > 1) sourceName = parts[parts.length - 1].trim();
+        }
+        combined.push({
+          id: idCounter++,
+          category: cat,
+          categoryName: catName,
+          badge: innerIdx === 0 ? "HOT" : "LIVE",
+          title: title,
+          content: item.description ? item.description.replace(/<[^>]+>/g, "").slice(0, 180) + "..." : title,
+          source: sourceName,
+          time: innerIdx === 0 ? "방금 전" : (innerIdx * 10) + "분 전",
+          timestamp: Date.now() - (innerIdx * 10 * 60 * 1000),
+          takeaways: ["실시간 이슈 및 시장 동향 파악 완료", "매매 전 변동성 및 리스크 주의"]
         });
-      }
-    }
-  } catch (e) {
-    console.warn('Real RSS fallback to multi-source pool:', e);
-  }
+      });
+    });
+    combined.sort((a, b) => b.timestamp - a.timestamp);
+    if (combined.length > 0) return combined;
+  } catch (err) {}
   return MULTI_SOURCE_NEWS_POOL;
 }
 window.fetchRealCryptoNews = fetchRealCryptoNews;
