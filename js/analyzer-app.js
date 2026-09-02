@@ -701,6 +701,9 @@ const App = {
 
         this.updateCoinFilterOptions();
         this.renderAll();
+        if (typeof CoinCalculators !== 'undefined' && CoinCalculators.importProfitCardFromAnalyzer) {
+            try { CoinCalculators.importProfitCardFromAnalyzer(false); } catch (e) {}
+        }
     },
 
     fetchLiveTickers: async function (showToast = false) {
@@ -1325,151 +1328,6 @@ const App = {
                 }
                 elHoldingsBar.innerHTML = barHtml;
             }
-        }
-    },
-
-    openVerificationModal: function() {
-        const modal = document.getElementById('modal-pnl-verification');
-        if (modal) {
-            modal.classList.remove('hidden');
-            const end = new Date();
-            const start = new Date();
-            start.setDate(end.getDate() - 30);
-            
-            document.getElementById('pnl-card-start').value = start.toISOString().split('T')[0];
-            document.getElementById('pnl-card-end').value = end.toISOString().split('T')[0];
-            
-            this.renderVerificationCard();
-        }
-    },
-
-    renderVerificationCard: function() {
-        const startStr = document.getElementById('pnl-card-start').value;
-        const endStr = document.getElementById('pnl-card-end').value;
-        const canvas = document.getElementById('pnl-card-canvas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        let filteredTrades = this.state.rawTrades || [];
-        
-        if (startStr) {
-            const st = new Date(startStr).getTime();
-            filteredTrades = filteredTrades.filter(t => t.timestamp >= st);
-        }
-        if (endStr) {
-            const ed = new Date(endStr).getTime() + 86399999;
-            filteredTrades = filteredTrades.filter(t => t.timestamp <= ed);
-        }
-        
-        let realizedProfit = 0;
-        let winCount = 0;
-        let lossCount = 0;
-        
-        filteredTrades.forEach(t => {
-            if (t.type === '매도' || t.type === 'SELL') {
-                realizedProfit += (t.profit || 0);
-                if ((t.profit || 0) > 0) winCount++;
-                else if ((t.profit || 0) < 0) lossCount++;
-            }
-        });
-        
-        const totalTrades = winCount + lossCount;
-        const winRate = totalTrades > 0 ? (winCount / totalTrades * 100).toFixed(1) : 0;
-        
-        const uinfo = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
-        let username = '익명 트레이더';
-        if (uinfo) {
-            try {
-                const p = JSON.parse(uinfo);
-                if (p.username) username = p.username;
-            } catch(e) {}
-        }
-
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        grad.addColorStop(0, '#1e1b4b');
-        grad.addColorStop(1, '#0f172a');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 24px sans-serif';
-        ctx.fillText('CryptoPnL 수익 인증', 30, 45);
-        
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px sans-serif';
-        const dateText = (startStr || '전체') + ' ~ ' + (endStr || '현재');
-        ctx.fillText(dateText, 30, 70);
-
-        ctx.fillStyle = '#f1f5f9';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(username, canvas.width - 30, 45);
-
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = '16px sans-serif';
-        ctx.fillText('총 실현손익', 30, 140);
-        
-        ctx.font = 'bold 48px sans-serif';
-        ctx.fillStyle = realizedProfit >= 0 ? '#f43f5e' : '#3b82f6';
-        const formattedProfit = (realizedProfit > 0 ? '+' : '') + realizedProfit.toLocaleString(undefined, {maximumFractionDigits:0}) + ' ₩';
-        ctx.fillText(formattedProfit, 30, 190);
-        
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(30, 240, canvas.width - 60, 90);
-        ctx.strokeStyle = '#334155';
-        ctx.strokeRect(30, 240, canvas.width - 60, 90);
-        
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('총 매도 횟수', 60, 275);
-        ctx.fillText('승률', 260, 275);
-        ctx.fillText('플랫폼', 420, 275);
-        
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.fillText(totalTrades + '회', 60, 305);
-        ctx.fillText(winRate + '%', 260, 305);
-        ctx.fillStyle = '#06b6d4';
-        ctx.fillText('CryptoPnL.com', 420, 305);
-    },
-
-    downloadVerificationCard: function() {
-        const canvas = document.getElementById('pnl-card-canvas');
-        if (!canvas) return;
-        const link = document.createElement('a');
-        link.download = 'cryptopnl_verification.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    },
-
-    shareVerificationCardToForum: function() {
-        const canvas = document.getElementById('pnl-card-canvas');
-        if (!canvas) return;
-        const dataUrl = canvas.toDataURL('image/png');
-        
-        const modal = document.getElementById('modal-pnl-verification');
-        if (modal) modal.classList.add('hidden');
-        
-        if (typeof showForumWriteView === 'function') {
-            document.getElementById('cafe-write-category').value = 'profit';
-            document.getElementById('cafe-write-title').value = '나의 실현손익 인증합니다!';
-            
-            const editor = document.getElementById('cafe-write-content');
-            if (editor) {
-                editor.innerHTML = `<p><img src="` + dataUrl + `" alt="수익인증" style="max-width:100%; border-radius:12px;"></p><p><br></p><p>수익 인증합니다.</p>`;
-            }
-            
-            if (typeof switchTab === 'function') {
-                switchTab('cafe');
-            }
-            showForumListView();
-            showForumWriteView();
-        } else {
-            alert('포럼이 활성화되어 있지 않습니다.');
         }
     }
 };
