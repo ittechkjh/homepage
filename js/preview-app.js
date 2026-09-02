@@ -1389,12 +1389,14 @@ function openNewsDetailModal(id) {
   const titleEl = document.getElementById('modal-news-title');
   const contentEl = document.getElementById('modal-news-content');
   const takeawaysEl = document.getElementById('modal-news-takeaways');
+  const linkEl = document.getElementById('modal-news-original-link');
 
   if (catEl) catEl.innerText = item.categoryName || item.category;
   if (srcEl) srcEl.innerText = item.source;
   if (timeEl) timeEl.innerText = item.time;
   if (titleEl) titleEl.innerText = item.title;
   if (contentEl) contentEl.innerText = item.content;
+  if (linkEl) linkEl.href = item.link || '#';
 
   if (takeawaysEl) {
     takeawaysEl.innerHTML = (item.takeaways || [
@@ -1463,17 +1465,26 @@ async function fetchRealCryptoNews() {
           const parts = title.split(" - ");
           if (parts.length > 1) sourceName = parts[parts.length - 1].trim();
         }
+        let content = item.description ? item.description.replace(/<[^>]+>/g, "") : title;
+        let sentences = content.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 10);
+        let takeaways = [];
+        if (sentences.length >= 2) {
+           takeaways = [sentences[0] + "...", sentences[1] + "..."];
+        } else {
+           takeaways = [content.slice(0, 50) + "...", "자세한 내용은 원문을 확인하세요."];
+        }
         combined.push({
           id: idCounter++,
           category: cat,
           categoryName: catName,
           badge: innerIdx === 0 ? "HOT" : "LIVE",
           title: title,
-          content: item.description ? item.description.replace(/<[^>]+>/g, "").slice(0, 180) + "..." : title,
+          content: content.slice(0, 180) + "...",
           source: sourceName,
+          link: item.link || "#",
           time: innerIdx === 0 ? "방금 전" : (innerIdx * 10) + "분 전",
           timestamp: Date.now() - (innerIdx * 10 * 60 * 1000),
-          takeaways: ["실시간 이슈 및 시장 동향 파악 완료", "매매 전 변동성 및 리스크 주의"]
+          takeaways: takeaways
         });
       });
     });
