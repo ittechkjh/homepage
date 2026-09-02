@@ -40,6 +40,7 @@ function applyTheme(theme) {
       icon.className = 'w-4 h-4 text-indigo-500';
     }
     if (text) text.innerText = '다크';
+  } else {
     html.classList.add('dark');
     html.classList.remove('theme-light');
     if (icon) {
@@ -125,6 +126,7 @@ function switchLegalTab(tab) {
       if (btn) {
         btn.className = 'py-2.5 px-2 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
       }
+    } else {
       if (content) {
         content.style.setProperty('display', 'none', 'important');
         content.classList.add('hidden');
@@ -177,6 +179,7 @@ window.showExchangeGuide = function(exchange) {
     if (bithumbContent) { bithumbContent.classList.add('hidden'); bithumbContent.style.display = 'none'; }
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
+  } else {
     if (upbitContent) { upbitContent.classList.add('hidden'); upbitContent.style.display = 'none'; }
     if (bithumbContent) { bithumbContent.classList.remove('hidden'); bithumbContent.style.display = 'block'; }
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
@@ -204,6 +207,7 @@ function updateAdminNavVisibility() {
     if (isAuth) {
       navAdmin.classList.remove('hidden');
       navAdmin.classList.add('flex');
+    } else {
       navAdmin.classList.add('hidden');
       navAdmin.classList.remove('flex');
     }
@@ -213,6 +217,7 @@ function updateAdminNavVisibility() {
     if (isAuth) {
       mNavAdmin.classList.remove('hidden');
       mNavAdmin.classList.add('flex');
+    } else {
       mNavAdmin.classList.add('hidden');
       mNavAdmin.classList.remove('flex');
     }
@@ -249,6 +254,7 @@ function updateAuthUI() {
       authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
+  } else {
     if (authBtn) {
       authBtn.innerHTML = '<i data-lucide="user" class="w-4 h-4 text-cyan-400"></i><span>로그인</span>';
       authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm cursor-pointer';
@@ -414,6 +420,7 @@ function handleSearch(query) {
   const q = (query || '').trim().toLowerCase();
   if (!q) {
     renderCoinTable(marketCoins);
+  } else {
     const filtered = marketCoins.filter(c => 
       c.name.toLowerCase().includes(q) || 
       c.symbol.toLowerCase().includes(q) ||
@@ -492,6 +499,7 @@ function changeChartTimeframe(tf) {
     btns.forEach(b => {
       if (b.innerText.toLowerCase() === tf.toLowerCase()) {
         b.className = 'tf-btn px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-bold';
+      } else {
         b.className = 'tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white';
       }
     });
@@ -543,6 +551,7 @@ function generateChartData(basePrice, tf) {
       current += (Math.random() - 0.46) * (basePrice * 0.04);
       data.push(Number(current.toFixed(2)));
     }
+  } else {
     count = 15;
     for (let i = 1; i <= count; i++) {
       labels.push(`8/${i * 2}`);
@@ -638,6 +647,7 @@ function filterForum(category) {
     if (btn.dataset.cat === category) {
       btn.classList.add('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.remove('bg-navy-950', 'text-slate-400');
+    } else {
       btn.classList.remove('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
@@ -661,6 +671,7 @@ function renderForumPosts() {
     posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
   } else if (sortType === 'comments') {
     posts.sort((a, b) => ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0));
+  } else {
     posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   }
 
@@ -755,6 +766,7 @@ function showForumWriteView(editPostId = null) {
       if (editor) editor.innerHTML = post.content || '';
       if (catSelect) catSelect.value = post.category || 'general';
     }
+  } else {
     isCafeEditMode = false;
     currentCafePostId = null;
     if (heading) heading.innerText = '커뮤니티 게시글 작성';
@@ -828,6 +840,7 @@ function openPostDetailModal(postId) {
         </button>
       `;
       controlsEl.classList.remove('hidden');
+    } else {
       controlsEl.innerHTML = '';
       controlsEl.classList.add('hidden');
     }
@@ -947,6 +960,7 @@ function insertInlineImageIntoEditor(base64Data) {
       sel.removeAllRanges();
       sel.addRange(range);
     }
+  } else {
     editor.innerHTML += imgHtml;
   }
 }
@@ -972,6 +986,7 @@ function processCafeImageBlob(file) {
         if (width > height) {
           height = Math.round((height * maxDim) / width);
           width = maxDim;
+        } else {
           width = Math.round((width * maxDim) / height);
           height = maxDim;
         }
@@ -1298,6 +1313,7 @@ function filterNews(cat) {
     if (btn.dataset.newsCat === cat) {
       btn.classList.add('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.remove('bg-navy-950', 'text-slate-400');
+    } else {
       btn.classList.remove('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
@@ -1482,8 +1498,7 @@ async function fetchRealCryptoNews() {
           if (parts.length > 1) sourceName = parts[parts.length - 1].trim();
         }
         let content = item.description ? item.description.replace(/<[^>]+>/g, "") : title;
-        let sentences = content.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 10);
-        let takeaways = generateAIInsights(title, cat);
+          let takeaways = generateAIInsights(title, cat);
         combined.push({
           id: idCounter++,
           category: cat,
@@ -1748,6 +1763,7 @@ function filterCalendar(cat) {
     if (btn.dataset.calCat === cat) {
       btn.classList.add('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.remove('bg-navy-950', 'text-slate-400');
+    } else {
       btn.classList.remove('active', 'bg-cyan-500/20', 'text-cyan-400', 'border-cyan-500/40');
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
@@ -1769,6 +1785,7 @@ function switchCalendarView(view) {
     if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
     if (listView) listView.classList.remove('hidden');
     if (monthView) monthView.classList.add('hidden');
+  } else {
     if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
     if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
     if (listView) listView.classList.add('hidden');
@@ -2056,6 +2073,7 @@ function switchTab(tabId, updateHash = true) {
         mNavBtn.classList.add('text-cyan-400', 'font-bold');
         mNavBtn.classList.remove('text-slate-400');
       }
+    } else {
       if (el) {
         el.classList.remove('block');
         el.classList.add('hidden');
@@ -2226,6 +2244,7 @@ if (db) {
     }
     if (typeof renderChatMessages === 'function') renderChatMessages();
   });
+} else {
   try {
     const localChat = localStorage.getItem('coinhub_chat_messages');
     if (localChat) chatMessages = JSON.parse(localChat);
@@ -2281,6 +2300,7 @@ handleSendChat = function(e) {
   
   if (db) {
     db.collection('chat_messages').doc(newMsg.id.toString()).set(newMsg);
+  } else {
     localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages));
   }
   renderChatMessages();
@@ -2431,6 +2451,7 @@ function listenToChatChannel(channel) {
       chatMessages = msgs;
       renderChatMessages();
     });
+  } else {
     // fallback
     try {
       const localChat = localStorage.getItem('coinhub_chat_messages_' + channel) || (channel === 'global' ? localStorage.getItem('coinhub_chat_messages') : null);
@@ -2477,6 +2498,7 @@ handleSendChat = function(e) {
   if (db) {
     const collectionName = currentChatChannel === 'global' ? 'chat_messages' : 'chat_messages_' + currentChatChannel;
     db.collection(collectionName).doc(newMsg.id.toString()).set(newMsg);
+  } else {
     const storageKey = currentChatChannel === 'global' ? 'coinhub_chat_messages' : 'coinhub_chat_messages_' + currentChatChannel;
     localStorage.setItem(storageKey, JSON.stringify(chatMessages));
   }
