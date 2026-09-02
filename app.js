@@ -1,4 +1,4 @@
-﻿
+
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -922,12 +922,13 @@ function handleDeleteCafePost(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
 
-  if (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase()) {
+  const isAdmin = currentUsername && currentUsername.toLowerCase() === 'admin';
+  if (!isAdmin && (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase())) {
     alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
     return;
   }
 
-  if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
+  if (!confirm('정말로 이 게시글을 삭제하시겠습니까? (삭제 시 복구 불가)')) return;
   posts = posts.filter(p => p.id !== postId);
   saveStoredPosts(posts);
   alert('🗑️ 게시글이 삭제되었습니다.');
@@ -1087,6 +1088,18 @@ function handleVoteInModal(delta) {
   const posts = getStoredPosts();
   const post = posts.find(p => p.id === currentViewingPostId);
   if (!post) return;
+
+  const voteKey = 'voted_post_' + currentViewingPostId;
+  if (delta > 0 && localStorage.getItem(voteKey)) {
+    alert('❌ 이미 추천한 게시글입니다. (계정당 1회만 추천 가능합니다.)');
+    return;
+  }
+
+  if (delta > 0) {
+    localStorage.setItem(voteKey, 'true');
+  } else if (delta < 0) {
+    localStorage.removeItem(voteKey);
+  }
 
   post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
   saveStoredPosts(posts);
