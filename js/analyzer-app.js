@@ -729,6 +729,12 @@ const App = {
             ChartManager.renderPortfolioDoughnutChart(this.state.reportData.coinSummaries);
             ChartManager.renderCoinStackingChart(this.state.reportData.coinSummaries);
 
+            const timeEl = document.getElementById('lastTickerUpdateTime');
+            if (timeEl) {
+                const now = new Date();
+                timeEl.textContent = `실시간 시세 반영: ${now.toLocaleTimeString()}`;
+            }
+
             if (showToast) {
                 this.showToast('실시간 시세가 갱신되었습니다.', 'success');
             }

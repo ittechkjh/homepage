@@ -703,6 +703,9 @@ const UpbitAPI = {
 
     fetchTickers: async function (markets) {
         if (!markets || markets.length === 0) return {};
+
+        await this.initMarketInfo();
+
         const krwMarkets = markets
             .map(m => this.getStandardMarketInfo(m).market)
             .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
@@ -712,10 +715,14 @@ const UpbitAPI = {
 
         const tickerMap = {};
 
+        // Filter for markets that exist in Upbit to avoid 404 on delisted coins
+        const validUpbitMarkets = krwMarkets.filter(m => this.marketInfoMap[m]);
+        const queryList = validUpbitMarkets.length > 0 ? validUpbitMarkets : krwMarkets;
+
         // 1. Fetch Upbit Tickers in Chunks of 50 (to prevent 400 Bad Request / URL overflow)
         const chunkSize = 50;
-        for (let i = 0; i < krwMarkets.length; i += chunkSize) {
-            const chunk = krwMarkets.slice(i, i + chunkSize);
+        for (let i = 0; i < queryList.length; i += chunkSize) {
+            const chunk = queryList.slice(i, i + chunkSize);
             try {
                 const marketParam = chunk.join(',');
                 const res = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(marketParam));

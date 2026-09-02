@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko" class="theme-light">
 <head>
   <meta charset="UTF-8">
@@ -1280,7 +1280,7 @@
             <span class="flex items-center gap-2">
               <i data-lucide="radio" class="w-4 h-4 text-crypto-green animate-pulse"></i> 실시간 채널
             </span>
-            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">1명 온라인</span>
+            <span class="text-[11px] text-cyan-400 font-mono" id="online-count">1명 접속중</span>
           </div>
 
           <div class="mt-3 space-y-1.5 flex-1">
@@ -3044,37 +3044,37 @@
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>📊 거래내역 분석기 (Excel/FIFO)</span>
-                  <span class="text-cyan-400 font-bold">44%</span>
+                  <span id="admin-feat-analyzer-pct" class="text-cyan-400 font-bold">44%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 44%;"></div>
+                  <div id="admin-feat-analyzer-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 44%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>📈 가상자산 실시간 시세 & 차트</span>
-                  <span class="text-purple-400 font-bold">27%</span>
+                  <span id="admin-feat-market-pct" class="text-purple-400 font-bold">27%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 27%;"></div>
+                  <div id="admin-feat-market-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 27%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>⚡ 글로벌 암호화폐 실시간 속보</span>
-                  <span class="text-amber-400 font-bold">18%</span>
+                  <span id="admin-feat-news-pct" class="text-amber-400 font-bold">18%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" style="width: 18%;"></div>
+                  <div id="admin-feat-news-bar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" style="width: 18%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>💬 커뮤니티 포럼 & 실시간 채팅</span>
-                  <span class="text-emerald-400 font-bold">11%</span>
+                  <span id="admin-feat-community-pct" class="text-emerald-400 font-bold">11%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style="width: 11%;"></div>
+                  <div id="admin-feat-community-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style="width: 11%;"></div>
                 </div>
               </div>
             </div>
@@ -3088,12 +3088,12 @@
             <div class="grid grid-cols-2 gap-4 text-center">
               <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
                 <div class="text-slate-400 text-xs font-semibold mb-1">📱 모바일 기기 (스마트폰)</div>
-                <div class="text-xl font-extrabold text-cyan-400">64.2%</div>
+                <div id="admin-dev-mobile-pct" class="text-xl font-extrabold text-cyan-400">64.2%</div>
                 <div class="text-[10px] text-slate-500 mt-0.5">iOS Safari & Android Chrome</div>
               </div>
               <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
                 <div class="text-slate-400 text-xs font-semibold mb-1">💻 데스크톱 (PC / Mac)</div>
-                <div class="text-xl font-extrabold text-purple-400">35.8%</div>
+                <div id="admin-dev-desktop-pct" class="text-xl font-extrabold text-purple-400">35.8%</div>
                 <div class="text-[10px] text-slate-500 mt-0.5">Windows & macOS 브라우저</div>
               </div>
             </div>
@@ -3277,20 +3277,19 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/parser.js?v=20260902_5"></script>
-  <script src="js/calculator.js?v=20260902_5"></script>
-  <script src="js/upbit-api.js?v=20260902_8"></script>
-  <script src="js/charts.js?v=20260902_5"></script>
-  <script src="js/exporter.js?v=20260902_5"></script>
-  <script src="js/sample-data.js?v=20260902_5"></script>
-  <script src="js/tools-calculators.js"></script>
-  <script src="js/analyzer-app.js?v=20260902_8"></script>
+  <script src="js/parser.js?v=20260902_9"></script>
+  <script src="js/calculator.js?v=20260902_9"></script>
+  <script src="js/upbit-api.js?v=20260902_9"></script>
+  <script src="js/charts.js?v=20260902_9"></script>
+  <script src="js/exporter.js?v=20260902_9"></script>
+  <script src="js/sample-data.js?v=20260902_9"></script>
+  <script src="js/tools-calculators.js?v=20260902_9"></script>
+  <script src="js/analyzer-app.js?v=20260902_9"></script>
 
-  <script src="js/admin.js?v=20260902_5"></script>
-  <script src="js/preview-app-v2.js?v=20260902_5"></script>
+  <script src="js/admin.js?v=20260902_9"></script>
+  <script src="js/preview-app-v2.js?v=20260902_9"></script>
 
-  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"65e457de82054b2cb5322b8c9a0235fb","r":1}' crossorigin="anonymous"></script>
-  <!-- PnL Verification Modal -->
+    <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
     <div class="absolute inset-0 bg-navy-950/80 backdrop-blur-sm" onclick="this.parentElement.classList.add('hidden')"></div>
     <div class="relative bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -3351,6 +3350,13 @@
     });
   </script>
 </html>
+
+
+
+
+
+
+
 
 
 
