@@ -193,12 +193,12 @@ const ProfitCalculator = {
 
             if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
                 livePrice = UpbitAPI.fallbackPrices[sym];
-                change24hVal = 2.0;
+                change24hVal = 0;
             } else if (parseFloat(coin.currentPrice) > 0) {
                 livePrice = parseFloat(coin.currentPrice);
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
-                livePrice = Math.round(parseFloat(coin.avgBuyPrice) * 1.05);
-                change24hVal = 1.5;
+                livePrice = parseFloat(coin.avgBuyPrice);
+                change24hVal = 0;
             }
 
             coin.currentPrice = livePrice;

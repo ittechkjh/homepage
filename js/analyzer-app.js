@@ -783,7 +783,7 @@ const App = {
             this.state.reportData.coinSummaries.forEach(c => {
                 if (c.holdingQty > 1e-8) {
                     const sym = (c.coinSymbol || (c.market ? c.market.replace('KRW-', '') : '')).toUpperCase();
-                    const price = c.currentPrice || (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym] ? UpbitAPI.fallbackPrices[sym] : (c.avgBuyPrice ? Math.round(c.avgBuyPrice * 1.05) : 0));
+                    const price = c.currentPrice || (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym] ? UpbitAPI.fallbackPrices[sym] : (c.avgBuyPrice ? parseFloat(c.avgBuyPrice) : 0));
                     const val = c.holdingQty * price;
                     const upnl = (c.unrealizedProfit !== undefined && c.unrealizedProfit !== 0) ? c.unrealizedProfit : (val - (c.holdingCost || 0));
                     calculatedCurrentVal += val;
@@ -864,7 +864,7 @@ const App = {
                 if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
                     currentPrice = UpbitAPI.fallbackPrices[sym];
                 } else if (parseFloat(coin.avgBuyPrice) > 0) {
-                    currentPrice = Math.round(parseFloat(coin.avgBuyPrice) * 1.05);
+                    currentPrice = parseFloat(coin.avgBuyPrice);
                 }
                 coin.currentPrice = currentPrice;
             }

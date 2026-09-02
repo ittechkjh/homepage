@@ -702,21 +702,21 @@ const UpbitAPI = {
     },
 
     fallbackPrices: {
-        'BTC': 135000000, 'ETH': 4800000, 'SOL': 280000, 'XRP': 3450, 'DOGE': 380,
-        'ADA': 1150, 'AVAX': 48000, 'DOT': 9500, 'MATIC': 650, 'POL': 650,
-        'LINK': 28000, 'NEAR': 8900, 'TRX': 320, 'ETC': 38000, 'SUI': 4800,
-        'APT': 14500, 'SEI': 680, 'SHIB': 0.035, 'PEPE': 0.028, 'WLD': 3800,
-        'RENDER': 9200, 'ATOM': 9100, 'ALGO': 280, 'XLM': 620, 'SAND': 460,
-        'MANA': 480, 'AXS': 8500, 'FLOW': 1100, 'EOS': 950, 'ENJ': 260,
-        'HBAR': 340, 'CRO': 290, 'STX': 2850, 'VET': 42, 'ICP': 14200,
-        'TIA': 8500, 'INJ': 32000, 'BLUR': 320, 'MINA': 820, 'KAVA': 680,
-        'CHZ': 110, 'AAVE': 210000, 'UNI': 12500, 'IMX': 2150, 'GALA': 35,
-        'OP': 2400, 'ARB': 820, 'CELO': 980, 'QTUM': 4200, 'NEO': 18500,
-        'GAS': 5400, 'ONT': 320, 'ONG': 510, 'IOST': 12, 'THETA': 2100,
-        'TFUEL': 95, 'ZIL': 28, 'KAIA': 220, 'KLAY': 220, 'MEW': 12.5,
-        'BONK': 0.032, 'WIF': 3800, 'FLOKI': 0.28, 'TON': 8200, 'ONDO': 1350,
-        'PENDLE': 6800, 'JUP': 1450, 'PYTH': 540, 'ENA': 820, 'STRK': 680,
-        'TAO': 720000, 'FET': 1850, 'GRT': 320, 'AR': 28500, 'FIL': 6200
+        'BTC': 89420000, 'ETH': 4820000, 'SOL': 212800, 'XRP': 806, 'DOGE': 171,
+        'ADA': 527, 'AVAX': 33800, 'DOT': 6200, 'MATIC': 540, 'POL': 540,
+        'LINK': 16280, 'NEAR': 5800, 'TRX': 185, 'ETC': 26500, 'SUI': 2250,
+        'APT': 8900, 'SEI': 450, 'SHIB': 0.021, 'PEPE': 0.014, 'WLD': 2450,
+        'RENDER': 6800, 'ATOM': 6500, 'ALGO': 185, 'XLM': 140, 'SAND': 380,
+        'MANA': 410, 'AXS': 6200, 'FLOW': 850, 'EOS': 720, 'ENJ': 210,
+        'HBAR': 92, 'CRO': 118, 'STX': 2250, 'VET': 32, 'ICP': 11200,
+        'TIA': 6800, 'INJ': 26000, 'BLUR': 240, 'MINA': 620, 'KAVA': 510,
+        'CHZ': 85, 'AAVE': 185000, 'UNI': 9800, 'IMX': 1850, 'GALA': 28,
+        'OP': 1950, 'ARB': 720, 'CELO': 780, 'QTUM': 3400, 'NEO': 14500,
+        'GAS': 4400, 'ONT': 260, 'ONG': 410, 'IOST': 9.5, 'THETA': 1650,
+        'TFUEL': 78, 'ZIL': 22, 'KAIA': 180, 'KLAY': 180, 'MEW': 9.2,
+        'BONK': 0.026, 'WIF': 2800, 'FLOKI': 0.21, 'TON': 7200, 'ONDO': 1150,
+        'PENDLE': 5200, 'JUP': 1150, 'PYTH': 440, 'ENA': 680, 'STRK': 540,
+        'TAO': 540000, 'FET': 1450, 'GRT': 260, 'AR': 23500, 'FIL': 5100
     },
 
     fetchTickers: async function (markets) {
@@ -800,7 +800,28 @@ const UpbitAPI = {
             }
         }
 
-        // 3. Binance API Fallback for any coin not found in Upbit or Bithumb
+        // 3. Fallback to site marketCoins if available
+        if (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
+            marketCoins.forEach(mc => {
+                const sym = mc.symbol.toUpperCase();
+                if (!tickerMap[sym] && mc.current_price) {
+                    const usdRate = 1380;
+                    const krwPrice = mc.current_price < 10 ? Math.round(mc.current_price * usdRate * 100) / 100 : Math.round(mc.current_price * usdRate);
+                    const entry = {
+                        tradePrice: krwPrice,
+                        signedChangeRate: (mc.price_change_percentage_24h || 0) / 100,
+                        accTradeVolume24h: mc.total_volume || 0,
+                        timestamp: Date.now()
+                    };
+                    tickerMap['KRW-' + sym] = entry;
+                    tickerMap[sym] = entry;
+                    tickerMap['UPBIT:::KRW-' + sym] = entry;
+                    tickerMap['BITHUMB:::KRW-' + sym] = entry;
+                }
+            });
+        }
+
+        // 4. Binance API Fallback for any coin not found in Upbit or Bithumb
         const missingMarkets = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
         if (missingMarkets.length > 0) {
             try {
@@ -808,7 +829,7 @@ const UpbitAPI = {
                 if (binanceRes.ok) {
                     const binanceData = await binanceRes.json();
                     if (Array.isArray(binanceData)) {
-                        const usdRate = 1450;
+                        const usdRate = 1380;
                         const binanceMap = {};
                         binanceData.forEach(b => {
                             if (b.symbol && b.symbol.endsWith('USDT')) {
@@ -839,13 +860,13 @@ const UpbitAPI = {
             }
         }
 
-        // 4. Fallback to Baseline prices for any remaining missing coins
+        // 5. Fallback to Baseline prices for any remaining missing coins
         krwMarkets.forEach(m => {
             const sym = m.replace('KRW-', '');
             if (!tickerMap[m] && this.fallbackPrices[sym]) {
                 const entry = {
                     tradePrice: this.fallbackPrices[sym],
-                    signedChangeRate: 0.025,
+                    signedChangeRate: 0.0,
                     accTradeVolume24h: 100000000,
                     timestamp: Date.now()
                 };
@@ -948,12 +969,12 @@ const UpbitAPI = {
                 change24hVal = (ticker.signedChangeRate || 0) * 100;
             } else if (this.fallbackPrices[symbol]) {
                 livePrice = this.fallbackPrices[symbol];
-                change24hVal = 2.0;
+                change24hVal = 0;
             } else if (parseFloat(coin.currentPrice) > 0) {
                 livePrice = parseFloat(coin.currentPrice);
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
-                livePrice = Math.round(parseFloat(coin.avgBuyPrice) * 1.05);
-                change24hVal = 1.5;
+                livePrice = parseFloat(coin.avgBuyPrice);
+                change24hVal = 0;
             }
 
             coin.currentPrice = livePrice;
