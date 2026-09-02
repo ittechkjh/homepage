@@ -1,3 +1,22 @@
+﻿
+// ==========================================
+// Firebase Database Configuration
+// ==========================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let db = null;
+if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined') {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+}
+// ==========================================
 
 // ----------------------------------------------------
 // Section 0: Theme Management Engine (Dark / Light)
@@ -1003,10 +1022,10 @@ function handleCafeSubmitPost(e) {
 
   const categoryNames = {
     general: '💬 자유 토론',
-    market: '📊 차트/기술적 분석',
-    altcoin: '🚀 알트코인 분석',
-    ico: '🪙 ICO / 신규 토큰',
-    qna: '❓ 초보 Q&A'
+    profit: '💵 실현손익',
+    altcoin: '🚀 알트코인',
+    trading: '📈 트레이딩자료',
+    feature: '💡 추가기능요청'
   };
 
   const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
@@ -2158,3 +2177,91 @@ window.addEventListener('hashchange', function () {
     switchTab(h, false);
   }
 });
+
+
+// Sync with Firestore
+if (db) {
+  db.collection('forum_posts').onSnapshot(snapshot => {
+    let posts = [];
+    snapshot.forEach(doc => {
+      posts.push(doc.data());
+    });
+    posts.sort((a,b) => b.id - a.id);
+    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+    if (typeof renderForumPosts === 'function') renderForumPosts();
+  });
+
+  db.collection('chat_messages').orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
+    let msgs = [];
+    snapshot.forEach(doc => {
+      msgs.push(doc.data());
+    });
+    if (msgs.length > 0) {
+      chatMessages = msgs;
+      localStorage.setItem('coinhub_chat_messages', JSON.stringify(msgs));
+    }
+    if (typeof renderChatMessages === 'function') renderChatMessages();
+  });
+} else {
+  try {
+    const localChat = localStorage.getItem('coinhub_chat_messages');
+    if (localChat) chatMessages = JSON.parse(localChat);
+  } catch(e) {}
+}
+
+
+
+// === FIREBASE OVERRIDES ===
+const originalSaveStoredPosts = saveStoredPosts;
+saveStoredPosts = function(posts) {
+  originalSaveStoredPosts(posts);
+  if (db) {
+    posts.forEach(post => {
+      db.collection('forum_posts').doc(post.id.toString()).set(post);
+    });
+  }
+};
+window.saveStoredPosts = saveStoredPosts;
+
+const originalHandleSendChat = handleSendChat;
+handleSendChat = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+  
+  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  let user = '익명 트레이더';
+  let rank = 'USER';
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.username) {
+        user = u.username;
+        rank = u.rank || 'USER';
+      }
+    } catch(err) {}
+  }
+  const now = new Date();
+  const timeStr = (now.getHours() >= 12 ? '오후 ' : '오전 ') + (now.getHours() > 12 ? now.getHours() - 12 : now.getHours()) + ':' + now.getMinutes().toString().padStart(2, '0');
+
+  const newMsg = {
+    id: Date.now(),
+    user: user,
+    rank: rank,
+    text: text,
+    time: timeStr
+  };
+  
+  chatMessages.push(newMsg);
+  if (input) input.value = '';
+  
+  if (db) {
+    db.collection('chat_messages').doc(newMsg.id.toString()).set(newMsg);
+  } else {
+    localStorage.setItem('coinhub_chat_messages', JSON.stringify(chatMessages));
+  }
+  renderChatMessages();
+};
+window.handleSendChat = handleSendChat;
+

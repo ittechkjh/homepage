@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko" class="dark">
 <head>
   <meta charset="UTF-8">
@@ -131,6 +131,9 @@
   
   <link rel="stylesheet" href="styles.css?v=1788190343898">
   <link rel="stylesheet" href="css/analyzer.css?v=1788190343898">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -536,11 +539,11 @@
         <div>
           <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
           <select id="edit-post-category-select" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
-            <option value="general">💬 자유 토론 (General Discussion)</option>
-            <option value="market">📊 차트 / 기술적 분석 (Technical Analysis)</option>
-            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
-            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
-            <option value="qna">❓ 초보 Q&A 코너</option>
+            <option value="general">💬 자유 토론</option>
+            <option value="profit">💵 실현손익</option>
+            <option value="altcoin">🚀 알트코인</option>
+            <option value="trading">📈 트레이딩자료</option>
+            <option value="feature">💡 추가기능요청</option>
           </select>
         </div>
 
@@ -687,11 +690,11 @@
         <div>
           <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리 선택</label>
           <select id="post-category-select" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
-            <option value="general">💬 자유 토론 (General Discussion)</option>
-            <option value="market">📊 차트 / 기술적 분석 (Technical Analysis)</option>
-            <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
-            <option value="ico">🪙 ICO / 신규 토큰 세일</option>
-            <option value="qna">❓ 초보 Q&A 코너</option>
+            <option value="general">💬 자유 토론</option>
+            <option value="profit">💵 실현손익</option>
+            <option value="altcoin">🚀 알트코인</option>
+            <option value="trading">📈 트레이딩자료</option>
+            <option value="feature">💡 추가기능요청</option>
           </select>
         </div>
 
@@ -1098,10 +1101,10 @@
           <div class="flex flex-wrap items-center gap-2" id="forum-category-filters">
             <button onclick="filterForum('all')" data-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition">전체</button>
             <button onclick="filterForum('general')" data-cat="general" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💬 자유 토론</button>
-            <button onclick="filterForum('market')" data-cat="market" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">📊 차트/분석</button>
+            <button onclick="filterForum('profit')" data-cat="profit" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💵 실현손익</button>
             <button onclick="filterForum('altcoin')" data-cat="altcoin" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">🚀 알트코인</button>
-            <button onclick="filterForum('ico')" data-cat="ico" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">🪙 ICO/신규</button>
-            <button onclick="filterForum('qna')" data-cat="qna" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">❓ 초보 Q&A</button>
+            <button onclick="filterForum('trading')" data-cat="trading" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">📈 트레이딩자료</button>
+            <button onclick="filterForum('feature')" data-cat="feature" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💡 추가기능요청</button>
           </div>
 
           <div class="flex items-center gap-2 self-end sm:self-auto text-xs">
@@ -1230,11 +1233,11 @@
           <div>
             <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
             <select id="cafe-write-category" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3.5 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
-              <option value="general">💬 자유 토론 (General Discussion)</option>
-              <option value="market">📊 차트 / 기술적 분석 (Technical Analysis)</option>
-              <option value="altcoin">🚀 알트코인 분석 (Altcoin Analysis)</option>
-              <option value="ico">🪙 ICO / 신규 토큰 세일</option>
-              <option value="qna">❓ 초보 Q&A 코너</option>
+              <option value="general">💬 자유 토론</option>
+            <option value="profit">💵 실현손익</option>
+            <option value="altcoin">🚀 알트코인</option>
+            <option value="trading">📈 트레이딩자료</option>
+            <option value="feature">💡 추가기능요청</option>
             </select>
           </div>
 
@@ -3303,3 +3306,5 @@
     });
   </script>
 </html>
+
+
