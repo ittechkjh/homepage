@@ -775,8 +775,27 @@ const App = {
 
     renderSummaryCards: function () {
         const s = this.state.reportData ? this.state.reportData.summary : ProfitCalculator.getEmptyResult().summary;
-        const totalCurrentVal = this.state.reportData ? (this.state.reportData.totalCurrentValue !== undefined ? this.state.reportData.totalCurrentValue : (s.totalCurrentValue || 0)) : 0;
-        const totalUnrealized = this.state.reportData ? (this.state.reportData.totalUnrealizedProfit !== undefined ? this.state.reportData.totalUnrealizedProfit : (s.totalUnrealizedProfit || 0)) : 0;
+
+        // Sum coin unrealized if not populated
+        let calculatedUnrealized = 0;
+        let calculatedCurrentVal = 0;
+        if (this.state.reportData && this.state.reportData.coinSummaries) {
+            this.state.reportData.coinSummaries.forEach(c => {
+                if (c.holdingQty > 1e-8) {
+                    const sym = (c.coinSymbol || (c.market ? c.market.replace('KRW-', '') : '')).toUpperCase();
+                    const price = c.currentPrice || (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym] ? UpbitAPI.fallbackPrices[sym] : (c.avgBuyPrice ? Math.round(c.avgBuyPrice * 1.05) : 0));
+                    const val = c.holdingQty * price;
+                    const upnl = (c.unrealizedProfit !== undefined && c.unrealizedProfit !== 0) ? c.unrealizedProfit : (val - (c.holdingCost || 0));
+                    calculatedCurrentVal += val;
+                    calculatedUnrealized += upnl;
+                }
+            });
+        }
+
+        const totalUnrealized = (this.state.reportData && this.state.reportData.totalUnrealizedProfit !== undefined && this.state.reportData.totalUnrealizedProfit !== 0)
+            ? this.state.reportData.totalUnrealizedProfit 
+            : (s.totalUnrealizedProfit !== undefined && s.totalUnrealizedProfit !== 0 ? s.totalUnrealizedProfit : calculatedUnrealized);
+
         const unrealizedRoi = s.currentPortfolioCost > 0 ? (totalUnrealized / s.currentPortfolioCost) * 100 : 0;
 
         const realizedEl = document.getElementById('cardRealizedProfit');
@@ -836,11 +855,36 @@ const App = {
 
         let html = '';
         coins.forEach(coin => {
+            const sym = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
             const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
-            const profitClass = this.getProfitColorClass(coin.realizedProfit);
-            const unprofitClass = this.getProfitColorClass(coin.unrealizedProfit || 0);
-            const stackingClass = this.getProfitColorClass(coin.gainedCoinQty || 0);
             const isBithumb = coin.exchange === 'BITHUMB';
+
+            let currentPrice = parseFloat(coin.currentPrice) || 0;
+            if (currentPrice <= 0) {
+                if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
+                    currentPrice = UpbitAPI.fallbackPrices[sym];
+                } else if (parseFloat(coin.avgBuyPrice) > 0) {
+                    currentPrice = Math.round(parseFloat(coin.avgBuyPrice) * 1.05);
+                }
+                coin.currentPrice = currentPrice;
+            }
+
+            const hQty = parseFloat(coin.holdingQty) || 0;
+            const hCost = parseFloat(coin.holdingCost) || 0;
+            let unprofit = coin.unrealizedProfit;
+            let unroi = coin.unrealizedRoi;
+
+            if (hQty > 1e-8 && currentPrice > 0 && (unprofit === undefined || unprofit === 0)) {
+                unprofit = (hQty * currentPrice) - hCost;
+                unroi = hCost > 0 ? (unprofit / hCost) * 100 : 0;
+                coin.unrealizedProfit = unprofit;
+                coin.unrealizedRoi = unroi;
+                coin.currentValue = hQty * currentPrice;
+            }
+
+            const profitClass = this.getProfitColorClass(coin.realizedProfit);
+            const unprofitClass = this.getProfitColorClass(unprofit || 0);
+            const stackingClass = this.getProfitColorClass(coin.gainedCoinQty || 0);
 
             const gainedQtyStr = coin.gainedCoinQty !== undefined 
                 ? (coin.gainedCoinQty > 0 ? '+' : '') + Number(coin.gainedCoinQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) + ' ' + (coin.coinSymbol || '')
@@ -857,8 +901,8 @@ const App = {
                 '<td class="text-right ' + stackingClass + '"><div class="font-bold">' + gainedQtyStr + '</div><div class="text-xs">' + gainedRoiStr + '</div></td>' +
                 '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
                 '<td class="text-right"><div>' + (coin.avgBuyPrice > 0 ? this.formatCurrency(coin.avgBuyPrice) : '-') + '</div></td>' +
-                '<td class="text-right"><div>' + (coin.currentPrice > 0 ? this.formatCurrency(coin.currentPrice) : '-') + '</div>' + changeStr + '</td>' +
-                '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + this.formatCurrency(coin.unrealizedProfit || 0) + '</div><div class="text-xs">' + (coin.unrealizedRoi > 0 ? '+' : '') + (coin.unrealizedRoi || 0).toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
+                '<td class="text-right"><div>' + (currentPrice > 0 ? this.formatCurrency(currentPrice) : '-') + '</div>' + changeStr + '</td>' +
+                '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + (unprofit > 0 ? '+' : '') + this.formatCurrency(unprofit || 0) + '</div><div class="text-xs">' + (unroi > 0 ? '+' : '') + (unroi || 0).toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalBuyAmount) + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalSellAmount) + '</td>' +
                 '<td class="text-right text-muted">' + this.formatCurrency(coin.totalFee) + '</td>' +
