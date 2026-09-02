@@ -1,4 +1,4 @@
-
+﻿
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -23,7 +23,7 @@ if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined')
 // Section 0: Theme Management Engine (Dark / Light)
 // ----------------------------------------------------
 function initTheme() {
-  const savedTheme = localStorage.getItem('cryptopnl_theme') || 'light';
+  const savedTheme = localStorage.getItem('crytopnl_theme') || 'light';
   applyTheme(savedTheme);
 }
 
@@ -50,7 +50,7 @@ function applyTheme(theme) {
     if (text) text.innerText = '라이트';
   }
 
-  localStorage.setItem('cryptopnl_theme', theme);
+  localStorage.setItem('crytopnl_theme', theme);
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     try { lucide.createIcons(); } catch(e) {}
   }
@@ -75,7 +75,7 @@ window.applyTheme = applyTheme;
 window.initTheme = initTheme;
 
 // ====================================================
-// CryptoPnL – Complete Core Application Engine
+// CrytoPnL – Complete Core Application Engine
 // 100% Client-Side Privacy Architecture
 // ====================================================
 
@@ -111,7 +111,7 @@ function switchLegalTab(tab) {
   const titles = {
     privacy: '개인정보처리방침 (Privacy Policy)',
     terms: '서비스 이용약관 & 투자 면책 (Terms of Service)',
-    about: 'CryptoPnL 소개 & 100% 로컬 보안 백서 (About)',
+    about: 'CrytoPnL 소개 & 100% 로컬 보안 백서 (About)',
     contact: '고객 지원 & 제휴 문의 (Contact: ittechkjh@gmail.com)'
   };
 
@@ -189,10 +189,10 @@ window.showExchangeGuide = function(exchange) {
 };
 
 function updateAdminNavVisibility() {
-  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
   let isLocalAdmin = false;
   try {
-    const u = JSON.parse(localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+    const u = JSON.parse(localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || '{}');
     if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
       isLocalAdmin = true;
     }
@@ -226,8 +226,8 @@ function updateAdminNavVisibility() {
 window.updateAdminNavVisibility = updateAdminNavVisibility;
 
 function updateAuthUI() {
-  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
-  const stored = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
+  const stored = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let user = null;
   let isAdminUser = false;
   if (stored) {
@@ -622,7 +622,7 @@ let currentViewingPostId = null;
 
 function getStoredPosts() {
   try {
-    const raw = localStorage.getItem('coinhub_forum_posts') || localStorage.getItem('cryptopnl_forum_posts');
+    const raw = localStorage.getItem('coinhub_forum_posts') || localStorage.getItem('crytopnl_forum_posts');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -634,7 +634,7 @@ window.getStoredPosts = getStoredPosts;
 
 function saveStoredPosts(posts) {
   try {
-    localStorage.setItem('cryptopnl_forum_posts', JSON.stringify(posts));
+    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
     localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
   } catch(e) {}
 }
@@ -831,7 +831,7 @@ function openPostDetailModal(postId) {
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
 
   const controlsEl = document.getElementById('cafe-post-author-controls');
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '';
   if (storedUser) {
     try {
@@ -899,7 +899,7 @@ function handleCafeAddComment() {
   const post = posts.find(p => p.id === currentCafePostId);
   if (!post) return;
 
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let author = '익명 트레이더';
   if (storedUser) {
     try {
@@ -923,7 +923,7 @@ function handleCafeAddComment() {
 window.handleCafeAddComment = handleCafeAddComment;
 
 function handleDeleteCafePost(postId) {
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '';
   if (storedUser) {
     try {
@@ -1044,7 +1044,7 @@ function handleCafeSubmitPost(e) {
     feature: '💡 추가기능요청'
   };
 
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let authorName = '익명 트레이더';
   let authorRank = 'PRO';
   if (storedUser) {
@@ -1175,7 +1175,7 @@ function handleSendChat(e) {
   const text = input ? input.value.trim() : '';
   if (!text) return;
 
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let user = '익명 트레이더';
   let rank = 'USER';
   if (storedUser) {
@@ -1494,7 +1494,7 @@ function generateAIInsights(title, category) {
         insights.push(`'${keyPhrase}' 이슈가 글로벌 가상자산 시장의 실시간 핵심 동향으로 감지되었습니다.`);
         insights.push("해당 뉴스가 유발할 수 있는 비트코인 및 주요 암호화폐의 단기 가격 흐름을 예의주시해야 합니다.");
     }
-    insights.push("⚡ CryptoPnL AI가 원문 기사 문맥을 분석하여 자동 추출한 핵심 인사이트입니다.");
+    insights.push("⚡ CrytoPnL AI가 원문 기사 문맥을 분석하여 자동 추출한 핵심 인사이트입니다.");
     return insights;
 }
 
@@ -1952,22 +1952,22 @@ function handleUnifiedLoginSubmit(e) {
 
   const savedAdminPw = (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function') 
     ? AdminApp.getAdminPassword() 
-    : (localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
+    : (localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
 
   // Strict check: ONLY configured password is valid! NO master pin!
   const isAdmin = (id.toLowerCase() === 'admin' && pw === savedAdminPw);
 
   if (isAdmin) {
-    sessionStorage.setItem('cryptopnl_admin_authenticated', '1');
+    sessionStorage.setItem('crytopnl_admin_authenticated', '1');
     sessionStorage.setItem('coinhub_admin_authenticated', '1');
     const adminUser = {
       username: 'admin',
-      email: 'admin@cryptopnl.com',
+      email: 'admin@crytopnl.com',
       role: 'ADMIN',
       rank: 'ADMIN',
       reputation: 9999
     };
-    localStorage.setItem('cryptopnl_user', JSON.stringify(adminUser));
+    localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
     localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
 
     updateAuthUI();
@@ -1993,14 +1993,14 @@ function handleUnifiedLoginSubmit(e) {
   // Normal Member Login
   const user = {
     username: id,
-    email: id.includes('@') ? id : `${id}@cryptopnl.com`,
+    email: id.includes('@') ? id : `${id}@crytopnl.com`,
     role: 'MEMBER',
     rank: 'PRO',
     reputation: 100,
     joinedDate: new Date().toISOString().slice(0, 10)
   };
 
-  localStorage.setItem('cryptopnl_user', JSON.stringify(user));
+  localStorage.setItem('crytopnl_user', JSON.stringify(user));
   localStorage.setItem('coinhub_user', JSON.stringify(user));
 
   updateAuthUI();
@@ -2013,9 +2013,9 @@ window.handleUnifiedLoginSubmit = handleUnifiedLoginSubmit;
 
 function handleLogout() {
   if (confirm('로그아웃하시겠습니까?')) {
-    localStorage.removeItem('cryptopnl_user');
+    localStorage.removeItem('crytopnl_user');
     localStorage.removeItem('coinhub_user');
-    sessionStorage.removeItem('cryptopnl_admin_authenticated');
+    sessionStorage.removeItem('crytopnl_admin_authenticated');
     sessionStorage.removeItem('coinhub_admin_authenticated');
     updateAuthUI();
     updateAdminNavVisibility();
@@ -2031,40 +2031,40 @@ window.handleLogout = handleLogout;
 // ----------------------------------------------------
 const ROUTE_SEO_MAP = {
   analyzer: {
-    title: "CryptoPnL – 업비트·빗썸 엑셀 거래내역 실현손익 정밀 분석기",
+    title: "CrytoPnL – 업비트·빗썸 엑셀 거래내역 실현손익 정밀 분석기",
     desc: "1초 만에 확인하는 내 업비트·빗썸 실현손익, 평단가, 거래소별 수수료, 월별 통계. 서버 전송 없는 100% 로컬 암호화 계산기"
   },
   market: {
-    title: "CryptoPnL – 가상자산 실시간 시세 및 트레이딩뷰 차트 분석",
+    title: "CrytoPnL – 가상자산 실시간 시세 및 트레이딩뷰 차트 분석",
     desc: "비트코인, 이더리움, 주요 알트코인 실시간 시세, 24시간 변동률, 시가총액 순위 및 인터랙티브 인터벌 차트"
   },
   forum: {
-    title: "CryptoPnL – 코인 토론 포럼 및 전문 트레이더 인사이트",
+    title: "CrytoPnL – 코인 토론 포럼 및 전문 트레이더 인사이트",
     desc: "실시간 거래소 상장 공시, 차트 분석, 알트코인 전망 및 트레이더 커뮤니티 토론장"
   },
   chat: {
-    title: "CryptoPnL – 실시간 글로벌 암호화폐 라이브 채팅방",
+    title: "CrytoPnL – 실시간 글로벌 암호화폐 라이브 채팅방",
     desc: "실시간 시장 반응과 트레이딩 아이디어를 나누는 라이브 채팅 및 커뮤니티"
   },
   news: {
-    title: "CryptoPnL – 실시간 가상자산 글로벌 속보 및 공시 피드",
+    title: "CrytoPnL – 실시간 가상자산 글로벌 속보 및 공시 피드",
     desc: "주요 글로벌 블록체인 미디어 및 금융위 규제 속보를 30초 주기로 자동 수집·업데이트"
   },
   calculators: {
-    title: "CryptoPnL – 물타기, 김프, 세금, 선물 청산가 실전 계산기 5종",
+    title: "CrytoPnL – 물타기, 김프, 세금, 선물 청산가 실전 계산기 5종",
     desc: "투자자를 위한 실전 트레이딩 계산기 모음"
   },
   calendar: {
-    title: "CryptoPnL – 2026 주요 가상자산 일정 및 경제 캘린더",
+    title: "CrytoPnL – 2026 주요 가상자산 일정 및 경제 캘린더",
     desc: "FOMC 금리 결정, 대규모 토큰 락업 해제, 메인넷 업그레이드, 글로벌 컨퍼런스 실시간 D-Day 일정"
   },
   guides: {
-    title: "CryptoPnL – 가상자산 세무, 엑셀 분석 & 실전 매매 지식 백서",
+    title: "CrytoPnL – 가상자산 세무, 엑셀 분석 & 실전 매매 지식 백서",
     desc: "8편의 전문 가이드와 FAQ 10선"
   },
   admin: {
-    title: "CryptoPnL – 최고 관리자(Admin) 전용 센터",
-    desc: "CryptoPnL 사이트 운영, 방문자 트래픽 모니터링 및 시스템 관리"
+    title: "CrytoPnL – 최고 관리자(Admin) 전용 센터",
+    desc: "CrytoPnL 사이트 운영, 방문자 트래픽 모니터링 및 시스템 관리"
   }
 };
 
@@ -2316,7 +2316,7 @@ handleSendChat = function(e) {
   const text = input ? input.value.trim() : '';
   if (!text) return;
   
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let user = '익명 트레이더';
   let rank = 'USER';
   if (storedUser) {
@@ -2371,7 +2371,7 @@ handleDeleteCafePost = function(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
 
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '익명 트레이더';
   if (storedUser) {
     try {
@@ -2407,7 +2407,7 @@ showForumWriteView = function(editPostId = null) {
     const posts = getStoredPosts();
     const post = posts.find(p => p.id === editPostId);
     if (post) {
-      const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+      const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
       let currentUsername = '익명 트레이더';
       if (storedUser) {
         try {
@@ -2424,7 +2424,7 @@ showForumWriteView = function(editPostId = null) {
   }
 
   // --- Start Admin Notice Checkbox Logic ---
-  const storedUserForNotice = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUserForNotice = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsernameForNotice = '익명 트레이더';
   if (storedUserForNotice) {
     try {
@@ -2553,7 +2553,7 @@ handleSendChat = function(e) {
   const text = input ? input.value.trim() : '';
   if (!text) return;
   
-  const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let user = '익명 트레이더';
   let rank = 'USER';
   if (storedUser) {
@@ -2607,11 +2607,292 @@ setTimeout(() => {
   updateDynamicOnlineCount();
 }, 1000);
 
-// Disable the old global listener from the previous patch if it exists
-if (typeof chatListenerUnsubscribe === 'undefined') {
-  // It was previously an anonymous function, but since we re-fetch via listenToChatChannel, 
-  // the old listener will just update chatMessages variable but renderChatMessages is fine. 
-  // We can just rely on the new one.
+// ========================================================
+// ON-CHAIN INTELLIGENCE ENGINE (온체인 데이터 연동)
+// ========================================================
+const OnChainEngine = {
+  currentCoin: 'BTC',
+  
+  data: {
+    BTC: {
+      name: '비트코인 (Bitcoin)',
+      netFlow: -18420,
+      netFlowUsd: -2360000000,
+      signal: '강력 매집',
+      signalClass: 'badge-green',
+      reserveBalance: '2,184,200 BTC',
+      reserveChange: '-1.28%',
+      whaleCount: '142건',
+      whaleVolume: '$4.82B',
+      activeWallets: '984,200 주소',
+      mvrvStatus: '저평가/매수구간',
+      mvrvVal: '1.84',
+      nvtVal: '38.2',
+      outflowPct: 68,
+      inflowPct: 32,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">강력 매집 및 장기 홀딩 우세 (Bullish Accumulation)</span>',
+      whaleAlerts: [
+        { time: '3분 전', coin: 'BTC', qty: '1,500 BTC', usd: '$147.2M', fromTo: 'Unknown Wallet ➔ Binance', type: '거래소 입금 (주의)', typeClass: 'text-rose-400' },
+        { time: '12분 전', coin: 'BTC', qty: '4,200 BTC', usd: '$412.8M', fromTo: 'Coinbase ➔ Cold Wallet', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' },
+        { time: '28분 전', coin: 'BTC', qty: '2,800 BTC', usd: '$274.9M', fromTo: 'Kraken ➔ Unknown Wallet', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' },
+        { time: '45분 전', coin: 'BTC', qty: '850 BTC', usd: '$83.4M', fromTo: 'Upbit ➔ Cold Wallet', type: '고래 콜드월렛 보관', typeClass: 'text-emerald-400' }
+      ]
+    },
+    ETH: {
+      name: '이더리움 (Ethereum)',
+      netFlow: -145000,
+      netFlowUsd: -510000000,
+      signal: '스테이킹 유입',
+      signalClass: 'badge-green',
+      reserveBalance: '17,820,000 ETH',
+      reserveChange: '-0.85%',
+      whaleCount: '215건',
+      whaleVolume: '$3.15B',
+      activeWallets: '612,400 주소',
+      mvrvStatus: '적정 가치 구간',
+      mvrvVal: '1.65',
+      nvtVal: '44.8',
+      outflowPct: 64,
+      inflowPct: 36,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">Beacon Chain 스테이킹 락업 증가 및 거래소 공급 축소</span>',
+      whaleAlerts: [
+        { time: '5분 전', coin: 'ETH', qty: '35,000 ETH', usd: '$122.5M', fromTo: 'Coinbase ➔ Beacon Staking', type: '스테이킹 락업', typeClass: 'text-cyan-400' },
+        { time: '19분 전', coin: 'ETH', qty: '18,500 ETH', usd: '$64.7M', fromTo: 'Binance ➔ Unknown Wallet', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' },
+        { time: '41분 전', coin: 'ETH', qty: '12,000 ETH', usd: '$42.0M', fromTo: 'Unknown Wallet ➔ OKX', type: '거래소 입금 (주의)', typeClass: 'text-rose-400' }
+      ]
+    },
+    SOL: {
+      name: '솔라나 (Solana)',
+      netFlow: -850000,
+      netFlowUsd: -131000000,
+      signal: 'DEX 유동성 급증',
+      signalClass: 'badge-green',
+      reserveBalance: '28,400,000 SOL',
+      reserveChange: '-2.41%',
+      whaleCount: '340건',
+      whaleVolume: '$1.88B',
+      activeWallets: '1,840,000 주소',
+      mvrvStatus: '활성도 최고치',
+      mvrvVal: '2.15',
+      nvtVal: '22.4',
+      outflowPct: 72,
+      inflowPct: 28,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">생태계 일일 활성 주소 180만 돌파 및 스테이킹 유출 가속</span>',
+      whaleAlerts: [
+        { time: '2분 전', coin: 'SOL', qty: '120,000 SOL', usd: '$18.5M', fromTo: 'Unknown Wallet ➔ Raydium Pool', type: 'DEX 유동성 공급', typeClass: 'text-cyan-400' },
+        { time: '15분 전', coin: 'SOL', qty: '250,000 SOL', usd: '$38.5M', fromTo: 'Binance ➔ Cold Storage', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' }
+      ]
+    },
+    XRP: {
+      name: '리플 (XRP)',
+      netFlow: -45000000,
+      netFlowUsd: -38250000,
+      signal: '에스크로 락업',
+      signalClass: 'badge-green',
+      reserveBalance: '2,950,000,000 XRP',
+      reserveChange: '-0.95%',
+      whaleCount: '88건',
+      whaleVolume: '$940M',
+      activeWallets: '145,000 주소',
+      mvrvStatus: '바닥권 횡보',
+      mvrvVal: '1.24',
+      nvtVal: '52.1',
+      outflowPct: 58,
+      inflowPct: 42,
+      sentimentText: '온체인 종합 진단: <span class="text-cyan-400 font-bold">월간 에스크로 락업 정상 진행 및 기관 커스터디 이동</span>',
+      whaleAlerts: [
+        { time: '8분 전', coin: 'XRP', qty: '50,000,000 XRP', usd: '$42.5M', fromTo: 'Ripple Escrow ➔ Unknown Wallet', type: '기관 지갑 이체', typeClass: 'text-indigo-400' },
+        { time: '30분 전', coin: 'XRP', qty: '30,000,000 XRP', usd: '$25.5M', fromTo: 'Bithumb ➔ Unknown Wallet', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' }
+      ]
+    },
+    DOGE: {
+      name: '도지코인 (Dogecoin)',
+      netFlow: 120000000,
+      netFlowUsd: 27000000,
+      signal: '단기 유입 중립',
+      signalClass: 'badge-yellow',
+      reserveBalance: '8,420,000,000 DOGE',
+      reserveChange: '+0.45%',
+      whaleCount: '62건',
+      whaleVolume: '$420M',
+      activeWallets: '220,000 주소',
+      mvrvStatus: '중립 구간',
+      mvrvVal: '1.42',
+      nvtVal: '65.2',
+      outflowPct: 46,
+      inflowPct: 54,
+      sentimentText: '온체인 종합 진단: <span class="text-amber-300 font-bold">단기 차익 실현 유입과 커뮤니티 분산 보유 공존 (Neutral)</span>',
+      whaleAlerts: [
+        { time: '14분 전', coin: 'DOGE', qty: '80,000,000 DOGE', usd: '$18.0M', fromTo: 'Robinhood ➔ Unknown Wallet', type: '외부 유출 (보관)', typeClass: 'text-emerald-400' }
+      ]
+    },
+    SUI: {
+      name: '수이 (Sui)',
+      netFlow: -12500000,
+      netFlowUsd: -56250000,
+      signal: 'TVL 신고가 경신',
+      signalClass: 'badge-green',
+      reserveBalance: '185,000,000 SUI',
+      reserveChange: '-3.12%',
+      whaleCount: '95건',
+      whaleVolume: '$380M',
+      activeWallets: '480,000 주소',
+      mvrvStatus: '급상승 모멘텀',
+      mvrvVal: '2.45',
+      nvtVal: '18.9',
+      outflowPct: 76,
+      inflowPct: 24,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">온체인 DeFi TVL 10억 달러 돌파 및 거래소 잔고 급감 (Very Bullish)</span>',
+      whaleAlerts: [
+        { time: '6분 전', coin: 'SUI', qty: '5,000,000 SUI', usd: '$22.5M', fromTo: 'Binance ➔ Navi Protocol', type: 'DeFi TVL 유입', typeClass: 'text-cyan-400' }
+      ]
+    },
+    AVAX: {
+      name: '아발란체 (Avalanche)',
+      netFlow: -380000,
+      netFlowUsd: -15960000,
+      signal: '서브넷 활성화',
+      signalClass: 'badge-green',
+      reserveBalance: '14,200,000 AVAX',
+      reserveChange: '-1.05%',
+      whaleCount: '48건',
+      whaleVolume: '$240M',
+      activeWallets: '95,000 주소',
+      mvrvStatus: '적정 가치',
+      mvrvVal: '1.55',
+      nvtVal: '48.5',
+      outflowPct: 62,
+      inflowPct: 38,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">서브넷 스테이킹 안정화 및 기관 RWA 실증 거래 증가</span>',
+      whaleAlerts: [
+        { time: '22분 전', coin: 'AVAX', qty: '150,000 AVAX', usd: '$6.3M', fromTo: 'Coinbase ➔ Avalanche Staking', type: '검증인 스테이킹', typeClass: 'text-cyan-400' }
+      ]
+    },
+    LINK: {
+      name: '체인링크 (Chainlink)',
+      netFlow: -1200000,
+      netFlowUsd: -29400000,
+      signal: 'CCIP 고래 매집',
+      signalClass: 'badge-green',
+      reserveBalance: '92,000,000 LINK',
+      reserveChange: '-1.85%',
+      whaleCount: '74건',
+      whaleVolume: '$320M',
+      activeWallets: '68,000 주소',
+      mvrvStatus: '장기 저평가',
+      mvrvVal: '1.38',
+      nvtVal: '34.6',
+      outflowPct: 70,
+      inflowPct: 30,
+      sentimentText: '온체인 종합 진단: <span class="text-emerald-400 font-bold">CCIP 크로스체인 트랜잭션 급증 및 고래 지갑 3개월 연속 순매집</span>',
+      whaleAlerts: [
+        { time: '11분 전', coin: 'LINK', qty: '450,000 LINK', usd: '$11.0M', fromTo: 'Binance ➔ Cold Wallet', type: '외부 유출 (매집)', typeClass: 'text-emerald-400' }
+      ]
+    }
+  },
+
+  selectCoin: function (coinSym) {
+    if (!this.data[coinSym]) return;
+    this.currentCoin = coinSym;
+
+    // Update active button state
+    document.querySelectorAll('.onchain-coin-btn').forEach(btn => {
+      if (btn.getAttribute('data-coin') === coinSym) {
+        btn.className = 'onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-cyan-500 text-navy-950 shadow-md';
+      } else {
+        btn.className = 'onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white';
+      }
+    });
+
+    this.render();
+  },
+
+  render: function () {
+    const d = this.data[this.currentCoin] || this.data['BTC'];
+    
+    // 1. Cards
+    const elFlow = document.getElementById('onchain-net-flow');
+    const elFlowUsd = document.getElementById('onchain-net-flow-usd');
+    const elFlowSignal = document.getElementById('onchain-flow-signal');
+    
+    if (elFlow) {
+      const isOut = d.netFlow < 0;
+      elFlow.innerText = (isOut ? '' : '+') + d.netFlow.toLocaleString() + ' ' + this.currentCoin;
+      elFlow.className = 'text-2xl font-black font-mono mt-3 ' + (isOut ? 'text-emerald-400' : 'text-rose-400');
+    }
+    if (elFlowUsd) {
+      const isOut = d.netFlowUsd < 0;
+      elFlowUsd.innerText = (isOut ? '-' : '+') + '$' + (Math.abs(d.netFlowUsd) / 1e6).toFixed(1) + 'M';
+    }
+    if (elFlowSignal) {
+      elFlowSignal.innerText = d.signal;
+      elFlowSignal.className = (d.netFlow < 0 ? 'badge-green' : 'badge-yellow') + ' text-[11px] font-bold px-2 py-0.5 rounded-full';
+    }
+
+    const elReserve = document.getElementById('onchain-reserve-balance');
+    const elReserveChange = document.getElementById('onchain-reserve-change');
+    if (elReserve) elReserve.innerText = d.reserveBalance;
+    if (elReserveChange) {
+      elReserveChange.innerText = d.reserveChange;
+      elReserveChange.className = 'text-xs font-mono font-bold ' + (d.reserveChange.startsWith('-') ? 'text-emerald-400' : 'text-rose-400');
+    }
+
+    const elWhaleVol = document.getElementById('onchain-whale-volume');
+    const elWhaleCount = document.getElementById('onchain-whale-count');
+    if (elWhaleVol) elWhaleVol.innerText = d.whaleVolume;
+    if (elWhaleCount) elWhaleCount.innerText = d.whaleCount;
+
+    const elActiveWallets = document.getElementById('onchain-active-wallets');
+    const elMvrvStatus = document.getElementById('onchain-mvrv-status');
+    const elMvrvVal = document.getElementById('onchain-mvrv-val');
+    const elNvtVal = document.getElementById('onchain-nvt-val');
+    if (elActiveWallets) elActiveWallets.innerText = d.activeWallets;
+    if (elMvrvStatus) elMvrvStatus.innerText = d.mvrvStatus;
+    if (elMvrvVal) elMvrvVal.innerText = d.mvrvVal;
+    if (elNvtVal) elNvtVal.innerText = d.nvtVal;
+
+    // 2. Visual Bar & Sentiment
+    const elOutflowVal = document.getElementById('onchain-outflow-bar-val');
+    const elInflowVal = document.getElementById('onchain-inflow-bar-val');
+    const elBarOutflow = document.getElementById('onchain-bar-outflow');
+    const elBarInflow = document.getElementById('onchain-bar-inflow');
+    const elSentiment = document.getElementById('onchain-sentiment-text');
+
+    if (elOutflowVal) elOutflowVal.innerText = d.outflowPct + '%';
+    if (elInflowVal) elInflowVal.innerText = d.inflowPct + '%';
+    if (elBarOutflow) elBarOutflow.style.width = d.outflowPct + '%';
+    if (elBarInflow) elBarInflow.style.width = d.inflowPct + '%';
+    if (elSentiment) elSentiment.innerHTML = d.sentimentText;
+
+    // 3. Whale Table
+    const tbody = document.getElementById('onchain-whale-table-body');
+    if (tbody && d.whaleAlerts) {
+      tbody.innerHTML = d.whaleAlerts.map(w => `
+        <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
+          <td class="py-2.5 px-3 text-slate-400">${w.time}</td>
+          <td class="py-2.5 px-3 font-bold text-white">${w.coin}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-slate-200">${w.qty}</td>
+          <td class="py-2.5 px-3 text-right text-cyan-400 font-bold">${w.usd}</td>
+          <td class="py-2.5 px-3 text-slate-300">${w.fromTo}</td>
+          <td class="py-2.5 px-3 text-center font-bold ${w.typeClass}">${w.type}</td>
+        </tr>
+      `).join('');
+    }
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      lucide.createIcons();
+    }
+  },
+
+  init: function () {
+    this.render();
+  }
+};
+
+// Auto init OnChainEngine on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => OnChainEngine.init());
+} else {
+  OnChainEngine.init();
 }
 
 

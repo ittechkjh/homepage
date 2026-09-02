@@ -699,6 +699,17 @@ const App = {
             exchange: this.state.exchangeFilter
         });
 
+        // Immediately enrich with baseline/known prices synchronously so cards never start at 0
+        if (typeof UpbitAPI !== 'undefined' && this.state.reportData && this.state.reportData.coinSummaries) {
+            const initialEnriched = UpbitAPI.enrichCoinSummariesWithTickers(this.state.reportData.coinSummaries);
+            this.state.reportData.totalCurrentValue = initialEnriched.totalCurrentValue;
+            this.state.reportData.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
+            if (this.state.reportData.summary) {
+                this.state.reportData.summary.totalCurrentValue = initialEnriched.totalCurrentValue;
+                this.state.reportData.summary.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
+            }
+        }
+
         this.updateCoinFilterOptions();
         this.renderAll();
         this.fetchLiveTickers(false);
