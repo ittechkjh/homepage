@@ -827,7 +827,7 @@ function openPostDetailModal(postId) {
   }
 
   // Strictly ONLY the author who wrote this post can edit or delete!
-  const isAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase());
+  const isAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase()) || (typeof isAdmin === 'function' && isAdmin(currentUsername));
 
   if (controlsEl) {
     if (isAuthor) {
@@ -2355,7 +2355,7 @@ function setupChatChannels() {
   const chatHeader = document.querySelector('#tab-chat h3.text-white');
   if (!chatHeader) return;
   
-  const buttonsContainer = chatHeader.closest('.lg\\\\:col-span-3').previousElementSibling;
+  const buttonsContainer = chatHeader.closest('.lg\\:col-span-3').previousElementSibling;
   if (buttonsContainer) {
     const buttons = buttonsContainer.querySelectorAll('button');
     if (buttons.length >= 3) {
@@ -2468,9 +2468,8 @@ handleSendChat = function(e) {
 function updateDynamicOnlineCount() {
   const el = document.getElementById('online-count');
   if (el) {
-    const baseCount = currentChatChannel === 'global' ? 45 : (currentChatChannel === 'trading' ? 32 : 18);
-    const fluctuation = Math.floor(Math.random() * 5) - 2; // -2 to +2
-    const finalCount = Math.max(1, baseCount + fluctuation);
+    const userList = document.getElementById('chat-active-users-list');
+    const finalCount = userList ? userList.children.length : 1;
     el.innerText = finalCount + '명 접속중';
   }
 }
@@ -2489,4 +2488,6 @@ if (typeof chatListenerUnsubscribe === 'undefined') {
   // the old listener will just update chatMessages variable but renderChatMessages is fine. 
   // We can just rely on the new one.
 }
+
+
 
