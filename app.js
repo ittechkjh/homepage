@@ -3,12 +3,13 @@
 // Firebase Database Configuration
 // ==========================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y",
+  authDomain: "homepage-437c0.firebaseapp.com",
+  projectId: "homepage-437c0",
+  storageBucket: "homepage-437c0.firebasestorage.app",
+  messagingSenderId: "999961105878",
+  appId: "1:999961105878:web:553876dfcfc35b3c1ac077",
+  measurementId: "G-9MPWPYW0MK"
 };
 
 let db = null;
@@ -2264,4 +2265,6 @@ handleSendChat = function(e) {
   renderChatMessages();
 };
 window.handleSendChat = handleSendChat;
+
+
 
