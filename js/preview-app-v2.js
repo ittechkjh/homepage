@@ -1033,7 +1033,8 @@ function handleCafeSubmitPost(e) {
     profit: '💵 실현손익',
     altcoin: '🚀 알트코인',
     trading: '📈 트레이딩자료',
-    feature: '💡 추가기능요청'
+    feature: '💡 추가기능요청',
+    notice: '📢 공지사항'
   };
 
   const storedUser = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
@@ -2412,6 +2413,36 @@ showForumWriteView = function(editPostId = null) {
       }
     }
   }
+
+  // --- Start Admin Notice Category Logic ---
+  const storedUserForNotice = localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user');
+  let currentUsernameForNotice = '익명 트레이더';
+  if (storedUserForNotice) {
+    try {
+      const u = JSON.parse(storedUserForNotice);
+      if (u && u.username) currentUsernameForNotice = u.username;
+    } catch(e) {}
+  }
+  
+  const catSelect = document.getElementById('cafe-write-category');
+  if (catSelect) {
+    let noticeOption = Array.from(catSelect.options).find(opt => opt.value === 'notice');
+    if (typeof isAdmin === 'function' && isAdmin(currentUsernameForNotice)) {
+      if (!noticeOption) {
+        noticeOption = document.createElement('option');
+        noticeOption.value = 'notice';
+        noticeOption.innerText = '📢 공지사항';
+        catSelect.insertBefore(noticeOption, catSelect.firstChild);
+      }
+    } else {
+      if (noticeOption) {
+        catSelect.removeChild(noticeOption);
+      }
+      if (catSelect.value === 'notice') catSelect.value = 'general';
+    }
+  }
+  // --- End Admin Notice Category Logic ---
+
   originalShowForumWriteView(editPostId);
 };
 window.showForumWriteView = showForumWriteView;
