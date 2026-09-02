@@ -1170,7 +1170,11 @@ window.renderChatMessages = renderChatMessages;
 
 function renderChatActiveUsers() {
   const el = document.getElementById('online-count') || document.getElementById('chat-online-count');
-  if (el) el.innerText = '12명 온라인';
+  if (el) {
+    const userList = document.getElementById('chat-active-users-list');
+    const count = userList ? userList.children.length : 1;
+    el.innerText = count + '명 접속중';
+  }
 }
 window.renderChatActiveUsers = renderChatActiveUsers;
 

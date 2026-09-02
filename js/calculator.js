@@ -181,6 +181,24 @@ const ProfitCalculator = {
             y.winRate = sellTrades > 0 ? (y.winCount / sellTrades) * 100 : 0;
         });
 
+        const DEFAULT_MARKET_PRICES = {
+            'BTC': 105684000, 'ETH': 3850000, 'SOL': 136100, 'XRP': 1830, 'DOGE': 240,
+            'ADA': 780, 'AVAX': 36000, 'DOT': 6200, 'MATIC': 540, 'POL': 540,
+            'LINK': 19500, 'NEAR': 5800, 'TRX': 220, 'ETC': 26500, 'SUI': 2850,
+            'APT': 8900, 'SEI': 450, 'SHIB': 0.021, 'PEPE': 0.014, 'WLD': 2450,
+            'RENDER': 6800, 'ATOM': 6500, 'ALGO': 185, 'XLM': 140, 'SAND': 380,
+            'MANA': 410, 'AXS': 6200, 'FLOW': 850, 'EOS': 720, 'ENJ': 210,
+            'HBAR': 101, 'CRO': 75.2, 'STX': 2250, 'VET': 32, 'ICP': 11200,
+            'TIA': 6800, 'INJ': 26000, 'BLUR': 240, 'MINA': 620, 'KAVA': 510,
+            'CHZ': 85, 'AAVE': 185000, 'UNI': 9800, 'IMX': 1850, 'GALA': 28,
+            'OP': 1950, 'ARB': 720, 'CELO': 780, 'QTUM': 3400, 'NEO': 14500,
+            'GAS': 4400, 'ONT': 260, 'ONG': 410, 'IOST': 9.5, 'THETA': 1650,
+            'TFUEL': 78, 'ZIL': 22, 'KAIA': 180, 'KLAY': 180, 'MEW': 9.2,
+            'BONK': 0.026, 'WIF': 2800, 'FLOKI': 0.21, 'TON': 7200, 'ONDO': 1150,
+            'PENDLE': 5200, 'JUP': 1150, 'PYTH': 440, 'ENA': 680, 'STRK': 540,
+            'TAO': 540000, 'FET': 1450, 'GRT': 260, 'AR': 23500, 'FIL': 5100
+        };
+
         const coinSummariesList = Object.values(coinSummaries).sort((a, b) => b.realizedProfit - a.realizedProfit);
 
         let totalCurrentValue = 0;
@@ -193,12 +211,12 @@ const ProfitCalculator = {
 
             if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
                 livePrice = UpbitAPI.fallbackPrices[sym];
-                change24hVal = 0;
-            } else if (parseFloat(coin.currentPrice) > 0) {
+            } else if (DEFAULT_MARKET_PRICES[sym]) {
+                livePrice = DEFAULT_MARKET_PRICES[sym];
+            } else if (parseFloat(coin.currentPrice) > 0 && parseFloat(coin.currentPrice) !== parseFloat(coin.avgBuyPrice)) {
                 livePrice = parseFloat(coin.currentPrice);
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
                 livePrice = parseFloat(coin.avgBuyPrice);
-                change24hVal = 0;
             }
 
             coin.currentPrice = livePrice;

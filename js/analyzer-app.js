@@ -783,19 +783,21 @@ const App = {
             this.state.reportData.coinSummaries.forEach(c => {
                 if (c.holdingQty > 1e-8) {
                     const sym = (c.coinSymbol || (c.market ? c.market.replace('KRW-', '') : '')).toUpperCase();
-                    const price = c.currentPrice || (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym] ? UpbitAPI.fallbackPrices[sym] : (c.avgBuyPrice ? parseFloat(c.avgBuyPrice) : 0));
+                    let price = (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) ? UpbitAPI.fallbackPrices[sym] : 0;
+                    if (!price && c.currentPrice && c.currentPrice !== parseFloat(c.avgBuyPrice)) {
+                        price = c.currentPrice;
+                    }
+                    if (!price && c.avgBuyPrice) price = parseFloat(c.avgBuyPrice);
+
                     const val = c.holdingQty * price;
-                    const upnl = (c.unrealizedProfit !== undefined && c.unrealizedProfit !== 0) ? c.unrealizedProfit : (val - (c.holdingCost || 0));
+                    const upnl = val - (c.holdingCost || 0);
                     calculatedCurrentVal += val;
                     calculatedUnrealized += upnl;
                 }
             });
         }
 
-        const totalUnrealized = (this.state.reportData && this.state.reportData.totalUnrealizedProfit !== undefined && this.state.reportData.totalUnrealizedProfit !== 0)
-            ? this.state.reportData.totalUnrealizedProfit 
-            : (s.totalUnrealizedProfit !== undefined && s.totalUnrealizedProfit !== 0 ? s.totalUnrealizedProfit : calculatedUnrealized);
-
+        const totalUnrealized = calculatedUnrealized;
         const unrealizedRoi = s.currentPortfolioCost > 0 ? (totalUnrealized / s.currentPortfolioCost) * 100 : 0;
 
         const realizedEl = document.getElementById('cardRealizedProfit');
@@ -859,22 +861,21 @@ const App = {
             const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
             const isBithumb = coin.exchange === 'BITHUMB';
 
-            let currentPrice = parseFloat(coin.currentPrice) || 0;
-            if (currentPrice <= 0) {
-                if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
-                    currentPrice = UpbitAPI.fallbackPrices[sym];
-                } else if (parseFloat(coin.avgBuyPrice) > 0) {
-                    currentPrice = parseFloat(coin.avgBuyPrice);
-                }
-                coin.currentPrice = currentPrice;
+            let currentPrice = (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) ? UpbitAPI.fallbackPrices[sym] : 0;
+            if (!currentPrice && coin.currentPrice && coin.currentPrice !== parseFloat(coin.avgBuyPrice)) {
+                currentPrice = coin.currentPrice;
             }
+            if (!currentPrice && parseFloat(coin.avgBuyPrice) > 0) {
+                currentPrice = parseFloat(coin.avgBuyPrice);
+            }
+            coin.currentPrice = currentPrice;
 
             const hQty = parseFloat(coin.holdingQty) || 0;
             const hCost = parseFloat(coin.holdingCost) || 0;
-            let unprofit = coin.unrealizedProfit;
-            let unroi = coin.unrealizedRoi;
+            let unprofit = 0;
+            let unroi = 0;
 
-            if (hQty > 1e-8 && currentPrice > 0 && (unprofit === undefined || unprofit === 0)) {
+            if (hQty > 1e-8 && currentPrice > 0) {
                 unprofit = (hQty * currentPrice) - hCost;
                 unroi = hCost > 0 ? (unprofit / hCost) * 100 : 0;
                 coin.unrealizedProfit = unprofit;
