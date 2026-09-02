@@ -1,4 +1,4 @@
-/**
+﻿/**
  * admin.js
  * CryptoPnL(CryptoPnL) 통합 관리자 센터 엔진 (100% 실제 데이터 모드)
  * - 실제 일일 방문자 수 및 페이지뷰 실측 집계 (DAU, WAU, PV)
@@ -696,6 +696,35 @@ const AdminApp = {
                 `;
             }).join('');
         }
+        // 3. Update Feature Distribution
+        const f = stats.features || { analyzer: 0, market: 0, news: 0, community: 0 };
+        const totalF = f.analyzer + f.market + f.news + f.community;
+        const getPct = (val) => totalF > 0 ? Math.round((val / totalF) * 100) : 0;
+        const setFeat = (id, pct) => {
+            const elPct = document.getElementById(id + '-pct');
+            const elBar = document.getElementById(id + '-bar');
+            if (elPct) elPct.innerText = pct + '%';
+            if (elBar) elBar.style.width = pct + '%';
+        };
+        if (totalF > 0) {
+            setFeat('admin-feat-analyzer', getPct(f.analyzer));
+            setFeat('admin-feat-market', getPct(f.market));
+            setFeat('admin-feat-news', getPct(f.news));
+            setFeat('admin-feat-community', getPct(f.community));
+        } else {
+            setFeat('admin-feat-analyzer', 0);
+            setFeat('admin-feat-market', 0);
+            setFeat('admin-feat-news', 0);
+            setFeat('admin-feat-community', 0);
+        }
+
+        // 4. Update Device Share
+        const setDev = (id, pct) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = pct + '%';
+        };
+        setDev('admin-dev-mobile-pct', stats.mobilePct);
+        setDev('admin-dev-desktop-pct', stats.desktopPct);
     },
 
     renderUsers: function () {
@@ -970,3 +999,4 @@ if (typeof window !== 'undefined') {
     window.AdminUserManager = AdminUserManager;
     window.AdminApp = AdminApp;
 }
+
