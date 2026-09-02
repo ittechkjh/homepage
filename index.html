@@ -2055,29 +2055,7 @@
 
           <!-- TAB 1: 종합 대시보드 & 차트 -->
           <div class="analyzer-tab-pane active" id="dashboardTab">
-            <!-- Simple Portfolio Tracker & Verification Action -->
-            <div class="mb-6 bg-navy-900 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col lg:flex-row gap-6 justify-between items-center">
-              <div class="flex-1 w-full grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="space-y-1">
-                  <div class="text-xs text-slate-400 font-medium">총 보유 자산</div>
-                  <div class="text-lg font-bold text-slate-100" id="tracker-total-assets">0 ₩</div>
-                </div>
-                <div class="space-y-1">
-                  <div class="text-xs text-slate-400 font-medium">실시간 평가손익</div>
-                  <div class="text-lg font-bold" id="tracker-unrealized-pnl">0 ₩</div>
-                </div>
-                <div class="space-y-1 col-span-2 md:col-span-2">
-                  <div class="text-xs text-slate-400 font-medium">주요 보유 비중</div>
-                  <div class="text-sm font-semibold text-slate-200 truncate" id="tracker-top-holdings">-</div>
-                  <div class="w-full bg-navy-950 h-1.5 rounded-full mt-2 overflow-hidden flex" id="tracker-holdings-bar"></div>
-                </div>
-              </div>
-              <div class="shrink-0 flex items-center gap-3 w-full lg:w-auto">
-                <button onclick="window.AnalyzerApp && window.AnalyzerApp.openVerificationModal()" class="w-full lg:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
-                  <i data-lucide="camera" class="w-4 h-4"></i> 수익 인증카드 생성
-                </button>
-              </div>
-            </div>
+
             <div class="charts-grid">
               <!-- 누적 손익 추이 -->
               <div class="chart-card full-width">
@@ -2852,20 +2830,18 @@
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block font-semibold text-slate-300 mb-1">매매 기간</label>
-                  <input type="text" id="cardPeriod" value="2024.01 ~ 2026.08" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-slate-300">
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-300 mb-1">인증 대상 코인 선택</label>
-                  <select id="cardTopCoin" onchange="CoinCalculators.onCoinSelectChange()" class="w-full bg-navy-950 border border-amber-500/40 rounded-xl px-3 py-2 text-amber-400 font-bold focus:border-amber-400 focus:outline-none text-xs">
-                    <option value="전체 포트폴리오 (통합)">🪙 전체 포트폴리오 (통합)</option>
-                    <option value="BTC (비트코인)">BTC (비트코인)</option>
-                    <option value="ETH (이더리움)">ETH (이더리움)</option>
-                    <option value="XRP (리플)">XRP (리플)</option>
-                    <option value="SOL (솔라나)">SOL (솔라나)</option>
-                  </select>
-                </div>
+                <div class="col-span-2">
+  <label class="block font-semibold text-slate-300 mb-1">매매기간 설정 (자동 계산)</label>
+  <div class="flex gap-2 items-center">
+    <input type="date" id="cardPeriodStart" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2 py-2 text-slate-300">
+    <span class="text-slate-400">~</span>
+    <input type="date" id="cardPeriodEnd" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2 py-2 text-slate-300">
+    <button type="button" onclick="CoinCalculators.importProfitCardFromAnalyzer()" class="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 font-bold text-xs transition whitespace-nowrap">
+      내역 적용
+    </button>
+  </div>
+</div>
+                
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">카드 배경 테마</label>
@@ -2886,6 +2862,9 @@
               </button>
               <button type="button" onclick="CoinCalculators.copyCardToClipboard()" class="px-4 py-3 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-200 border border-navy-700 font-bold text-xs transition flex items-center justify-center gap-1.5">
                 <i data-lucide="copy" class="w-4 h-4"></i> 클립보드 복사
+              </button>
+                          <button type="button" onclick="CoinCalculators.shareVerificationCardToForum()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-lg">
+                <i data-lucide="share-2" class="w-4 h-4"></i> 포럼 공유하기
               </button>
             </div>
           </div>
@@ -3371,6 +3350,9 @@
     });
   </script>
 </html>
+
+
+
 
 
 

@@ -811,57 +811,88 @@ const CoinCalculators = {
     },
 
     importProfitCardFromAnalyzer: function () {
-        const rep = this.getAnalyzerData();
+        if (!window.AnalyzerApp || !window.AnalyzerApp.state || !window.AnalyzerApp.state.rawTrades || window.AnalyzerApp.state.rawTrades.length === 0) {
+            alert('먼저 분석기에 데이터를 업로드해주세요.');
+            return;
+        }
+        
+        let filteredTrades = window.AnalyzerApp.state.rawTrades;
+        
+        const startStr = document.getElementById('cardPeriodStart')?.value;
+        const endStr = document.getElementById('cardPeriodEnd')?.value;
+        
+        let periodText = '전체 기간';
+        
+        if (startStr && endStr) {
+            periodText = startStr + ' ~ ' + endStr;
+            const st = new Date(startStr).getTime();
+            const ed = new Date(endStr).getTime() + 86399999;
+            filteredTrades = filteredTrades.filter(t => t.timestamp >= st && t.timestamp <= ed);
+        } else if (startStr) {
+            periodText = startStr + ' ~ 현재';
+            const st = new Date(startStr).getTime();
+            filteredTrades = filteredTrades.filter(t => t.timestamp >= st);
+        } else if (endStr) {
+            periodText = '처음 ~ ' + endStr;
+            const ed = new Date(endStr).getTime() + 86399999;
+            filteredTrades = filteredTrades.filter(t => t.timestamp <= ed);
+        }
+        
+        let realizedProfit = 0;
+        let totalBuyAmount = 0;
+        let winCount = 0;
+        let lossCount = 0;
+        
+        filteredTrades.forEach(t => {
+            if (t.type === '매도' || t.type === 'SELL') {
+                realizedProfit += (t.profit || 0);
+                totalBuyAmount += (t.amount || 0);
+                if ((t.profit || 0) > 0) winCount++;
+                else if ((t.profit || 0) < 0) lossCount++;
+            }
+        });
+        
+        const totalTrades = winCount + lossCount;
+        const rawWinrate = totalTrades > 0 ? (winCount / totalTrades * 100) : 0;
+        const rawRoi = totalBuyAmount > 0 ? (realizedProfit / totalBuyAmount * 100) : 0;
+        
         const nick = (typeof getNickname === 'function' ? getNickname() : '익명 트레이더');
+        
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        
+        const roiStr = (rawRoi > 0 ? '+' : '') + rawRoi.toFixed(2) + '%';
+        const winrateStr = rawWinrate.toFixed(1) + '%';
+        
+        setVal('cardNick', nick);
+        setVal('cardRoi', roiStr);
+        setVal('cardWinrate', winrateStr);
+        setVal('cardPeriod', periodText);
+        
+        this.renderProfitCard();
+        alert('필터링된 분석기 데이터가 적용되었습니다.');
+    },
 
-        if (rep && rep.summary) {
-            const s = rep.summary;
-            const rawRoi = (typeof s.totalRealizedRoi === 'number') ? s.totalRealizedRoi : ((typeof s.realizedRoi === 'number') ? s.realizedRoi : parseFloat(s.totalRealizedRoi || s.realizedRoi || 0));
-            const rawWinrate = (typeof s.totalWinRate === 'number') ? s.totalWinRate : ((typeof s.winRate === 'number') ? s.winRate : parseFloat(s.totalWinRate || s.winRate || 0));
-            const roiStr = (rawRoi > 0 ? '+' : '') + rawRoi.toFixed(2) + '%';
-            const winrateStr = rawWinrate.toFixed(1) + '%';
-
-            // Build coinStatsMap
-            this.coinStatsMap = {
-                '전체 포트폴리오 (통합)': { roi: roiStr, winrate: winrateStr }
-            };
-
-            let coinSelectHtml = '<option value="전체 포트폴리오 (통합)">🪙 전체 포트폴리오 (통합)</option>';
-            let defaultCoin = '전체 포트폴리오 (통합)';
-
-            if (rep.coinSummaries && rep.coinSummaries.length > 0) {
-                const sorted = [...rep.coinSummaries].sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0));
-                sorted.forEach(c => {
-                    const cName = c.coin || c.market || '코인';
-                    const cRoi = (typeof c.realizedRoi === 'number') ? ((c.realizedRoi > 0 ? '+' : '') + c.realizedRoi.toFixed(2) + '%') : roiStr;
-                    const cWinrate = (typeof c.winRate === 'number') ? (c.winRate.toFixed(1) + '%') : winrateStr;
-                    this.coinStatsMap[cName] = { roi: cRoi, winrate: cWinrate };
-                    coinSelectHtml += `<option value="${cName}">${cName} (수익률: ${cRoi})</option>`;
-                });
+    shareVerificationCardToForum: function() {
+        const canvas = document.getElementById('profitCardCanvas');
+        if (!canvas) return;
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        if (typeof showForumWriteView === 'function') {
+            document.getElementById('cafe-write-category').value = 'profit';
+            document.getElementById('cafe-write-title').value = '나의 실현손익 인증합니다!';
+            
+            const editor = document.getElementById('cafe-write-content');
+            if (editor) {
+                editor.innerHTML = '<p><img src="' + dataUrl + '" alt="수익인증" style="max-width:100%; border-radius:12px;"></p><p><br></p><p>수익 인증합니다.</p>';
             }
-
-            const coinSelectEl = document.getElementById('cardTopCoin');
-            if (coinSelectEl) {
-                coinSelectEl.innerHTML = coinSelectHtml;
-                coinSelectEl.value = defaultCoin;
+            
+            if (typeof switchTab === 'function') {
+                switchTab('cafe');
             }
-
-            let periodStr = '2024.01 ~ 2026.08';
-            if (s.startDate && s.endDate) {
-                periodStr = String(s.startDate).slice(0, 10) + ' ~ ' + String(s.endDate).slice(0, 10);
-            }
-
-            setVal('cardNick', nick);
-            setVal('cardRoi', roiStr);
-            setVal('cardWinrate', winrateStr);
-            setVal('cardPeriod', periodStr);
-
-            this.renderProfitCard();
-            this.switchSubTab('card');
-            alert('손익 분석기의 거래 코인 목록(' + (rep.coinSummaries ? rep.coinSummaries.length : 0) + '종)과 전체 수익률(' + roiStr + ')이 반영되었습니다! 원하는 코인을 드롭다운에서 자유롭게 선택하세요.');
+            showForumListView();
+            showForumWriteView();
         } else {
-            alert('손익 분석기에 업로드된 거래내역이 없습니다. 먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.');
+            alert('포럼이 활성화되어 있지 않습니다.');
         }
     }
 };
@@ -877,3 +908,4 @@ if (typeof document !== 'undefined') {
         CoinCalculators.init();
     }
 }
+
