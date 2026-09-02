@@ -702,13 +702,13 @@ const UpbitAPI = {
     },
 
     fallbackPrices: {
-        'BTC': 89420000, 'ETH': 4820000, 'SOL': 212800, 'XRP': 806, 'DOGE': 171,
-        'ADA': 527, 'AVAX': 33800, 'DOT': 6200, 'MATIC': 540, 'POL': 540,
-        'LINK': 16280, 'NEAR': 5800, 'TRX': 185, 'ETC': 26500, 'SUI': 2250,
+        'BTC': 105684000, 'ETH': 3850000, 'SOL': 136100, 'XRP': 1830, 'DOGE': 240,
+        'ADA': 780, 'AVAX': 36000, 'DOT': 6200, 'MATIC': 540, 'POL': 540,
+        'LINK': 19500, 'NEAR': 5800, 'TRX': 220, 'ETC': 26500, 'SUI': 2850,
         'APT': 8900, 'SEI': 450, 'SHIB': 0.021, 'PEPE': 0.014, 'WLD': 2450,
         'RENDER': 6800, 'ATOM': 6500, 'ALGO': 185, 'XLM': 140, 'SAND': 380,
         'MANA': 410, 'AXS': 6200, 'FLOW': 850, 'EOS': 720, 'ENJ': 210,
-        'HBAR': 92, 'CRO': 118, 'STX': 2250, 'VET': 32, 'ICP': 11200,
+        'HBAR': 101, 'CRO': 75.2, 'STX': 2250, 'VET': 32, 'ICP': 11200,
         'TIA': 6800, 'INJ': 26000, 'BLUR': 240, 'MINA': 620, 'KAVA': 510,
         'CHZ': 85, 'AAVE': 185000, 'UNI': 9800, 'IMX': 1850, 'GALA': 28,
         'OP': 1950, 'ARB': 720, 'CELO': 780, 'QTUM': 3400, 'NEO': 14500,

@@ -272,14 +272,14 @@ window.updateAuthUI = updateAuthUI;
 // Section 2: Market Real-Time Ticker & Charts
 // ----------------------------------------------------
 const DEFAULT_COINS = [
-  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 64820.00, price_change_percentage_24h: 2.45, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', korean_name: '비트코인' },
-  { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 3490.50, price_change_percentage_24h: 1.82, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', korean_name: '이더리움' },
-  { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 154.20, price_change_percentage_24h: 8.94, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', korean_name: '솔라나' },
-  { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 0.584, price_change_percentage_24h: -0.42, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', korean_name: '리플' },
-  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.124, price_change_percentage_24h: 4.15, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', korean_name: '도지코인' },
-  { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.382, price_change_percentage_24h: -1.12, total_volume: 410000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', korean_name: '에이다' },
-  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 24.50, price_change_percentage_24h: 3.20, total_volume: 320000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', korean_name: '아발란체' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 11.80, price_change_percentage_24h: 1.05, total_volume: 290000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' }
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 76834.00, price_change_percentage_24h: -1.23, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', korean_name: '비트코인' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 2790.50, price_change_percentage_24h: -0.85, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', korean_name: '이더리움' },
+  { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 99.00, price_change_percentage_24h: -1.59, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', korean_name: '솔라나' },
+  { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 1.33, price_change_percentage_24h: -2.08, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', korean_name: '리플' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.174, price_change_percentage_24h: 1.15, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', korean_name: '도지코인' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.565, price_change_percentage_24h: -1.12, total_volume: 410000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', korean_name: '에이다' },
+  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 26.10, price_change_percentage_24h: 3.20, total_volume: 320000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', korean_name: '아발란체' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 14.10, price_change_percentage_24h: 1.05, total_volume: 290000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' }
 ];
 
 let marketCoins = [...DEFAULT_COINS];
