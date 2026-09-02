@@ -1,4 +1,4 @@
-﻿/**
+/**
  * admin.js
  * CryptoPnL(CryptoPnL) 통합 관리자 센터 엔진 (100% 실제 데이터 모드)
  * - 실제 일일 방문자 수 및 페이지뷰 실측 집계 (DAU, WAU, PV)
@@ -690,7 +690,7 @@ const AdminApp = {
                     <div class="absolute -top-7 bg-navy-950 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-navy-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
                       ${h.visitors.toLocaleString()}명 (${h.pageviews.toLocaleString()} PV)
                     </div>
-                    <div class="w-full max-w-[28px] ${isToday ? 'bg-gradient-to-t from-purple-600 to-cyan-400' : 'bg-gradient-to-t from-cyan-600/70 to-cyan-400/70'} rounded-t-md hover:brightness-125 transition-all shadow-md" style="height: ${heightPct}%;"></div>
+                    <div class="w-full max-w-[28px] rounded-t-md hover:brightness-125 transition-all shadow-md" style="height: ${heightPct}%; background: ${isToday ? 'linear-gradient(to top, #9333ea, #22d3ee)' : 'linear-gradient(to top, rgba(8,145,178,0.7), rgba(34,211,238,0.7))'};"></div>
                     <span class="text-[9px] ${isToday ? 'text-cyan-400 font-bold' : 'text-slate-400'} mt-2 font-mono">${shortDate}</span>
                   </div>
                 `;

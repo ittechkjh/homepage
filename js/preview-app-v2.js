@@ -667,13 +667,20 @@ function renderForumPosts() {
   }
 
   const sortType = document.getElementById('forum-sort')?.value || 'latest';
-  if (sortType === 'popular') {
-    posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-  } else if (sortType === 'comments') {
-    posts.sort((a, b) => ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0));
-  } else {
-    posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  }
+  posts.sort((a, b) => {
+    const isANotice = a.category === 'notice';
+    const isBNotice = b.category === 'notice';
+    if (isANotice && !isBNotice) return -1;
+    if (!isANotice && isBNotice) return 1;
+
+    if (sortType === 'popular') {
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    } else if (sortType === 'comments') {
+      return ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0);
+    } else {
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    }
+  });
 
   if (posts.length === 0) {
     container.innerHTML = `
@@ -2066,6 +2073,12 @@ window.updatePageSEO = updatePageSEO;
 function switchTab(tabId, updateHash = true) {
   const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
+
+  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+    let fName = tabId;
+    if (tabId === 'forum' || tabId === 'chat') fName = 'community';
+    AdminAnalytics.recordVisit(fName);
+  }
 
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
