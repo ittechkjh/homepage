@@ -1088,11 +1088,26 @@ function handleVoteInModal(delta) {
   const post = posts.find(p => p.id === currentViewingPostId);
   if (!post) return;
 
+  const voteKey = 'voted_post_' + currentViewingPostId;
+  if (delta > 0 && localStorage.getItem(voteKey)) {
+    alert('❌ 이미 추천한 게시글입니다. (계정당 1회만 추천 가능합니다.)');
+    return;
+  }
+
+  if (delta > 0) {
+    localStorage.setItem(voteKey, 'true');
+  } else if (delta < 0) {
+    localStorage.removeItem(voteKey);
+  }
+
   post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
   saveStoredPosts(posts);
 
   const el = document.getElementById('cafe-post-upvotes');
   if (el) el.innerText = post.upvotes;
+  
+  const modalEl = document.getElementById('modal-post-upvotes');
+  if (modalEl) modalEl.innerText = post.upvotes;
 }
 window.handleVoteInModal = handleVoteInModal;
 
@@ -1944,7 +1959,7 @@ function handleUnifiedLoginSubmit(e) {
 
     alert('🎉 최고 관리자(ADMIN)로 로그인되었습니다! 관리자 센터로 이동합니다.');
     switchTab('admin');
-    if (typeof AdminApp !== 'undefined' && typeof AdminApp.render === 'function') AdminApp.render();
+    if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderAll === 'function') AdminApp.renderAll();
     return;
   }
 
