@@ -810,6 +810,45 @@ const UpbitAPI = {
             // Bithumb fallback silent catch
         }
 
+        // 3. Binance Ticker Fallback for any still missing coins
+        const missingCoins = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
+        if (missingCoins.length > 0 || Object.keys(tickerMap).length === 0) {
+            try {
+                const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price');
+                if (binanceRes.ok) {
+                    const binanceData = await binanceRes.json();
+                    if (Array.isArray(binanceData)) {
+                        const usdKrwRate = 1380;
+                        const binanceMap = {};
+                        binanceData.forEach(b => {
+                            if (b.symbol && b.symbol.endsWith('USDT')) {
+                                const s = b.symbol.replace('USDT', '');
+                                binanceMap[s] = parseFloat(b.price) * usdKrwRate;
+                            }
+                        });
+
+                        krwMarkets.forEach(m => {
+                            const sym = m.includes('-') ? m.split('-')[1] : m;
+                            if (!tickerMap[m] && binanceMap[sym]) {
+                                const entry = {
+                                    tradePrice: binanceMap[sym],
+                                    signedChangeRate: 0,
+                                    accTradeVolume24h: 0,
+                                    timestamp: Date.now()
+                                };
+                                tickerMap[m] = entry;
+                                tickerMap[sym] = entry;
+                                tickerMap['UPBIT:::' + m] = entry;
+                                tickerMap['BITHUMB:::' + m] = entry;
+                            }
+                        });
+                    }
+                }
+            } catch (binanceErr) {
+                console.warn('바이낸스 시세 폴백 실패:', binanceErr);
+            }
+        }
+
         return tickerMap;
     },
 

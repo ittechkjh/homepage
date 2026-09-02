@@ -134,7 +134,7 @@ const CoinCalculators = {
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매수 희망가 (KRW)</label>
-                    <input type="number" value="${tier.price}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <input type="number" step="any" value="${tier.price}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
@@ -148,7 +148,7 @@ const CoinCalculators = {
 
     addWaterTier: function () {
         const lastTier = this.waterTiers[this.waterTiers.length - 1];
-        const defaultPrice = lastTier ? Math.round(lastTier.price * 0.9) : 70000000;
+        const defaultPrice = lastTier ? Number((lastTier.price * 0.9).toFixed(6)) : 70000000;
         const defaultMode = lastTier ? lastTier.mode : 'amount';
         const defaultVal = lastTier ? lastTier.val : 10000000;
 
@@ -218,7 +218,7 @@ const CoinCalculators = {
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
-                    <input type="number" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                    <input type="number" step="any" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
@@ -232,7 +232,7 @@ const CoinCalculators = {
 
     addSellTier: function () {
         const lastTier = this.sellTiers[this.sellTiers.length - 1];
-        const defaultPrice = lastTier ? Math.round(lastTier.price * 1.1) : 105000000;
+        const defaultPrice = lastTier ? Number((lastTier.price * 1.1).toFixed(6)) : 105000000;
         const defaultMode = lastTier ? lastTier.mode : 'pct';
         const defaultVal = lastTier ? lastTier.val : 50;
 
@@ -388,20 +388,29 @@ const CoinCalculators = {
 
         const totalRoiPct = newTotalCost > 0 ? (totalRealizedProfit / newTotalCost) * 100 : 0;
 
+        // 포맷팅 헬퍼 (수량 소수점 최대 9자리, 가격 소수점 정밀 표기)
+        const formatCoinQty = (qty) => Number(qty || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 9 });
+        const formatPrice = (p) => {
+            if (p === undefined || p === null || isNaN(p)) return '0원';
+            if (p >= 1000) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '원';
+            if (p >= 1) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 4 }) + '원';
+            return Number(p).toLocaleString(undefined, { maximumFractionDigits: 9 }) + '원';
+        };
+
         // 3. UI 텍스트 출력
         const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
 
-        setTxt('waterResNewAvg', Math.round(newAvgPrice).toLocaleString() + '원');
-        setTxt('waterResTotalQty', newTotalQty.toLocaleString(undefined, { maximumFractionDigits: 6 }));
+        setTxt('waterResNewAvg', formatPrice(newAvgPrice));
+        setTxt('waterResTotalQty', formatCoinQty(newTotalQty));
         setTxt('waterResTotalCost', Math.round(newTotalCost).toLocaleString() + '원');
-        setTxt('waterResBreakEven', Math.round(breakEvenPrice).toLocaleString() + '원');
+        setTxt('waterResBreakEven', formatPrice(breakEvenPrice));
         setTxt('waterResRequiredGain', (requiredGain >= 0 ? '+' : '') + requiredGain.toFixed(2) + '%');
 
         // 분할 매도 카드 출력
         setTxt('waterResTotalSellProfit', (totalRealizedProfit >= 0 ? '+' : '') + Math.round(totalRealizedProfit).toLocaleString() + '원');
         setTxt('waterResTotalSellRoi', (totalRoiPct >= 0 ? '+' : '') + totalRoiPct.toFixed(2) + '%');
         setTxt('waterResRecoveredCash', Math.round(totalRecoveredCash).toLocaleString() + '원');
-        setTxt('waterResRemainingQty', remainingQty.toLocaleString(undefined, { maximumFractionDigits: 6 }));
+        setTxt('waterResRemainingQty', formatCoinQty(remainingQty));
 
         const profitEl = document.getElementById('waterResTotalSellProfit');
         if (profitEl) {
@@ -416,13 +425,13 @@ const CoinCalculators = {
         const buyTbody = document.getElementById('waterSimTableBody');
         if (buyTbody) {
             buyTbody.innerHTML = tierProgressList.map(t => {
-                const modeLabel = t.mode === 'amount' ? `+${Math.round(t.amount).toLocaleString()}원` : (t.mode === 'qty' ? `+${t.addedQty.toFixed(4)}개` : `+${t.val}% 비중`);
+                const modeLabel = t.mode === 'amount' ? `+${Math.round(t.amount).toLocaleString()}원` : (t.mode === 'qty' ? `+${formatCoinQty(t.addedQty)}개` : `+${t.val}% 비중`);
                 return `
                   <tr class="border-b border-navy-800/60 text-xs font-mono">
-                    <td class="py-2.5 px-3 font-bold text-white">${t.tierNum}차 (${modeLabel} @ ${t.price.toLocaleString()}원)</td>
-                    <td class="py-2.5 px-3 text-right text-cyan-300 font-bold">${Math.round(t.avgPrice).toLocaleString()}원</td>
+                    <td class="py-2.5 px-3 font-bold text-white">${t.tierNum}차 (${modeLabel} @ ${formatPrice(t.price)})</td>
+                    <td class="py-2.5 px-3 text-right text-cyan-300 font-bold">${formatPrice(t.avgPrice)}</td>
                     <td class="py-2.5 px-3 text-right text-rose-400 font-bold">${t.dropPct >= 0 ? '+' : ''}${t.dropPct.toFixed(2)}%</td>
-                    <td class="py-2.5 px-3 text-right text-slate-200">${Math.round(t.breakEven).toLocaleString()}원</td>
+                    <td class="py-2.5 px-3 text-right text-slate-200">${formatPrice(t.breakEven)}</td>
                   </tr>
                 `;
             }).join('');
@@ -433,14 +442,14 @@ const CoinCalculators = {
         if (sellTbody) {
             sellTbody.innerHTML = sellProgressList.map(s => {
                 const isPos = s.profit >= 0;
-                const modeLabel = s.mode === 'pct' ? `${s.val}% 비중` : (s.mode === 'qty' ? `${s.soldQty.toFixed(4)}개` : `${Math.round(s.val).toLocaleString()}원 목표`);
+                const modeLabel = s.mode === 'pct' ? `${s.val}% 비중` : (s.mode === 'qty' ? `${formatCoinQty(s.soldQty)}개` : `${Math.round(s.val).toLocaleString()}원 목표`);
                 return `
                   <tr class="border-b border-navy-800/60 text-xs font-mono">
-                    <td class="py-2.5 px-3 font-bold text-amber-300">${s.tierNum}차 (${Math.round(s.sellPrice).toLocaleString()}원 / ${modeLabel})</td>
-                    <td class="py-2.5 px-3 text-right text-slate-200">${s.soldQty.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
+                    <td class="py-2.5 px-3 font-bold text-amber-300">${s.tierNum}차 (${formatPrice(s.sellPrice)} / ${modeLabel})</td>
+                    <td class="py-2.5 px-3 text-right text-slate-200">${formatCoinQty(s.soldQty)}</td>
                     <td class="py-2.5 px-3 text-right font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${Math.round(s.profit).toLocaleString()}원 (${isPos ? '+' : ''}${s.roiPct.toFixed(2)}%)</td>
                     <td class="py-2.5 px-3 text-right text-cyan-300">${Math.round(s.netCash).toLocaleString()}원</td>
-                    <td class="py-2.5 px-3 text-right text-slate-400">${s.remainingQty.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
+                    <td class="py-2.5 px-3 text-right text-slate-400">${formatCoinQty(s.remainingQty)}</td>
                   </tr>
                 `;
             }).join('');
