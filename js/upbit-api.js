@@ -715,120 +715,57 @@ const UpbitAPI = {
 
         const tickerMap = {};
 
-        // Filter for markets that exist in Upbit to avoid 404 on delisted coins
-        const validUpbitMarkets = krwMarkets.filter(m => this.marketInfoMap[m]);
-        const queryList = validUpbitMarkets.length > 0 ? validUpbitMarkets : krwMarkets;
+        // 1. Fetch Upbit Tickers (Filter to known Upbit markets only to prevent 404)
+        const validUpbit = krwMarkets.filter(m => {
+            if (this.marketInfoMap && this.marketInfoMap[m]) return true;
+            const sym = m.replace('KRW-', '');
+            return !!this.knownKoreanNames[sym];
+        });
 
-        // 1. Fetch Upbit Tickers in Chunks of 30 (to prevent 400 Bad Request / URL overflow)
-        const chunkSize = 30;
-        for (let i = 0; i < queryList.length; i += chunkSize) {
-            const chunk = queryList.slice(i, i + chunkSize);
-            let chunkSuccess = false;
-            try {
-                const marketParam = chunk.join(',');
-                const res = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(marketParam));
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(item => {
-                            const entry = {
-                                tradePrice: item.trade_price,
-                                signedChangeRate: item.signed_change_rate,
-                                accTradeVolume24h: item.acc_trade_volume_24h,
-                                timestamp: item.timestamp
-                            };
-                            tickerMap[item.market] = entry;
-                            const sym = item.market.includes('-') ? item.market.split('-')[1] : item.market;
-                            tickerMap[sym] = entry;
-                            tickerMap['UPBIT:::' + item.market] = entry;
-                            tickerMap['BITHUMB:::' + item.market] = entry;
-                        });
-                        chunkSuccess = true;
-                    }
-                }
-            } catch (err) {
-                console.warn('업비트 시세 청크 일괄 조회 실패, 개별 조회로 전환:', err);
-            }
-
-            // Fallback: If chunk failed due to invalid market inside, query individually
-            if (!chunkSuccess) {
-                const indPromises = chunk.map(async m => {
-                    try {
-                        const indRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(m));
-                        if (indRes.ok) {
-                            const indData = await indRes.json();
-                            if (Array.isArray(indData) && indData[0]) {
-                                const item = indData[0];
-                                const entry = {
-                                    tradePrice: item.trade_price,
-                                    signedChangeRate: item.signed_change_rate,
-                                    accTradeVolume24h: item.acc_trade_volume_24h,
-                                    timestamp: item.timestamp
-                                };
-                                tickerMap[item.market] = entry;
-                                const sym = item.market.includes('-') ? item.market.split('-')[1] : item.market;
-                                tickerMap[sym] = entry;
-                                tickerMap['UPBIT:::' + item.market] = entry;
-                                tickerMap['BITHUMB:::' + item.market] = entry;
-                            }
-                        }
-                    } catch (e) {}
-                });
-                await Promise.allSettled(indPromises);
-            }
-        }
-
-        // 2. Bithumb Ticker Fallback for any missing coins
+        const upbitToQuery = validUpbit.length > 0 ? validUpbit : krwMarkets.slice(0, 30);
         try {
-            const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
-            if (bRes.ok) {
-                const bData = await bRes.json();
-                if (bData && bData.status === '0000' && bData.data) {
-                    for (const [sym, info] of Object.entries(bData.data)) {
-                        if (sym === 'date' || typeof info !== 'object') continue;
-                        const closingPrice = parseFloat(info.closing_price) || 0;
-                        const fluctRate = (parseFloat(info.fluctate_rate_24H) || 0) / 100;
-                        if (closingPrice > 0) {
-                            const entry = {
-                                tradePrice: closingPrice,
-                                signedChangeRate: fluctRate,
-                                accTradeVolume24h: parseFloat(info.acc_trade_value_24H) || 0,
-                                timestamp: Date.now()
-                            };
-                            const mkt = 'KRW-' + sym;
-                            if (!tickerMap[mkt]) {
-                                tickerMap[mkt] = entry;
-                                tickerMap[sym] = entry;
-                                tickerMap['BITHUMB:::' + mkt] = entry;
-                                tickerMap['UPBIT:::' + mkt] = entry;
-                            }
-                        }
-                    }
+            const res = await fetch('https://api.upbit.com/v1/ticker?markets=' + encodeURIComponent(upbitToQuery.join(',')));
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        const entry = {
+                            tradePrice: item.trade_price,
+                            signedChangeRate: item.signed_change_rate,
+                            accTradeVolume24h: item.acc_trade_volume_24h,
+                            timestamp: item.timestamp
+                        };
+                        tickerMap[item.market] = entry;
+                        const sym = item.market.replace('KRW-', '');
+                        tickerMap[sym] = entry;
+                        tickerMap['UPBIT:::' + item.market] = entry;
+                        tickerMap['BITHUMB:::' + item.market] = entry;
+                    });
                 }
             }
-        } catch (bErr) {
-            // Bithumb fallback silent catch
+        } catch (err) {
+            console.warn('업비트 일괄 시세 조회 실패:', err);
         }
 
-        // 3. Binance Ticker Fallback for any still missing coins
-        const missingCoins = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
-        if (missingCoins.length > 0 || Object.keys(tickerMap).length === 0) {
+        // 2. Binance API Fallback for any coin not found in Upbit or if Upbit was rate-limited
+        const missingMarkets = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
+        if (missingMarkets.length > 0 || Object.keys(tickerMap).length === 0) {
             try {
                 const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price');
                 if (binanceRes.ok) {
                     const binanceData = await binanceRes.json();
                     if (Array.isArray(binanceData)) {
-                        const usdKrwRate = 1380;
+                        const usdRate = 1380;
                         const binanceMap = {};
                         binanceData.forEach(b => {
                             if (b.symbol && b.symbol.endsWith('USDT')) {
-                                const s = b.symbol.replace('USDT', '');
-                                binanceMap[s] = parseFloat(b.price) * usdKrwRate;
+                                const sym = b.symbol.replace('USDT', '');
+                                binanceMap[sym] = parseFloat(b.price) * usdRate;
                             }
                         });
 
                         krwMarkets.forEach(m => {
-                            const sym = m.includes('-') ? m.split('-')[1] : m;
+                            const sym = m.replace('KRW-', '');
                             if (!tickerMap[m] && binanceMap[sym]) {
                                 const entry = {
                                     tradePrice: binanceMap[sym],

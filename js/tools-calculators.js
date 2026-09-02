@@ -388,17 +388,26 @@ const CoinCalculators = {
 
         const totalRoiPct = newTotalCost > 0 ? (totalRealizedProfit / newTotalCost) * 100 : 0;
 
-        // 포맷팅 헬퍼 (수량 소수점 최대 9자리, 가격 소수점 정밀 표기)
-        const formatCoinQty = (qty) => Number(qty || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 9 });
+        // 포맷팅 헬퍼 (수량 소수점 최대 8자리, 가격 소수점 정밀 표기)
+        const formatCoinQty = (qty) => {
+            if (qty === undefined || qty === null || isNaN(qty)) return '0';
+            return Number(qty).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 8 });
+        };
         const formatPrice = (p) => {
             if (p === undefined || p === null || isNaN(p)) return '0원';
             if (p >= 1000) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '원';
             if (p >= 1) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 4 }) + '원';
-            return Number(p).toLocaleString(undefined, { maximumFractionDigits: 9 }) + '원';
+            return Number(p).toLocaleString(undefined, { maximumFractionDigits: 8 }) + '원';
         };
 
         // 3. UI 텍스트 출력
-        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        const setTxt = (id, val) => { 
+            const el = document.getElementById(id); 
+            if (el) {
+                el.innerText = val;
+                el.setAttribute('title', val);
+            }
+        };
 
         setTxt('waterResNewAvg', formatPrice(newAvgPrice));
         setTxt('waterResTotalQty', formatCoinQty(newTotalQty));

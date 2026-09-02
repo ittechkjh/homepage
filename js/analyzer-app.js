@@ -714,7 +714,7 @@ const App = {
         if (refreshBtn) refreshBtn.classList.add('spinning');
 
         try {
-            const tradeMarkets = this.state.reportData.coinSummaries.map(c => c.market);
+            const tradeMarkets = (this.state.reportData.coinSummaries || []).map(c => c.market || c.coinSymbol || '').filter(Boolean);
             const allMarkets = tradeMarkets.filter((v, i, a) => a.indexOf(v) === i);
 
             const tickers = await UpbitAPI.fetchTickers(allMarkets);
@@ -722,12 +722,16 @@ const App = {
             
             this.state.reportData.totalCurrentValue = enriched.totalCurrentValue;
             this.state.reportData.totalUnrealizedProfit = enriched.totalUnrealizedProfit;
+            if (this.state.reportData.summary) {
+                this.state.reportData.summary.totalCurrentValue = enriched.totalCurrentValue;
+                this.state.reportData.summary.totalUnrealizedProfit = enriched.totalUnrealizedProfit;
+            }
 
             this.renderSummaryCards();
             this.updateTrackerUI();
             this.renderCoinsTable();
-            ChartManager.renderPortfolioDoughnutChart(this.state.reportData.coinSummaries);
-            ChartManager.renderCoinStackingChart(this.state.reportData.coinSummaries);
+            try { ChartManager.renderPortfolioDoughnutChart(this.state.reportData.coinSummaries); } catch(e) {}
+            try { ChartManager.renderCoinStackingChart(this.state.reportData.coinSummaries); } catch(e) {}
 
             const timeEl = document.getElementById('lastTickerUpdateTime');
             if (timeEl) {
@@ -760,14 +764,14 @@ const App = {
 
     renderSummaryCards: function () {
         const s = this.state.reportData ? this.state.reportData.summary : ProfitCalculator.getEmptyResult().summary;
-        const totalCurrentVal = this.state.reportData ? (this.state.reportData.totalCurrentValue || 0) : 0;
-        const totalUnrealized = this.state.reportData ? (this.state.reportData.totalUnrealizedProfit || 0) : 0;
+        const totalCurrentVal = this.state.reportData ? (this.state.reportData.totalCurrentValue !== undefined ? this.state.reportData.totalCurrentValue : (s.totalCurrentValue || 0)) : 0;
+        const totalUnrealized = this.state.reportData ? (this.state.reportData.totalUnrealizedProfit !== undefined ? this.state.reportData.totalUnrealizedProfit : (s.totalUnrealizedProfit || 0)) : 0;
         const unrealizedRoi = s.currentPortfolioCost > 0 ? (totalUnrealized / s.currentPortfolioCost) * 100 : 0;
 
         const realizedEl = document.getElementById('cardRealizedProfit');
         const realizedRoiEl = document.getElementById('cardRealizedRoi');
         if (realizedEl) {
-            realizedEl.textContent = this.formatCurrency(s.totalRealizedProfit);
+            realizedEl.textContent = (s.totalRealizedProfit > 0 ? '+' : '') + this.formatCurrency(s.totalRealizedProfit);
             realizedEl.className = 'stat-value ' + this.getProfitColorClass(s.totalRealizedProfit);
         }
         if (realizedRoiEl) {
@@ -778,7 +782,7 @@ const App = {
         const unrealizedEl = document.getElementById('cardUnrealizedProfit');
         const unrealizedRoiEl = document.getElementById('cardUnrealizedRoi');
         if (unrealizedEl) {
-            unrealizedEl.textContent = this.formatCurrency(totalUnrealized);
+            unrealizedEl.textContent = (totalUnrealized > 0 ? '+' : '') + this.formatCurrency(totalUnrealized);
             unrealizedEl.className = 'stat-value ' + this.getProfitColorClass(totalUnrealized);
         }
         if (unrealizedRoiEl) {
