@@ -1,5 +1,4 @@
-﻿alert('코드가 갱신되었습니다! 이 알림이 안뜨면 캐시 문제입니다.');
-
+﻿
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -2489,7 +2488,6 @@ if (typeof chatListenerUnsubscribe === 'undefined') {
   // the old listener will just update chatMessages variable but renderChatMessages is fine. 
   // We can just rely on the new one.
 }
-
 
 
 
