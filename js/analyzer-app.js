@@ -3,6 +3,59 @@
  * 업비트 & 빗썸 코인 거래내역 분석기 (로그인 회원 전용 100% 로컬 독립 보관 엔진)
  */
 
+const AnalyzerDB = {
+    dbPromise: null,
+    getDB: function () {
+        if (!this.dbPromise) {
+            this.dbPromise = new Promise((resolve) => {
+                if (typeof indexedDB === 'undefined') return resolve(null);
+                const req = indexedDB.open('CoinHubAnalyzerDB', 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('tradesStore')) {
+                        db.createObjectStore('tradesStore');
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+        }
+        return this.dbPromise;
+    },
+    saveTrades: async function (trades) {
+        try {
+            const db = await this.getDB();
+            if (!db) return;
+            const tx = db.transaction('tradesStore', 'readwrite');
+            tx.objectStore('tradesStore').put(trades, 'activeTrades');
+        } catch (e) {
+            console.warn('IndexedDB save failed:', e);
+        }
+    },
+    getTrades: async function () {
+        try {
+            const db = await this.getDB();
+            if (!db) return null;
+            return new Promise((resolve) => {
+                const tx = db.transaction('tradesStore', 'readonly');
+                const req = tx.objectStore('tradesStore').get('activeTrades');
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    },
+    clear: async function () {
+        try {
+            const db = await this.getDB();
+            if (!db) return;
+            const tx = db.transaction('tradesStore', 'readwrite');
+            tx.objectStore('tradesStore').delete('activeTrades');
+        } catch (e) {}
+    }
+};
+
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
@@ -24,14 +77,10 @@ const AnalyzerStorage = {
     },
 
     getTrades: function () {
-        const storageKey = this.getKey('trades');
         try {
-            const saved = localStorage.getItem(storageKey) || 
-                          localStorage.getItem('coinhub_analyzer_trades') ||
+            const saved = localStorage.getItem('coinhub_analyzer_trades') ||
                           localStorage.getItem('coinhub_trades') ||
-                          localStorage.getItem('coinhub_user_admin_trades') ||
-                          localStorage.getItem('coinhub_user_guest_trades') ||
-                          localStorage.getItem('coinhub_user_default_trades');
+                          localStorage.getItem(this.getKey('trades'));
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
@@ -94,9 +143,8 @@ const AnalyzerStorage = {
                     if (needsResave) {
                         try {
                             const json = JSON.stringify(healed);
-                            localStorage.setItem(storageKey, json);
                             localStorage.setItem('coinhub_analyzer_trades', json);
-                            localStorage.setItem('coinhub_trades', json);
+                            AnalyzerDB.saveTrades(healed);
                         } catch (e) {}
                     }
                     return healed;
@@ -109,30 +157,20 @@ const AnalyzerStorage = {
     },
 
     saveTrades: function (trades) {
-        const storageKey = this.getKey('trades');
         try {
             const json = JSON.stringify(trades);
-            localStorage.setItem(storageKey, json);
             localStorage.setItem('coinhub_analyzer_trades', json);
-            localStorage.setItem('coinhub_trades', json);
-            localStorage.setItem('coinhub_user_admin_trades', json);
-            localStorage.setItem('coinhub_user_guest_trades', json);
-            localStorage.setItem('coinhub_user_default_trades', json);
+            AnalyzerDB.saveTrades(trades);
         } catch (e) {
-            console.warn('로컬 저장소 용량 초과:', e);
+            console.warn('로컬 저장소 저장 에러 (IndexedDB로 대체 보관):', e);
+            AnalyzerDB.saveTrades(trades);
         }
     },
 
     clearUserData: function () {
-        const storageKey = this.getKey('trades');
-        if (storageKey) {
-            localStorage.removeItem(storageKey);
-        }
         localStorage.removeItem('coinhub_analyzer_trades');
         localStorage.removeItem('coinhub_trades');
-        localStorage.removeItem('coinhub_user_admin_trades');
-        localStorage.removeItem('coinhub_user_guest_trades');
-        localStorage.removeItem('coinhub_user_default_trades');
+        AnalyzerDB.clear();
     }
 };
 
@@ -1430,26 +1468,38 @@ const App = {
 
     saveTrades: function () {
         AnalyzerStorage.saveTrades(this.state.rawTrades);
+        if (typeof AnalyzerDB !== 'undefined') {
+            AnalyzerDB.saveTrades(this.state.rawTrades);
+        }
         this.updateUserBanner();
     },
 
-    loadSavedTrades: function () {
-        const uid = AnalyzerStorage.getCurrentUserId();
-        if (!uid) {
-            this.state.rawTrades = [];
+    loadSavedTrades: async function () {
+        // 1. Check local storage first (instant synchronous)
+        const savedSync = AnalyzerStorage.getTrades();
+        if (Array.isArray(savedSync) && savedSync.length > 0) {
+            this.state.rawTrades = savedSync;
             this.recalculate();
+            this.fetchLiveTickers(false);
+            this.updateUserBanner();
             return;
         }
 
-        const saved = AnalyzerStorage.getTrades();
-        if (Array.isArray(saved) && saved.length > 0) {
-            this.state.rawTrades = saved;
-            this.recalculate();
-            this.fetchLiveTickers(false);
-        } else {
-            this.state.rawTrades = [];
-            this.recalculate();
+        // 2. Check IndexedDB fallback (fail-safe asynchronous)
+        if (typeof AnalyzerDB !== 'undefined') {
+            const savedDb = await AnalyzerDB.getTrades();
+            if (Array.isArray(savedDb) && savedDb.length > 0) {
+                this.state.rawTrades = savedDb;
+                AnalyzerStorage.saveTrades(savedDb);
+                this.recalculate();
+                this.fetchLiveTickers(false);
+                this.updateUserBanner();
+                return;
+            }
         }
+
+        this.state.rawTrades = [];
+        this.recalculate();
         this.updateUserBanner();
     },
 

@@ -18,6 +18,52 @@ if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined')
   db = firebase.firestore();
 }
 // ==========================================
+function formatDateTime(val, includeSeconds = false) {
+  if (!val) return '';
+  let d;
+  if (typeof val === 'number') {
+    d = new Date(val);
+  } else if (val instanceof Date) {
+    d = val;
+  } else if (typeof val === 'string') {
+    if (val.match(/^\d{4}[.-]\d{2}[.-]\d{2}\s+\d{2}:\d{2}/)) {
+      return val;
+    }
+    const parsed = Date.parse(val);
+    if (!isNaN(parsed)) {
+      d = new Date(parsed);
+    } else {
+      d = new Date();
+      if (val.includes('분 전')) {
+        const mins = parseInt(val) || 1;
+        d = new Date(Date.now() - mins * 60 * 1000);
+      } else if (val.includes('시간 전')) {
+        const hrs = parseInt(val) || 1;
+        d = new Date(Date.now() - hrs * 3600 * 1000);
+      } else if (val.includes('일 전')) {
+        const days = parseInt(val) || 1;
+        d = new Date(Date.now() - days * 86400 * 1000);
+      }
+    }
+  } else {
+    d = new Date();
+  }
+
+  if (isNaN(d.getTime())) d = new Date();
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+
+  if (includeSeconds) {
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${y}.${m}.${day} ${h}:${min}:${s}`;
+  }
+  return `${y}.${m}.${day} ${h}:${min}`;
+}
+window.formatDateTime = formatDateTime;
 
 // ----------------------------------------------------
 // Section 0: Theme Management Engine (Dark / Light)
@@ -765,7 +811,7 @@ function renderForumPosts() {
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
             <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml(post.categoryName)}</span>
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
-            <span class="text-xs text-slate-400">• ${escapeHtml(post.time)}</span>
+            <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.timestamp || post.time))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
             <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 1}회</span>
@@ -905,7 +951,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   }
   if (titleEl) titleEl.innerText = post.title;
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
-  if (timeEl) timeEl.innerText = post.time;
+  if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
   if (viewsEl) viewsEl.innerText = post.views;
   if (contentEl) contentEl.innerHTML = post.content;
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
@@ -963,7 +1009,7 @@ function renderCafeComments(comments = []) {
           <div class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-[10px]">${(c.author || '익').slice(0, 1)}</div>
           <span class="font-bold text-slate-200">${escapeHtml(c.author || '익명')}</span>
         </div>
-        <span class="text-slate-500 text-[11px]">${c.time || '방금 전'}</span>
+        <span class="text-slate-500 text-[11px] font-mono">${formatDateTime(c.timestamp || c.time)}</span>
       </div>
       <p class="text-xs sm:text-sm text-slate-300 leading-relaxed pl-8">${escapeHtml(c.text || '')}</p>
     </div>
@@ -995,7 +1041,8 @@ function handleCafeAddComment() {
     id: Date.now(),
     author: author,
     text: text,
-    time: '방금 전'
+    time: formatDateTime(Date.now()),
+    timestamp: Date.now()
   });
 
   saveStoredPosts(posts);
@@ -1185,7 +1232,7 @@ function handleCafeSubmitPost(e) {
     authorRank: authorRank,
     upvotes: 1,
     views: 1,
-    time: '방금 전',
+    time: formatDateTime(Date.now()),
     timestamp: Date.now(),
     comments: []
   };
@@ -1493,7 +1540,7 @@ function renderNews() {
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-mono font-bold">${escapeHtml(item.categoryName || item.category)}</span>
-          <span class="text-xs text-slate-400 font-mono">${escapeHtml(item.source)} • ${escapeHtml(item.time)}</span>
+          <span class="text-xs text-slate-400 font-mono">${escapeHtml(item.source)} • ${escapeHtml(formatDateTime(item.timestamp || item.time))}</span>
         </div>
         <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(item.title)}</h3>
         <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed">${escapeHtml(item.content)}</p>
@@ -1528,7 +1575,7 @@ function openNewsDetailModal(id) {
 
   if (catEl) catEl.innerText = item.categoryName || item.category;
   if (srcEl) srcEl.innerText = item.source;
-  if (timeEl) timeEl.innerText = item.time;
+  if (timeEl) timeEl.innerText = formatDateTime(item.timestamp || item.time);
   if (titleEl) titleEl.innerText = item.title;
   if (contentEl) contentEl.innerText = item.content;
   if (linkEl) linkEl.href = item.link || '#';
@@ -3026,17 +3073,9 @@ const OnChainEngine = {
       const randQty = Math.round(Math.abs(d.netFlow) * (0.02 + Math.random() * 0.08));
       const randUsd = (randQty * priceUsd / 1e6).toFixed(1);
 
-      // Shift older alert relative timestamps
-      d.whaleAlerts.forEach(w => {
-        if (w.time === '방금 전') w.time = '1분 전';
-        else if (w.time.includes('분 전')) {
-          const m = parseInt(w.time) || 1;
-          if (m < 50) w.time = `${m + 2}분 전`;
-        }
-      });
-
       d.whaleAlerts.unshift({
-        time: '방금 전',
+        time: formatDateTime(Date.now(), true),
+        timestamp: Date.now(),
         coin: coin,
         qty: `${randQty.toLocaleString()} ${coin}`,
         usd: `$${randUsd}M`,
@@ -3122,7 +3161,7 @@ const OnChainEngine = {
     if (tbody && d.whaleAlerts) {
       tbody.innerHTML = d.whaleAlerts.map(w => `
         <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
-          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${w.time}</td>
+          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${formatDateTime(w.timestamp || w.time, true)}</td>
           <td class="py-2.5 px-3 font-bold text-white">${w.coin}</td>
           <td class="py-2.5 px-3 text-right font-bold text-slate-200 font-mono">${w.qty}</td>
           <td class="py-2.5 px-3 text-right text-cyan-400 font-bold font-mono">${w.usd}</td>

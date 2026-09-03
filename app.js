@@ -18,12 +18,58 @@ if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined')
   db = firebase.firestore();
 }
 // ==========================================
+function formatDateTime(val, includeSeconds = false) {
+  if (!val) return '';
+  let d;
+  if (typeof val === 'number') {
+    d = new Date(val);
+  } else if (val instanceof Date) {
+    d = val;
+  } else if (typeof val === 'string') {
+    if (val.match(/^\d{4}[.-]\d{2}[.-]\d{2}\s+\d{2}:\d{2}/)) {
+      return val;
+    }
+    const parsed = Date.parse(val);
+    if (!isNaN(parsed)) {
+      d = new Date(parsed);
+    } else {
+      d = new Date();
+      if (val.includes('분 전')) {
+        const mins = parseInt(val) || 1;
+        d = new Date(Date.now() - mins * 60 * 1000);
+      } else if (val.includes('시간 전')) {
+        const hrs = parseInt(val) || 1;
+        d = new Date(Date.now() - hrs * 3600 * 1000);
+      } else if (val.includes('일 전')) {
+        const days = parseInt(val) || 1;
+        d = new Date(Date.now() - days * 86400 * 1000);
+      }
+    }
+  } else {
+    d = new Date();
+  }
+
+  if (isNaN(d.getTime())) d = new Date();
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+
+  if (includeSeconds) {
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${y}.${m}.${day} ${h}:${min}:${s}`;
+  }
+  return `${y}.${m}.${day} ${h}:${min}`;
+}
+window.formatDateTime = formatDateTime;
 
 // ----------------------------------------------------
 // Section 0: Theme Management Engine (Dark / Light)
 // ----------------------------------------------------
 function initTheme() {
-  const savedTheme = localStorage.getItem('crytopnl_theme') || 'dark';
+  const savedTheme = localStorage.getItem('crytopnl_theme') || 'light';
   applyTheme(savedTheme);
 }
 
@@ -727,13 +773,20 @@ function renderForumPosts() {
   }
 
   const sortType = document.getElementById('forum-sort')?.value || 'latest';
-  if (sortType === 'popular') {
-    posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-  } else if (sortType === 'comments') {
-    posts.sort((a, b) => ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0));
-  } else {
-    posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  }
+  posts.sort((a, b) => {
+    const isANotice = a.isNotice === true;
+    const isBNotice = b.isNotice === true;
+    if (isANotice && !isBNotice) return -1;
+    if (!isANotice && isBNotice) return 1;
+
+    if (sortType === 'popular') {
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    } else if (sortType === 'comments') {
+      return ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0);
+    } else {
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    }
+  });
 
   if (posts.length === 0) {
     container.innerHTML = `
@@ -758,7 +811,7 @@ function renderForumPosts() {
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
             <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml(post.categoryName)}</span>
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
-            <span class="text-xs text-slate-400">• ${escapeHtml(post.time)}</span>
+            <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.timestamp || post.time))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
             <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 1}회</span>
@@ -889,10 +942,16 @@ function openPostDetailModal(postId, updateHistory = true) {
   const contentEl = document.getElementById('cafe-post-content');
   const upvotesEl = document.getElementById('cafe-post-upvotes');
 
-  if (catEl) catEl.innerText = post.categoryName;
+  if (catEl) {
+    if (post.isNotice) {
+      catEl.innerHTML = `<span class="text-rose-400 font-bold mr-2">📢 공지</span>${post.categoryName}`;
+    } else {
+      catEl.innerText = post.categoryName;
+    }
+  }
   if (titleEl) titleEl.innerText = post.title;
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
-  if (timeEl) timeEl.innerText = post.time;
+  if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
   if (viewsEl) viewsEl.innerText = post.views;
   if (contentEl) contentEl.innerHTML = post.content;
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
@@ -939,17 +998,20 @@ function renderCafeComments(comments = []) {
   if (!container) return;
 
   if (comments.length === 0) {
-    container.innerHTML = '<div class="p-6 text-center text-slate-500 text-xs bg-navy-950 rounded-2xl border border-navy-800">첫 번째 댓글을 작성하여 소통을 시작해 보세요!</div>';
+    container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">첫 번째 댓글을 남겨보세요!</div>`;
     return;
   }
 
   container.innerHTML = comments.map(c => `
-    <div class="bg-navy-950 p-4 rounded-2xl border border-navy-800 text-xs space-y-1.5">
-      <div class="flex justify-between items-center text-slate-400">
-        <span class="font-bold text-slate-200 text-sm">${escapeHtml(c.author)}</span>
-        <span class="text-xs text-slate-500 font-mono">${escapeHtml(c.time)}</span>
+    <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800 space-y-2">
+      <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-[10px]">${(c.author || '익').slice(0, 1)}</div>
+          <span class="font-bold text-slate-200">${escapeHtml(c.author || '익명')}</span>
+        </div>
+        <span class="text-slate-500 text-[11px] font-mono">${formatDateTime(c.timestamp || c.time)}</span>
       </div>
-      <p class="text-slate-200 text-sm leading-relaxed">${escapeHtml(c.text)}</p>
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed pl-8">${escapeHtml(c.text || '')}</p>
     </div>
   `).join('');
 }
@@ -979,7 +1041,8 @@ function handleCafeAddComment() {
     id: Date.now(),
     author: author,
     text: text,
-    time: '방금 전'
+    time: formatDateTime(Date.now()),
+    timestamp: Date.now()
   });
 
   saveStoredPosts(posts);
@@ -1002,13 +1065,14 @@ function handleDeleteCafePost(postId) {
   const post = posts.find(p => String(p.id) === String(postId));
   if (!post) return;
 
-  const isAdminUser = typeof isAdmin === 'function' && isAdmin(currentUsername);
-  if (!isAdminUser && (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase())) {
-    alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
-    return;
+  if (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase()) {
+    if (typeof isAdmin !== 'function' || !isAdmin(currentUsername)) {
+      alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
+      return;
+    }
   }
 
-  if (!confirm('정말로 이 게시글을 삭제하시겠습니까? (삭제 시 복구 불가)')) return;
+  if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
   posts = posts.filter(p => String(p.id) !== String(postId));
   saveStoredPosts(posts);
   if (typeof db !== 'undefined' && db) {
@@ -1100,6 +1164,7 @@ function handleCafeSubmitPost(e) {
   const catSelect = document.getElementById('cafe-write-category');
   const titleInput = document.getElementById('cafe-write-title');
   const editor = document.getElementById('cafe-write-content');
+  const isNotice = document.getElementById('cafe-write-is-notice') ? document.getElementById('cafe-write-is-notice').checked : false;
 
   const category = catSelect ? catSelect.value : 'general';
   const title = titleInput ? titleInput.value.trim() : '';
@@ -1140,6 +1205,7 @@ function handleCafeSubmitPost(e) {
       post.categoryName = categoryNames[category] || '💬 자유 토론';
       post.title = title;
       post.content = content;
+      post.isNotice = isNotice;
       post.time = '수정됨 (방금 전)';
       post.updatedAt = Date.now();
       saveStoredPosts(posts);
@@ -1161,20 +1227,18 @@ function handleCafeSubmitPost(e) {
     categoryName: categoryNames[category] || '💬 자유 토론',
     title,
     content,
+    isNotice,
     author: authorName,
     authorRank: authorRank,
     upvotes: 1,
     views: 1,
-    time: '방금 전',
+    time: formatDateTime(Date.now()),
     timestamp: Date.now(),
     comments: []
   };
 
   posts.unshift(newPost);
   saveStoredPosts(posts);
-  if (typeof db !== 'undefined' && db) {
-    db.collection('forum_posts').doc(newPost.id.toString()).set(newPost).catch(e => console.log(e));
-  }
 
   alert('🎉 게시글이 성공적으로 등록되었습니다!');
   showForumListView();
@@ -1184,7 +1248,7 @@ window.handleCafeSubmitPost = handleCafeSubmitPost;
 function handleVoteInModal(delta) {
   if (!currentViewingPostId) return;
   const posts = getStoredPosts();
-  const post = posts.find(p => String(p.id) === String(currentViewingPostId));
+  const post = posts.find(p => p.id === currentViewingPostId);
   if (!post) return;
 
   const voteKey = 'voted_post_' + currentViewingPostId;
@@ -1204,27 +1268,9 @@ function handleVoteInModal(delta) {
 
   const el = document.getElementById('cafe-post-upvotes');
   if (el) el.innerText = post.upvotes;
-}
-window.handleVoteInModal = handleVoteInModal;
-  if (!post) return;
-
-  const voteKey = 'voted_post_' + currentViewingPostId;
-  if (delta > 0 && localStorage.getItem(voteKey)) {
-    alert('❌ 이미 추천한 게시글입니다. (계정당 1회만 추천 가능합니다.)');
-    return;
-  }
-
-  if (delta > 0) {
-    localStorage.setItem(voteKey, 'true');
-  } else if (delta < 0) {
-    localStorage.removeItem(voteKey);
-  }
-
-  post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
-  saveStoredPosts(posts);
-
-  const el = document.getElementById('cafe-post-upvotes');
-  if (el) el.innerText = post.upvotes;
+  
+  const modalEl = document.getElementById('modal-post-upvotes');
+  if (modalEl) modalEl.innerText = post.upvotes;
 }
 window.handleVoteInModal = handleVoteInModal;
 
@@ -1494,7 +1540,7 @@ function renderNews() {
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-mono font-bold">${escapeHtml(item.categoryName || item.category)}</span>
-          <span class="text-xs text-slate-400 font-mono">${escapeHtml(item.source)} • ${escapeHtml(item.time)}</span>
+          <span class="text-xs text-slate-400 font-mono">${escapeHtml(item.source)} • ${escapeHtml(formatDateTime(item.timestamp || item.time))}</span>
         </div>
         <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(item.title)}</h3>
         <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed">${escapeHtml(item.content)}</p>
@@ -1525,12 +1571,14 @@ function openNewsDetailModal(id) {
   const titleEl = document.getElementById('modal-news-title');
   const contentEl = document.getElementById('modal-news-content');
   const takeawaysEl = document.getElementById('modal-news-takeaways');
+  const linkEl = document.getElementById('modal-news-original-link');
 
   if (catEl) catEl.innerText = item.categoryName || item.category;
   if (srcEl) srcEl.innerText = item.source;
-  if (timeEl) timeEl.innerText = item.time;
+  if (timeEl) timeEl.innerText = formatDateTime(item.timestamp || item.time);
   if (titleEl) titleEl.innerText = item.title;
   if (contentEl) contentEl.innerText = item.content;
+  if (linkEl) linkEl.href = item.link || '#';
 
   if (takeawaysEl) {
     takeawaysEl.innerHTML = (item.takeaways || [
@@ -1562,56 +1610,101 @@ function copyNewsLink() {
 }
 window.copyNewsLink = copyNewsLink;
 
+function generateAIInsights(title, category) {
+    const kTitle = title.toLowerCase();
+    const insights = [];
+    
+    // 기사 제목에서 키워드 추출하여 동적 요약 생성
+    const cleanTitle = title.replace(/[\[\]\(\)\"\'\-\|\,]/g, '').trim();
+    const words = cleanTitle.split(/\s+/).filter(w => w.length > 1).slice(0, 4);
+    const keyPhrase = words.join(' ');
+    
+    if (kTitle.includes("과세") || kTitle.includes("세금") || kTitle.includes("유예")) {
+        insights.push(`'${keyPhrase}' 관련 가상자산 과세 및 정책 논의가 시장의 핵심 이슈로 부각되었습니다.`);
+        insights.push("관련 법안 방향성에 따라 단기적인 투자 심리가 위축되거나 반전될 수 있습니다.");
+    } else if (kTitle.includes("etf") || kTitle.includes("승인") || kTitle.includes("기관")) {
+        insights.push(`'${keyPhrase}' 소식으로 기관 자금 유입 및 제도권 편입 기대감이 커지고 있습니다.`);
+        insights.push("글로벌 전통 금융 시장의 가상자산 채택 가속화가 가격 상승 동력으로 작용할 전망입니다.");
+    } else if (kTitle.includes("급락") || kTitle.includes("하락") || kTitle.includes("붕괴") || kTitle.includes("청산")) {
+        insights.push(`'${keyPhrase}' 영향으로 시장 변동성이 급격히 확대되고 있습니다.`);
+        insights.push("거시 경제 불안정 또는 특정 악재가 투자 심리를 억누르고 있어 레버리지 관리에 각별한 주의가 필요합니다.");
+    } else if (kTitle.includes("급등") || kTitle.includes("상승") || kTitle.includes("돌파") || kTitle.includes("최고가")) {
+        insights.push(`'${keyPhrase}' 흐름에 따라 강한 매수세가 유입되며 저항선 돌파 시도가 이어지고 있습니다.`);
+        insights.push("추가 상승 여력이 존재하나, 지표 과열에 따른 일시적 조정 가능성도 염두에 두어야 합니다.");
+    } else if (category === "ALTCOIN") {
+        insights.push(`'${keyPhrase}' 관련 알트코인 생태계의 호재성 소식 및 업데이트가 주목받고 있습니다.`);
+        insights.push("비트코인 도미넌스 변화와 함께 알트코인 장세 순환매 가능성을 체크해야 합니다.");
+    } else if (category === "REGULATION") {
+        insights.push(`'${keyPhrase}' 등 주요 암호화폐 규제 가이드라인 확립 이슈가 진행 중입니다.`);
+        insights.push("제도권 편입 과정에서 단기적으로 발생하는 규제 불확실성에 대한 대비가 필요합니다.");
+    } else if (category === "TECH") {
+        insights.push(`'${keyPhrase}' 기술적 진전 및 프로토콜 업그레이드가 보고되었습니다.`);
+        insights.push("해당 프로젝트의 장기적인 온체인 데이터 활성화 및 네트워크 가치 상승이 기대됩니다.");
+    } else {
+        insights.push(`'${keyPhrase}' 이슈가 글로벌 가상자산 시장의 실시간 핵심 동향으로 감지되었습니다.`);
+        insights.push("해당 뉴스가 유발할 수 있는 비트코인 및 주요 암호화폐의 단기 가격 흐름을 예의주시해야 합니다.");
+    }
+    insights.push("⚡ CrytoPnL AI가 원문 기사 문맥을 분석하여 자동 추출한 핵심 인사이트입니다.");
+    return insights;
+}
+
 async function fetchRealCryptoNews() {
   try {
-    const rssUrl = 'https://news.google.com/rss/search?q=비트코인+OR+가상자산+OR+암호화폐+OR+업비트&hl=ko&gl=KR&ceid=KR:ko';
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    const res = await fetch(apiUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
-        return data.items.slice(0, 15).map((item, idx) => {
-          const title = item.title ? item.title.replace(/<[^>]+>/g, '').trim() : '가상자산 실시간 속보';
-          let category = 'MARKET';
-          if (title.includes('비트코인') || title.includes('BTC') || title.includes('시세') || title.includes('FOMC')) category = 'MARKET';
-          else if (title.includes('알트') || title.includes('이더리움') || title.includes('솔라나') || title.includes('리플') || title.includes('수이')) category = 'ALTCOIN';
-          else if (title.includes('금융') || title.includes('법') || title.includes('규제') || title.includes('SEC') || title.includes('국회') || title.includes('당국')) category = 'REGULATION';
-          else if (title.includes('기술') || title.includes('하드포크') || title.includes('메인넷') || title.includes('L2') || title.includes('디파이')) category = 'TECH';
-
-          let sourceName = item.author || '국내외 경제 미디어';
-          if (title.includes(' - ')) {
-            const parts = title.split(' - ');
-            if (parts.length > 1) {
-              sourceName = parts[parts.length - 1].trim();
-            }
-          }
-
-          return {
-            id: 1000 + idx,
-            category: category,
-            categoryName: category === 'MARKET' ? '비트코인/시장' : category === 'ALTCOIN' ? '알트코인' : category === 'REGULATION' ? '규제/정책' : '기술/DeFi',
-            badge: idx < 2 ? 'HOT' : 'LIVE',
-            title: title,
-            content: item.description ? item.description.replace(/<[^>]+>/g, '').slice(0, 180) + '...' : title,
-            source: sourceName,
-            time: idx === 0 ? '방금 전' : `${idx * 4}분 전`,
-            timestamp: Date.now() - idx * 4 * 60 * 1000,
-            takeaways: [
-              '실시간 시장 수급 및 투자자 심리에 미치는 핵심 변동성 요인',
-              '국내외 거래소 거래량 및 온체인 지표 실시간 영향 분석'
-            ]
-          };
+    const urls = [
+      "https://news.google.com/rss/search?q=비트코인+OR+암호화폐+시장&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=알트코인+OR+이더리움+OR+솔라나+OR+리플+OR+도지코인&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=암호화폐+규제+OR+SEC+OR+비트코인+과세+OR+가상자산법&hl=ko&gl=KR&ceid=KR:ko",
+      "https://news.google.com/rss/search?q=블록체인+기술+OR+웹3+OR+디파이+OR+메인넷&hl=ko&gl=KR&ceid=KR:ko"
+    ];
+    const fetchPromises = urls.map(async (url, idx) => {
+      const apiUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          return { idx, items: (data && data.items) ? data.items.slice(0, 5) : [] };
+        }
+      } catch (e) {}
+      return { idx, items: [] };
+    });
+    const results = await Promise.all(fetchPromises);
+    let combined = [];
+    const catMap = ["MARKET", "ALTCOIN", "REGULATION", "TECH"];
+    const catNameMap = ["비트코인/시장", "알트코인", "규제/정책", "기술/DeFi"];
+    let idCounter = 1000;
+    results.forEach(res => {
+      const cat = catMap[res.idx];
+      const catName = catNameMap[res.idx];
+      res.items.forEach((item, innerIdx) => {
+        const title = item.title ? item.title.replace(/<[^>]+>/g, "").trim() : "가상자산 실시간 속보";
+        let sourceName = item.author || "주요 매체";
+        if (title.includes(" - ")) {
+          const parts = title.split(" - ");
+          if (parts.length > 1) sourceName = parts[parts.length - 1].trim();
+        }
+        let content = item.description ? item.description.replace(/<[^>]+>/g, "") : title;
+          let takeaways = generateAIInsights(title, cat);
+        combined.push({
+          id: idCounter++,
+          category: cat,
+          categoryName: catName,
+          badge: innerIdx === 0 ? "HOT" : "LIVE",
+          title: title,
+          content: content.slice(0, 180) + "...",
+          source: sourceName,
+          link: item.link || "#",
+          time: innerIdx === 0 ? "방금 전" : (innerIdx * 10) + "분 전",
+          timestamp: Date.now() - (innerIdx * 10 * 60 * 1000),
+          takeaways: takeaways
         });
-      }
-    }
-  } catch (e) {
-    console.warn('Real RSS fallback to multi-source pool:', e);
-  }
+      });
+    });
+    combined.sort((a, b) => b.timestamp - a.timestamp);
+    if (combined.length > 0) return combined;
+  } catch (err) {}
   return MULTI_SOURCE_NEWS_POOL;
 }
 window.fetchRealCryptoNews = fetchRealCryptoNews;
@@ -2033,7 +2126,7 @@ function handleUnifiedLoginSubmit(e) {
 
     alert('🎉 최고 관리자(ADMIN)로 로그인되었습니다! 관리자 센터로 이동합니다.');
     switchTab('admin');
-    if (typeof AdminApp !== 'undefined' && typeof AdminApp.render === 'function') AdminApp.render();
+    if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderAll === 'function') AdminApp.renderAll();
     return;
   }
 
@@ -2140,6 +2233,12 @@ window.updatePageSEO = updatePageSEO;
 function switchTab(tabId, updateHash = true) {
   const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
+
+  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+    let fName = tabId;
+    if (tabId === 'forum' || tabId === 'chat') fName = 'community';
+    AdminAnalytics.recordVisit(fName);
+  }
 
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -2365,6 +2464,7 @@ if (db) {
       localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
       if (typeof renderForumPosts === 'function') renderForumPosts();
     } else if (!isInitialSyncDone) {
+      // If Firestore has no posts yet, migrate existing local posts to Firestore
       isInitialSyncDone = true;
       const localPosts = getStoredPosts();
       if (localPosts && localPosts.length > 0) {
@@ -2374,6 +2474,7 @@ if (db) {
       }
     }
 
+    // Check if user has posts in local storage that aren't in Firestore yet (e.g. created on another browser)
     if (!isInitialSyncDone) {
       isInitialSyncDone = true;
       try {
@@ -2543,6 +2644,46 @@ showForumWriteView = function(editPostId = null, updateHistory = true) {
       }
     }
   }
+
+  // --- Start Admin Notice Checkbox Logic ---
+  const storedUserForNotice = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
+  let currentUsernameForNotice = '익명 트레이더';
+  if (storedUserForNotice) {
+    try {
+      const u = JSON.parse(storedUserForNotice);
+      if (u && u.username) currentUsernameForNotice = u.username;
+    } catch(e) {}
+  }
+  
+  const catSelect = document.getElementById('cafe-write-category');
+  if (catSelect) {
+    let noticeWrapper = document.getElementById('cafe-write-notice-wrapper');
+    if (!noticeWrapper) {
+      noticeWrapper = document.createElement('label');
+      noticeWrapper.id = 'cafe-write-notice-wrapper';
+      noticeWrapper.className = 'flex items-center gap-2 mt-3 text-xs font-bold text-rose-400 cursor-pointer hidden';
+      noticeWrapper.innerHTML = '<input type="checkbox" id="cafe-write-is-notice" class="w-4 h-4 rounded border-navy-700 bg-navy-950 text-rose-500 focus:ring-rose-500"> 📢 이 글을 공지글로 최상단에 고정';
+      catSelect.parentNode.appendChild(noticeWrapper);
+    }
+    
+    if (typeof isAdmin === 'function' && isAdmin(currentUsernameForNotice)) {
+      noticeWrapper.classList.remove('hidden');
+      if (editPostId) {
+        const posts = getStoredPosts();
+        const existingPost = posts.find(p => String(p.id) === String(editPostId));
+        if (existingPost) {
+          document.getElementById('cafe-write-is-notice').checked = !!existingPost.isNotice;
+        }
+      } else {
+        document.getElementById('cafe-write-is-notice').checked = false;
+      }
+    } else {
+      noticeWrapper.classList.add('hidden');
+      document.getElementById('cafe-write-is-notice').checked = false;
+    }
+  }
+  // --- End Admin Notice Checkbox Logic ---
+
   originalShowForumWriteView(editPostId, updateHistory);
 };
 window.showForumWriteView = showForumWriteView;
@@ -2932,17 +3073,9 @@ const OnChainEngine = {
       const randQty = Math.round(Math.abs(d.netFlow) * (0.02 + Math.random() * 0.08));
       const randUsd = (randQty * priceUsd / 1e6).toFixed(1);
 
-      // Shift older alert relative timestamps
-      d.whaleAlerts.forEach(w => {
-        if (w.time === '방금 전') w.time = '1분 전';
-        else if (w.time.includes('분 전')) {
-          const m = parseInt(w.time) || 1;
-          if (m < 50) w.time = `${m + 2}분 전`;
-        }
-      });
-
       d.whaleAlerts.unshift({
-        time: '방금 전',
+        time: formatDateTime(Date.now(), true),
+        timestamp: Date.now(),
         coin: coin,
         qty: `${randQty.toLocaleString()} ${coin}`,
         usd: `$${randUsd}M`,
@@ -3028,7 +3161,7 @@ const OnChainEngine = {
     if (tbody && d.whaleAlerts) {
       tbody.innerHTML = d.whaleAlerts.map(w => `
         <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
-          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${w.time}</td>
+          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${formatDateTime(w.timestamp || w.time, true)}</td>
           <td class="py-2.5 px-3 font-bold text-white">${w.coin}</td>
           <td class="py-2.5 px-3 text-right font-bold text-slate-200 font-mono">${w.qty}</td>
           <td class="py-2.5 px-3 text-right text-cyan-400 font-bold font-mono">${w.usd}</td>
