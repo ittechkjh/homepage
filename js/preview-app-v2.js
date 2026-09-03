@@ -714,11 +714,15 @@ function renderForumPosts() {
         </div>
 
         <div class="flex items-center gap-3 self-end sm:self-center shrink-0 text-xs">
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 font-mono" title="조회수">
+            <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>${post.views || 1}</span>
+          </div>
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono" title="추천수">
             <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
             <span>${post.upvotes || 0}</span>
           </div>
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono" title="댓글수">
             <i data-lucide="message-square" class="w-3.5 h-3.5 text-slate-400"></i>
             <span>${commentsCount}</span>
           </div>
@@ -2874,6 +2878,84 @@ const OnChainEngine = {
     this.render();
   },
 
+  updateLiveMetrics: function () {
+    const coin = this.currentCoin;
+    const d = this.data[coin];
+    if (!d) return;
+
+    // 1. Dynamic Net Flow fluctuation (+- 0.3%)
+    const flowDelta = Math.round((Math.random() - 0.48) * (Math.abs(d.netFlow) * 0.005));
+    d.netFlow += flowDelta;
+
+    // 2. Fetch live price if available
+    let priceUsd = 65000;
+    if (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
+      const match = marketCoins.find(c => c.symbol && c.symbol.toUpperCase() === coin.toUpperCase());
+      if (match && match.current_price) {
+        // Convert KRW to USD (~1400 KRW/USD) or direct USD
+        priceUsd = match.current_price > 10000 ? match.current_price / 1400 : match.current_price;
+      }
+    } else {
+      const defaultUsdPrices = { BTC: 68000, ETH: 2500, SOL: 145, XRP: 0.58, DOGE: 0.12, SUI: 1.8, AVAX: 28, LINK: 12 };
+      priceUsd = defaultUsdPrices[coin] || 100;
+    }
+
+    d.netFlowUsd = Math.round(d.netFlow * priceUsd);
+
+    // 3. Dynamic active wallets & whale count
+    const baseWallets = parseInt(d.activeWallets.replace(/[^0-9]/g, '')) || 500000;
+    const newWallets = Math.max(1000, baseWallets + Math.floor((Math.random() - 0.48) * 800));
+    d.activeWallets = newWallets.toLocaleString() + ' 주소';
+
+    // 4. Periodically insert a fresh whale transaction (35% chance on tick)
+    if (Math.random() < 0.35 && d.whaleAlerts) {
+      const exchanges = ['Binance', 'Coinbase', 'OKX', 'Kraken', 'Upbit', 'Bithumb', 'Cold Storage', 'Institutional Custody'];
+      const fromEx = exchanges[Math.floor(Math.random() * exchanges.length)];
+      let toEx = exchanges[Math.floor(Math.random() * exchanges.length)];
+      while (toEx === fromEx) toEx = exchanges[Math.floor(Math.random() * exchanges.length)];
+
+      const isDeposit = toEx.includes('Binance') || toEx.includes('Upbit') || toEx.includes('OKX');
+      const isOutflow = toEx.includes('Cold') || toEx.includes('Custody') || toEx.includes('Wallet');
+      const type = isOutflow ? '외부 유출 (매집)' : (isDeposit ? '거래소 입금 (주의)' : '기관 지갑 이체');
+      const typeClass = isOutflow ? 'text-emerald-400' : (isDeposit ? 'text-rose-400' : 'text-cyan-400');
+
+      const randQty = Math.round(Math.abs(d.netFlow) * (0.02 + Math.random() * 0.08));
+      const randUsd = (randQty * priceUsd / 1e6).toFixed(1);
+
+      // Shift older alert relative timestamps
+      d.whaleAlerts.forEach(w => {
+        if (w.time === '방금 전') w.time = '1분 전';
+        else if (w.time.includes('분 전')) {
+          const m = parseInt(w.time) || 1;
+          if (m < 50) w.time = `${m + 2}분 전`;
+        }
+      });
+
+      d.whaleAlerts.unshift({
+        time: '방금 전',
+        coin: coin,
+        qty: `${randQty.toLocaleString()} ${coin}`,
+        usd: `$${randUsd}M`,
+        fromTo: `${fromEx} ➔ ${toEx}`,
+        type: type,
+        typeClass: typeClass
+      });
+
+      if (d.whaleAlerts.length > 5) d.whaleAlerts.pop();
+    }
+
+    this.render();
+  },
+
+  refresh: function () {
+    const btn = document.getElementById('onchain-refresh-btn');
+    if (btn) {
+      btn.classList.add('animate-spin');
+      setTimeout(() => btn.classList.remove('animate-spin'), 600);
+    }
+    this.updateLiveMetrics();
+  },
+
   render: function () {
     const d = this.data[this.currentCoin] || this.data['BTC'];
     
@@ -2936,11 +3018,11 @@ const OnChainEngine = {
     if (tbody && d.whaleAlerts) {
       tbody.innerHTML = d.whaleAlerts.map(w => `
         <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
-          <td class="py-2.5 px-3 text-slate-400">${w.time}</td>
+          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${w.time}</td>
           <td class="py-2.5 px-3 font-bold text-white">${w.coin}</td>
-          <td class="py-2.5 px-3 text-right font-bold text-slate-200">${w.qty}</td>
-          <td class="py-2.5 px-3 text-right text-cyan-400 font-bold">${w.usd}</td>
-          <td class="py-2.5 px-3 text-slate-300">${w.fromTo}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-slate-200 font-mono">${w.qty}</td>
+          <td class="py-2.5 px-3 text-right text-cyan-400 font-bold font-mono">${w.usd}</td>
+          <td class="py-2.5 px-3 text-slate-300 text-xs">${w.fromTo}</td>
           <td class="py-2.5 px-3 text-center font-bold ${w.typeClass}">${w.type}</td>
         </tr>
       `).join('');
@@ -2952,8 +3034,17 @@ const OnChainEngine = {
 
   init: function () {
     this.render();
+    if (!this._interval) {
+      this._interval = setInterval(() => {
+        const forumTab = document.getElementById('tab-forum');
+        if (forumTab && !forumTab.classList.contains('hidden')) {
+          this.updateLiveMetrics();
+        }
+      }, 10000);
+    }
   }
 };
+window.OnChainEngine = OnChainEngine;
 
 // Auto init OnChainEngine on load
 if (document.readyState === 'loading') {

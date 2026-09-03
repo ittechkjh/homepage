@@ -125,6 +125,12 @@ const AdminAnalytics = {
         const mobilePct = totalDev > 0 ? Math.round((data.devices.mobile / totalDev) * 100) : 50;
         const desktopPct = totalDev > 0 ? (100 - mobilePct) : 50;
 
+        let realLiveCount = 1;
+        const activeListEl = document.getElementById('chat-active-users-list');
+        if (activeListEl && activeListEl.children.length > 0) {
+            realLiveCount = Math.max(1, activeListEl.children.length);
+        }
+
         return {
             todayVisitors: today.visitors,
             todayPageviews: today.pageviews,
@@ -132,12 +138,13 @@ const AdminAnalytics = {
             growthRate: growthRate,
             weeklyVisitors,
             monthlyVisitors,
-            liveUsers: 1, // Real session count
+            liveUsers: realLiveCount,
             totalVisitorsAllTime: data.totalVisitorsAllTime,
             totalPageviewsAllTime: data.totalPageviewsAllTime,
             history: history14,
             mobilePct,
-            desktopPct
+            desktopPct,
+            features: data.features || { analyzer: 0, market: 0, news: 0, community: 0 }
         };
     }
 };
@@ -146,18 +153,73 @@ const AdminUserManager = {
     STORAGE_KEY: 'coinhub_registered_users',
 
     getUsers: function () {
+        let users = [];
         try {
-            const raw = localStorage.getItem(this.STORAGE_KEY);
+            const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('crytopnl_registered_users');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
+                    users = parsed;
                 }
             }
         } catch (e) {}
 
-        // Default initial real admin accounts only (no fake seed accounts)
-        return this.initRealUsers();
+        if (users.length === 0) {
+            users = this.initRealUsers();
+        }
+
+        // Aggregate current logged in user if missing
+        try {
+            const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
+            if (currentRaw) {
+                const u = JSON.parse(currentRaw);
+                if (u && u.username) {
+                    const exists = users.some(x => x.username.toLowerCase() === u.username.toLowerCase());
+                    if (!exists) {
+                        users.push({
+                            id: 'usr_' + Date.now(),
+                            username: u.username,
+                            email: u.email || `${u.username}@crytopnl.com`,
+                            role: u.role || 'USER',
+                            status: 'ACTIVE',
+                            joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+                            lastLogin: '방금 전 (온라인)',
+                            reputation: u.reputation || 100,
+                            tradesCount: this.getUserTradesCount(u.username),
+                            memo: '현재 접속 회원'
+                        });
+                        this.saveUsers(users);
+                    }
+                }
+            }
+        } catch(e) {}
+
+        // Scan forum posts for authors
+        try {
+            const posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts') || '[]');
+            posts.forEach(p => {
+                if (p.author && p.author !== '익명 트레이더') {
+                    const exists = users.some(x => x.username.toLowerCase() === p.author.toLowerCase());
+                    if (!exists) {
+                        users.push({
+                            id: 'usr_' + (p.id || Date.now()),
+                            username: p.author,
+                            email: `${p.author}@crytopnl.com`,
+                            role: p.authorRank === 'ADMIN' ? 'ADMIN' : (p.authorRank === 'PRO' ? 'PRO' : 'USER'),
+                            status: 'ACTIVE',
+                            joinedDate: p.time || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
+                            lastLogin: '커뮤니티 활동',
+                            reputation: (p.upvotes || 0) * 10 + 100,
+                            tradesCount: this.getUserTradesCount(p.author),
+                            memo: '포럼 작성 회원'
+                        });
+                        this.saveUsers(users);
+                    }
+                }
+            });
+        } catch(e) {}
+
+        return users;
     },
 
     initRealUsers: function () {
@@ -165,7 +227,7 @@ const AdminUserManager = {
             {
                 id: 'usr_admin',
                 username: 'admin',
-                email: 'admin@cryptopnl.com',
+                email: 'admin@crytopnl.com',
                 role: 'ADMIN',
                 status: 'ACTIVE',
                 joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
@@ -178,14 +240,14 @@ const AdminUserManager = {
 
         // If current user is logged in and not admin, include them
         try {
-            const currentRaw = localStorage.getItem('coinhub_user');
+            const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
             if (currentRaw) {
                 const u = JSON.parse(currentRaw);
                 if (u && u.username && u.username.toLowerCase() !== 'admin') {
                     users.push({
                         id: 'usr_' + Date.now(),
                         username: u.username,
-                        email: u.email || (u.username + '@cryptopnl.com'),
+                        email: u.email || (u.username + '@crytopnl.com'),
                         role: u.role || 'USER',
                         status: 'ACTIVE',
                         joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
@@ -200,26 +262,41 @@ const AdminUserManager = {
 
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
+            localStorage.setItem('crytopnl_registered_users', JSON.stringify(users));
         } catch (e) {}
 
         return users;
     },
 
     getUserTradesCount: function (username) {
-        try {
-            const key = 'coinhub_user_' + String(username).trim().toLowerCase() + '_trades';
-            const raw = localStorage.getItem(key);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed.length;
-            }
-        } catch (e) {}
+        if (!username) return 0;
+        const u = String(username).trim().toLowerCase();
+        const candidateKeys = [
+            'crytopnl_user_' + u + '_trades',
+            'coinhub_user_' + u + '_trades',
+            'crytopnl_trades_' + u,
+            'coinhub_trades_' + u,
+            'crytopnl_trades',
+            'coinhub_trades'
+        ];
+
+        for (const key of candidateKeys) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed.length;
+                    if (parsed && Array.isArray(parsed.trades) && parsed.trades.length > 0) return parsed.trades.length;
+                }
+            } catch(e) {}
+        }
         return 0;
     },
 
     saveUsers: function (users) {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
+            localStorage.setItem('crytopnl_registered_users', JSON.stringify(users));
         } catch (e) {}
     },
 
@@ -929,9 +1006,13 @@ const AdminApp = {
     deleteForumPost: function (postId) {
         if (confirm('해당 포럼 게시글을 영구 삭제하시겠습니까?')) {
             let posts = [];
-            try { posts = JSON.parse(localStorage.getItem('coinhub_forum_posts') || '[]'); } catch(e){}
-            posts = posts.filter(p => p.id !== postId);
+            try { posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts') || '[]'); } catch(e){}
+            posts = posts.filter(p => String(p.id) !== String(postId));
+            localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
             localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+            if (typeof db !== 'undefined' && db) {
+                db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+            }
             if (typeof renderForumPosts === 'function') renderForumPosts();
             this.renderModeration();
             alert('게시글이 삭제되었습니다.');
