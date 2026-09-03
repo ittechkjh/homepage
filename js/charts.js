@@ -206,7 +206,7 @@ const ChartManager = {
     },
 
     /**
-     * 3. 코인 갯수 늘리기 (Coin Stacking) 랭킹
+     * 3. 수익이 가장 높은 코인 상위 TOP (Top Profit Coins)
      */
     renderCoinStackingChart: function (coinSummaries) {
         const canvas = document.getElementById('coinStackingChart');
@@ -218,23 +218,24 @@ const ChartManager = {
         const colors = this.getThemeColors();
         const ctx = canvas.getContext('2d');
 
-        const validCoins = [...coinSummaries]
-            .filter(c => (c.gainedCoinRoi !== undefined && c.gainedCoinRoi !== 0) || c.realizedProfit !== 0)
-            .sort((a, b) => (b.gainedCoinRoi || 0) - (a.gainedCoinRoi || 0))
+        // 실현손익이 0보다 큰 코인을 수익금 내림차순으로 정렬하여 상위 8개 추출
+        const topProfitCoins = [...coinSummaries]
+            .filter(c => (c.realizedProfit || 0) > 0)
+            .sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0))
             .slice(0, 8);
 
-        if (validCoins.length === 0) return;
+        if (topProfitCoins.length === 0) return;
 
-        const labels = validCoins.map(c => (c.koreanName || c.coinSymbol));
-        const dataValues = validCoins.map(c => Number((c.gainedCoinRoi || 0).toFixed(2)));
-        const bgColors = dataValues.map(v => v >= 0 ? colors.profitColor : colors.lossColor);
+        const labels = topProfitCoins.map(c => (c.koreanName || c.coinSymbol));
+        const dataValues = topProfitCoins.map(c => Math.round(c.realizedProfit || 0));
+        const bgColors = dataValues.map(() => colors.profitColor);
 
         this.instances['stacking'] = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: '코인 수량 증가율 (%)',
+                    label: '실현수익금 (원)',
                     data: dataValues,
                     backgroundColor: bgColors,
                     borderRadius: 4,
@@ -253,12 +254,12 @@ const ChartManager = {
                         bodyColor: colors.tooltipText,
                         callbacks: {
                             label: function (context) {
-                                const coin = validCoins[context.dataIndex];
-                                const roi = context.parsed.x;
-                                const qty = coin.gainedCoinQty || 0;
+                                const coin = topProfitCoins[context.dataIndex];
+                                const val = context.parsed.x;
+                                const roi = coin.realizedRoi || 0;
                                 return [
-                                    '수량 증가율: ' + (roi > 0 ? '+' : '') + roi.toFixed(2) + '%',
-                                    '늘린 코인수: ' + (qty > 0 ? '+' : '') + qty.toLocaleString(undefined, { maximumFractionDigits: 6 }) + ' ' + coin.coinSymbol
+                                    '실현수익금: +' + Math.round(val).toLocaleString('ko-KR') + '원',
+                                    '실현수익률: ' + (roi > 0 ? '+' : '') + roi.toFixed(2) + '%'
                                 ];
                             }
                         }
@@ -270,7 +271,11 @@ const ChartManager = {
                         ticks: {
                             color: colors.textColor,
                             font: { size: 11 },
-                            callback: function (val) { return val + '%'; }
+                            callback: function (val) {
+                                if (Math.abs(val) >= 100000000) return (val / 100000000).toFixed(1) + '억';
+                                if (Math.abs(val) >= 10000) return (val / 10000).toFixed(0) + '만';
+                                return val.toLocaleString('ko-KR');
+                            }
                         }
                     },
                     y: {

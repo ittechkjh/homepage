@@ -1019,18 +1019,7 @@ const App = {
             }
         });
 
-        if (this.state.coinsFilterMode === 'HOLDING') {
-            coins = coins.filter(c => c.holdingQty > 1e-4 && c.holdingCost >= 100);
-        }
-
-        if (coins.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">' + 
-                (this.state.coinsFilterMode === 'HOLDING' ? '현재 보유 중인 코인 잔고가 없습니다. 전체 거래 종목을 확인하려면 상단 [전체 거래 종목]을 클릭하세요.' : '등록된 코인 거래 내역이 없습니다.') + 
-                '</td></tr>';
-            return;
-        }
-
-        // 2. Perform robust numerical / alphabetical sorting
+        // 2. Perform robust numerical / alphabetical sorting on master array
         const sort = this.state.sortStates.coinsTable;
         coins.sort((a, b) => {
             let valA = 0;
@@ -1082,6 +1071,19 @@ const App = {
             this.state.reportData.coinSummaries = coins;
         }
 
+        // Apply view filter (ALL vs HOLDING) to display list
+        let displayCoins = coins;
+        if (this.state.coinsFilterMode === 'HOLDING') {
+            displayCoins = coins.filter(c => c.holdingQty > 1e-4 && c.holdingCost >= 100);
+        }
+
+        if (displayCoins.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">' + 
+                (this.state.coinsFilterMode === 'HOLDING' ? '현재 보유 중인 코인 잔고가 없습니다. 전체 거래 종목을 확인하려면 상단 [전체 거래 종목]을 클릭하세요.' : '등록된 코인 거래 내역이 없습니다.') + 
+                '</td></tr>';
+            return;
+        }
+
         // 3. Update header indicators (▲ / ▼)
         const table = document.getElementById('coinsTable');
         if (table) {
@@ -1103,7 +1105,7 @@ const App = {
         }
 
         let html = '';
-        coins.forEach(coin => {
+        displayCoins.forEach(coin => {
             const sym = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
             const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
             const isBithumb = coin.exchange === 'BITHUMB';
