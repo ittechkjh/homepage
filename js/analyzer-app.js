@@ -9,7 +9,7 @@ const AnalyzerDB = {
         if (!this.dbPromise) {
             this.dbPromise = new Promise((resolve) => {
                 if (typeof indexedDB === 'undefined') return resolve(null);
-                const req = indexedDB.open('CoinHubAnalyzerDB', 1);
+                const req = indexedDB.open('CoinHubAnalyzerDB', 2);
                 req.onupgradeneeded = (e) => {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('tradesStore')) {
@@ -22,23 +22,25 @@ const AnalyzerDB = {
         }
         return this.dbPromise;
     },
-    saveTrades: async function (trades) {
+    saveTrades: async function (trades, uid) {
         try {
             const db = await this.getDB();
             if (!db) return;
+            const targetUid = uid || (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : 'user_default');
             const tx = db.transaction('tradesStore', 'readwrite');
-            tx.objectStore('tradesStore').put(trades, 'activeTrades');
+            tx.objectStore('tradesStore').put(trades, 'trades_' + targetUid);
         } catch (e) {
             console.warn('IndexedDB save failed:', e);
         }
     },
-    getTrades: async function () {
+    getTrades: async function (uid) {
         try {
             const db = await this.getDB();
             if (!db) return null;
+            const targetUid = uid || (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : 'user_default');
             return new Promise((resolve) => {
                 const tx = db.transaction('tradesStore', 'readonly');
-                const req = tx.objectStore('tradesStore').get('activeTrades');
+                const req = tx.objectStore('tradesStore').get('trades_' + targetUid);
                 req.onsuccess = () => resolve(req.result || null);
                 req.onerror = () => resolve(null);
             });
@@ -46,12 +48,13 @@ const AnalyzerDB = {
             return null;
         }
     },
-    clear: async function () {
+    clear: async function (uid) {
         try {
             const db = await this.getDB();
             if (!db) return;
+            const targetUid = uid || (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : 'user_default');
             const tx = db.transaction('tradesStore', 'readwrite');
-            tx.objectStore('tradesStore').delete('activeTrades');
+            tx.objectStore('tradesStore').delete('trades_' + targetUid);
         } catch (e) {}
     }
 };
@@ -92,9 +95,7 @@ const AnalyzerStorage = {
 
     getTrades: function () {
         try {
-            const saved = localStorage.getItem('coinhub_analyzer_trades') ||
-                          localStorage.getItem('coinhub_trades') ||
-                          localStorage.getItem(this.getKey('trades'));
+            const saved = localStorage.getItem(this.getKey('trades'));
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
@@ -109,36 +110,33 @@ const AnalyzerStorage = {
 
     saveTrades: function (trades) {
         if (!Array.isArray(trades)) return;
-        // 1. IndexedDB에 전체 데이터 영구 보관 (수만 건 대용량도 무제한 저장)
+        const uid = this.getCurrentUserId();
+        // 1. 계정 전용 IndexedDB 키에 영구 보관
         if (typeof AnalyzerDB !== 'undefined') {
-            AnalyzerDB.saveTrades(trades);
+            AnalyzerDB.saveTrades(trades, uid);
         }
-        // 2. localStorage는 용량 한도(2.5MB) 이내일 때만 보관
+        // 2. 계정 전용 localStorage 키에 보관
         try {
             const json = JSON.stringify(trades);
             if (json.length < 2.5 * 1024 * 1024) {
-                localStorage.setItem('coinhub_analyzer_trades', json);
+                localStorage.setItem(this.getKey('trades'), json);
             } else {
-                // 2.5MB 초과 대용량 시 구버전 잔여 데이터로 덮어씌워지는 현상 방지 위해 키 정리
-                localStorage.removeItem('coinhub_analyzer_trades');
-                localStorage.removeItem('coinhub_trades');
+                localStorage.removeItem(this.getKey('trades'));
             }
         } catch (e) {
             try {
-                localStorage.removeItem('coinhub_analyzer_trades');
-                localStorage.removeItem('coinhub_trades');
+                localStorage.removeItem(this.getKey('trades'));
             } catch (err) {}
         }
     },
 
     clearUserData: function () {
+        const uid = this.getCurrentUserId();
         try {
-            localStorage.removeItem('coinhub_analyzer_trades');
-            localStorage.removeItem('coinhub_trades');
             localStorage.removeItem(this.getKey('trades'));
         } catch (e) {}
         if (typeof AnalyzerDB !== 'undefined') {
-            AnalyzerDB.clear();
+            AnalyzerDB.clear(uid);
         }
     }
 };
@@ -1744,7 +1742,7 @@ const App = {
                 if (Array.isArray(cloudTrades) && cloudTrades.length > 0) {
                     tradesToUse = cloudTrades;
                     if (typeof AnalyzerDB !== 'undefined') {
-                        await AnalyzerDB.saveTrades(cloudTrades);
+                        await AnalyzerDB.saveTrades(cloudTrades, uid);
                     }
                 }
             } catch (e) {
@@ -1752,10 +1750,10 @@ const App = {
             }
         }
 
-        // 2. 로컬 IndexedDB 무제한 저장소에서 로드
+        // 2. 현재 계정(uid) 전용 로컬 IndexedDB에서 로드
         if (tradesToUse.length === 0 && typeof AnalyzerDB !== 'undefined') {
             try {
-                const savedDb = await AnalyzerDB.getTrades();
+                const savedDb = await AnalyzerDB.getTrades(uid);
                 if (Array.isArray(savedDb) && savedDb.length > 0) {
                     tradesToUse = savedDb;
                 }
@@ -1764,14 +1762,14 @@ const App = {
             }
         }
 
-        // 3. localStorage 검사 (이전 캐시 동기화)
+        // 3. 현재 계정(uid) 전용 localStorage에서 로드
         if (tradesToUse.length === 0) {
             try {
                 const savedSync = AnalyzerStorage.getTrades();
                 if (Array.isArray(savedSync) && savedSync.length > 0) {
                     tradesToUse = savedSync;
                     if (typeof AnalyzerDB !== 'undefined') {
-                        await AnalyzerDB.saveTrades(savedSync);
+                        await AnalyzerDB.saveTrades(savedSync, uid);
                     }
                 }
             } catch (e) {}
