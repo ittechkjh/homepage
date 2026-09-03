@@ -132,6 +132,158 @@
   
   <link rel="stylesheet" href="styles.css?v=20260902_5">
   <link rel="stylesheet" href="css/analyzer.css?v=20260902_5">
+
+  <style>
+    /* Global Mobile Overflow Fix */
+    html, body {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      width: 100% !important;
+      position: relative;
+    }
+    
+    * {
+      box-sizing: border-box !important;
+    }
+
+    /* Prevent words breaking out */
+    h1, h2, h3, h4, p, div, span, strong, a, button {
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    /* Mobile-First Compact UX Optimizations */
+    @media (max-width: 640px) {
+      .container, .app-container {
+        max-width: 100vw !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        overflow-x: hidden !important;
+      }
+
+      /* 2x2 Clean Mobile Summary Stat Cards */
+      .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .stat-card {
+        min-width: 0 !important;
+        width: 100% !important;
+        padding: 10px 10px !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+      }
+      .stat-title {
+        font-size: 0.68rem !important;
+        letter-spacing: -0.03em;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .stat-badge {
+        font-size: 0.65rem !important;
+        padding: 1px 5px !important;
+      }
+      .stat-value {
+        font-size: clamp(0.95rem, 3.8vw, 1.25rem) !important;
+        font-weight: 800 !important;
+        margin: 3px 0 !important;
+        letter-spacing: -0.03em;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .stat-footer {
+        font-size: 0.64rem !important;
+        line-height: 1.35 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Subnav Scrollable Chips */
+      .analyzer-subnav {
+        display: flex !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        padding-bottom: 6px !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100% !important;
+      }
+      .analyzer-subtab {
+        padding: 6px 12px !important;
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        border-radius: 12px !important;
+      }
+
+      /* Upload Zone */
+      .upload-card {
+        padding: 14px 10px !important;
+        border-radius: 16px !important;
+        width: 100% !important;
+      }
+      .upload-icon {
+        font-size: 26px !important;
+        margin-bottom: 4px !important;
+      }
+      .upload-title {
+        font-size: 0.82rem !important;
+        line-height: 1.35 !important;
+      }
+      .upload-desc {
+        font-size: 0.72rem !important;
+        margin-bottom: 8px !important;
+      }
+      .app-header {
+        margin-bottom: 8px !important;
+      }
+
+      /* Fixed Mobile Bottom Nav */
+      .mobile-bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        max-width: 100% !important;
+        z-index: 9999 !important;
+        background: rgba(11, 15, 25, 0.96) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+        padding: 6px 2px !important;
+        padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+      }
+      .mobile-bottom-nav button {
+        flex: 1 !important;
+        min-width: 0 !important;
+        padding: 2px 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+      }
+      .mobile-bottom-nav button span {
+        font-size: 9px !important;
+        white-space: nowrap !important;
+        letter-spacing: -0.03em;
+      }
+
+      body {
+        padding-bottom: 70px !important;
+      }
+    }
+  </style>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -828,14 +980,14 @@
           <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
         </div>
 
-        <div id="auth-section" class="flex items-center gap-2">
-<!-- Theme Toggle Button (Dark / Light) -->
-          <button type="button" id="btn-theme-toggle" onclick="toggleTheme()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm cursor-pointer" title="다크/라이트 모드 전환">
+        <div id="auth-section" class="flex items-center gap-1.5 shrink-0">
+          <!-- Theme Toggle Button (Dark / Light) -->
+          <button type="button" id="btn-theme-toggle" onclick="toggleTheme()" class="flex items-center gap-1 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm cursor-pointer shrink-0" title="다크/라이트 모드 전환">
             <i data-lucide="sun" id="theme-toggle-icon" class="w-4 h-4 text-amber-400"></i>
             <span id="theme-toggle-text" class="hidden sm:inline font-sans font-bold">라이트</span>
           </button>
-          <button type="button" onclick="openAuthModal()" id="btn-header-auth" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm" title="로그인">
-            <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
+          <button type="button" onclick="openAuthModal()" id="btn-header-auth" class="flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-[11px] sm:text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm shrink-0" title="로그인">
+            <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400"></i>
             <span>로그인</span>
           </button>
         </div>
@@ -844,30 +996,38 @@
   </header>
 
   <!-- Mobile Bottom Navigation Bar -->
-  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur border-t border-navy-800 z-40 flex justify-around py-2">
-    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
-      <i data-lucide="trending-up" class="w-4 h-4"></i> 시세
+  <div class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur border-t border-navy-800 z-[9999] flex justify-around py-1.5 px-1 shadow-2xl">
+    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="trending-up" class="w-4 h-4"></i>
+      <span>시세</span>
     </button>
-    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
-      <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼
+    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="messages-square" class="w-4 h-4"></i>
+      <span>포럼</span>
     </button>
-    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-1 text-cyan-400 text-[10px] font-bold">
-      <i data-lucide="calculator" class="w-4 h-4"></i> 분석기
+    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95">
+      <i data-lucide="calculator" class="w-4 h-4"></i>
+      <span>분석기</span>
     </button>
-    <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-1 text-amber-400 text-[10px] font-medium">
-      <i data-lucide="calculator" class="w-4 h-4"></i> 계산기
+    <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-0.5 text-amber-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="calculator" class="w-4 h-4"></i>
+      <span>계산기</span>
     </button>
-    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
-      <i data-lucide="calendar" class="w-4 h-4"></i> 일정
+    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="calendar" class="w-4 h-4"></i>
+      <span>일정</span>
     </button>
-    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-1 text-slate-400 text-[10px] font-medium">
-      <i data-lucide="newspaper" class="w-4 h-4"></i> 뉴스
+    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="newspaper" class="w-4 h-4"></i>
+      <span>뉴스</span>
     </button>
-    <button onclick="switchTab('guides')" id="m-nav-guides" class="flex flex-col items-center gap-1 text-indigo-400 text-[10px] font-medium">
-      <i data-lucide="book-open" class="w-4 h-4"></i> 가이드
+    <button onclick="switchTab('guides')" id="m-nav-guides" class="flex flex-col items-center gap-0.5 text-indigo-400 text-[10px] font-medium transition active:scale-95">
+      <i data-lucide="book-open" class="w-4 h-4"></i>
+      <span>가이드</span>
     </button>
-    <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-1 text-purple-400 text-[10px] font-bold">
-      <i data-lucide="shield-check" class="w-4 h-4"></i> 관리자
+    <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      <span>관리자</span>
     </button>
   </div>
 
@@ -1990,146 +2150,93 @@
 
       <!-- MAIN ANALYZER DASHBOARD: 로그인 회원 전용 대시보드 -->
       <div id="analyzer-main-content" class="space-y-6 block">
-        <!-- Prominent Disclaimer & Regulatory Notice Banner -->
-        <div class="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-3">
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0"></i>
-          <div class="leading-relaxed">
-            <strong>⚠️ 투자 유의사항 및 세무 면책 고지:</strong> 본 분석 결과는 선입선출법(FIFO) 알고리즘에 기반한 시뮬레이션 추정치이며, 금융 투자 권유나 법적 효력을 갖는 세무 자문이 아닙니다. 가상자산은 변동성이 크며 원금 손실 위험이 있습니다.
+        <!-- Mobile Compact & Expandable Disclaimer Banner -->
+        <details class="group p-2.5 sm:p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/25 text-xs text-rose-300 transition">
+          <summary class="flex items-center justify-between cursor-pointer list-none select-none text-[11px] sm:text-xs">
+            <span class="flex items-center gap-1.5 font-semibold text-rose-300">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
+              <span>⚠️ 투자 유의사항 및 세무 면책 고지 (클릭 시 펼치기)</span>
+            </span>
+            <span class="text-[10px] text-rose-400/80 group-open:rotate-180 transition-transform font-mono">▼</span>
+          </summary>
+          <div class="mt-2 pt-2 border-t border-rose-500/20 text-[11px] text-rose-300/90 leading-relaxed">
+            본 분석 결과는 선입선출법(FIFO) 알고리즘에 기반한 시뮬레이션 추정치이며, 금융 투자 권유나 법적 효력을 갖는 세무 자문이 아닙니다. 가상자산은 변동성이 크며 원금 손실 위험이 있습니다.
           </div>
-        </div>
+        </details>
         
-        <!-- User Privacy Status Top Banner -->
-        <!-- HERO SECTION & PRIVACY TRUST SHIELD (CrytoPnL Killer Feature) -->
-        <div class="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-cyan-500/40 shadow-2xl relative overflow-hidden text-center">
+        <!-- UNIFIED ALL-IN-ONE HERO & UPLOAD DROPZONE -->
+        <div id="dropZone" class="mb-4 sm:mb-6 p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-dashed border-cyan-500/40 hover:border-cyan-400 shadow-2xl relative overflow-hidden text-center transition cursor-pointer group">
+          <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
           <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
-          <div class="relative z-10 space-y-4 max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold shadow-sm">
-              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-              <span>100% 무료 • 무제한 분석 • 완전 로컬 프라이버시 보장</span>
+          <div class="relative z-10 space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+            <!-- Privacy Badge -->
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] sm:text-xs font-bold shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>🔒 100% 무료 • 무제한 분석 • 완전 로컬 프라이버시 (서버 전송 0%)</span>
             </div>
 
-            <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-snug">
-              1초 만에 확인하는 내 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">업비트·빗썸 실현손익</span> & 평단가
+            <!-- Title -->
+            <h1 class="text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-snug">
+              내 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">업비트·빗썸 실현손익</span> & 평단가 분석
             </h1>
 
             <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
-              거래소에서 다운로드한 엑셀/CSV 파일을 올리면 복잡한 선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금 내역을 즉시 계산하여 보기 쉬운 통합 대시보드로 시각화합니다.
+              거래소에서 다운로드한 엑셀/CSV 파일을 끌어다 놓거나 선택하시면 <strong>선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금</strong>을 즉시 계산합니다.
             </p>
 
-            <!-- Privacy Trust Guarantee Seal -->
-            <div class="p-3.5 rounded-2xl bg-navy-950/90 border border-cyan-500/40 text-xs text-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3 text-left max-w-xl mx-auto shadow-inner">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-              </div>
-              <div class="text-[11px] leading-tight">
-                <div class="font-bold text-cyan-300 flex items-center gap-1.5">
-                  <span>🔒 100% Client-Side Only (외부 서버 전송 0%)</span>
-                </div>
-                <div class="text-slate-400 mt-0.5">
-                  업로드 후 <strong>인터넷 랜선을 뽑거나 Wi-Fi를 꺼도 100% 정상 작동</strong>합니다. 모든 데이터는 본인 브라우저 내부에만 안전하게 보관됩니다.
-                </div>
-              </div>
+            <!-- Main Upload CTA Button -->
+            <div class="pt-2">
+              <button type="button" onclick="document.getElementById('fileInput').click(); event.stopPropagation();" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black shadow-xl shadow-cyan-500/25 transition transform hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto text-sm sm:text-base cursor-pointer">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i> 엑셀 / CSV 파일 선택하기
+              </button>
             </div>
 
-            <div class="pt-2 flex items-center justify-center gap-2 text-xs flex-wrap">
-              <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
-              <button type="button" onclick="CoinCalculators.importProfitCardFromAnalyzer()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-950/50 text-cyan-300 hover:text-cyan-200 border border-navy-800 hover:border-cyan-500/40 transition flex items-center gap-1.5 font-bold" title="수익률 인증 카드 만들기">
-                <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> 수익 카드 생성
+            <!-- 1-Click Sample & Guide Links -->
+            <div class="pt-1 flex overflow-x-auto no-scrollbar py-1 gap-2 justify-center flex-wrap" onclick="event.stopPropagation();">
+              <button type="button" onclick="AnalyzerApp.loadSampleData('ALL'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🔥 통합 샘플 1초 체험
               </button>
-              <button type="button" onclick="CoinCalculators.importFromAnalyzer(); switchTab('calculators'); CoinCalculators.switchSubTab('tax');" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-950/50 text-amber-300 hover:text-amber-200 border border-navy-800 hover:border-amber-500/40 transition flex items-center gap-1.5 font-bold" title="올해 예상 세금 계산">
-                <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i> 세금 계산기
+              <button type="button" onclick="AnalyzerApp.loadSampleData('UPBIT'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-navy-800 hover:border-cyan-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🔵 업비트 샘플
               </button>
-              <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1.5" title="현재 사용자 데이터 전체 삭제">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 내 데이터 초기화
+              <button type="button" onclick="AnalyzerApp.loadSampleData('BITHUMB'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-950 text-slate-300 hover:text-amber-300 border border-navy-800 hover:border-amber-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🟠 빗썸 샘플
+              </button>
+              <button type="button" onclick="openExcelGuideModal(); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 border border-navy-800 font-medium text-xs transition cursor-pointer whitespace-nowrap">
+                📌 엑셀 다운로드 가이드
               </button>
             </div>
-          </div>
-        </div>
-
-        <div class="analyzer-card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6 bg-gradient-to-r from-navy-900 to-navy-850 border border-cyan-500/30 hidden">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg font-bold">
-              <i data-lucide="shield-check" class="w-6 h-6"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-base font-bold text-white flex items-center gap-1.5 whitespace-nowrap">
-                  업비트 & 빗썸 코인 거래내역 독립 분석기 (<span id="analyzerCurrentUserName" class="text-cyan-400">회원</span>)
-                </h2>
-                <span id="analyzerUserModeBadge" class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-bold whitespace-nowrap">👤 전용 격리 저장소</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-0.5 whitespace-nowrap">
-                🔒 <strong>100% 로컬 독립 격리 보관</strong>: 업로드된 모든 거래 내역은 외부 서버로 전송되지 않으며, 현재 로그인 계정에만 개별 보관됩니다.
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 text-xs shrink-0 whitespace-nowrap">
-            <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 font-mono">저장된 거래: 0건</span>
-            <button onclick="App.clearDataWithConfirm()" class="px-3 py-1.5 rounded-lg bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1" title="현재 사용자 데이터 전체 삭제">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 데이터 초기화
-            </button>
           </div>
         </div>
 
         <div class="app-container">
-          <!-- App Header -->
-          <header class="app-header mb-4">
-            <div class="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h1 class="text-lg font-bold text-white">업비트 & 빗썸 가상자산 거래내역 손익 정밀 분석</h1>
-                <div class="text-xs text-slate-400">Upbit & Bithumb Trade Analyzer • 실현손익/평단가/수수료/입출금/월별통계 종합 대시보드</div>
-              </div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <select id="globalExchangeSelect" class="select-control" style="font-weight: 700;">
-                  <option value="ALL">🌐 전체 거래소 (업비트 + 빗썸)</option>
-                  <option value="UPBIT">🔵 업비트 (Upbit)</option>
-                  <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
-                </select>
-                <button class="btn btn-outline btn-sm" id="refreshTickerBtn" title="실시간 시세 갱신">
-                  🔄 시세 갱신
-                </button>
-                <button class="btn btn-outline btn-sm" id="quickUploadBtn">
-                  📁 파일 추가
-                </button>
-                <button class="btn btn-outline btn-sm" id="exportExcelBtn">
-                  📊 엑셀 다운로드
-                </button>
-              </div>
+          <!-- App Header (Filter & Refresh Controls Bar) -->
+          <header class="app-header mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs font-mono">저장된 거래: 0건</span>
+              <button onclick="App.clearDataWithConfirm()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1 text-xs" title="현재 사용자 데이터 전체 삭제">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 초기화
+              </button>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap ml-auto">
+              <select id="globalExchangeSelect" class="select-control text-xs sm:text-sm py-1.5 px-2.5" style="font-weight: 700;">
+                <option value="ALL">🌐 전체 (업비트+빗썸)</option>
+                <option value="UPBIT">🔵 업비트 (Upbit)</option>
+                <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
+              </select>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="refreshTickerBtn" title="실시간 시세 갱신">
+                🔄 시세 갱신
+              </button>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="quickUploadBtn">
+                📁 파일 추가
+              </button>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="exportExcelBtn">
+                📊 엑셀 저장
+              </button>
             </div>
           </header>
-
-          <!-- File Upload Drag & Drop Zone -->
-          <section class="upload-card" id="dropZone">
-            <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
-            <div class="upload-icon">📂</div>
-            <div class="upload-title">업비트 및 빗썸 거래내역/입출금 엑셀 또는 CSV 파일을 끌어다 놓으세요</div>
-            <div class="upload-desc">
-              업비트(투자내역 > 거래내역/입출금) 및 빗썸(자산현황 > 거래내역/입출금)에서 다운로드한 엑셀/CSV 파일을 올리면 자동으로 완벽 분류하여 통합 분석합니다.
-            </div>
-            <div>
-              <button class="btn btn-primary" onclick="document.getElementById('fileInput').click(); event.stopPropagation();">
-                파일 선택하기
-              </button>
-            </div>
-            
-            <div class="upload-sample-links" onclick="event.stopPropagation();" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px;">
-              <button type="button" onclick="AnalyzerApp.loadSampleData('ALL'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 border border-cyan-500/40 text-cyan-300 hover:text-navy-950 font-bold text-xs transition cursor-pointer">
-                🔥 [업비트 + 빗썸 통합 샘플 1초 체험]
-              </button>
-              <button type="button" onclick="AnalyzerApp.loadSampleData('UPBIT'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 border border-navy-800 hover:border-cyan-500 text-slate-300 hover:text-navy-950 font-bold text-xs transition cursor-pointer">
-                🔵 [업비트 전용 샘플]
-              </button>
-              <button type="button" onclick="AnalyzerApp.loadSampleData('BITHUMB'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-500 border border-navy-800 hover:border-amber-500 text-slate-300 hover:text-navy-950 font-bold text-xs transition cursor-pointer">
-                🟠 [빗썸 전용 샘플]
-              </button>
-              <button type="button" onclick="openExcelGuideModal(); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-900 hover:bg-navy-800 border border-cyan-500/40 text-cyan-300 font-bold text-xs transition cursor-pointer">
-                📌 [엑셀 다운로드 3초 가이드]
-              </button>
-            </div>
-  
-          </section>
 
           <!-- Top Summary Stat Cards -->
           <section class="stats-grid">
