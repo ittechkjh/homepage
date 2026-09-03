@@ -423,6 +423,11 @@ const App = {
             });
         }
 
+        const btnCoinsAll = document.getElementById('btnCoinsFilterAll');
+        const btnCoinsHolding = document.getElementById('btnCoinsFilterHolding');
+        if (btnCoinsAll) btnCoinsAll.addEventListener('click', () => this.setCoinsFilterMode('ALL'));
+        if (btnCoinsHolding) btnCoinsHolding.addEventListener('click', () => this.setCoinsFilterMode('HOLDING'));
+
         // 파일 드래그 & 드롭 및 선택
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -646,6 +651,21 @@ const App = {
             th.style.cursor = 'pointer';
             th.style.userSelect = 'none';
         });
+    },
+
+    setCoinsFilterMode: function (mode) {
+        this.state.coinsFilterMode = mode;
+        const btnAll = document.getElementById('btnCoinsFilterAll');
+        const btnHolding = document.getElementById('btnCoinsFilterHolding');
+        if (btnAll) {
+            btnAll.classList.toggle('btn-primary', mode === 'ALL');
+            btnAll.classList.toggle('btn-outline', mode !== 'ALL');
+        }
+        if (btnHolding) {
+            btnHolding.classList.toggle('btn-primary', mode === 'HOLDING');
+            btnHolding.classList.toggle('btn-outline', mode !== 'HOLDING');
+        }
+        this.renderCoinsTable();
     },
 
     switchSubTab: function (tabId) {
@@ -981,7 +1001,7 @@ const App = {
 
             const hQty = parseFloat(coin.holdingQty) || 0;
             const hCost = parseFloat(coin.holdingCost) || 0;
-            if (hQty > 1e-4 && currentPrice > 0 && (hQty * currentPrice >= 50)) {
+            if (hQty > 1e-4 && currentPrice > 0 && (hQty * currentPrice >= 100) && hCost >= 100) {
                 coin.unrealizedProfit = (hQty * currentPrice) - hCost;
                 coin.unrealizedRoi = hCost > 0 ? (coin.unrealizedProfit / hCost) * 100 : 0;
                 coin.currentValue = hQty * currentPrice;
@@ -998,6 +1018,17 @@ const App = {
                 coin.gainedCoinRoi = (coin.totalBuyQty || 0) > 0 ? (coin.gainedCoinQty / coin.totalBuyQty) * 100 : 0;
             }
         });
+
+        if (this.state.coinsFilterMode === 'HOLDING') {
+            coins = coins.filter(c => c.holdingQty > 1e-4 && c.holdingCost >= 100);
+        }
+
+        if (coins.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">' + 
+                (this.state.coinsFilterMode === 'HOLDING' ? '현재 보유 중인 코인 잔고가 없습니다. 전체 거래 종목을 확인하려면 상단 [전체 거래 종목]을 클릭하세요.' : '등록된 코인 거래 내역이 없습니다.') + 
+                '</td></tr>';
+            return;
+        }
 
         // 2. Perform robust numerical / alphabetical sorting
         const sort = this.state.sortStates.coinsTable;

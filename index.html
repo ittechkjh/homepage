@@ -2261,8 +2261,14 @@
           <!-- TAB 2: 코인별 손익 & 잔고 테이블 -->
           <div class="analyzer-tab-pane" id="coinsTab">
             <div class="table-card">
-              <div class="table-toolbar">
-                <div class="font-bold text-sm">코인별 실현 손익, 잔고 및 트레이딩 수량 증감 현황</div>
+              <div class="table-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <div class="font-bold text-sm text-slate-100">코인별 실현 손익 & 잔고 현황</div>
+                  <div class="inline-flex rounded-lg border border-navy-700 bg-navy-950 p-0.5 text-xs font-bold">
+                    <button id="btnCoinsFilterAll" class="btn btn-sm btn-primary px-3 py-1 rounded-md">전체 거래 종목</button>
+                    <button id="btnCoinsFilterHolding" class="btn btn-sm btn-outline px-3 py-1 rounded-md">🔥 현재 보유 종목만</button>
+                  </div>
+                </div>
                 <div class="flex-center-gap" id="coinsColDropdownContainer"></div>
               </div>
               <div class="table-responsive">
@@ -3422,17 +3428,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/upbit-api.js?v=20260903_13"></script>
-  <script src="js/parser.js?v=20260903_13"></script>
-  <script src="js/calculator.js?v=20260903_13"></script>
-  <script src="js/charts.js?v=20260903_13"></script>
-  <script src="js/exporter.js?v=20260903_13"></script>
-  <script src="js/sample-data.js?v=20260903_13"></script>
-  <script src="js/tools-calculators.js?v=20260903_13"></script>
-  <script src="js/analyzer-app.js?v=20260903_13"></script>
+  <script src="js/upbit-api.js?v=20260903_14"></script>
+  <script src="js/parser.js?v=20260903_14"></script>
+  <script src="js/calculator.js?v=20260903_14"></script>
+  <script src="js/charts.js?v=20260903_14"></script>
+  <script src="js/exporter.js?v=20260903_14"></script>
+  <script src="js/sample-data.js?v=20260903_14"></script>
+  <script src="js/tools-calculators.js?v=20260903_14"></script>
+  <script src="js/analyzer-app.js?v=20260903_14"></script>
 
-  <script src="js/admin.js?v=20260903_13"></script>
-  <script src="js/preview-app-v2.js?v=20260903_13"></script>
+  <script src="js/admin.js?v=20260903_14"></script>
+  <script src="js/preview-app-v2.js?v=20260903_14"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
