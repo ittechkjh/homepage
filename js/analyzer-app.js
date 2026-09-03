@@ -32,50 +32,43 @@ const AnalyzerStorage = {
                         let coinSymbol = String(item.coinSymbol || '').trim();
                         const idStr = String(item.id || '').toUpperCase();
 
-                        // 1. 한글 코인명 치유 (예: 비체인 -> VET, 리플 -> XRP)
-                        if (mapToUse[coinSymbol]) {
-                            const sym = mapToUse[coinSymbol];
-                            item.coinSymbol = sym;
-                            item.market = `KRW-${sym}`;
-                            item.exchange = 'BITHUMB';
-                            needsResave = true;
-                        } else if (marketStr.startsWith('KRW-') && mapToUse[marketStr.replace('KRW-', '')]) {
-                            const sym = mapToUse[marketStr.replace('KRW-', '')];
-                            item.coinSymbol = sym;
-                            item.market = `KRW-${sym}`;
-                            item.exchange = 'BITHUMB';
-                            needsResave = true;
-                        } else if (mapToUse[marketStr]) {
-                            const sym = mapToUse[marketStr];
-                            item.coinSymbol = sym;
-                            item.market = `KRW-${sym}`;
-                            item.exchange = 'BITHUMB';
+                        // 1. 한글 코인명 또는 빗썸 고유 식별 여부
+                        const cleanCandidate = (marketStr.startsWith('KRW-') || marketStr.startsWith('BTC-') || marketStr.startsWith('USDT-'))
+                            ? marketStr.split('-')[1].replace(/[\(\)\[\]]/g, '').trim()
+                            : marketStr.replace(/[\(\)\[\]]/g, '').trim();
+
+                        const isOriginalKorean = !!(mapToUse[coinSymbol] || mapToUse[coinSymbol.toLowerCase()] || 
+                                                    mapToUse[marketStr] || mapToUse[marketStr.toLowerCase()] || 
+                                                    mapToUse[cleanCandidate] || mapToUse[cleanCandidate.toLowerCase()]);
+                        
+                        const isBithumb = idStr.startsWith('BITHUMB_') || 
+                                          idStr.includes('BITHUMB') || 
+                                          isOriginalKorean ||
+                                          marketStr.includes('[') || 
+                                          marketStr.includes('(') || 
+                                          marketStr.includes('/KRW') ||
+                                          marketStr.includes('_KRW');
+
+                        // 2. 표준 마켓 및 심볼로 정규화
+                        const normMarket = (typeof UpbitParser !== 'undefined' && UpbitParser.normalizeMarket)
+                            ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
+                            : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
+
+                        const normSymbol = normMarket.includes('-') ? normMarket.split('-')[1] : normMarket;
+
+                        if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
+                            item.market = normMarket;
+                            item.coinSymbol = normSymbol;
                             needsResave = true;
                         }
 
-                        // 2. 빗썸 고유 특성 감지 및 거래소 복구
-                        const isBithumbItem = (item.exchange === 'BITHUMB') ||
-                                              idStr.startsWith('BITHUMB_') || 
-                                              idStr.includes('BITHUMB') || 
-                                              marketStr.includes('[') || 
-                                              marketStr.includes('(') || 
-                                              marketStr.includes('/KRW') ||
-                                              marketStr.includes('_KRW');
-                        
-                        if (isBithumbItem && item.exchange !== 'BITHUMB') {
-                            item.exchange = 'BITHUMB';
+                        // 3. 거래소 정밀 판별
+                        const targetExchange = isBithumb ? 'BITHUMB' : 'UPBIT';
+                        if (item.exchange !== targetExchange) {
+                            item.exchange = targetExchange;
                             needsResave = true;
                         }
-                        if (item.coinSymbol === 'KRW' || item.market === 'KRW' || (item.type && item.type.includes('원화'))) {
-                            if (isBithumbItem || idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
-                                item.exchange = 'BITHUMB';
-                                needsResave = true;
-                            }
-                        }
-                        if (!item.exchange) {
-                            item.exchange = isBithumbItem ? 'BITHUMB' : 'UPBIT';
-                            needsResave = true;
-                        }
+
                         return item;
                     });
                     if (needsResave) {

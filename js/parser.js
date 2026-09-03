@@ -124,24 +124,6 @@ const UpbitParser = {
         let allItems = [];
         let debugLogs = [];
 
-        // 1차 패스: 전체 워크북 내 빗썸 고유 패턴 존재 여부 선탐색
-        let hasBithumbPatternInWorkbook = (fileName || '').toLowerCase().includes('bithumb') || (fileName || '').toLowerCase().includes('빗썸');
-        if (!hasBithumbPatternInWorkbook) {
-            for (const sName of workbook.SheetNames) {
-                const ws = workbook.Sheets[sName];
-                if (!ws) continue;
-                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
-                const text = JSON.stringify(rows.slice(0, 30));
-                if (text.includes('체결단가') || text.includes('체결금액') || text.includes('자산구분') || text.includes('처리일시') || 
-                    text.includes('비트코인(BTC)') || text.includes('엑스알피') || text.includes('팝체인') || text.includes('이오스닥') ||
-                    text.includes('소폰') || text.includes('너보스') || text.includes('아스타') || text.includes('가상자산명') ||
-                    text.includes('수량(Units)') || text.includes('단가(Price)')) {
-                    hasBithumbPatternInWorkbook = true;
-                    break;
-                }
-            }
-        }
-
         workbook.SheetNames.forEach(sheetName => {
             const worksheet = workbook.Sheets[sheetName];
             if (!worksheet) return;
@@ -154,7 +136,7 @@ const UpbitParser = {
             if (rawSheetData && rawSheetData.length > 0) {
                 debugLogs.push(`시트[${sheetName}] 데이터 1~3행: ${JSON.stringify(rawSheetData.slice(0, 3))}`);
                 try {
-                    const sheetItems = this.parse2DArray(rawSheetData, `${fileName}_${sheetName}`, hasBithumbPatternInWorkbook ? 'BITHUMB' : 'AUTO');
+                    const sheetItems = this.parse2DArray(rawSheetData, `${fileName}_${sheetName}`, 'AUTO');
                     if (sheetItems && sheetItems.length > 0) {
                         allItems = this.mergeTradeLists(allItems, sheetItems);
                     }
@@ -165,15 +147,6 @@ const UpbitParser = {
                 debugLogs.push(`시트[${sheetName}] 빈 데이터`);
             }
         });
-
-        // 후처리: 워크북 내 빗썸 거래가 있으면 KRW 입출금도 BITHUMB으로 최종 일치
-        if (hasBithumbPatternInWorkbook) {
-            allItems.forEach(item => {
-                if (item.market === 'KRW' || item.coinSymbol === 'KRW' || (item.type && item.type.includes('원화'))) {
-                    item.exchange = 'BITHUMB';
-                }
-            });
-        }
 
         if (allItems.length === 0) {
             throw new Error(`파일에서 유효한 거래 내역을 찾지 못했습니다.\n\n[디버그 로그]\n${debugLogs.join('\n')}`);
@@ -586,25 +559,34 @@ const UpbitParser = {
         const rawMarketUpper = (rawMarket || '').toUpperCase();
         const rawMarketStr = String(rawMarket || '').trim();
         
-        const rawHasUpbitPrefix = rawMarketUpper.startsWith('KRW-') || 
-                                  rawMarketUpper.startsWith('BTC-') || 
-                                  rawMarketUpper.startsWith('USDT-');
+        // 접두사(KRW-, BTC-, USDT-) 제외 순수 심볼/텍스트 추출
+        let pureSymbolCandidate = rawMarketStr;
+        if (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-')) {
+            pureSymbolCandidate = rawMarketStr.split('-')[1] || '';
+        }
+        pureSymbolCandidate = pureSymbolCandidate.replace(/[\(\)\[\]]/g, '').trim();
 
-        const isBithumbRow = (defaultExchange === 'BITHUMB') ||
+        const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (this.koreanToSymbolMap || {});
+        const isKoreanName = !!(mapToUse[rawMarketStr] || mapToUse[pureSymbolCandidate] || mapToUse[pureSymbolCandidate.toLowerCase()]);
+
+        const rawHasUpbitPrefix = (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-')) && !isKoreanName;
+
+        const isBithumbRow = isKoreanName ||
                              rawMarketStr.includes('[') || 
                              rawMarketStr.includes('(') || 
                              rawMarketStr.includes('/KRW') || 
-                             rawMarketStr.includes('_KRW') ||
-                             (!rawHasUpbitPrefix && rawMarketStr !== '' && rawMarketStr !== 'KRW');
+                             rawMarketStr.includes('_KRW');
 
         if (defaultExchange === 'BITHUMB') {
             exchange = 'BITHUMB';
+        } else if (defaultExchange === 'UPBIT') {
+            exchange = 'UPBIT';
         } else if (rawHasUpbitPrefix) {
             exchange = 'UPBIT';
         } else if (isBithumbRow) {
             exchange = 'BITHUMB';
         } else {
-            exchange = (defaultExchange === 'UPBIT' || defaultExchange === 'BITHUMB') ? defaultExchange : 'UPBIT';
+            exchange = 'UPBIT';
         }
 
         if (!rawMarket && (type === '원화입금' || type === '원화출금')) {
@@ -704,7 +686,7 @@ const UpbitParser = {
         };
     },
 
-        normalizeType: function (str, marketStr = '', fileName = '') {
+    normalizeType: function (str, marketStr = '', fileName = '') {
         if (!str) {
             const mLower = (marketStr || '').trim().toLowerCase();
             const fnLower = (fileName || '').trim().toLowerCase();
@@ -768,9 +750,22 @@ const UpbitParser = {
             return 'KRW';
         }
 
-        // 1. 대괄호/소괄호 안 영문/심볼 또는 한글 별칭 정밀 파싱
-        // 예: 엑스알피[리플], 비트코인(BTC), 비트코인[BTC], 리플[XRP]
-        const bracketMatch = s.match(/[([](.*?)[)]]/);
+        // 1. 접두사(KRW-, BTC-, USDT-) 분리
+        let prefix = 'KRW';
+        const sUpper = s.toUpperCase();
+        if (sUpper.startsWith('KRW-')) {
+            prefix = 'KRW';
+            s = s.substring(4).trim();
+        } else if (sUpper.startsWith('BTC-')) {
+            prefix = 'BTC';
+            s = s.substring(4).trim();
+        } else if (sUpper.startsWith('USDT-')) {
+            prefix = 'USDT';
+            s = s.substring(5).trim();
+        }
+
+        // 2. 대괄호/소괄호 안 영문/심볼 또는 한글 별칭 정밀 파싱
+        const bracketMatch = s.match(/[\(\[](.*?)[\)\]]/);
         if (bracketMatch && bracketMatch[1]) {
             const inner = bracketMatch[1].trim();
             if (/^[A-Za-z0-9]+$/.test(inner)) {
@@ -796,35 +791,36 @@ const UpbitParser = {
             s = parts[0].trim();
         }
 
-        // 4. 특수문자 제거 후 순수 한글/영문 매핑
-        const cleanText = s.replace(/[()[]]/g, '').trim();
-        const api = getUpbitAPI();
-        if (api && api.koreanToSymbolMap) {
+        // 4. 특수문자 제거
+        const cleanText = s.replace(/[\(\)\[\]]/g, '').trim();
+
+        // 5. 한글 코인명 -> 영문 심볼 매핑
+        const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) 
+            ? UpbitAPI.koreanToSymbolMap 
+            : (this.koreanToSymbolMap || {});
+        
+        let mappedSymbol = mapToUse[cleanText] || mapToUse[cleanText.toLowerCase()];
+        if (!mappedSymbol) {
             const lowerClean = cleanText.toLowerCase();
-            for (const [kName, sym] of Object.entries(api.koreanToSymbolMap)) {
-                if (kName.toLowerCase() === lowerClean) {
-                    s = sym;
+            for (const [kName, sym] of Object.entries(mapToUse)) {
+                if (kName.toLowerCase() === lowerClean || lowerClean === kName.toLowerCase()) {
+                    mappedSymbol = sym;
                     break;
                 }
             }
-            if (cleanText.includes('엑스알피') || cleanText.includes('리플')) s = 'XRP';
-            if (cleanText.includes('이오스닥')) s = 'EOSDAC';
-            if (cleanText.includes('팝체인')) s = 'POPC';
-            if (cleanText.includes('비트코인에스브이')) s = 'BSV';
         }
 
-        s = s.toUpperCase();
-
-        if (s.startsWith('KRW-') || s.startsWith('BTC-') || s.startsWith('USDT-')) {
-            const parts = s.split('-');
-            const sym = parts[1];
-            if (api && api.koreanToSymbolMap && api.koreanToSymbolMap[sym]) {
-                return `${parts[0]}-${api.koreanToSymbolMap[sym]}`;
-            }
-            return s;
+        if (!mappedSymbol) {
+            if (cleanText.includes('엑스알피') || cleanText.includes('리플')) mappedSymbol = 'XRP';
+            else if (cleanText.includes('이오스닥')) mappedSymbol = 'EOSDAC';
+            else if (cleanText.includes('팝체인')) mappedSymbol = 'POPC';
+            else if (cleanText.includes('비트코인에스브이') || cleanText.includes('비트코인sv')) mappedSymbol = 'BSV';
+            else if (cleanText.includes('비체인')) mappedSymbol = 'VET';
+            else if (cleanText.includes('아스타')) mappedSymbol = 'ASTR';
         }
 
-        return `KRW-${s}`;
+        const finalSymbol = (mappedSymbol || cleanText).toUpperCase();
+        return `${prefix}-${finalSymbol}`;
     },
 
     normalizeDate: function (val) {
