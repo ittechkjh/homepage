@@ -78,56 +78,14 @@ const AnalyzerStorage = {
 
     healTrades: function (parsed) {
         if (!Array.isArray(parsed) || parsed.length === 0) return [];
-        const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
-        const bithumbExclusiveSymbols = ['ASTR', 'EOSDAC', 'POPC', 'SOPH', 'CKB', '2Z', 'GEOD', 'PROS', 'META2', 'DOOD', 'USD1', 'BOUNTY', 'PIEVERSE', 'B3', 'NXPC', 'ANIME', 'MOCA', 'BLEND', 'ERA', 'NCT', 'FF', 'PLUME', 'ESP', 'CC', 'PRL', 'IN', 'WAL', 'AWE', 'HP', 'TRUST', 'SONIC', 'ARX', 'AVNT', 'O', 'LA', 'HYPER', 'RE', 'XAUT', 'CPOOL', 'CAP', 'LINEA', 'DATA', 'KERNEL', 'POKT', 'SENT', 'ZKC', 'ZKP', 'AUCTION', 'ORDER', 'FCT2'];
-
         return parsed.map(item => {
-            let marketStr = String(item.market || '').trim();
-            let coinSymbol = String(item.coinSymbol || '').trim();
-            const idStr = String(item.id || '').toUpperCase();
-
-            // 1. 한글 코인명 또는 빗썸 고유 식별 여부
-            const cleanCandidate = (marketStr.startsWith('KRW-') || marketStr.startsWith('BTC-') || marketStr.startsWith('USDT-'))
-                ? marketStr.split('-')[1].replace(/[\(\)\[\]]/g, '').trim()
-                : marketStr.replace(/[\(\)\[\]]/g, '').trim();
-
-            const isOriginalKorean = !!(mapToUse[coinSymbol] || mapToUse[coinSymbol.toLowerCase()] || 
-                                        mapToUse[marketStr] || mapToUse[marketStr.toLowerCase()] || 
-                                        mapToUse[cleanCandidate] || mapToUse[cleanCandidate.toLowerCase()]);
-
-            // 2. 표준 마켓 및 심볼로 정규화
-            const normMarket = (typeof UpbitParser !== 'undefined' && UpbitParser.normalizeMarket)
-                ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
-                : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
-
-            let normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
-            if (normSymbol === 'MATIC') {
-                normSymbol = 'POL';
-                normMarket = 'KRW-POL';
+            // MATIC -> POL 심볼 표준화만 안전하게 보정하고, 엑셀 파싱 시 결정된 원본 exchange/market/수량/단가는 100% 무손실 보존
+            if (item.coinSymbol === 'MATIC') {
+                item.coinSymbol = 'POL';
             }
-
-            if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
-                item.market = normMarket;
-                item.coinSymbol = normSymbol;
+            if (item.market === 'KRW-MATIC') {
+                item.market = 'KRW-POL';
             }
-
-            // 3. 거래소 정밀 판별
-            let isBithumb = false;
-            if (idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
-                isBithumb = true;
-            } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인') || idStr.includes('리플')) {
-                isBithumb = true;
-            } else if (bithumbExclusiveSymbols.includes(normSymbol)) {
-                isBithumb = true;
-            } else if (normSymbol === 'VET' && (parseFloat(item.quantity) > 10000 || parseFloat(item.price) < 50)) {
-                isBithumb = true;
-            } else if (isOriginalKorean || marketStr.includes('[') || marketStr.includes('(') || marketStr.includes('/KRW') || marketStr.includes('_KRW')) {
-                isBithumb = true;
-            } else if (item.exchange === 'BITHUMB') {
-                isBithumb = true;
-            }
-
-            item.exchange = isBithumb ? 'BITHUMB' : 'UPBIT';
             return item;
         });
     },
