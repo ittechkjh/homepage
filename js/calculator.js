@@ -552,10 +552,11 @@ const ProfitCalculator = {
             holdingCost += (lot.remainingQty * lot.price) + (lot.remainingQty * lot.feePerUnit);
         });
 
-        // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금 완료 처리)
+        // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금/마이그레이션 완료 처리)
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
-        if (holdingQty <= 1e-4 || netHoldingRatio < 0.0005 || (holdingCost > 0 && holdingCost < 50)) {
+        const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
+        if (holdingQty <= 1e-4 || netHoldingRatio < 0.005 || remainingDiff <= 0.001 || (holdingCost > 0 && holdingCost < 100)) {
             holdingQty = 0;
             holdingCost = 0;
         }
@@ -692,10 +693,11 @@ const ProfitCalculator = {
             }
         });
 
-        // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금 완료 처리)
+        // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금/마이그레이션 완료 처리)
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
-        if (holdingQty <= 1e-4 || netHoldingRatio < 0.0005 || (holdingCost > 0 && holdingCost < 50)) {
+        const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
+        if (holdingQty <= 1e-4 || netHoldingRatio < 0.005 || remainingDiff <= 0.001 || (holdingCost > 0 && holdingCost < 100)) {
             holdingQty = 0;
             holdingCost = 0;
             avgBuyPrice = 0;

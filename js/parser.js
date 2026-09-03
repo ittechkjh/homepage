@@ -814,9 +814,13 @@ var UpbitParser = {
             else if (cleanText.includes('비트코인에스브이') || cleanText.includes('비트코인sv')) mappedSymbol = 'BSV';
             else if (cleanText.includes('비체인')) mappedSymbol = 'VET';
             else if (cleanText.includes('아스타')) mappedSymbol = 'ASTR';
+            else if (cleanText.includes('폴리곤') || cleanText.toUpperCase() === 'MATIC') mappedSymbol = 'POL';
+            else if (cleanText.includes('무비블록') || cleanText.includes('무브블록')) mappedSymbol = 'MBL';
+            else if (cleanText.includes('오미세고')) mappedSymbol = 'OMG';
         }
 
-        const finalSymbol = (mappedSymbol || cleanText).toUpperCase();
+        let finalSymbol = (mappedSymbol || cleanText).toUpperCase();
+        if (finalSymbol === 'MATIC') finalSymbol = 'POL';
         return `${prefix}-${finalSymbol}`;
     },
 

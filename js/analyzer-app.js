@@ -107,7 +107,11 @@ const AnalyzerStorage = {
                             ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
                             : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
 
-                        const normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
+                        let normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
+                        if (normSymbol === 'MATIC') {
+                            normSymbol = 'POL';
+                            normMarket = 'KRW-POL';
+                        }
 
                         if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
                             item.market = normMarket;
