@@ -59,13 +59,13 @@ const AnalyzerDB = {
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
-            const userStr = localStorage.getItem('coinhub_user');
+            const userStr = localStorage.getItem('coinhub_user') || localStorage.getItem('crytopnl_user');
             if (userStr) {
                 const user = JSON.parse(userStr);
                 const nick = user.username || user.nickname;
                 if (nick) return 'user_' + String(nick).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
             }
-            const nickLegacy = localStorage.getItem('coinhub_nickname');
+            const nickLegacy = localStorage.getItem('coinhub_nickname') || localStorage.getItem('crytopnl_nickname');
             if (nickLegacy) return 'user_' + String(nickLegacy).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
         } catch (e) {}
         return 'user_default';
@@ -1915,6 +1915,7 @@ const App = {
 if (typeof window !== 'undefined') {
     window.AnalyzerStorage = AnalyzerStorage;
     window.ColumnManager = ColumnManager;
+    window.CloudSyncManager = CloudSyncManager;
     window.AnalyzerApp = App;
     window.App = App;
 

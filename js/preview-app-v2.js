@@ -2092,7 +2092,7 @@ function closeAuthModal() {
 }
 window.closeAuthModal = closeAuthModal;
 
-function handleUnifiedLoginSubmit(e) {
+async function handleUnifiedLoginSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
   const idInput = document.getElementById('login-identifier');
   const pwInput = document.getElementById('login-password');
@@ -2104,47 +2104,59 @@ function handleUnifiedLoginSubmit(e) {
     return;
   }
 
-  const savedAdminPw = (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function') 
-    ? AdminApp.getAdminPassword() 
-    : (localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
-
-  // Strict check: ONLY configured password is valid! NO master pin!
-  const isAdmin = (id.toLowerCase() === 'admin' && pw === savedAdminPw);
-
-  if (isAdmin) {
-    sessionStorage.setItem('crytopnl_admin_authenticated', '1');
-    sessionStorage.setItem('coinhub_admin_authenticated', '1');
-    const adminUser = {
-      username: 'admin',
-      email: 'admin@crytopnl.com',
-      role: 'ADMIN',
-      rank: 'ADMIN',
-      reputation: 9999
-    };
-    localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
-    localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
-
-    updateAuthUI();
-    updateAdminNavVisibility();
-    closeAuthModal();
-
-    alert('🎉 최고 관리자(ADMIN)로 로그인되었습니다! 관리자 센터로 이동합니다.');
-    switchTab('admin');
-    if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderAll === 'function') AdminApp.renderAll();
-    return;
-  }
-
-  // If username is admin but password does not match -> STRICT ERROR
+  // 1. Admin Login Verification (Checks Firestore directly in real-time)
   if (id.toLowerCase() === 'admin') {
-    alert('❌ 관리자 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
-    if (pwInput) {
-      pwInput.value = '';
-      pwInput.focus();
+    let savedAdminPw = (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function') 
+      ? AdminApp.getAdminPassword() 
+      : (localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
+
+    const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+    if (firestore) {
+      try {
+        const doc = await firestore.collection('system_config').doc('admin_settings').get();
+        if (doc.exists && doc.data() && doc.data().adminPassword) {
+          savedAdminPw = doc.data().adminPassword;
+          localStorage.setItem('crytopnl_admin_password', savedAdminPw);
+          localStorage.setItem('cryptopnl_admin_password', savedAdminPw);
+          localStorage.setItem('coinhub_admin_password', savedAdminPw);
+        }
+      } catch (err) {
+        console.warn('Firestore admin verification note:', err);
+      }
     }
-    return;
+
+    if (pw === savedAdminPw) {
+      sessionStorage.setItem('crytopnl_admin_authenticated', '1');
+      sessionStorage.setItem('coinhub_admin_authenticated', '1');
+      const adminUser = {
+        username: 'admin',
+        email: 'admin@crytopnl.com',
+        role: 'ADMIN',
+        rank: 'ADMIN',
+        reputation: 9999
+      };
+      localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
+      localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+
+      updateAuthUI();
+      updateAdminNavVisibility();
+      closeAuthModal();
+
+      alert('🎉 최고 관리자(ADMIN)로 로그인되었습니다! 관리자 센터로 이동합니다.');
+      switchTab('admin');
+      if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderAll === 'function') AdminApp.renderAll();
+      return;
+    } else {
+      alert('❌ 관리자 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
+      if (pwInput) {
+        pwInput.value = '';
+        pwInput.focus();
+      }
+      return;
+    }
   }
 
-  // Normal Member Login
+  // 2. Normal Member Login
   const user = {
     username: id,
     email: id.includes('@') ? id : `${id}@crytopnl.com`,
@@ -2161,8 +2173,9 @@ function handleUnifiedLoginSubmit(e) {
   updateAdminNavVisibility();
   closeAuthModal();
 
-  if (typeof AnalyzerApp !== 'undefined' && AnalyzerApp.loadSavedTrades) {
-    AnalyzerApp.loadSavedTrades();
+  if (typeof AnalyzerApp !== 'undefined') {
+    if (AnalyzerApp.loadSavedTrades) await AnalyzerApp.loadSavedTrades();
+    if (AnalyzerApp.updateUserBanner) AnalyzerApp.updateUserBanner();
   }
 
   alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);

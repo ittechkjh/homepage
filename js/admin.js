@@ -520,8 +520,20 @@ const AdminApp = {
         }
     },
 
-    promptChangeAdminPassword: function () {
-        const currentPw = this.getAdminPassword();
+    promptChangeAdminPassword: async function () {
+        let currentPw = this.getAdminPassword();
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
+            try {
+                const doc = await firestore.collection('system_config').doc('admin_settings').get();
+                if (doc.exists && doc.data() && doc.data().adminPassword) {
+                    currentPw = doc.data().adminPassword;
+                    localStorage.setItem('crytopnl_admin_password', currentPw);
+                    localStorage.setItem('cryptopnl_admin_password', currentPw);
+                    localStorage.setItem('coinhub_admin_password', currentPw);
+                }
+            } catch (e) {}
+        }
         const isDefault = (currentPw === 'admin1234');
         const guide = isDefault ? ' (초기 비밀번호: admin1234)' : '';
         const inputOld = prompt(`현재 관리자 비밀번호를 입력하세요${guide}:`);
@@ -544,8 +556,8 @@ const AdminApp = {
             return;
         }
 
-        this.setAdminPassword(newPw.trim());
-        alert('🎉 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 새로 변경된 비밀번호를 사용하세요.');
+        await this.setAdminPassword(newPw.trim());
+        alert('🎉 관리자 비밀번호가 Firebase 클라우드 DB에 안전하게 동기화되었습니다!\n이제 다른 모든 PC나 스마트폰에서도 변경된 새 비밀번호로 바로 로그인할 수 있습니다.');
     },
 
     
