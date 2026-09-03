@@ -994,6 +994,13 @@ const UpbitAPI = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.UpbitAPI = UpbitAPI;
+}
+if (typeof globalThis !== 'undefined') {
+    globalThis.UpbitAPI = UpbitAPI;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UpbitAPI;
 }

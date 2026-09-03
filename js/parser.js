@@ -19,8 +19,28 @@ function getUpbitAPI() {
 }
 
 const UpbitParser = {
+    // 한글 코인명 -> 심볼 매퍼 (빗썸 등 한글 종목명 지원)
+    koreanToSymbolMap: {
+        "엑스알피": "XRP", "리플": "XRP", "비체인": "VET", "비트코인": "BTC", "이더리움": "ETH",
+        "솔라나": "SOL", "도지코인": "DOGE", "시바이누": "SHIB", "에이다": "ADA", "폴리곤": "POL",
+        "매틱": "POL", "아발란체": "AVAX", "트론": "TRX", "체인링크": "LINK", "앱토스": "APT",
+        "수이": "SUI", "니어프로토콜": "NEAR", "스텔라루멘": "XLM", "비트코인캐시": "BCH",
+        "이오스": "EOS", "이오스닥": "EOSDAC", "팝체인": "POPC", "비트코인에스브이": "BSV", "비트코인sv": "BSV",
+        "소폰": "SOPH", "아스타": "ASTR", "너보스": "CKB", "페페": "PEPE", "봉크": "BONK",
+        "세이": "SEI", "주피터": "JUP", "지토": "JTO", "월드코인": "WLD", "블러": "BLUR",
+        "아비트럼": "ARB", "옵티미즘": "OP", "인젝티브": "INJ", "렌더토큰": "RENDER",
+        "알고랜드": "ALGO", "코스모스": "ATOM", "파일코인": "FIL", "헤데라": "HBAR",
+        "아이오타": "IOTA", "카이토": "KAITO", "더블제로": "2Z", "지오드넷": "GEOD",
+        "왁스": "WAXP", "카브": "CARV", "리스크": "LSK", "제로지": "0G", "도그위프햇": "WIF",
+        "오리진트레일": "TRAC", "보라": "BORA", "펀디엑스": "PUNDIX", "파로스": "PROS",
+        "프롬": "PROM", "베이직어텐션토큰": "BAT", "헌트": "HUNT", "펏지펭귄": "PENGU",
+        "유에스디코인": "USDC", "테더": "USDT", "웨이브": "WAVES", "이더파이": "ETHFI",
+        "디카르고": "DKA", "앵커": "ANKR", "유니스왑": "UNI", "샌드박스": "SAND",
+        "엑시인피니티": "AXS", "이더리움클래식": "ETC", "네오": "NEO", "퀀텀": "QTUM"
+    },
+
     // 통합 컬럼 동의어 매핑 사전
-        columnAliases: {
+    columnAliases: {
         time: [
             '완료일시', '완료시간', '체결일시', '체결시간', '거래일시', '거래시간', 
             '처리일시', '처리시간', '주문일시', '주문시간', '신청일시', '신청시간', 
@@ -202,11 +222,13 @@ const UpbitParser = {
         let bestHeaderRowIndex = -1;
         let bestColumnMapping = null;
         let maxMatchCount = 0;
-        let detectedExchange = (forcedExchange === 'BITHUMB') ? 'BITHUMB' : 'UPBIT';
+        let detectedExchange = (forcedExchange === 'BITHUMB') ? 'BITHUMB' : 'AUTO';
 
         const fnLower = (fileName || '').toLowerCase();
         if (fnLower.includes('bithumb') || fnLower.includes('빗썸')) {
             detectedExchange = 'BITHUMB';
+        } else if (fnLower.includes('upbit') || fnLower.includes('업비트')) {
+            detectedExchange = 'UPBIT';
         }
 
         // 1. 헤더 행 탐색 (상단 50행)
@@ -224,21 +246,26 @@ const UpbitParser = {
 
                 const rowStr = row.map(c => String(c).trim().toLowerCase()).join(' ');
                 
-                // 빗썸 전용 고유 키워드: 체결단가, 체결금액, 실정산금액, 처리일시(빗썸 입출금), 빗썸, bithumb, 가상자산명, 자산구분
+                // 빗썸 전용 고유 키워드: 체결단가, 체결금액, 체결수량, 실정산, 실정산금액, 처리일시, 빗썸, bithumb, 가상자산, 가상자산명, 자산구분, 자산명, 화폐, 화폐명
                 const isBithumbSpecific = rowStr.includes('체결단가') || 
                                           rowStr.includes('체결금액') || 
+                                          rowStr.includes('체결수량') ||
                                           rowStr.includes('실정산') || 
                                           rowStr.includes('처리일시') || 
                                           rowStr.includes('빗썸') || 
                                           rowStr.includes('bithumb') ||
-                                          rowStr.includes('가상자산명') ||
+                                          rowStr.includes('가상자산') ||
                                           rowStr.includes('자산구분') ||
+                                          rowStr.includes('자산명') ||
+                                          rowStr.includes('화폐') ||
                                           rowStr.includes('수량(units)') ||
                                           rowStr.includes('단가(price)');
 
                 // 업비트 전용 고유 키워드 (실정산금액이 아닌 순수 정산금액, 주문시간 등)
-                const isUpbitSpecific = !rowStr.includes('실정산') && !rowStr.includes('처리일시') && (
+                const isUpbitSpecific = !rowStr.includes('실정산') && !rowStr.includes('처리일시') && !rowStr.includes('가상자산') && (
                                         rowStr.includes('주문시간') || 
+                                        rowStr.includes('마켓코드') ||
+                                        rowStr.includes('마켓') ||
                                         rowStr.includes('거래단가') || 
                                         rowStr.includes('거래금액') || 
                                         rowStr.includes('정산금액') || 
@@ -557,37 +584,27 @@ const UpbitParser = {
 
         let exchange = defaultExchange;
         const rawMarketUpper = (rawMarket || '').toUpperCase();
-        const rawTypeUpper = (rawType || '').toUpperCase();
-
         const rawMarketStr = String(rawMarket || '').trim();
+        
+        const rawHasUpbitPrefix = rawMarketUpper.startsWith('KRW-') || 
+                                  rawMarketUpper.startsWith('BTC-') || 
+                                  rawMarketUpper.startsWith('USDT-');
 
-        // 1. 빗썸 고유 마켓/종목 패턴 정밀 판별
-        const isBithumbRow = rawMarketStr.includes('[') || 
+        const isBithumbRow = (defaultExchange === 'BITHUMB') ||
+                             rawMarketStr.includes('[') || 
                              rawMarketStr.includes('(') || 
                              rawMarketStr.includes('/KRW') || 
                              rawMarketStr.includes('_KRW') ||
-                             rawMarketStr.includes('엑스알피') ||
-                             rawMarketStr.includes('리플') ||
-                             rawMarketStr.includes('이오스닥') ||
-                             rawMarketStr.includes('팝체인') ||
-                             rawMarketStr.includes('소폰') ||
-                             rawMarketStr.includes('너보스') ||
-                             rawMarketStr.includes('아스타') ||
-                             (rawMarketUpper.endsWith('KRW') && !rawMarketUpper.startsWith('KRW-') && rawMarketUpper !== 'KRW');
-
-        // 2. 업비트 고유 마켓코드 패턴 판별 (KRW-BTC 등)
-        const isUpbitRow = rawMarketUpper.startsWith('KRW-') || 
-                           rawMarketUpper.startsWith('BTC-') || 
-                           rawMarketUpper.startsWith('USDT-');
+                             (!rawHasUpbitPrefix && rawMarketStr !== '' && rawMarketStr !== 'KRW');
 
         if (defaultExchange === 'BITHUMB') {
             exchange = 'BITHUMB';
+        } else if (rawHasUpbitPrefix) {
+            exchange = 'UPBIT';
         } else if (isBithumbRow) {
             exchange = 'BITHUMB';
-        } else if (isUpbitRow) {
-            exchange = 'UPBIT';
         } else {
-            exchange = defaultExchange;
+            exchange = (defaultExchange === 'UPBIT' || defaultExchange === 'BITHUMB') ? defaultExchange : 'UPBIT';
         }
 
         if (!rawMarket && (type === '원화입금' || type === '원화출금')) {
@@ -698,33 +715,33 @@ const UpbitParser = {
         }
         const s = str.trim().toLowerCase().replace(/\s+/g, '');
         const m = (marketStr || '').trim().toLowerCase();
-        const fn = (fileName || '').trim().toLowerCase();
+        const isKrwAsset = m === 'krw' || m === '원화' || m.includes('krw-krw');
 
-        // 1. 스테이킹
-        if (s.includes('스테이킹보상') || s.includes('보상') || s.includes('이자') || s.includes('리워드') || s.includes('reward')) {
-            return { type: '스테이킹보상', category: 'staking' };
+        if (s.includes('원화입금') || s === 'krw입금' || s.includes('krw_deposit')) {
+            return { type: '원화입금', category: 'transfer' };
         }
-        if (s.includes('언스테이킹') || s.includes('스테이킹해제') || s.includes('unstake')) {
-            return { type: '언스테이킹', category: 'staking' };
-        }
-        if (s.includes('스테이킹') || s.includes('stake')) {
-            return { type: '스테이킹', category: 'staking' };
+        if (s.includes('원화출금') || s === 'krw출금' || s.includes('krw_withdraw')) {
+            return { type: '원화출금', category: 'transfer' };
         }
 
-        // 2. 매매 (매수/매도/체결)
-        if (s === '매수' || s === 'bid' || s === 'buy' || s.includes('매수') || s.includes('구매') || s === '체결매수') {
+        if (s.includes('매수') || s.includes('구매') || s === 'buy' || s === 'bid') {
             return { type: '매수', category: 'trade' };
         }
-        if (s === '매도' || s === 'ask' || s === 'sell' || s.includes('매도') || s.includes('판매') || s === '체결매도') {
+        if (s.includes('매도') || s.includes('판매') || s === 'sell' || s === 'ask') {
             return { type: '매도', category: 'trade' };
         }
 
-        // 3. 입출금
-        const isKrwAsset = m === 'krw' || m === '원화' || m.includes('원화') || m === '대한민국원' || m === 'krw-krw' || 
-                           s.includes('원화') || s.includes('krw') || s.includes('충전') || s.includes('환급') || s.includes('계좌') ||
-                           fn.includes('원화') || fn.includes('krw');
+        if (s.includes('스테이킹보상') || s.includes('이자') || s.includes('reward') || s.includes('staking_reward')) {
+            return { type: '스테이킹보상', category: 'staking' };
+        }
+        if (s.includes('언스테이킹') || s.includes('해지') || s.includes('unstake') || s.includes('unstaking')) {
+            return { type: '언스테이킹', category: 'staking' };
+        }
+        if (s.includes('스테이킹') || s.includes('위임') || s.includes('stake') || s.includes('staking')) {
+            return { type: '스테이킹', category: 'staking' };
+        }
 
-        if (s.includes('코인입금') || s.includes('외부입금') || s.includes('디지털자산입금') || s.includes('가상자산입금') || s.includes('에어드랍') || s.includes('지급')) {
+        if (s.includes('코인입금') || s.includes('외부입금') || s.includes('디지털자산입금') || s.includes('가상자산입금')) {
             return { type: '코인입금', category: 'transfer' };
         }
         if (s.includes('코인출금') || s.includes('외부출금') || s.includes('디지털자산출금') || s.includes('가상자산출금')) {

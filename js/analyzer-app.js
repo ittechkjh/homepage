@@ -25,15 +25,42 @@ const AnalyzerStorage = {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
                     let needsResave = false;
+                    const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
+
                     const healed = parsed.map(item => {
-                        const marketStr = String(item.market || '').toUpperCase();
+                        let marketStr = String(item.market || '').trim();
+                        let coinSymbol = String(item.coinSymbol || '').trim();
                         const idStr = String(item.id || '').toUpperCase();
-                        const isBithumbItem = idStr.startsWith('BITHUMB_') || 
+
+                        // 1. 한글 코인명 치유 (예: 비체인 -> VET, 리플 -> XRP)
+                        if (mapToUse[coinSymbol]) {
+                            const sym = mapToUse[coinSymbol];
+                            item.coinSymbol = sym;
+                            item.market = `KRW-${sym}`;
+                            item.exchange = 'BITHUMB';
+                            needsResave = true;
+                        } else if (marketStr.startsWith('KRW-') && mapToUse[marketStr.replace('KRW-', '')]) {
+                            const sym = mapToUse[marketStr.replace('KRW-', '')];
+                            item.coinSymbol = sym;
+                            item.market = `KRW-${sym}`;
+                            item.exchange = 'BITHUMB';
+                            needsResave = true;
+                        } else if (mapToUse[marketStr]) {
+                            const sym = mapToUse[marketStr];
+                            item.coinSymbol = sym;
+                            item.market = `KRW-${sym}`;
+                            item.exchange = 'BITHUMB';
+                            needsResave = true;
+                        }
+
+                        // 2. 빗썸 고유 특성 감지 및 거래소 복구
+                        const isBithumbItem = (item.exchange === 'BITHUMB') ||
+                                              idStr.startsWith('BITHUMB_') || 
                                               idStr.includes('BITHUMB') || 
                                               marketStr.includes('[') || 
                                               marketStr.includes('(') || 
                                               marketStr.includes('/KRW') ||
-                                              (item.coinSymbol && ['팝체인', '이오스닥', '소폰', '너보스', '아스타'].includes(item.coinSymbol));
+                                              marketStr.includes('_KRW');
                         
                         if (isBithumbItem && item.exchange !== 'BITHUMB') {
                             item.exchange = 'BITHUMB';
@@ -44,6 +71,10 @@ const AnalyzerStorage = {
                                 item.exchange = 'BITHUMB';
                                 needsResave = true;
                             }
+                        }
+                        if (!item.exchange) {
+                            item.exchange = isBithumbItem ? 'BITHUMB' : 'UPBIT';
+                            needsResave = true;
                         }
                         return item;
                     });

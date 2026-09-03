@@ -34,14 +34,21 @@ const ProfitCalculator = {
         // 스테이킹 집계
         const stakingSummary = this.calculateStaking(stakingItems, customStaking);
 
-        // 매매 손익 계산 (거래소별 + 마켓별 분리)
+        // 매매 손익 및 코인 잔고 계산을 위해 코인 관련 항목 전체(매매 + 코인입출금 + 스테이킹)를 마켓별로 그룹화
         const tradesByMarket = {};
-        tradeItems.forEach(trade => {
-            const groupKey = `${trade.exchange || 'UPBIT'}:::${trade.market}`;
+        filteredItems.forEach(item => {
+            if (item.market === 'KRW' || item.market === 'KRW-KRW' || item.coinSymbol === 'KRW' ||
+                item.type === '원화입금' || item.type === '원화출금') {
+                return;
+            }
+            if (item.coinSymbol === '입금' || item.coinSymbol === '출금' || item.coinSymbol === '매수' || item.coinSymbol === '매도') {
+                return;
+            }
+            const groupKey = `${item.exchange || 'UPBIT'}:::${item.market}`;
             if (!tradesByMarket[groupKey]) {
                 tradesByMarket[groupKey] = [];
             }
-            tradesByMarket[groupKey].push(trade);
+            tradesByMarket[groupKey].push(item);
         });
 
         const coinSummaries = {};
@@ -448,14 +455,14 @@ const ProfitCalculator = {
 
         trades.forEach(trade => {
             const enriched = { ...trade };
-            totalFee += trade.fee;
+            totalFee += (trade.fee || 0);
 
             if (trade.type === '매수') {
                 totalBuyCount++;
                 totalBuyAmount += trade.amount;
                 totalBuyQty += trade.quantity;
 
-                const feePerUnit = trade.quantity > 0 ? trade.fee / trade.quantity : 0;
+                const feePerUnit = trade.quantity > 0 ? (trade.fee || 0) / trade.quantity : 0;
                 buyQueue.push({
                     quantity: trade.quantity,
                     remainingQty: trade.quantity,
@@ -498,7 +505,7 @@ const ProfitCalculator = {
                     tradeCostBasis += sellQtyRemaining * trade.price;
                 }
 
-                const sellFee = trade.fee;
+                const sellFee = trade.fee || 0;
                 const netCostBasis = tradeCostBasis + tradeBuyFees;
                 const netSellProceeds = trade.amount - sellFee;
                 const tradeProfit = netSellProceeds - netCostBasis;
@@ -512,6 +519,29 @@ const ProfitCalculator = {
                 enriched.realizedProfit = tradeProfit;
                 enriched.realizedRoi = tradeRoi;
                 enrichedTrades.push(enriched);
+
+            } else if (trade.type === '코인출금' || trade.type === '출금' || trade.type.includes('출금')) {
+                // 코인 외부 출금/전송: 대기열에서 수량 차감 (보유 잔고 동기화, 매매 실현손익은 미발생)
+                let withdrawQtyRemaining = trade.quantity;
+                while (withdrawQtyRemaining > 1e-8 && buyQueue.length > 0) {
+                    const currentBuy = buyQueue[0];
+                    const matchQty = Math.min(withdrawQtyRemaining, currentBuy.remainingQty);
+                    currentBuy.remainingQty -= matchQty;
+                    withdrawQtyRemaining -= matchQty;
+                    if (currentBuy.remainingQty <= 1e-8) {
+                        buyQueue.shift();
+                    }
+                }
+            } else if (trade.type === '코인입금' || trade.type === '입금' || trade.type.includes('입금') || trade.type === '스테이킹보상') {
+                // 코인 입금 / 스테이킹 보상: 대기열에 추가
+                buyQueue.push({
+                    quantity: trade.quantity,
+                    remainingQty: trade.quantity,
+                    price: trade.price || 0,
+                    feePerUnit: 0,
+                    time: trade.time,
+                    tradeAmount: trade.amount || (trade.quantity * (trade.price || 0))
+                });
             }
         });
 
@@ -521,6 +551,11 @@ const ProfitCalculator = {
             holdingQty += lot.remainingQty;
             holdingCost += (lot.remainingQty * lot.price) + (lot.remainingQty * lot.feePerUnit);
         });
+
+        if (holdingQty <= 1e-8) {
+            holdingQty = 0;
+            holdingCost = 0;
+        }
 
         const avgBuyPrice = holdingQty > 1e-8 ? holdingCost / holdingQty : 0;
         const totalTradeVolume = totalBuyAmount + totalSellAmount;
@@ -587,14 +622,14 @@ const ProfitCalculator = {
 
         trades.forEach(trade => {
             const enriched = { ...trade };
-            totalFee += trade.fee;
+            totalFee += (trade.fee || 0);
 
             if (trade.type === '매수') {
                 totalBuyCount++;
                 totalBuyAmount += trade.amount;
                 totalBuyQty += trade.quantity;
 
-                const buyTotalCost = trade.amount + trade.fee;
+                const buyTotalCost = trade.amount + (trade.fee || 0);
                 holdingCost += buyTotalCost;
                 holdingQty += trade.quantity;
                 avgBuyPrice = holdingQty > 1e-8 ? holdingCost / holdingQty : 0;
@@ -612,7 +647,7 @@ const ProfitCalculator = {
 
                 const sellQty = trade.quantity;
                 const costBasis = sellQty * avgBuyPrice;
-                const netSellProceeds = trade.amount - trade.fee;
+                const netSellProceeds = trade.amount - (trade.fee || 0);
                 const tradeProfit = netSellProceeds - costBasis;
                 const tradeRoi = costBasis > 0 ? (tradeProfit / costBasis) * 100 : 0;
 
@@ -634,6 +669,23 @@ const ProfitCalculator = {
                 enriched.realizedRoi = tradeRoi;
                 enriched.currentAvgPrice = avgBuyPrice;
                 enrichedTrades.push(enriched);
+
+            } else if (trade.type === '코인출금' || trade.type === '출금' || trade.type.includes('출금')) {
+                holdingQty = Math.max(0, holdingQty - trade.quantity);
+                if (holdingQty <= 1e-8) {
+                    holdingQty = 0;
+                    holdingCost = 0;
+                    avgBuyPrice = 0;
+                } else {
+                    holdingCost = holdingQty * avgBuyPrice;
+                }
+            } else if (trade.type === '코인입금' || trade.type === '입금' || trade.type.includes('입금') || trade.type === '스테이킹보상') {
+                const depAmount = trade.amount || (trade.quantity * (trade.price || 0));
+                holdingQty += trade.quantity;
+                if (depAmount > 0) {
+                    holdingCost += depAmount;
+                    avgBuyPrice = holdingQty > 1e-8 ? holdingCost / holdingQty : 0;
+                }
             }
         });
 
