@@ -566,26 +566,43 @@ const App = {
         if (radioMoving) radioMoving.checked = !isFifo;
     },
 
+    handleSortClick: function (tableId, sortKey) {
+        if (!this.state.sortStates[tableId]) {
+            this.state.sortStates[tableId] = { col: sortKey, asc: false };
+        }
+        const state = this.state.sortStates[tableId];
+        if (state.col === sortKey) {
+            state.asc = !state.asc;
+        } else {
+            state.col = sortKey;
+            state.asc = false;
+        }
+
+        if (tableId === 'coinsTable') this.renderCoinsTable();
+        else if (tableId === 'transfersTable') this.renderTransfersTable();
+        else if (tableId === 'allActivitiesTable') this.renderAllActivitiesTable();
+        else if (tableId === 'monthlyTable') this.renderMonthlyTable();
+    },
+
     bindTableSorting: function (tableId) {
         const table = document.getElementById(tableId);
         if (!table) return;
 
-        table.querySelectorAll('thead th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const sortKey = th.dataset.sort;
-                const state = this.state.sortStates[tableId];
-                if (state.col === sortKey) {
-                    state.asc = !state.asc;
-                } else {
-                    state.col = sortKey;
-                    state.asc = false;
-                }
+        const thead = table.querySelector('thead');
+        if (!thead) return;
 
-                if (tableId === 'coinsTable') this.renderCoinsTable();
-                else if (tableId === 'transfersTable') this.renderTransfersTable();
-                else if (tableId === 'allActivitiesTable') this.renderAllActivitiesTable();
-                else if (tableId === 'monthlyTable') this.renderMonthlyTable();
-            });
+        thead.onclick = (e) => {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const sortKey = th.dataset.sort;
+            if (sortKey) {
+                this.handleSortClick(tableId, sortKey);
+            }
+        };
+
+        table.querySelectorAll('thead th[data-sort]').forEach(th => {
+            th.style.cursor = 'pointer';
+            th.style.userSelect = 'none';
         });
     },
 
@@ -987,6 +1004,10 @@ const App = {
 
             return sort.asc ? valA - valB : valB - valA;
         });
+
+        if (this.state.reportData) {
+            this.state.reportData.coinSummaries = coins;
+        }
 
         // 3. Update header indicators (▲ / ▼)
         const table = document.getElementById('coinsTable');
