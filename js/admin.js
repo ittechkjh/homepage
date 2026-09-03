@@ -468,10 +468,29 @@ const AdminApp = {
 
     init: function () {
         AdminAnalytics.init();
+        this.initFirebaseSync();
         this.bindEvents();
     },
 
-    
+    initFirebaseSync: function () {
+        if (typeof db !== 'undefined' && db) {
+            try {
+                db.collection('system_config').doc('admin_settings').onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data && data.adminPassword) {
+                            localStorage.setItem('crytopnl_admin_password', data.adminPassword);
+                            localStorage.setItem('cryptopnl_admin_password', data.adminPassword);
+                            localStorage.setItem('coinhub_admin_password', data.adminPassword);
+                        }
+                    }
+                }, err => {
+                    console.warn('Firebase admin sync note:', err);
+                });
+            } catch (e) {}
+        }
+    },
+
     getAdminPassword: function () {
         try {
             return localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234';
@@ -485,6 +504,14 @@ const AdminApp = {
             localStorage.setItem('crytopnl_admin_password', newPassword);
             localStorage.setItem('cryptopnl_admin_password', newPassword);
             localStorage.setItem('coinhub_admin_password', newPassword);
+            
+            // Firebase Firestore 중앙 데이터베이스에 실시간 영구 동기화
+            if (typeof db !== 'undefined' && db) {
+                db.collection('system_config').doc('admin_settings').set({
+                    adminPassword: newPassword,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true }).catch(e => console.warn('Firestore admin pw save error:', e));
+            }
             return true;
         } catch (e) {
             return false;

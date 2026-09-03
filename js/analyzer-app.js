@@ -143,6 +143,215 @@ const AnalyzerStorage = {
     }
 };
 
+const CloudSyncManager = {
+    // Mode: 'LOCAL' (default) or 'CLOUD'
+    getMode: function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default') return 'LOCAL';
+        return localStorage.getItem('coinhub_storage_mode_' + uid) || 'LOCAL';
+    },
+
+    setMode: async function (mode) {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default') {
+            if (mode === 'CLOUD') {
+                if (typeof openAuthModal === 'function') openAuthModal('login');
+                return false;
+            }
+            return true;
+        }
+        localStorage.setItem('coinhub_storage_mode_' + uid, mode);
+        
+        if (mode === 'CLOUD') {
+            await this.saveToCloud(AnalyzerApp.state.rawTrades);
+            AnalyzerApp.showToast('☁️ 클라우드 동기화 모드가 활성화되었습니다. 모든 기기에서 접속 가능합니다.', 'success');
+        } else {
+            AnalyzerApp.showToast('🔒 100% 로컬 기기 보관 모드로 전환되었습니다. 서버 전송 0% 프라이버시가 유지됩니다.', 'info');
+        }
+        this.updateUI();
+        this.renderModalState();
+        return true;
+    },
+
+    saveToCloud: async function (trades) {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default' || this.getMode() !== 'CLOUD') return;
+        if (typeof db === 'undefined' || !db) return;
+
+        try {
+            const docRef = db.collection('user_trades').doc(uid);
+            const payload = {
+                uid: uid,
+                updatedAt: new Date().toISOString(),
+                count: trades.length,
+                tradesJson: JSON.stringify(trades)
+            };
+            await docRef.set(payload, { merge: true });
+        } catch (e) {
+            console.warn('클라우드 동기화 저장 오류:', e);
+        }
+    },
+
+    loadFromCloud: async function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default' || this.getMode() !== 'CLOUD') return null;
+        if (typeof db === 'undefined' || !db) return null;
+
+        try {
+            const docRef = db.collection('user_trades').doc(uid);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data && data.tradesJson) {
+                    const parsed = JSON.parse(data.tradesJson);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('클라우드 동기화 로드 오류:', e);
+        }
+        return null;
+    },
+
+    deleteFromCloud: async function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default') return;
+        if (typeof db === 'undefined' || !db) return;
+
+        try {
+            await db.collection('user_trades').doc(uid).delete();
+        } catch (e) {
+            console.warn('클라우드 데이터 삭제 오류:', e);
+        }
+    },
+
+    manualSyncNow: async function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default') {
+            if (typeof openAuthModal === 'function') openAuthModal('login');
+            return;
+        }
+        if (!AnalyzerApp.state.rawTrades || AnalyzerApp.state.rawTrades.length === 0) {
+            AnalyzerApp.showToast('동기화할 거래 내역 데이터가 없습니다.', 'error');
+            return;
+        }
+        AnalyzerApp.showLoading(true, '클라우드 DB에 안전하게 백업 중...');
+        try {
+            await this.setMode('CLOUD');
+            await this.saveToCloud(AnalyzerApp.state.rawTrades);
+            AnalyzerApp.showToast('🎉 현재 ' + AnalyzerApp.state.rawTrades.length + '건의 거래 내역이 클라우드 DB에 안전하게 백업되었습니다!', 'success');
+        } catch (e) {
+            AnalyzerApp.showToast('클라우드 동기화 중 오류가 발생했습니다.', 'error');
+        } finally {
+            AnalyzerApp.showLoading(false);
+        }
+    },
+
+    purgeCloudDataWithConfirm: async function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        if (uid === 'user_default') return;
+        if (confirm('클라우드 DB에 보관된 거래 내역 백업을 완전히 삭제하시겠습니까?\\n(현재 기기의 로컬 데이터는 보존됩니다.)')) {
+            await this.deleteFromCloud();
+            await this.setMode('LOCAL');
+            AnalyzerApp.showToast('클라우드 백업 데이터가 완전히 삭제되었으며, 로컬 전용 모드로 변경되었습니다.', 'info');
+        }
+    },
+
+    updateUI: function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        const mode = this.getMode();
+        const badgeEl = document.getElementById('storageModeBadge');
+        
+        if (badgeEl) {
+            if (uid === 'user_default') {
+                badgeEl.innerHTML = `
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 text-xs font-medium transition cursor-pointer shadow-sm">
+                        <i data-lucide="shield" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>🔒 로컬 기기 보관 (비회원)</span>
+                        <span class="text-cyan-400 text-[10px] font-bold underline ml-0.5">설정</span>
+                    </button>
+                `;
+            } else if (mode === 'CLOUD') {
+                badgeEl.innerHTML = `
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/80 hover:bg-cyan-900/90 border border-cyan-500/50 text-cyan-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-cyan-500/20">
+                        <i data-lucide="cloud" class="w-3.5 h-3.5 text-cyan-400 animate-pulse"></i>
+                        <span>☁️ 클라우드 동기화 (회원)</span>
+                        <span class="text-slate-400 text-[10px] font-normal ml-0.5">변경</span>
+                    </button>
+                `;
+            } else {
+                badgeEl.innerHTML = `
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-500/40 text-emerald-300 text-xs font-medium transition cursor-pointer shadow-sm">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>🔒 100% 로컬 보관 (회원)</span>
+                        <span class="text-slate-400 text-[10px] font-normal ml-0.5">변경</span>
+                    </button>
+                `;
+            }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+    },
+
+    openModal: function () {
+        const modal = document.getElementById('storage-sync-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.setProperty('display', 'flex', 'important');
+            this.renderModalState();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+    },
+
+    closeModal: function () {
+        const modal = document.getElementById('storage-sync-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.setProperty('display', 'none', 'important');
+        }
+    },
+
+    renderModalState: function () {
+        const uid = AnalyzerStorage.getCurrentUserId();
+        const mode = this.getMode();
+        const isGuest = (uid === 'user_default');
+
+        const optLocal = document.getElementById('storageOptLocal');
+        const optCloud = document.getElementById('storageOptCloud');
+        const guestNotice = document.getElementById('storageGuestNotice');
+        const memberControl = document.getElementById('storageMemberControl');
+
+        if (guestNotice && memberControl) {
+            if (isGuest) {
+                guestNotice.classList.remove('hidden');
+                guestNotice.style.setProperty('display', 'block', 'important');
+                memberControl.classList.add('hidden');
+                memberControl.style.setProperty('display', 'none', 'important');
+            } else {
+                guestNotice.classList.add('hidden');
+                guestNotice.style.setProperty('display', 'none', 'important');
+                memberControl.classList.remove('hidden');
+                memberControl.style.setProperty('display', 'block', 'important');
+            }
+        }
+
+        if (optLocal && optCloud) {
+            if (mode === 'LOCAL') {
+                optLocal.classList.add('border-cyan-500', 'bg-cyan-950/40');
+                optLocal.classList.remove('border-navy-800', 'bg-navy-950');
+                optCloud.classList.remove('border-cyan-500', 'bg-cyan-950/40');
+                optCloud.classList.add('border-navy-800', 'bg-navy-950');
+            } else {
+                optCloud.classList.add('border-cyan-500', 'bg-cyan-950/40');
+                optCloud.classList.remove('border-navy-800', 'bg-navy-950');
+                optLocal.classList.remove('border-cyan-500', 'bg-cyan-950/40');
+                optLocal.classList.add('border-navy-800', 'bg-navy-950');
+            }
+        }
+    }
+};
+
 const ColumnManager = {
     tables: {
         coinsTable: [
@@ -399,10 +608,6 @@ const App = {
 
         if (dropZone && fileInput) {
             dropZone.addEventListener('click', () => {
-                if (!AnalyzerStorage.getCurrentUserId()) {
-                    openAuthModal('login');
-                    return;
-                }
                 fileInput.click();
             });
             dropZone.addEventListener('dragover', (e) => {
@@ -413,10 +618,6 @@ const App = {
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
-                if (!AnalyzerStorage.getCurrentUserId()) {
-                    openAuthModal('login');
-                    return;
-                }
                 if (e.dataTransfer.files.length > 0) {
                     this.handleFiles(e.dataTransfer.files);
                 }
@@ -432,10 +633,6 @@ const App = {
         const quickUploadBtn = document.getElementById('quickUploadBtn');
         if (quickUploadBtn && fileInput) {
             quickUploadBtn.addEventListener('click', () => {
-                if (!AnalyzerStorage.getCurrentUserId()) {
-                    openAuthModal('login');
-                    return;
-                }
                 fileInput.click();
             });
         }
@@ -663,11 +860,6 @@ const App = {
     switchTab: function (tabId) { this.switchSubTab(tabId); },
 
     handleFiles: async function (fileList) {
-        if (!AnalyzerStorage.getCurrentUserId()) {
-            openAuthModal('login');
-            return;
-        }
-
         this.showLoading(true, '파일 파싱 및 분석 중...');
         let newItems = [];
         let lastError = null;
@@ -1476,14 +1668,33 @@ const App = {
 
     saveTrades: function () {
         AnalyzerStorage.saveTrades(this.state.rawTrades);
+        if (typeof CloudSyncManager !== 'undefined' && CloudSyncManager.getMode() === 'CLOUD') {
+            CloudSyncManager.saveToCloud(this.state.rawTrades);
+        }
         this.updateUserBanner();
+        if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
     },
 
     loadSavedTrades: async function () {
         let tradesToUse = [];
 
-        // 1. IndexedDB 무제한 저장소에서 우선 로드
-        if (typeof AnalyzerDB !== 'undefined') {
+        // 1. 회원이 '클라우드 동기화' 모드를 활성화한 경우 Firebase Firestore에서 로드
+        if (typeof CloudSyncManager !== 'undefined' && CloudSyncManager.getMode() === 'CLOUD') {
+            try {
+                const cloudTrades = await CloudSyncManager.loadFromCloud();
+                if (Array.isArray(cloudTrades) && cloudTrades.length > 0) {
+                    tradesToUse = cloudTrades;
+                    if (typeof AnalyzerDB !== 'undefined') {
+                        await AnalyzerDB.saveTrades(cloudTrades);
+                    }
+                }
+            } catch (e) {
+                console.warn('클라우드 DB 로드 오류:', e);
+            }
+        }
+
+        // 2. 로컬 IndexedDB 무제한 저장소에서 로드
+        if (tradesToUse.length === 0 && typeof AnalyzerDB !== 'undefined') {
             try {
                 const savedDb = await AnalyzerDB.getTrades();
                 if (Array.isArray(savedDb) && savedDb.length > 0) {
@@ -1494,16 +1705,18 @@ const App = {
             }
         }
 
-        // 2. localStorage 검사 (IndexedDB보다 더 최신/많은 데이터가 있을 때만 동기화)
-        try {
-            const savedSync = AnalyzerStorage.getTrades();
-            if (Array.isArray(savedSync) && savedSync.length > tradesToUse.length) {
-                tradesToUse = savedSync;
-                if (typeof AnalyzerDB !== 'undefined') {
-                    await AnalyzerDB.saveTrades(savedSync);
+        // 3. localStorage 검사 (이전 캐시 동기화)
+        if (tradesToUse.length === 0) {
+            try {
+                const savedSync = AnalyzerStorage.getTrades();
+                if (Array.isArray(savedSync) && savedSync.length > 0) {
+                    tradesToUse = savedSync;
+                    if (typeof AnalyzerDB !== 'undefined') {
+                        await AnalyzerDB.saveTrades(savedSync);
+                    }
                 }
-            }
-        } catch (e) {}
+            } catch (e) {}
+        }
 
         if (tradesToUse.length > 0) {
             const healed = AnalyzerStorage.healTrades(tradesToUse);
@@ -1511,12 +1724,14 @@ const App = {
             this.recalculate();
             this.fetchLiveTickers(false);
             this.updateUserBanner();
+            if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
             return;
         }
 
         this.state.rawTrades = [];
         this.recalculate();
         this.updateUserBanner();
+        if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
     },
 
     clearDataWithConfirm: function () {
@@ -1524,8 +1739,12 @@ const App = {
             this.state.rawTrades = [];
             this.state.reportData = null;
             AnalyzerStorage.clearUserData();
+            if (typeof CloudSyncManager !== 'undefined') {
+                CloudSyncManager.deleteFromCloud();
+            }
             this.recalculate();
             this.updateUserBanner();
+            if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
             this.showToast('현재 계정의 모든 거래 데이터가 깨끗하게 초기화되었습니다.', 'info');
         }
     },
@@ -1550,11 +1769,16 @@ const App = {
 
         if (u && u.username) {
             if (nameEl) nameEl.textContent = u.username;
-            if (badgeEl) badgeEl.textContent = '👤 ' + u.username + ' 님 전용 격리 저장소';
+            if (badgeEl) badgeEl.textContent = '👤 ' + u.username + ' 님 보관소';
             if (settingsNameEl) settingsNameEl.textContent = u.username;
+        } else {
+            if (nameEl) nameEl.textContent = '손님(비회원)';
+            if (badgeEl) badgeEl.textContent = '👤 비회원 로컬 모드';
+            if (settingsNameEl) settingsNameEl.textContent = '손님(비회원)';
         }
         if (countEl) countEl.textContent = countText;
         if (settingsCountEl) settingsCountEl.textContent = countText;
+        if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
     },
 
     switchUser: function (user) {
