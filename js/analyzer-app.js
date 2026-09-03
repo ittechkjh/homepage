@@ -76,6 +76,62 @@ const AnalyzerStorage = {
         return 'coinhub_' + uid + '_' + key;
     },
 
+    healTrades: function (parsed) {
+        if (!Array.isArray(parsed) || parsed.length === 0) return [];
+        const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
+        const bithumbExclusiveSymbols = ['ASTR', 'EOSDAC', 'POPC', 'SOPH', 'CKB', '2Z', 'GEOD', 'PROS', 'META2', 'DOOD', 'USD1', 'BOUNTY', 'PIEVERSE', 'B3', 'NXPC', 'ANIME', 'MOCA', 'BLEND', 'ERA', 'NCT', 'FF', 'PLUME', 'ESP', 'CC', 'PRL', 'IN', 'WAL', 'AWE', 'HP', 'TRUST', 'SONIC', 'ARX', 'AVNT', 'O', 'LA', 'HYPER', 'RE', 'XAUT', 'CPOOL', 'CAP', 'LINEA', 'DATA', 'KERNEL', 'POKT', 'SENT', 'ZKC', 'ZKP', 'AUCTION', 'ORDER', 'FCT2'];
+
+        return parsed.map(item => {
+            let marketStr = String(item.market || '').trim();
+            let coinSymbol = String(item.coinSymbol || '').trim();
+            const idStr = String(item.id || '').toUpperCase();
+
+            // 1. 한글 코인명 또는 빗썸 고유 식별 여부
+            const cleanCandidate = (marketStr.startsWith('KRW-') || marketStr.startsWith('BTC-') || marketStr.startsWith('USDT-'))
+                ? marketStr.split('-')[1].replace(/[\(\)\[\]]/g, '').trim()
+                : marketStr.replace(/[\(\)\[\]]/g, '').trim();
+
+            const isOriginalKorean = !!(mapToUse[coinSymbol] || mapToUse[coinSymbol.toLowerCase()] || 
+                                        mapToUse[marketStr] || mapToUse[marketStr.toLowerCase()] || 
+                                        mapToUse[cleanCandidate] || mapToUse[cleanCandidate.toLowerCase()]);
+
+            // 2. 표준 마켓 및 심볼로 정규화
+            const normMarket = (typeof UpbitParser !== 'undefined' && UpbitParser.normalizeMarket)
+                ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
+                : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
+
+            let normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
+            if (normSymbol === 'MATIC') {
+                normSymbol = 'POL';
+                normMarket = 'KRW-POL';
+            }
+
+            if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
+                item.market = normMarket;
+                item.coinSymbol = normSymbol;
+            }
+
+            // 3. 거래소 정밀 판별
+            let isBithumb = false;
+            if (idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
+                isBithumb = true;
+            } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인') || idStr.includes('리플')) {
+                isBithumb = true;
+            } else if (bithumbExclusiveSymbols.includes(normSymbol)) {
+                isBithumb = true;
+            } else if (normSymbol === 'VET' && (parseFloat(item.quantity) > 10000 || parseFloat(item.price) < 50)) {
+                isBithumb = true;
+            } else if (isOriginalKorean || marketStr.includes('[') || marketStr.includes('(') || marketStr.includes('/KRW') || marketStr.includes('_KRW')) {
+                isBithumb = true;
+            } else if (item.exchange === 'BITHUMB') {
+                isBithumb = true;
+            }
+
+            item.exchange = isBithumb ? 'BITHUMB' : 'UPBIT';
+            return item;
+        });
+    },
+
     getTrades: function () {
         try {
             const saved = localStorage.getItem('coinhub_analyzer_trades') ||
@@ -84,97 +140,48 @@ const AnalyzerStorage = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    let needsResave = false;
-                    const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
-                    const bithumbExclusiveSymbols = ['ASTR', 'EOSDAC', 'POPC', 'SOPH', 'CKB', '2Z', 'GEOD', 'PROS', 'META2', 'DOOD', 'USD1', 'BOUNTY', 'PIEVERSE', 'B3', 'NXPC', 'ANIME', 'MOCA', 'BLEND', 'ERA', 'NCT', 'FF', 'PLUME', 'ESP', 'CC', 'PRL', 'IN', 'WAL', 'AWE', 'HP', 'TRUST', 'SONIC', 'ARX', 'AVNT', 'O', 'LA', 'HYPER', 'RE', 'XAUT', 'CPOOL', 'CAP', 'LINEA', 'DATA', 'KERNEL', 'POKT', 'SENT', 'ZKC', 'ZKP', 'AUCTION', 'ORDER', 'FCT2'];
-
-                    const healed = parsed.map(item => {
-                        let marketStr = String(item.market || '').trim();
-                        let coinSymbol = String(item.coinSymbol || '').trim();
-                        const idStr = String(item.id || '').toUpperCase();
-
-                        // 1. 한글 코인명 또는 빗썸 고유 식별 여부
-                        const cleanCandidate = (marketStr.startsWith('KRW-') || marketStr.startsWith('BTC-') || marketStr.startsWith('USDT-'))
-                            ? marketStr.split('-')[1].replace(/[\(\)\[\]]/g, '').trim()
-                            : marketStr.replace(/[\(\)\[\]]/g, '').trim();
-
-                        const isOriginalKorean = !!(mapToUse[coinSymbol] || mapToUse[coinSymbol.toLowerCase()] || 
-                                                    mapToUse[marketStr] || mapToUse[marketStr.toLowerCase()] || 
-                                                    mapToUse[cleanCandidate] || mapToUse[cleanCandidate.toLowerCase()]);
-
-                        // 2. 표준 마켓 및 심볼로 정규화
-                        const normMarket = (typeof UpbitParser !== 'undefined' && UpbitParser.normalizeMarket)
-                            ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
-                            : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
-
-                        let normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
-                        if (normSymbol === 'MATIC') {
-                            normSymbol = 'POL';
-                            normMarket = 'KRW-POL';
-                        }
-
-                        if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
-                            item.market = normMarket;
-                            item.coinSymbol = normSymbol;
-                            needsResave = true;
-                        }
-
-                        // 3. 거래소 정밀 판별
-                        let isBithumb = false;
-                        if (idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
-                            isBithumb = true;
-                        } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인') || idStr.includes('리플')) {
-                            isBithumb = true;
-                        } else if (bithumbExclusiveSymbols.includes(normSymbol)) {
-                            isBithumb = true;
-                        } else if (normSymbol === 'VET' && (parseFloat(item.quantity) > 10000 || parseFloat(item.price) < 50)) {
-                            // 사용자의 빗썸 비체인 거래 내역 복구
-                            isBithumb = true;
-                        } else if (isOriginalKorean || marketStr.includes('[') || marketStr.includes('(') || marketStr.includes('/KRW') || marketStr.includes('_KRW')) {
-                            isBithumb = true;
-                        } else if (item.exchange === 'BITHUMB') {
-                            isBithumb = true;
-                        }
-
-                        const targetExchange = isBithumb ? 'BITHUMB' : 'UPBIT';
-                        if (item.exchange !== targetExchange) {
-                            item.exchange = targetExchange;
-                            needsResave = true;
-                        }
-
-                        return item;
-                    });
-                    if (needsResave) {
-                        try {
-                            const json = JSON.stringify(healed);
-                            localStorage.setItem('coinhub_analyzer_trades', json);
-                            AnalyzerDB.saveTrades(healed);
-                        } catch (e) {}
-                    }
-                    return healed;
+                    return this.healTrades(parsed);
                 }
             }
         } catch (e) {
-            console.error('거래 내역 로드 실패:', e);
+            console.error('로컬스토리지 거래 내역 로드 실패:', e);
         }
         return [];
     },
 
     saveTrades: function (trades) {
+        if (!Array.isArray(trades)) return;
+        // 1. IndexedDB에 전체 데이터 영구 보관 (수만 건 대용량도 무제한 저장)
+        if (typeof AnalyzerDB !== 'undefined') {
+            AnalyzerDB.saveTrades(trades);
+        }
+        // 2. localStorage는 용량 한도(2.5MB) 이내일 때만 보관
         try {
             const json = JSON.stringify(trades);
-            localStorage.setItem('coinhub_analyzer_trades', json);
-            AnalyzerDB.saveTrades(trades);
+            if (json.length < 2.5 * 1024 * 1024) {
+                localStorage.setItem('coinhub_analyzer_trades', json);
+            } else {
+                // 2.5MB 초과 대용량 시 구버전 잔여 데이터로 덮어씌워지는 현상 방지 위해 키 정리
+                localStorage.removeItem('coinhub_analyzer_trades');
+                localStorage.removeItem('coinhub_trades');
+            }
         } catch (e) {
-            console.warn('로컬 저장소 저장 에러 (IndexedDB로 대체 보관):', e);
-            AnalyzerDB.saveTrades(trades);
+            try {
+                localStorage.removeItem('coinhub_analyzer_trades');
+                localStorage.removeItem('coinhub_trades');
+            } catch (err) {}
         }
     },
 
     clearUserData: function () {
-        localStorage.removeItem('coinhub_analyzer_trades');
-        localStorage.removeItem('coinhub_trades');
-        AnalyzerDB.clear();
+        try {
+            localStorage.removeItem('coinhub_analyzer_trades');
+            localStorage.removeItem('coinhub_trades');
+            localStorage.removeItem(this.getKey('trades'));
+        } catch (e) {}
+        if (typeof AnalyzerDB !== 'undefined') {
+            AnalyzerDB.clear();
+        }
     }
 };
 
@@ -376,7 +383,7 @@ const App = {
             }
             
             this.checkAuthStatus();
-            this.loadSavedTrades();
+            await this.loadSavedTrades();
         } catch (err) {
             console.error('App 초기화 오류:', err);
         }
@@ -1511,34 +1518,42 @@ const App = {
 
     saveTrades: function () {
         AnalyzerStorage.saveTrades(this.state.rawTrades);
-        if (typeof AnalyzerDB !== 'undefined') {
-            AnalyzerDB.saveTrades(this.state.rawTrades);
-        }
         this.updateUserBanner();
     },
 
     loadSavedTrades: async function () {
-        // 1. Check local storage first (instant synchronous)
-        const savedSync = AnalyzerStorage.getTrades();
-        if (Array.isArray(savedSync) && savedSync.length > 0) {
-            this.state.rawTrades = savedSync;
+        let tradesToUse = [];
+
+        // 1. IndexedDB 무제한 저장소에서 우선 로드
+        if (typeof AnalyzerDB !== 'undefined') {
+            try {
+                const savedDb = await AnalyzerDB.getTrades();
+                if (Array.isArray(savedDb) && savedDb.length > 0) {
+                    tradesToUse = savedDb;
+                }
+            } catch (e) {
+                console.warn('IndexedDB 로드 오류:', e);
+            }
+        }
+
+        // 2. localStorage 검사 (IndexedDB보다 더 최신/많은 데이터가 있을 때만 동기화)
+        try {
+            const savedSync = AnalyzerStorage.getTrades();
+            if (Array.isArray(savedSync) && savedSync.length > tradesToUse.length) {
+                tradesToUse = savedSync;
+                if (typeof AnalyzerDB !== 'undefined') {
+                    await AnalyzerDB.saveTrades(savedSync);
+                }
+            }
+        } catch (e) {}
+
+        if (tradesToUse.length > 0) {
+            const healed = AnalyzerStorage.healTrades(tradesToUse);
+            this.state.rawTrades = healed;
             this.recalculate();
             this.fetchLiveTickers(false);
             this.updateUserBanner();
             return;
-        }
-
-        // 2. Check IndexedDB fallback (fail-safe asynchronous)
-        if (typeof AnalyzerDB !== 'undefined') {
-            const savedDb = await AnalyzerDB.getTrades();
-            if (Array.isArray(savedDb) && savedDb.length > 0) {
-                this.state.rawTrades = savedDb;
-                AnalyzerStorage.saveTrades(savedDb);
-                this.recalculate();
-                this.fetchLiveTickers(false);
-                this.updateUserBanner();
-                return;
-            }
         }
 
         this.state.rawTrades = [];
