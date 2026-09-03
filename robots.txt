@@ -7,4 +7,4 @@ Disallow: /*.py$
 Disallow: /fix*
 
 # Sitemap Location
-Sitemap: https://homepage.ittechkjh.workers.dev/sitemap.xml
+Sitemap: https://crytopnl.com/sitemap.xml
