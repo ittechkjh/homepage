@@ -151,18 +151,67 @@ const AdminAnalytics = {
 
 const AdminUserManager = {
     STORAGE_KEY: 'coinhub_registered_users',
+    cloudUsers: [],
+
+    initFirebaseSync: function () {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
+            try {
+                firestore.collection('users').onSnapshot(snapshot => {
+                    const list = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data && data.username) {
+                            list.push({
+                                id: data.id || ('usr_' + data.username.toLowerCase()),
+                                username: data.username,
+                                email: data.email || (data.username + '@crytopnl.com'),
+                                role: data.role || 'USER',
+                                status: data.status || 'ACTIVE',
+                                joinedDate: data.joinedDate || (data.lastLoginAt ? data.lastLoginAt.slice(0, 10) : '2026.09.03'),
+                                lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                                lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                                reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
+                                tradesCount: this.getUserTradesCount(data.username),
+                                memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
+                            });
+                        }
+                    });
+                    if (list.length > 0) {
+                        this.cloudUsers = list;
+                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(list));
+                        localStorage.setItem('crytopnl_registered_users', JSON.stringify(list));
+                        if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderUsers === 'function') {
+                            AdminApp.renderUsers();
+                        }
+                    }
+                }, err => console.warn('Firestore users sync note:', err));
+            } catch (e) {
+                console.warn('Firestore users sync error:', e);
+            }
+        }
+    },
 
     getUsers: function () {
         let users = [];
-        try {
-            const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('crytopnl_registered_users');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    users = parsed;
+
+        // 1. Firestore 클라우드 유저 우선 반환
+        if (Array.isArray(this.cloudUsers) && this.cloudUsers.length > 0) {
+            users = this.cloudUsers;
+        }
+
+        // 2. 로컬 스토리지 캐시
+        if (users.length === 0) {
+            try {
+                const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('crytopnl_registered_users');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        users = parsed;
+                    }
                 }
-            }
-        } catch (e) {}
+            } catch (e) {}
+        }
 
         if (users.length === 0) {
             users = this.initRealUsers();
@@ -184,6 +233,7 @@ const AdminUserManager = {
                             status: 'ACTIVE',
                             joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
                             lastLogin: '방금 전 (온라인)',
+                            lastLoginAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
                             reputation: u.reputation || 100,
                             tradesCount: this.getUserTradesCount(u.username),
                             memo: '현재 접속 회원'
@@ -194,35 +244,11 @@ const AdminUserManager = {
             }
         } catch(e) {}
 
-        // Scan forum posts for authors
-        try {
-            const posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts') || '[]');
-            posts.forEach(p => {
-                if (p.author && p.author !== '익명 트레이더') {
-                    const exists = users.some(x => x.username.toLowerCase() === p.author.toLowerCase());
-                    if (!exists) {
-                        users.push({
-                            id: 'usr_' + (p.id || Date.now()),
-                            username: p.author,
-                            email: `${p.author}@crytopnl.com`,
-                            role: p.authorRank === 'ADMIN' ? 'ADMIN' : (p.authorRank === 'PRO' ? 'PRO' : 'USER'),
-                            status: 'ACTIVE',
-                            joinedDate: p.time || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-                            lastLogin: '커뮤니티 활동',
-                            reputation: (p.upvotes || 0) * 10 + 100,
-                            tradesCount: this.getUserTradesCount(p.author),
-                            memo: '포럼 작성 회원'
-                        });
-                        this.saveUsers(users);
-                    }
-                }
-            });
-        } catch(e) {}
-
         return users;
     },
 
     initRealUsers: function () {
+        const nowFormatted = new Date().toISOString().slice(0, 19).replace('T', ' ');
         const users = [
             {
                 id: 'usr_admin',
@@ -230,35 +256,14 @@ const AdminUserManager = {
                 email: 'admin@crytopnl.com',
                 role: 'ADMIN',
                 status: 'ACTIVE',
-                joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-                lastLogin: '방금 전 (온라인)',
+                joinedDate: nowFormatted.slice(0, 10).replace(/-/g, '.'),
+                lastLogin: nowFormatted,
+                lastLoginAt: nowFormatted,
                 reputation: 9999,
                 tradesCount: this.getUserTradesCount('admin'),
                 memo: '최고 관리자'
             }
         ];
-
-        // If current user is logged in and not admin, include them
-        try {
-            const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
-            if (currentRaw) {
-                const u = JSON.parse(currentRaw);
-                if (u && u.username && u.username.toLowerCase() !== 'admin') {
-                    users.push({
-                        id: 'usr_' + Date.now(),
-                        username: u.username,
-                        email: u.email || (u.username + '@crytopnl.com'),
-                        role: u.role || 'USER',
-                        status: 'ACTIVE',
-                        joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-                        lastLogin: '방금 전 (온라인)',
-                        reputation: u.reputation || 100,
-                        tradesCount: this.getUserTradesCount(u.username),
-                        memo: '현재 접속 회원'
-                    });
-                }
-            }
-        } catch (e) {}
 
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
@@ -275,9 +280,7 @@ const AdminUserManager = {
             'crytopnl_user_' + u + '_trades',
             'coinhub_user_' + u + '_trades',
             'crytopnl_trades_' + u,
-            'coinhub_trades_' + u,
-            'crytopnl_trades',
-            'coinhub_trades'
+            'coinhub_trades_' + u
         ];
 
         for (const key of candidateKeys) {
@@ -306,6 +309,12 @@ const AdminUserManager = {
         if (user) {
             user.role = newRole;
             this.saveUsers(users);
+            
+            // Firestore Cloud Sync
+            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestore) {
+                firestore.collection('users').doc(username.toLowerCase()).set({ role: newRole }, { merge: true }).catch(e => console.warn(e));
+            }
             return true;
         }
         return false;
@@ -317,6 +326,12 @@ const AdminUserManager = {
         if (user) {
             user.status = user.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
             this.saveUsers(users);
+            
+            // Firestore Cloud Sync
+            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestore) {
+                firestore.collection('users').doc(username.toLowerCase()).set({ status: user.status }, { merge: true }).catch(e => console.warn(e));
+            }
             return user.status;
         }
         return null;
@@ -331,6 +346,12 @@ const AdminUserManager = {
             if (user) {
                 user.tradesCount = 0;
                 this.saveUsers(users);
+            }
+            
+            // Firestore Cloud Delete
+            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestore) {
+                firestore.collection('user_trades').doc('user_' + username.trim().toLowerCase()).delete().catch(e => console.warn(e));
             }
             return true;
         } catch (e) {
@@ -347,6 +368,12 @@ const AdminUserManager = {
         users = users.filter(u => u.username.toLowerCase() !== username.toLowerCase());
         this.saveUsers(users);
         this.resetUserData(username);
+        
+        // Firestore Cloud Delete
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
+            firestore.collection('users').doc(username.toLowerCase()).delete().catch(e => console.warn(e));
+        }
         return true;
     },
 
@@ -469,6 +496,7 @@ const AdminApp = {
     init: function () {
         AdminAnalytics.init();
         this.initFirebaseSync();
+        AdminUserManager.initFirebaseSync();
         this.bindEvents();
     },
 

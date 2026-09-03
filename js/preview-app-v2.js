@@ -2128,15 +2128,27 @@ async function handleUnifiedLoginSubmit(e) {
     if (pw === savedAdminPw) {
       sessionStorage.setItem('crytopnl_admin_authenticated', '1');
       sessionStorage.setItem('coinhub_admin_authenticated', '1');
+      const now = new Date();
+      const timeFormatted = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
       const adminUser = {
+        id: 'usr_admin',
         username: 'admin',
         email: 'admin@crytopnl.com',
         role: 'ADMIN',
         rank: 'ADMIN',
-        reputation: 9999
+        status: 'ACTIVE',
+        joinedDate: '2025.10.15',
+        lastLogin: timeFormatted,
+        lastLoginAt: timeFormatted,
+        reputation: 9999,
+        updatedAt: now.toISOString()
       };
       localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
       localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+
+      if (firestore) {
+        firestore.collection('users').doc('admin').set(adminUser, { merge: true }).catch(e => console.warn(e));
+      }
 
       updateAuthUI();
       updateAdminNavVisibility();
@@ -2156,18 +2168,35 @@ async function handleUnifiedLoginSubmit(e) {
     }
   }
 
-  // 2. Normal Member Login
+  // 2. Normal Member Login (Saves to Firestore 'users' collection with exact last login timestamp)
+  const now = new Date();
+  const timeFormatted = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  
   const user = {
+    id: 'usr_' + id.toLowerCase(),
     username: id,
     email: id.includes('@') ? id : `${id}@crytopnl.com`,
     role: 'MEMBER',
     rank: 'PRO',
+    status: 'ACTIVE',
+    joinedDate: timeFormatted.slice(0, 10),
+    lastLogin: timeFormatted,
+    lastLoginAt: timeFormatted,
     reputation: 100,
-    joinedDate: new Date().toISOString().slice(0, 10)
+    updatedAt: now.toISOString()
   };
 
   localStorage.setItem('crytopnl_user', JSON.stringify(user));
   localStorage.setItem('coinhub_user', JSON.stringify(user));
+
+  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestore) {
+    try {
+      await firestore.collection('users').doc(id.toLowerCase()).set(user, { merge: true });
+    } catch (err) {
+      console.warn('Firestore user doc write warning:', err);
+    }
+  }
 
   updateAuthUI();
   updateAdminNavVisibility();
