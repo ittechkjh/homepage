@@ -550,7 +550,7 @@ var UpbitParser = {
         let type = parsedTypeInfo ? parsedTypeInfo.type : '매수';
         let category = parsedTypeInfo ? parsedTypeInfo.category : 'trade';
 
-        let exchange = defaultExchange;
+        let exchange = 'UPBIT';
         const rawMarketUpper = (rawMarket || '').toUpperCase();
         const rawMarketStr = String(rawMarket || '').trim();
         
@@ -563,23 +563,25 @@ var UpbitParser = {
 
         const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (this.koreanToSymbolMap || {});
         const isKoreanName = !!(mapToUse[rawMarketStr] || mapToUse[pureSymbolCandidate] || mapToUse[pureSymbolCandidate.toLowerCase()]);
+        const hasKoreanChar = /[가-힣]/.test(rawMarketStr);
 
-        const rawHasUpbitPrefix = (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-')) && !isKoreanName;
+        // 업비트는 마켓코드가 항상 "KRW-BTC", "KRW-ETH", "KRW-VET" 처럼 영문 대문자 접두사로 되어 있으며 한글이 절대 없음!
+        // 빗썸은 "비체인", "비체인(VET)", "VET/KRW", "VET_KRW", "리플", "이더리움클래식" 처럼 한글 또는 슬래시/괄호 표기!
+        const isDefiniteUpbitFormat = (rawMarketUpper.startsWith('KRW-') || rawMarketUpper.startsWith('BTC-') || rawMarketUpper.startsWith('USDT-')) && !hasKoreanChar;
+        const isDefiniteBithumbFormat = hasKoreanChar || isKoreanName || 
+                                        rawMarketStr.includes('/') || 
+                                        rawMarketStr.includes('_') || 
+                                        rawMarketStr.includes('[') || 
+                                        rawMarketStr.includes('(');
 
-        const isBithumbRow = isKoreanName ||
-                             rawMarketStr.includes('[') || 
-                             rawMarketStr.includes('(') || 
-                             rawMarketStr.includes('/KRW') || 
-                             rawMarketStr.includes('_KRW');
-
-        if (defaultExchange === 'BITHUMB') {
+        if (isDefiniteBithumbFormat) {
+            exchange = 'BITHUMB';
+        } else if (isDefiniteUpbitFormat) {
+            exchange = 'UPBIT';
+        } else if (defaultExchange === 'BITHUMB') {
             exchange = 'BITHUMB';
         } else if (defaultExchange === 'UPBIT') {
             exchange = 'UPBIT';
-        } else if (rawHasUpbitPrefix) {
-            exchange = 'UPBIT';
-        } else if (isBithumbRow) {
-            exchange = 'BITHUMB';
         } else {
             exchange = 'UPBIT';
         }

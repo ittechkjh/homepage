@@ -59,9 +59,12 @@ const AnalyzerStorage = {
                         let isBithumb = false;
                         if (idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
                             isBithumb = true;
-                        } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인')) {
+                        } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인') || idStr.includes('리플')) {
                             isBithumb = true;
                         } else if (bithumbExclusiveSymbols.includes(normSymbol)) {
+                            isBithumb = true;
+                        } else if (normSymbol === 'VET' && (parseFloat(item.quantity) > 10000 || parseFloat(item.price) < 50)) {
+                            // 사용자의 빗썸 비체인 거래 내역 복구
                             isBithumb = true;
                         } else if (isOriginalKorean || marketStr.includes('[') || marketStr.includes('(') || marketStr.includes('/KRW') || marketStr.includes('_KRW')) {
                             isBithumb = true;
@@ -966,7 +969,11 @@ const App = {
         if (table) {
             table.querySelectorAll('thead th[data-sort]').forEach(th => {
                 const sKey = th.dataset.sort;
-                const baseText = th.textContent.replace(/[ ⬍▲▼]/g, '');
+                let baseText = th.getAttribute('data-original-title');
+                if (!baseText) {
+                    baseText = th.textContent.replace(/[ ⬍▲▼]/g, '').trim();
+                    th.setAttribute('data-original-title', baseText);
+                }
                 if (sKey === sort.col) {
                     th.textContent = baseText + (sort.asc ? ' ▲' : ' ▼');
                     th.style.color = '#38bdf8';
@@ -1004,8 +1011,8 @@ const App = {
                 '<td class="text-right ' + profitClass + '"><div class="font-bold">' + this.formatCurrency(coin.realizedProfit) + '</div><div class="text-xs">' + (coin.realizedRoi > 0 ? '+' : '') + (coin.realizedRoi || 0).toFixed(2) + '%</div></td>' +
                 '<td class="text-right ' + stackingClass + '"><div class="font-bold">' + gainedQtyStr + '</div><div class="text-xs">' + gainedRoiStr + '</div></td>' +
                 '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
-                '<td class="text-right"><div>' + (coin.avgBuyPrice > 0 ? this.formatCurrency(coin.avgBuyPrice) : '-') + '</div></td>' +
-                '<td class="text-right"><div>' + (currentPrice > 0 ? this.formatCurrency(currentPrice) : '-') + '</div>' + changeStr + '</td>' +
+                '<td class="text-right"><div>' + (coin.avgBuyPrice > 0 ? this.formatPrice(coin.avgBuyPrice) : '-') + '</div></td>' +
+                '<td class="text-right"><div>' + (currentPrice > 0 ? this.formatPrice(currentPrice) : '-') + '</div>' + changeStr + '</td>' +
                 '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + (unprofit > 0 ? '+' : '') + this.formatCurrency(unprofit) + '</div><div class="text-xs">' + (unroi > 0 ? '+' : '') + unroi.toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalBuyAmount) + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalSellAmount) + '</td>' +
@@ -1347,6 +1354,28 @@ const App = {
         if (num === undefined || num === null || isNaN(num)) return '0원';
         const rounded = Math.round(num);
         return rounded.toLocaleString('ko-KR') + '원';
+    },
+
+    formatPrice: function (num) {
+        if (num === undefined || num === null || isNaN(num)) return '-';
+        const n = parseFloat(num);
+        if (n === 0) return '0원';
+        if (n >= 1000) {
+            // 1,000원 이상: 10,040원, 33,574원 (필요시 소수점 2자리)
+            return n.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + '원';
+        } else if (n >= 100) {
+            // 100원 ~ 1,000원: 104.5원, 313.2원 (최대 소수점 2자리)
+            return n.toLocaleString('ko-KR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + '원';
+        } else if (n >= 1) {
+            // 1원 ~ 100원 (비체인, 더그래프, 크로노스 등): 9.24원, 22.40원, 74.10원 (소수점 2~4자리)
+            return n.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + '원';
+        } else if (n >= 0.01) {
+            // 0.01원 ~ 1원: 0.1924원
+            return n.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + '원';
+        } else {
+            // 0.01원 미만 (시바이누, 페페 등): 0.01925원
+            return n.toLocaleString('ko-KR', { minimumFractionDigits: 4, maximumFractionDigits: 8 }) + '원';
+        }
     },
 
     getProfitColorClass: function (num) {
