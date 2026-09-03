@@ -626,8 +626,8 @@ window.generateChartData = generateChartData;
 const INITIAL_FORUM_POSTS = [
   {
     id: 101,
-    category: 'market',
-    categoryName: '📊 차트/기술적 분석',
+    category: 'trading',
+    categoryName: '📈 트레이딩자료',
     title: '비트코인 64K 지지선 테스트 및 주봉 RSI 다이버전스 분석',
     content: '<p>주봉상 RSI가 50선에서 강력한 지지를 받고 있으며, 64,000달러 부근의 기관 매수세가 여전히 견고합니다. 70K 돌파 시 알트코인 순환매가 본격화될 것으로 예상됩니다.</p>',
     author: 'CryptoWhale',
@@ -718,7 +718,12 @@ function renderForumPosts() {
   let posts = getStoredPosts();
 
   if (activeCategory !== 'all') {
-    posts = posts.filter(p => p.category === activeCategory);
+    posts = posts.filter(p => {
+      if (p.category === activeCategory) return true;
+      if (activeCategory === 'trading' && (p.category === 'market' || p.category === 'trading')) return true;
+      if (activeCategory === 'feature' && p.category === 'qna') return true;
+      return false;
+    });
   }
 
   const sortType = document.getElementById('forum-sort')?.value || 'latest';
@@ -2342,14 +2347,48 @@ window.addEventListener('hashchange', handleRoute);
 
 // Sync with Firestore
 if (db) {
+  let isInitialSyncDone = false;
+
   db.collection('forum_posts').onSnapshot(snapshot => {
     let posts = [];
     snapshot.forEach(doc => {
       posts.push(doc.data());
     });
-    posts.sort((a,b) => b.id - a.id);
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-    if (typeof renderForumPosts === 'function') renderForumPosts();
+
+    if (posts.length > 0) {
+      posts.sort((a,b) => (b.id || 0) - (a.id || 0));
+      localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+      localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+      if (typeof renderForumPosts === 'function') renderForumPosts();
+    } else if (!isInitialSyncDone) {
+      isInitialSyncDone = true;
+      const localPosts = getStoredPosts();
+      if (localPosts && localPosts.length > 0) {
+        localPosts.forEach(p => {
+          db.collection('forum_posts').doc(p.id.toString()).set(p).catch(() => {});
+        });
+      }
+    }
+
+    if (!isInitialSyncDone) {
+      isInitialSyncDone = true;
+      try {
+        const localRaw = localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
+        if (localRaw) {
+          const localParsed = JSON.parse(localRaw);
+          if (Array.isArray(localParsed)) {
+            const dbIds = new Set(posts.map(p => String(p.id)));
+            localParsed.forEach(lp => {
+              if (lp && lp.id && !dbIds.has(String(lp.id))) {
+                db.collection('forum_posts').doc(lp.id.toString()).set(lp).catch(() => {});
+              }
+            });
+          }
+        }
+      } catch(e) {}
+    }
+  }, err => {
+    console.warn('Firestore forum_posts onSnapshot error:', err);
   });
 
   db.collection('chat_messages').orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
@@ -2359,13 +2398,14 @@ if (db) {
     });
     if (msgs.length > 0) {
       chatMessages = msgs;
+      localStorage.setItem('crytopnl_chat_messages', JSON.stringify(msgs));
       localStorage.setItem('coinhub_chat_messages', JSON.stringify(msgs));
     }
     if (typeof renderChatMessages === 'function') renderChatMessages();
   });
 } else {
   try {
-    const localChat = localStorage.getItem('coinhub_chat_messages');
+    const localChat = localStorage.getItem('crytopnl_chat_messages') || localStorage.getItem('coinhub_chat_messages');
     if (localChat) chatMessages = JSON.parse(localChat);
   } catch(e) {}
 }
@@ -2378,7 +2418,9 @@ saveStoredPosts = function(posts) {
   originalSaveStoredPosts(posts);
   if (db) {
     posts.forEach(post => {
-      db.collection('forum_posts').doc(post.id.toString()).set(post);
+      if (post && post.id) {
+        db.collection('forum_posts').doc(post.id.toString()).set(post).catch(e => console.warn('Firestore save error:', e));
+      }
     });
   }
 };
