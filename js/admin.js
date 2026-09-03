@@ -271,14 +271,29 @@ const AdminUserManager = {
         return users;
     },
 
-    getUserTradesCount: function (username) {
+    getUserTradesCount: function (username, tradeCountsMap) {
         if (!username) return 0;
         const u = String(username).trim().toLowerCase();
+
+        // 1. Firestore user_trades totalCount 우선 조회
+        if (tradeCountsMap && typeof tradeCountsMap[u] === 'number') {
+            return tradeCountsMap[u];
+        }
+
+        // 2. 현재 메모리에 로드된 활성 거래 내역 검사
+        if (typeof AnalyzerApp !== 'undefined' && AnalyzerApp.state && Array.isArray(AnalyzerApp.state.rawTrades)) {
+            const currentUid = (typeof AnalyzerStorage !== 'undefined') ? AnalyzerStorage.getCurrentUserId() : '';
+            if (currentUid === 'user_' + u && AnalyzerApp.state.rawTrades.length > 0) {
+                return AnalyzerApp.state.rawTrades.length;
+            }
+        }
+
+        // 3. 로컬 스토리지 후보 키 검사
         const candidateKeys = [
-            'crytopnl_user_' + u + '_trades',
             'coinhub_user_' + u + '_trades',
-            'crytopnl_trades_' + u,
-            'coinhub_trades_' + u
+            'crytopnl_user_' + u + '_trades',
+            'coinhub_trades_' + u,
+            'crytopnl_trades_' + u
         ];
 
         for (const key of candidateKeys) {
@@ -888,8 +903,11 @@ const AdminApp = {
 
     renderUsers: async function () {
         const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        const tradeCountsMap = {};
+
         if (firestore) {
             try {
+                // 1. Fetch live users list from Firestore
                 const snap = await firestore.collection('users').get();
                 const list = [];
                 snap.forEach(doc => {
@@ -905,7 +923,6 @@ const AdminApp = {
                             lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
                             lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
                             reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
-                            tradesCount: AdminUserManager.getUserTradesCount(data.username),
                             memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
                         });
                     }
@@ -915,8 +932,18 @@ const AdminApp = {
                     localStorage.setItem(AdminUserManager.STORAGE_KEY, JSON.stringify(list));
                     localStorage.setItem('crytopnl_registered_users', JSON.stringify(list));
                 }
+
+                // 2. Fetch live trade counts from Firestore user_trades
+                const tradesSnap = await firestore.collection('user_trades').get();
+                tradesSnap.forEach(doc => {
+                    const data = doc.data();
+                    if (data && data.uid) {
+                        const cleanU = data.uid.replace(/^user_/, '').toLowerCase();
+                        tradeCountsMap[cleanU] = data.totalCount || 0;
+                    }
+                });
             } catch (e) {
-                console.warn('Firestore fetch users error:', e);
+                console.warn('Firestore live fetch error in renderUsers:', e);
             }
         }
 
@@ -946,13 +973,13 @@ const AdminApp = {
                 ? '<span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px] font-bold">👑 ADMIN</span>'
                 : (u.role === 'PRO' 
                     ? '<span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">⚡ PRO</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-[10px]">USER</span>');
+                    : '<span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-[10px] font-bold">MEMBER</span>');
 
             const statusBadge = u.status === 'ACTIVE'
                 ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">● 정상 활동</span>'
                 : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold">⛔ 활동 정지</span>';
 
-            const realTrades = AdminUserManager.getUserTradesCount(u.username);
+            const realTrades = AdminUserManager.getUserTradesCount(u.username, tradeCountsMap);
 
             return `
               <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
@@ -968,8 +995,8 @@ const AdminApp = {
                 <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${u.joinedDate}</td>
                 <td class="py-3 px-4">${roleBadge}</td>
                 <td class="py-3 px-4">${statusBadge}</td>
-                <td class="py-3 px-4 font-mono font-semibold text-right text-cyan-400">${realTrades.toLocaleString()}건</td>
-                <td class="py-3 px-4 text-slate-400 text-[11px]">${u.lastLogin}</td>
+                <td class="py-3 px-4 font-mono font-semibold text-right ${realTrades > 0 ? 'text-cyan-400 font-bold' : 'text-slate-400'}">${realTrades.toLocaleString()}건</td>
+                <td class="py-3 px-4 text-slate-300 font-mono text-[11px]">${u.lastLoginAt || u.lastLogin || '방금 전'}</td>
                 <td class="py-3 px-4 text-right">
                   <div class="flex items-center justify-end gap-1.5">
                     <button onclick="AdminApp.promptChangeRole('${u.username}', '${u.role}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 rounded text-[10px] font-semibold transition border border-navy-700" title="권한 변경">
