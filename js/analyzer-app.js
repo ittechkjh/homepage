@@ -783,11 +783,14 @@ const App = {
             this.state.reportData.coinSummaries.forEach(c => {
                 if (c.holdingQty > 1e-8) {
                     const sym = (c.coinSymbol || (c.market ? c.market.replace('KRW-', '') : '')).toUpperCase();
-                    let price = (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) ? UpbitAPI.fallbackPrices[sym] : 0;
-                    if (!price && c.currentPrice && c.currentPrice !== parseFloat(c.avgBuyPrice)) {
-                        price = c.currentPrice;
+                    let price = 0;
+                    if (c.currentPrice && parseFloat(c.currentPrice) > 0) {
+                        price = parseFloat(c.currentPrice);
+                    } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
+                        price = UpbitAPI.fallbackPrices[sym];
+                    } else if (c.avgBuyPrice && parseFloat(c.avgBuyPrice) > 0) {
+                        price = parseFloat(c.avgBuyPrice);
                     }
-                    if (!price && c.avgBuyPrice) price = parseFloat(c.avgBuyPrice);
 
                     const val = c.holdingQty * price;
                     const upnl = val - (c.holdingCost || 0);
@@ -861,11 +864,12 @@ const App = {
             const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
             const isBithumb = coin.exchange === 'BITHUMB';
 
-            let currentPrice = (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) ? UpbitAPI.fallbackPrices[sym] : 0;
-            if (!currentPrice && coin.currentPrice && coin.currentPrice !== parseFloat(coin.avgBuyPrice)) {
-                currentPrice = coin.currentPrice;
-            }
-            if (!currentPrice && parseFloat(coin.avgBuyPrice) > 0) {
+            let currentPrice = 0;
+            if (coin.currentPrice && parseFloat(coin.currentPrice) > 0) {
+                currentPrice = parseFloat(coin.currentPrice);
+            } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
+                currentPrice = UpbitAPI.fallbackPrices[sym];
+            } else if (parseFloat(coin.avgBuyPrice) > 0) {
                 currentPrice = parseFloat(coin.avgBuyPrice);
             }
             coin.currentPrice = currentPrice;
@@ -1404,6 +1408,15 @@ if (typeof window !== 'undefined') {
     window.ColumnManager = ColumnManager;
     window.AnalyzerApp = App;
     window.App = App;
+
+    if (!window._analyzerTickerInterval) {
+        window._analyzerTickerInterval = setInterval(() => {
+            const analyzerTab = document.getElementById('tab-analyzer');
+            if (analyzerTab && !analyzerTab.classList.contains('hidden') && App && App.state && App.state.reportData) {
+                App.fetchLiveTickers(false);
+            }
+        }, 12000);
+    }
 }
 
 if (typeof document !== 'undefined') {

@@ -474,7 +474,7 @@ const AdminApp = {
     
     getAdminPassword: function () {
         try {
-            return localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234';
+            return localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('cryptopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234';
         } catch (e) {
             return 'admin1234';
         }
@@ -482,6 +482,7 @@ const AdminApp = {
 
     setAdminPassword: function (newPassword) {
         try {
+            localStorage.setItem('crytopnl_admin_password', newPassword);
             localStorage.setItem('cryptopnl_admin_password', newPassword);
             localStorage.setItem('coinhub_admin_password', newPassword);
             return true;
@@ -628,10 +629,12 @@ const AdminApp = {
     },
   
     checkAdminAccess: function () {
-        const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('cryptopnl_admin_authenticated') === '1';
+        const isSessionAuth = sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || 
+                              sessionStorage.getItem('cryptopnl_admin_authenticated') === '1' || 
+                              sessionStorage.getItem('coinhub_admin_authenticated') === '1';
         let isLocalAdmin = false;
         try {
-            const u = JSON.parse(localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+            const u = JSON.parse(localStorage.getItem('crytopnl_user') || localStorage.getItem('cryptopnl_user') || localStorage.getItem('coinhub_user') || '{}');
             if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
                 isLocalAdmin = true;
             }

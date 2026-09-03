@@ -272,18 +272,18 @@ window.updateAuthUI = updateAuthUI;
 // Section 2: Market Real-Time Ticker & Charts
 // ----------------------------------------------------
 const DEFAULT_COINS = [
-  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 76834.00, price_change_percentage_24h: -1.23, total_volume: 28400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', korean_name: '비트코인' },
-  { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 2790.50, price_change_percentage_24h: -0.85, total_volume: 15200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', korean_name: '이더리움' },
-  { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 99.00, price_change_percentage_24h: -1.59, total_volume: 4800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', korean_name: '솔라나' },
-  { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 1.33, price_change_percentage_24h: -2.08, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', korean_name: '리플' },
-  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.174, price_change_percentage_24h: 1.15, total_volume: 850000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', korean_name: '도지코인' },
-  { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.565, price_change_percentage_24h: -1.12, total_volume: 410000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', korean_name: '에이다' },
-  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 26.10, price_change_percentage_24h: 3.20, total_volume: 320000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', korean_name: '아발란체' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 14.10, price_change_percentage_24h: 1.05, total_volume: 290000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' }
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 77060.00, price_change_percentage_24h: 0.15, total_volume: 38400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', korean_name: '비트코인' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 2381.50, price_change_percentage_24h: -1.25, total_volume: 18200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', korean_name: '이더리움' },
+  { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 99.75, price_change_percentage_24h: -0.10, total_volume: 5800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', korean_name: '솔라나' },
+  { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 1.346, price_change_percentage_24h: 0.08, total_volume: 2400000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', korean_name: '리플' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.0814, price_change_percentage_24h: -0.45, total_volume: 950000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', korean_name: '도지코인' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.201, price_change_percentage_24h: -0.82, total_volume: 510000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', korean_name: '에이다' },
+  { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 25.80, price_change_percentage_24h: 1.20, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', korean_name: '아발란체' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 13.90, price_change_percentage_24h: 0.65, total_volume: 340000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' }
 ];
 
 let marketCoins = [...DEFAULT_COINS];
-let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64820 };
+let selectedCoin = { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 77060 };
 let currentChartTimeframe = '24h';
 let priceChart = null;
 
@@ -294,32 +294,87 @@ async function fetchMarketData() {
   if (!marketCoins || marketCoins.length === 0) {
     marketCoins = [...DEFAULT_COINS];
   }
-  renderMarketUI();
 
+  let updated = false;
+
+  // 1. Primary: Binance 24hr Ticker (100% reliable CORS for live USD prices)
   try {
-    const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
-    const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
-    if (upbitRes.ok) {
-      const upbitData = await upbitRes.json();
-      const usdRate = 1380;
-      upbitData.forEach(item => {
-        const symbol = item.market.replace('KRW-', '').toLowerCase();
-        const coin = marketCoins.find(c => c.symbol.toLowerCase() === symbol);
-        if (coin) {
-          coin.current_price = item.trade_price / usdRate;
-          coin.price_change_percentage_24h = item.signed_change_rate * 100;
-          coin.total_volume = item.acc_trade_price_24h / usdRate;
-        }
-      });
-      renderMarketUI();
+    const binanceSymbols = JSON.stringify(['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'LINKUSDT']);
+    const binRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=' + encodeURIComponent(binanceSymbols));
+    if (binRes.ok) {
+      const binData = await binRes.json();
+      if (Array.isArray(binData) && binData.length > 0) {
+        binData.forEach(item => {
+          const sym = item.symbol.replace('USDT', '').toLowerCase();
+          const coin = marketCoins.find(c => c.symbol.toLowerCase() === sym);
+          if (coin) {
+            coin.current_price = parseFloat(item.lastPrice);
+            coin.price_change_percentage_24h = parseFloat(item.priceChangePercent);
+            coin.total_volume = parseFloat(item.quoteVolume || item.volume || 0);
+          }
+        });
+        updated = true;
+      }
     }
-  } catch (err) {
-    console.warn('Live ticker API fallback:', err);
-  } finally {
-    if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+  } catch (bErr) {
+    console.warn('Binance ticker fallback:', bErr);
   }
+
+  // 2. Secondary: Upbit / Bithumb fallback
+  if (!updated) {
+    try {
+      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
+      const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
+      if (upbitRes.ok) {
+        const upbitData = await upbitRes.json();
+        const usdRate = 1420;
+        upbitData.forEach(item => {
+          const symbol = item.market.replace('KRW-', '').toLowerCase();
+          const coin = marketCoins.find(c => c.symbol.toLowerCase() === symbol);
+          if (coin) {
+            coin.current_price = item.trade_price / usdRate;
+            coin.price_change_percentage_24h = item.signed_change_rate * 100;
+            coin.total_volume = item.acc_trade_price_24h / usdRate;
+          }
+        });
+        updated = true;
+      }
+    } catch (uErr) {}
+  }
+
+  // 3. Fallback: Bithumb ALL_KRW
+  if (!updated) {
+    try {
+      const bitRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
+      if (bitRes.ok) {
+        const bitData = await bitRes.json();
+        if (bitData && bitData.status === '0000' && bitData.data) {
+          const usdRate = 1420;
+          marketCoins.forEach(coin => {
+            const sym = coin.symbol.toUpperCase();
+            if (bitData.data[sym] && bitData.data[sym].closing_price) {
+              coin.current_price = parseFloat(bitData.data[sym].closing_price) / usdRate;
+              coin.price_change_percentage_24h = parseFloat(bitData.data[sym].fluctate_rate_24H || 0);
+              coin.total_volume = parseFloat(bitData.data[sym].acc_trade_value_24H || 0) / usdRate;
+            }
+          });
+          updated = true;
+        }
+      }
+    } catch (bErr) {}
+  }
+
+  renderMarketUI();
+  if (refreshIcon) setTimeout(() => refreshIcon.classList.remove('animate-spin'), 400);
 }
 window.fetchMarketData = fetchMarketData;
+
+// Start background live market polling interval
+if (!window._marketTickerInterval) {
+  window._marketTickerInterval = setInterval(() => {
+    fetchMarketData();
+  }, 10000);
+}
 
 function renderMarketUI() {
   const tickerBar = document.getElementById('ticker-bar');
@@ -699,7 +754,7 @@ function renderForumPosts() {
     const hasImage = (post.content && post.content.includes('<img')) || post.image;
 
     return `
-      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal(${post.id})">
+      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal('${post.id}')">
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
@@ -708,6 +763,7 @@ function renderForumPosts() {
             <span class="text-xs text-slate-400">• ${escapeHtml(post.time)}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
+            <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 1}회</span>
           </div>
           <h3 class="font-semibold text-sm sm:text-base text-slate-100 group-hover:text-cyan-400 transition leading-snug">${escapeHtml(post.title)}</h3>
           <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(plainText)}</p>
@@ -715,8 +771,8 @@ function renderForumPosts() {
 
         <div class="flex items-center gap-3 self-end sm:self-center shrink-0 text-xs">
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 font-mono" title="조회수">
-            <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-400"></i>
-            <span>${post.views || 1}</span>
+            <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>조회 ${post.views || 1}</span>
           </div>
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono" title="추천수">
             <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>

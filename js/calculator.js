@@ -182,21 +182,21 @@ const ProfitCalculator = {
         });
 
         const DEFAULT_MARKET_PRICES = {
-            'BTC': 105684000, 'ETH': 3850000, 'SOL': 136100, 'XRP': 1830, 'DOGE': 240,
-            'ADA': 780, 'AVAX': 36000, 'DOT': 6200, 'MATIC': 540, 'POL': 540,
-            'LINK': 19500, 'NEAR': 5800, 'TRX': 220, 'ETC': 26500, 'SUI': 2850,
-            'APT': 8900, 'SEI': 450, 'SHIB': 0.021, 'PEPE': 0.014, 'WLD': 2450,
-            'RENDER': 6800, 'ATOM': 6500, 'ALGO': 185, 'XLM': 140, 'SAND': 380,
-            'MANA': 410, 'AXS': 6200, 'FLOW': 850, 'EOS': 720, 'ENJ': 210,
-            'HBAR': 101, 'CRO': 75.2, 'STX': 2250, 'VET': 32, 'ICP': 11200,
-            'TIA': 6800, 'INJ': 26000, 'BLUR': 240, 'MINA': 620, 'KAVA': 510,
-            'CHZ': 85, 'AAVE': 185000, 'UNI': 9800, 'IMX': 1850, 'GALA': 28,
-            'OP': 1950, 'ARB': 720, 'CELO': 780, 'QTUM': 3400, 'NEO': 14500,
-            'GAS': 4400, 'ONT': 260, 'ONG': 410, 'IOST': 9.5, 'THETA': 1650,
-            'TFUEL': 78, 'ZIL': 22, 'KAIA': 180, 'KLAY': 180, 'MEW': 9.2,
-            'BONK': 0.026, 'WIF': 2800, 'FLOKI': 0.21, 'TON': 7200, 'ONDO': 1150,
-            'PENDLE': 5200, 'JUP': 1150, 'PYTH': 440, 'ENA': 680, 'STRK': 540,
-            'TAO': 540000, 'FET': 1450, 'GRT': 260, 'AR': 23500, 'FIL': 5100
+            'BTC': 106145000, 'ETH': 3280000, 'SOL': 137400, 'XRP': 1854, 'DOGE': 112,
+            'ADA': 275, 'AVAX': 35600, 'DOT': 5200, 'MATIC': 420, 'POL': 420,
+            'LINK': 19200, 'NEAR': 4800, 'TRX': 240, 'ETC': 24500, 'SUI': 2550,
+            'APT': 7900, 'SEI': 380, 'SHIB': 0.019, 'PEPE': 0.012, 'WLD': 2150,
+            'RENDER': 6200, 'ATOM': 5800, 'ALGO': 175, 'XLM': 130, 'SAND': 340,
+            'MANA': 380, 'AXS': 5800, 'FLOW': 780, 'EOS': 680, 'ENJ': 190,
+            'HBAR': 95, 'CRO': 72.0, 'STX': 2100, 'VET': 28, 'ICP': 10500,
+            'TIA': 6200, 'INJ': 24000, 'BLUR': 220, 'MINA': 580, 'KAVA': 480,
+            'CHZ': 78, 'AAVE': 175000, 'UNI': 9200, 'IMX': 1750, 'GALA': 25,
+            'OP': 1850, 'ARB': 680, 'CELO': 720, 'QTUM': 3200, 'NEO': 13800,
+            'GAS': 4100, 'ONT': 240, 'ONG': 380, 'IOST': 8.8, 'THETA': 1550,
+            'TFUEL': 72, 'ZIL': 20, 'KAIA': 170, 'KLAY': 170, 'MEW': 8.8,
+            'BONK': 0.024, 'WIF': 2600, 'FLOKI': 0.19, 'TON': 6800, 'ONDO': 1080,
+            'PENDLE': 4800, 'JUP': 1080, 'PYTH': 410, 'ENA': 620, 'STRK': 490,
+            'TAO': 510000, 'FET': 1350, 'GRT': 240, 'AR': 21500, 'FIL': 4800
         };
 
         const coinSummariesList = Object.values(coinSummaries).sort((a, b) => b.realizedProfit - a.realizedProfit);
@@ -209,12 +209,12 @@ const ProfitCalculator = {
             let livePrice = 0;
             let change24hVal = 0;
 
-            if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
+            if (parseFloat(coin.currentPrice) > 0 && parseFloat(coin.currentPrice) !== parseFloat(coin.avgBuyPrice)) {
+                livePrice = parseFloat(coin.currentPrice);
+            } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
                 livePrice = UpbitAPI.fallbackPrices[sym];
             } else if (DEFAULT_MARKET_PRICES[sym]) {
                 livePrice = DEFAULT_MARKET_PRICES[sym];
-            } else if (parseFloat(coin.currentPrice) > 0 && parseFloat(coin.currentPrice) !== parseFloat(coin.avgBuyPrice)) {
-                livePrice = parseFloat(coin.currentPrice);
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
                 livePrice = parseFloat(coin.avgBuyPrice);
             }
