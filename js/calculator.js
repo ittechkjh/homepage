@@ -65,7 +65,17 @@ const ProfitCalculator = {
         const yearlyStatsMap = {};
 
         for (const [market, marketTrades] of Object.entries(tradesByMarket)) {
-            marketTrades.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+            marketTrades.sort((a, b) => {
+                if (a.time !== b.time) return a.time.localeCompare(b.time);
+                const getPriority = (type) => {
+                    if (type === '매수' || type === '입금' || type === '코인입금' || type === '원화입금') return 1;
+                    if (type === '스테이킹보상') return 2;
+                    if (type === '출금' || type === '코인출금' || type === '원화출금') return 3;
+                    if (type === '매도') return 4;
+                    return 5;
+                };
+                return getPriority(a.type) - getPriority(b.type);
+            });
             const coinResult = method === 'fifo' 
                 ? this.calculateMarketFIFO(market, marketTrades)
                 : this.calculateMarketMovingAvg(market, marketTrades);
@@ -448,6 +458,8 @@ const ProfitCalculator = {
         let totalSellAmount = 0;
         let totalBuyQty = 0;
         let totalSellQty = 0;
+        let totalWithdrawQty = 0;
+        let totalDepositQty = 0;
         let totalFee = 0;
         let realizedProfit = 0;
         let winTrades = 0;
@@ -529,6 +541,7 @@ const ProfitCalculator = {
 
             } else if (trade.type === '코인출금' || trade.type === '출금' || trade.type.includes('출금')) {
                 // 코인 외부 출금/전송: 대기열에서 수량 차감 (보유 잔고 동기화, 매매 실현손익은 미발생)
+                totalWithdrawQty += (trade.quantity || 0);
                 let withdrawQtyRemaining = trade.quantity;
                 while (withdrawQtyRemaining > 1e-8 && buyQueue.length > 0) {
                     const currentBuy = buyQueue[0];
@@ -541,6 +554,7 @@ const ProfitCalculator = {
                 }
             } else if (trade.type === '코인입금' || trade.type === '입금' || trade.type.includes('입금') || trade.type === '스테이킹보상') {
                 // 코인 입금 / 스테이킹 보상: 대기열에 추가
+                totalDepositQty += (trade.quantity || 0);
                 buyQueue.push({
                     quantity: trade.quantity,
                     remainingQty: trade.quantity,
@@ -562,12 +576,14 @@ const ProfitCalculator = {
         // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금/마이그레이션 완료 처리)
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
-        const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
+        const totalOutflow = totalSellQty + totalWithdrawQty;
+        const remainingDiff = Math.abs(totalBuyQty + totalDepositQty - totalOutflow);
         const isClosedOrDust = (
             holdingQty <= 1e-4 ||
+            remainingDiff <= 0.01 ||
+            (totalBuyQty > 0 && Math.abs(totalBuyQty - totalOutflow) <= 0.01) ||
+            (totalBuyQty > 0 && totalOutflow >= totalBuyQty * 0.99) ||
             (totalSellCount > 0 && netHoldingRatio < 0.02) ||
-            (totalBuyQty > 0 && remainingDiff <= 1) ||
-            (totalBuyQty > 0 && totalSellQty >= totalBuyQty * 0.98) ||
             (holdingCost > 0 && holdingCost < 500)
         );
 
@@ -624,6 +640,8 @@ const ProfitCalculator = {
         let totalSellAmount = 0;
         let totalBuyQty = 0;
         let totalSellQty = 0;
+        let totalWithdrawQty = 0;
+        let totalDepositQty = 0;
         let totalFee = 0;
         let realizedProfit = 0;
         let winTrades = 0;
@@ -691,6 +709,7 @@ const ProfitCalculator = {
                 enrichedTrades.push(enriched);
 
             } else if (trade.type === '코인출금' || trade.type === '출금' || trade.type.includes('출금')) {
+                totalWithdrawQty += (trade.quantity || 0);
                 holdingQty = Math.max(0, holdingQty - trade.quantity);
                 if (holdingQty <= 1e-8) {
                     holdingQty = 0;
@@ -700,6 +719,7 @@ const ProfitCalculator = {
                     holdingCost = holdingQty * avgBuyPrice;
                 }
             } else if (trade.type === '코인입금' || trade.type === '입금' || trade.type.includes('입금') || trade.type === '스테이킹보상') {
+                totalDepositQty += (trade.quantity || 0);
                 const depAmount = trade.amount || (trade.quantity * (trade.price || 0));
                 holdingQty += trade.quantity;
                 if (depAmount > 0) {
@@ -712,12 +732,14 @@ const ProfitCalculator = {
         // Dust & negligible holding cleanup (소수점 잔여 먼지/수수료 잔여 dust, 실질적 전량 매도/출금/마이그레이션 완료 처리)
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
-        const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
+        const totalOutflow = totalSellQty + totalWithdrawQty;
+        const remainingDiff = Math.abs(totalBuyQty + totalDepositQty - totalOutflow);
         const isClosedOrDust = (
             holdingQty <= 1e-4 ||
+            remainingDiff <= 0.01 ||
+            (totalBuyQty > 0 && Math.abs(totalBuyQty - totalOutflow) <= 0.01) ||
+            (totalBuyQty > 0 && totalOutflow >= totalBuyQty * 0.99) ||
             (totalSellCount > 0 && netHoldingRatio < 0.02) ||
-            (totalBuyQty > 0 && remainingDiff <= 1) ||
-            (totalBuyQty > 0 && totalSellQty >= totalBuyQty * 0.98) ||
             (holdingCost > 0 && holdingCost < 500)
         );
 
