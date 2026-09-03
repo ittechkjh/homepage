@@ -493,7 +493,9 @@ const AdminApp = {
 
     promptChangeAdminPassword: function () {
         const currentPw = this.getAdminPassword();
-        const inputOld = prompt('현재 관리자 비밀번호를 입력하세요 (초기 비밀번호: admin1234):');
+        const isDefault = (currentPw === 'admin1234');
+        const guide = isDefault ? ' (초기 비밀번호: admin1234)' : '';
+        const inputOld = prompt(`현재 관리자 비밀번호를 입력하세요${guide}:`);
         if (inputOld === null) return;
         
         if (inputOld.trim() !== currentPw) {
@@ -514,7 +516,7 @@ const AdminApp = {
         }
 
         this.setAdminPassword(newPw.trim());
-        alert('🎉 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 변경된 비밀번호를 사용하세요.');
+        alert('🎉 관리자 비밀번호가 성공적으로 변경되었습니다! 다음 로그인 시 새로 변경된 비밀번호를 사용하세요.');
     },
 
     
@@ -577,7 +579,7 @@ const AdminApp = {
             if (typeof switchTab === 'function') switchTab('admin');
             this.render();
         } else {
-            alert('❌ 관리자 비밀번호가 일치하지 않습니다. 다시 확인해 주세요. (기본 비밀번호: admin1234)');
+            alert('❌ 관리자 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
             if (pwInput) {
                 pwInput.value = '';
                 pwInput.focus();
@@ -601,11 +603,13 @@ const AdminApp = {
             return;
         }
 
-        const pw = prompt('👑 CryptoPnL 최고 관리자 비밀번호를 입력하세요: (기본: admin1234)');
+        const currentAdminPw = this.getAdminPassword();
+        const isDefault = (currentAdminPw === 'admin1234');
+        const guide = isDefault ? ' (초기 비밀번호: admin1234)' : '';
+        const pw = prompt(`👑 CryptoPnL 최고 관리자 비밀번호를 입력하세요${guide}:`);
         if (pw === null) return;
 
-        const currentAdminPw = this.getAdminPassword();
-        if (pw.trim() === currentAdminPw || (currentAdminPw === 'admin1234' && pw.trim() === 'admin1234') || false) {
+        if (pw.trim() === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             const adminUser = {
                 username: 'admin',
@@ -624,7 +628,7 @@ const AdminApp = {
             alert('👑 최고 관리자 인증 완료! 관리자 센터로 이동합니다.');
             if (typeof switchTab === 'function') switchTab('admin');
         } else {
-            alert('비밀번호가 올바르지 않습니다.');
+            alert('❌ 관리자 비밀번호가 일치하지 않습니다.');
         }
     },
   
@@ -707,7 +711,7 @@ const AdminApp = {
             return;
         }
         
-        alert('관리자 비밀번호가 일치하지 않습니다. 올바른 비밀번호를 입력하세요. (기본 비밀번호: admin1234)');
+        alert('❌ 관리자 비밀번호가 일치하지 않습니다. 올바른 비밀번호를 입력하세요.');
     },
 
     handleAdminLogout: function () {
