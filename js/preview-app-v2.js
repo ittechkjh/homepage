@@ -2071,11 +2071,67 @@ window.renderMonthCalendar = renderMonthCalendar;
 // ----------------------------------------------------
 // Section 7: Unified User & Admin Authentication (NO MASTER PIN)
 // ----------------------------------------------------
-function openAuthModal() {
+let currentAuthTabMode = 'login';
+
+function switchAuthTab(mode) {
+  currentAuthTabMode = mode;
+  const loginTab = document.getElementById('auth-tab-login');
+  const regTab = document.getElementById('auth-tab-register');
+  const labelId = document.getElementById('auth-label-id');
+  const inputId = document.getElementById('login-identifier');
+  const benefits = document.getElementById('auth-register-benefits');
+  const submitText = document.getElementById('auth-submit-text');
+
+  if (mode === 'register') {
+    if (regTab) {
+      regTab.className = 'py-2 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition text-center cursor-pointer font-bold';
+    }
+    if (loginTab) {
+      loginTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition text-center cursor-pointer font-bold';
+    }
+    if (labelId) labelId.innerText = '가입할 아이디 / 닉네임';
+    if (inputId) inputId.placeholder = '사용할 새 닉네임 입력 (예: 비트고수)';
+    if (benefits) benefits.style.display = 'block';
+    if (submitText) submitText.innerText = '간편 회원가입 완료';
+  } else {
+    if (loginTab) {
+      loginTab.className = 'py-2 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition text-center cursor-pointer font-bold';
+    }
+    if (regTab) {
+      regTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition text-center cursor-pointer font-bold';
+    }
+    if (labelId) labelId.innerText = '아이디 / 닉네임';
+    if (inputId) inputId.placeholder = '아이디 또는 사용할 닉네임 입력';
+    if (benefits) benefits.style.display = 'none';
+    if (submitText) submitText.innerText = '로그인 완료';
+  }
+}
+window.switchAuthTab = switchAuthTab;
+
+function handleGuestLogin() {
+  localStorage.removeItem('crytopnl_user');
+  localStorage.removeItem('coinhub_user');
+  sessionStorage.removeItem('crytopnl_admin_authenticated');
+  sessionStorage.removeItem('coinhub_admin_authenticated');
+
+  updateAuthUI();
+  if (typeof AnalyzerApp !== 'undefined') {
+    if (AnalyzerApp.loadSavedTrades) AnalyzerApp.loadSavedTrades();
+    if (AnalyzerApp.updateUserBanner) AnalyzerApp.updateUserBanner();
+    if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
+  }
+
+  closeAuthModal();
+  alert('🚀 비회원 익명 모드로 시작합니다!\n모든 거래 내역 데이터는 100% 현재 브라우저에만 안전하게 보관(서버 전송 0%)됩니다.');
+}
+window.handleGuestLogin = handleGuestLogin;
+
+function openAuthModal(initialMode) {
   const modal = document.getElementById('auth-modal');
   if (modal) {
     modal.classList.remove('hidden');
     modal.style.setProperty('display', 'flex', 'important');
+    switchAuthTab(initialMode === 'register' ? 'register' : 'login');
     const input = document.getElementById('login-identifier');
     if (input) setTimeout(() => input.focus(), 100);
     if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
@@ -2106,6 +2162,11 @@ async function handleUnifiedLoginSubmit(e) {
 
   // 1. Admin Login Verification (Checks Firestore directly in real-time)
   if (id.toLowerCase() === 'admin') {
+    if (currentAuthTabMode === 'register') {
+      alert('admin 아이디는 최고 관리자 전용 아이디로 새로 가입할 수 없습니다.');
+      return;
+    }
+
     let savedAdminPw = (typeof AdminApp !== 'undefined' && typeof AdminApp.getAdminPassword === 'function') 
       ? AdminApp.getAdminPassword() 
       : (localStorage.getItem('crytopnl_admin_password') || localStorage.getItem('coinhub_admin_password') || 'admin1234');
@@ -2168,7 +2229,7 @@ async function handleUnifiedLoginSubmit(e) {
     }
   }
 
-  // 2. Normal Member Login (Saves to Firestore 'users' collection with exact last login timestamp)
+  // 2. Normal Member Login / Register (Saves to Firestore 'users' collection with exact last login timestamp)
   const now = new Date();
   const timeFormatted = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
   
@@ -2221,9 +2282,14 @@ async function handleUnifiedLoginSubmit(e) {
   if (typeof AnalyzerApp !== 'undefined') {
     if (AnalyzerApp.loadSavedTrades) await AnalyzerApp.loadSavedTrades();
     if (AnalyzerApp.updateUserBanner) AnalyzerApp.updateUserBanner();
+    if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
   }
 
-  alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
+  if (currentAuthTabMode === 'register') {
+    alert(`🎉 반갑습니다, ${id}님! 간편 회원가입 및 로그인이 완료되었습니다.\n클라우드 동기화와 모든 정회원 기능을 이용하실 수 있습니다.`);
+  } else {
+    alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
+  }
 }
 window.handleUnifiedLoginSubmit = handleUnifiedLoginSubmit;
 
