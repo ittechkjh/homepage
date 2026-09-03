@@ -18,6 +18,7 @@ var UpbitParser = {
     koreanToSymbolMap: {
         "엑스알피": "XRP", "리플": "XRP", "비체인": "VET", "비트코인": "BTC", "이더리움": "ETH",
         "솔라나": "SOL", "도지코인": "DOGE", "시바이누": "SHIB", "에이다": "ADA", "폴리곤": "POL",
+        "폴리곤(MATIC)": "POL", "폴리곤(POL)": "POL", "MATIC": "POL", "matic": "POL", "KRW-MATIC": "POL",
         "매틱": "POL", "아발란체": "AVAX", "트론": "TRX", "체인링크": "LINK", "앱토스": "APT",
         "수이": "SUI", "니어프로토콜": "NEAR", "스텔라루멘": "XLM", "비트코인캐시": "BCH",
         "이오스": "EOS", "이오스닥": "EOSDAC", "팝체인": "POPC", "비트코인에스브이": "BSV", "비트코인sv": "BSV",

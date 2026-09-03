@@ -1635,7 +1635,7 @@ const App = {
         }
         
         if (elTopHoldings && elHoldingsBar) {
-            const held = this.state.reportData.coinSummaries.filter(c => c.holdingQty > 0);
+            const held = this.state.reportData.coinSummaries.filter(c => c.holdingQty > 1e-4 && (c.holdingCost >= 500 || (c.currentValue && c.currentValue >= 500)));
             held.sort((a,b) => (b.currentValue || (b.holdingQty * b.avgBuyPrice)) - (a.currentValue || (a.holdingQty * a.avgBuyPrice)));
             
             let totalVal = held.reduce((sum, c) => sum + (c.currentValue || (c.holdingQty * c.avgBuyPrice)), 0);
@@ -1644,7 +1644,7 @@ const App = {
                 elHoldingsBar.innerHTML = '';
             } else {
                 let top3 = held.slice(0, 3);
-                elTopHoldings.innerText = top3.map(c => c.coin + ' (' + Math.round(((c.currentValue || (c.holdingQty * c.avgBuyPrice)) / totalVal) * 100) + '%)').join(', ');
+                elTopHoldings.innerText = top3.map(c => (c.koreanName || c.coinSymbol || c.coin || '') + ' (' + Math.round(((c.currentValue || (c.holdingQty * c.avgBuyPrice)) / totalVal) * 100) + '%)').join(', ');
                 
                 const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-cyan-500', 'bg-slate-700'];
                 let barHtml = '';

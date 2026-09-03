@@ -44,6 +44,11 @@ const ProfitCalculator = {
             if (item.coinSymbol === '입금' || item.coinSymbol === '출금' || item.coinSymbol === '매수' || item.coinSymbol === '매도') {
                 return;
             }
+            // MATIC / POL 완벽 통합
+            if (item.coinSymbol === 'MATIC' || item.market === 'KRW-MATIC' || (item.market && item.market.toUpperCase().includes('MATIC'))) {
+                item.coinSymbol = 'POL';
+                item.market = 'KRW-POL';
+            }
             const groupKey = `${item.exchange || 'UPBIT'}:::${item.market}`;
             if (!tradesByMarket[groupKey]) {
                 tradesByMarket[groupKey] = [];
@@ -556,7 +561,15 @@ const ProfitCalculator = {
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
         const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
-        if (holdingQty <= 1e-4 || netHoldingRatio < 0.005 || remainingDiff <= 0.001 || (holdingCost > 0 && holdingCost < 100)) {
+        const isClosedOrDust = (
+            holdingQty <= 1e-4 ||
+            (totalSellCount > 0 && netHoldingRatio < 0.02) ||
+            (totalBuyQty > 0 && remainingDiff <= 1) ||
+            (totalBuyQty > 0 && totalSellQty >= totalBuyQty * 0.98) ||
+            (holdingCost > 0 && holdingCost < 500)
+        );
+
+        if (isClosedOrDust) {
             holdingQty = 0;
             holdingCost = 0;
         }
@@ -697,7 +710,15 @@ const ProfitCalculator = {
         const netBought = totalBuyQty;
         const netHoldingRatio = netBought > 0 ? (holdingQty / netBought) : 0;
         const remainingDiff = Math.abs(totalBuyQty - totalSellQty);
-        if (holdingQty <= 1e-4 || netHoldingRatio < 0.005 || remainingDiff <= 0.001 || (holdingCost > 0 && holdingCost < 100)) {
+        const isClosedOrDust = (
+            holdingQty <= 1e-4 ||
+            (totalSellCount > 0 && netHoldingRatio < 0.02) ||
+            (totalBuyQty > 0 && remainingDiff <= 1) ||
+            (totalBuyQty > 0 && totalSellQty >= totalBuyQty * 0.98) ||
+            (holdingCost > 0 && holdingCost < 500)
+        );
+
+        if (isClosedOrDust) {
             holdingQty = 0;
             holdingCost = 0;
             avgBuyPrice = 0;

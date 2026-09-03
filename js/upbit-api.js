@@ -321,7 +321,11 @@ const UpbitAPI = {
     "오픈캠퍼스": "EDU",
     "폴리곤": "POL",
     "폴리곤(POL)": "POL",
+    "폴리곤(MATIC)": "POL",
     "매틱": "POL",
+    "MATIC": "POL",
+    "matic": "POL",
+    "KRW-MATIC": "POL",
     "대한민국 원": "KRW",
     "원화": "KRW"
 },
