@@ -2,21 +2,25 @@
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y",
-  authDomain: "homepage-437c0.firebaseapp.com",
-  projectId: "homepage-437c0",
-  storageBucket: "homepage-437c0.firebasestorage.app",
-  messagingSenderId: "999961105878",
-  appId: "1:999961105878:web:553876dfcfc35b3c1ac077",
-  measurementId: "G-9MPWPYW0MK"
-};
-
-let db = null;
-if (firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== 'undefined') {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
+if (typeof window.firebaseConfig === 'undefined') {
+  window.firebaseConfig = {
+    apiKey: "AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y",
+    authDomain: "homepage-437c0.firebaseapp.com",
+    projectId: "homepage-437c0",
+    storageBucket: "homepage-437c0.firebasestorage.app",
+    messagingSenderId: "999961105878",
+    appId: "1:999961105878:web:553876dfcfc35b3c1ac077",
+    measurementId: "G-9MPWPYW0MK"
+  };
 }
+
+if (!window.db && typeof firebase !== 'undefined' && firebase.initializeApp) {
+  if (!firebase.apps || !firebase.apps.length) {
+    firebase.initializeApp(window.firebaseConfig);
+  }
+  window.db = firebase.firestore();
+}
+var db = window.db || null;
 // ==========================================
 function formatDateTime(val, includeSeconds = false) {
   if (!val) return '';
