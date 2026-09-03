@@ -969,15 +969,16 @@ const AdminApp = {
         }
 
         tbody.innerHTML = filtered.map(u => {
+            const isMember = !u.role || u.role === 'USER' || u.role === 'MEMBER';
             const roleBadge = u.role === 'ADMIN' 
-                ? '<span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px] font-bold">👑 ADMIN</span>'
+                ? '<span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">👑 ADMIN</span>'
                 : (u.role === 'PRO' 
-                    ? '<span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">⚡ PRO</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-[10px] font-bold">MEMBER</span>');
+                    ? '<span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">⚡ PRO</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-[10px] font-bold">👤 MEMBER</span>');
 
             const statusBadge = u.status === 'ACTIVE'
-                ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">● 정상 활동</span>'
-                : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold">⛔ 활동 정지</span>';
+                ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-[10px] font-bold">● 정상 활동</span>'
+                : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30 text-[10px] font-bold">⛔ 활동 정지</span>';
 
             const realTrades = AdminUserManager.getUserTradesCount(u.username, tradeCountsMap);
 

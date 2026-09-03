@@ -288,9 +288,26 @@
     }
   </style>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK & Global Database Initialization -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    window.firebaseConfig = {
+      apiKey: "AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y",
+      authDomain: "homepage-437c0.firebaseapp.com",
+      projectId: "homepage-437c0",
+      storageBucket: "homepage-437c0.firebasestorage.app",
+      messagingSenderId: "999961105878",
+      appId: "1:999961105878:web:553876dfcfc35b3c1ac077",
+      measurementId: "G-9MPWPYW0MK"
+    };
+    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+      if (!firebase.apps || !firebase.apps.length) {
+        firebase.initializeApp(window.firebaseConfig);
+      }
+      window.db = firebase.firestore();
+    }
+  </script>
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -562,6 +579,105 @@
           확인 / 닫기
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Storage Sync & Privacy Mode Modal -->
+  <div id="storage-sync-modal" class="fixed inset-0 z-[99999] bg-navy-950/90 backdrop-blur-md items-center justify-center p-4" style="display: none !important;">
+    <div class="bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden p-6 relative max-h-[90vh] overflow-y-auto space-y-5 animate-in">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center pb-4 border-b border-navy-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xl font-bold">
+            🛡️
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-white">데이터 보관 및 클라우드 동기화 설정</h3>
+            <p class="text-xs text-slate-400">거래 내역의 로컬 독립 보관 또는 멀티 디바이스 클라우드 동기화 선택</p>
+          </div>
+        </div>
+        <button onclick="CloudSyncManager.closeModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-navy-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Guest Notice -->
+      <div id="storageGuestNotice" class="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-3" style="display: none;">
+        <div class="flex items-center gap-2 text-cyan-300 font-bold text-sm">
+          <span>🔒</span> 현재 손님(비회원) 모드로 이용 중입니다
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          비회원 상태에서는 모든 거래 내역 파일이 <strong>100% 현재 브라우저(IndexedDB)에만 안전하게 보관</strong>되며 외부 서버로 전송되지 않습니다.
+        </p>
+        <div class="pt-2 flex items-center justify-between flex-wrap gap-2">
+          <span class="text-[11px] text-slate-400">다른 PC/모바일에서도 동기화하여 보려면?</span>
+          <button type="button" onclick="CloudSyncManager.closeModal(); openAuthModal('register');" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-bold text-xs transition shadow-md">
+            회원가입하고 클라우드 동기화 ➡️
+          </button>
+        </div>
+      </div>
+
+      <!-- Member Controls (Local vs Cloud Mode) -->
+      <div id="storageMemberControl" class="space-y-4" style="display: none;">
+        <div class="text-xs font-bold text-slate-300">원하시는 데이터 보관 방식을 선택해 주세요:</div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <!-- Option 1: 100% Local -->
+          <div id="storageOptLocal" onclick="CloudSyncManager.setMode('LOCAL')" class="p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between space-y-2 hover:border-cyan-400">
+            <div class="space-y-1.5">
+              <div class="font-bold text-white flex items-center gap-1.5 text-sm">
+                <span>🔒</span> 100% 로컬 기기 보관
+              </div>
+              <span class="inline-block px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">권장 • 서버 전송 0%</span>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                현재 PC/스마트폰 브라우저에만 암호화 보관. 클라우드 전송이 전무하여 최고의 프라이버시를 보장합니다.
+              </p>
+            </div>
+            <div class="text-[10px] text-cyan-400 font-bold">✓ 선택 시 로컬만 사용</div>
+          </div>
+
+          <!-- Option 2: Cloud Sync -->
+          <div id="storageOptCloud" onclick="CloudSyncManager.setMode('CLOUD')" class="p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between space-y-2 hover:border-cyan-400">
+            <div class="space-y-1.5">
+              <div class="font-bold text-white flex items-center gap-1.5 text-sm">
+                <span>☁️</span> 클라우드 안전 동기화
+              </div>
+              <span class="inline-block px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 text-[10px] font-bold">DB 연동 • 멀티 디바이스</span>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                Firebase 중앙 DB에 내 계정으로 안전 백업. 다른 PC나 모바일에서 로그인하면 거래 내역이 자동 동기화됩니다.
+              </p>
+            </div>
+            <div class="text-[10px] text-cyan-400 font-bold">✓ 선택 시 실시간 동기화</div>
+          </div>
+        </div>
+
+        <!-- Sync Actions -->
+        <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div>
+              <div class="font-bold text-white">수동 동기화 및 클라우드 관리</div>
+              <div class="text-[11px] text-slate-400">언제든지 클라우드 데이터를 즉시 갱신하거나 영구 삭제할 수 있습니다.</div>
+            </div>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="CloudSyncManager.manualSyncNow()" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 지금 클라우드로 백업
+            </button>
+            <button type="button" onclick="CloudSyncManager.purgeCloudDataWithConfirm()" class="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="trash" class="w-3.5 h-3.5"></i> 클라우드 백업만 삭제
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-3 border-t border-navy-800 flex justify-end">
+        <button type="button" onclick="CloudSyncManager.closeModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-xs transition cursor-pointer">
+          설정 완료 / 닫기
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -2218,8 +2334,9 @@
         <div class="app-container">
           <!-- App Header (Filter & Refresh Controls Bar) -->
           <header class="app-header mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs font-mono">저장된 거래: 0건</span>
+              <span id="storageModeBadge"></span>
               <button onclick="App.clearDataWithConfirm()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1 text-xs" title="현재 사용자 데이터 전체 삭제">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 초기화
               </button>
@@ -3544,17 +3661,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/upbit-api.js?v=20260903_30"></script>
-  <script src="js/parser.js?v=20260903_30"></script>
-  <script src="js/calculator.js?v=20260903_30"></script>
-  <script src="js/charts.js?v=20260903_30"></script>
-  <script src="js/exporter.js?v=20260903_30"></script>
-  <script src="js/sample-data.js?v=20260903_30"></script>
-  <script src="js/tools-calculators.js?v=20260903_30"></script>
-  <script src="js/analyzer-app.js?v=20260903_30"></script>
+  <script src="js/upbit-api.js?v=20260903_120"></script>
+  <script src="js/parser.js?v=20260903_120"></script>
+  <script src="js/calculator.js?v=20260903_120"></script>
+  <script src="js/charts.js?v=20260903_120"></script>
+  <script src="js/exporter.js?v=20260903_120"></script>
+  <script src="js/sample-data.js?v=20260903_120"></script>
+  <script src="js/tools-calculators.js?v=20260903_120"></script>
+  <script src="js/analyzer-app.js?v=20260903_120"></script>
 
-  <script src="js/admin.js?v=20260903_30"></script>
-  <script src="js/preview-app-v2.js?v=20260903_30"></script>
+  <script src="js/admin.js?v=20260903_120"></script>
+  <script src="js/preview-app-v2.js?v=20260903_120"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
