@@ -1,0 +1,10 @@
+﻿User-agent: *
+Allow: /
+
+# Disallow internal scripts & tools
+Disallow: /*.ps1$
+Disallow: /*.py$
+Disallow: /fix*
+
+# Sitemap Location
+Sitemap: https://homepage.ittechkjh.workers.dev/sitemap.xml
