@@ -26,6 +26,7 @@ const AnalyzerStorage = {
                 if (Array.isArray(parsed)) {
                     let needsResave = false;
                     const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
+                    const bithumbExclusiveSymbols = ['ASTR', 'EOSDAC', 'POPC', 'SOPH', 'CKB', '2Z', 'GEOD', 'PROS', 'META2', 'DOOD', 'USD1', 'BOUNTY', 'PIEVERSE', 'B3', 'NXPC', 'ANIME', 'MOCA', 'BLEND', 'ERA', 'NCT', 'FF', 'PLUME', 'ESP', 'CC', 'PRL', 'IN', 'WAL', 'AWE', 'HP', 'TRUST', 'SONIC', 'ARX', 'AVNT', 'O', 'LA', 'HYPER', 'RE', 'XAUT', 'CPOOL', 'CAP', 'LINEA', 'DATA', 'KERNEL', 'POKT', 'SENT', 'ZKC', 'ZKP', 'AUCTION', 'ORDER', 'FCT2'];
 
                     const healed = parsed.map(item => {
                         let marketStr = String(item.market || '').trim();
@@ -40,21 +41,13 @@ const AnalyzerStorage = {
                         const isOriginalKorean = !!(mapToUse[coinSymbol] || mapToUse[coinSymbol.toLowerCase()] || 
                                                     mapToUse[marketStr] || mapToUse[marketStr.toLowerCase()] || 
                                                     mapToUse[cleanCandidate] || mapToUse[cleanCandidate.toLowerCase()]);
-                        
-                        const isBithumb = idStr.startsWith('BITHUMB_') || 
-                                          idStr.includes('BITHUMB') || 
-                                          isOriginalKorean ||
-                                          marketStr.includes('[') || 
-                                          marketStr.includes('(') || 
-                                          marketStr.includes('/KRW') ||
-                                          marketStr.includes('_KRW');
 
                         // 2. 표준 마켓 및 심볼로 정규화
                         const normMarket = (typeof UpbitParser !== 'undefined' && UpbitParser.normalizeMarket)
                             ? UpbitParser.normalizeMarket(marketStr || coinSymbol)
                             : (mapToUse[coinSymbol] ? `KRW-${mapToUse[coinSymbol]}` : marketStr);
 
-                        const normSymbol = normMarket.includes('-') ? normMarket.split('-')[1] : normMarket;
+                        const normSymbol = (normMarket.includes('-') ? normMarket.split('-')[1] : normMarket).toUpperCase();
 
                         if (item.market !== normMarket || item.coinSymbol !== normSymbol) {
                             item.market = normMarket;
@@ -63,6 +56,19 @@ const AnalyzerStorage = {
                         }
 
                         // 3. 거래소 정밀 판별
+                        let isBithumb = false;
+                        if (idStr.startsWith('BITHUMB_') || idStr.includes('BITHUMB')) {
+                            isBithumb = true;
+                        } else if (idStr.includes('비체인') || idStr.includes('아스타') || idStr.includes('이오스닥') || idStr.includes('팝체인')) {
+                            isBithumb = true;
+                        } else if (bithumbExclusiveSymbols.includes(normSymbol)) {
+                            isBithumb = true;
+                        } else if (isOriginalKorean || marketStr.includes('[') || marketStr.includes('(') || marketStr.includes('/KRW') || marketStr.includes('_KRW')) {
+                            isBithumb = true;
+                        } else if (item.exchange === 'BITHUMB') {
+                            isBithumb = true;
+                        }
+
                         const targetExchange = isBithumb ? 'BITHUMB' : 'UPBIT';
                         if (item.exchange !== targetExchange) {
                             item.exchange = targetExchange;
@@ -874,19 +880,10 @@ const App = {
             return;
         }
 
-        const sort = this.state.sortStates.coinsTable;
-        coins.sort((a, b) => {
-            let valA = a[sort.col] || 0;
-            let valB = b[sort.col] || 0;
-            if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            return sort.asc ? valA - valB : valB - valA;
-        });
-
-        let html = '';
+        // 1. Pre-calculate all price, value, profit, and stacking fields BEFORE sorting
         coins.forEach(coin => {
             const sym = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
-            const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
-            const isBithumb = coin.exchange === 'BITHUMB';
+            coin.koreanName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
 
             let currentPrice = 0;
             if (coin.currentPrice && parseFloat(coin.currentPrice) > 0) {
@@ -900,19 +897,97 @@ const App = {
 
             const hQty = parseFloat(coin.holdingQty) || 0;
             const hCost = parseFloat(coin.holdingCost) || 0;
-            let unprofit = 0;
-            let unroi = 0;
-
             if (hQty > 1e-8 && currentPrice > 0) {
-                unprofit = (hQty * currentPrice) - hCost;
-                unroi = hCost > 0 ? (unprofit / hCost) * 100 : 0;
-                coin.unrealizedProfit = unprofit;
-                coin.unrealizedRoi = unroi;
+                coin.unrealizedProfit = (hQty * currentPrice) - hCost;
+                coin.unrealizedRoi = hCost > 0 ? (coin.unrealizedProfit / hCost) * 100 : 0;
                 coin.currentValue = hQty * currentPrice;
+            } else {
+                coin.unrealizedProfit = 0;
+                coin.unrealizedRoi = 0;
+                coin.currentValue = 0;
             }
 
+            if (coin.currentPrice > 0) {
+                coin.gainedCoinQty = (coin.realizedProfit || 0) / coin.currentPrice;
+                coin.gainedCoinRoi = (coin.totalBuyQty || 0) > 0 ? (coin.gainedCoinQty / coin.totalBuyQty) * 100 : 0;
+            }
+        });
+
+        // 2. Perform robust numerical / alphabetical sorting
+        const sort = this.state.sortStates.coinsTable;
+        coins.sort((a, b) => {
+            let valA = 0;
+            let valB = 0;
+
+            if (sort.col === 'coin') {
+                valA = a.coinSymbol || '';
+                valB = b.coinSymbol || '';
+                return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else if (sort.col === 'gainedCoin') {
+                valA = parseFloat(a.gainedCoinQty) || 0;
+                valB = parseFloat(b.gainedCoinQty) || 0;
+            } else if (sort.col === 'holdingQty') {
+                valA = parseFloat(a.holdingQty) || 0;
+                valB = parseFloat(b.holdingQty) || 0;
+            } else if (sort.col === 'avgBuyPrice') {
+                valA = parseFloat(a.avgBuyPrice) || 0;
+                valB = parseFloat(b.avgBuyPrice) || 0;
+            } else if (sort.col === 'currentPrice') {
+                valA = parseFloat(a.currentPrice) || 0;
+                valB = parseFloat(b.currentPrice) || 0;
+            } else if (sort.col === 'unrealizedProfit') {
+                valA = parseFloat(a.unrealizedProfit) || 0;
+                valB = parseFloat(b.unrealizedProfit) || 0;
+            } else if (sort.col === 'realizedProfit') {
+                valA = parseFloat(a.realizedProfit) || 0;
+                valB = parseFloat(b.realizedProfit) || 0;
+            } else if (sort.col === 'totalBuyAmount') {
+                valA = parseFloat(a.totalBuyAmount) || 0;
+                valB = parseFloat(b.totalBuyAmount) || 0;
+            } else if (sort.col === 'totalSellAmount') {
+                valA = parseFloat(a.totalSellAmount) || 0;
+                valB = parseFloat(b.totalSellAmount) || 0;
+            } else if (sort.col === 'totalFee') {
+                valA = parseFloat(a.totalFee) || 0;
+                valB = parseFloat(b.totalFee) || 0;
+            } else if (sort.col === 'winRate') {
+                valA = parseFloat(a.winRate) || 0;
+                valB = parseFloat(b.winRate) || 0;
+            } else {
+                valA = a[sort.col] || 0;
+                valB = b[sort.col] || 0;
+            }
+
+            return sort.asc ? valA - valB : valB - valA;
+        });
+
+        // 3. Update header indicators (▲ / ▼)
+        const table = document.getElementById('coinsTable');
+        if (table) {
+            table.querySelectorAll('thead th[data-sort]').forEach(th => {
+                const sKey = th.dataset.sort;
+                const baseText = th.textContent.replace(/[ ⬍▲▼]/g, '');
+                if (sKey === sort.col) {
+                    th.textContent = baseText + (sort.asc ? ' ▲' : ' ▼');
+                    th.style.color = '#38bdf8';
+                } else {
+                    th.textContent = baseText + ' ⬍';
+                    th.style.color = '';
+                }
+            });
+        }
+
+        let html = '';
+        coins.forEach(coin => {
+            const sym = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
+            const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
+            const isBithumb = coin.exchange === 'BITHUMB';
+            const currentPrice = coin.currentPrice || 0;
+            const unprofit = coin.unrealizedProfit || 0;
+            const unroi = coin.unrealizedRoi || 0;
+
             const profitClass = this.getProfitColorClass(coin.realizedProfit);
-            const unprofitClass = this.getProfitColorClass(unprofit || 0);
+            const unprofitClass = this.getProfitColorClass(unprofit);
             const stackingClass = this.getProfitColorClass(coin.gainedCoinQty || 0);
 
             const gainedQtyStr = coin.gainedCoinQty !== undefined 
@@ -931,7 +1006,7 @@ const App = {
                 '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
                 '<td class="text-right"><div>' + (coin.avgBuyPrice > 0 ? this.formatCurrency(coin.avgBuyPrice) : '-') + '</div></td>' +
                 '<td class="text-right"><div>' + (currentPrice > 0 ? this.formatCurrency(currentPrice) : '-') + '</div>' + changeStr + '</td>' +
-                '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + (unprofit > 0 ? '+' : '') + this.formatCurrency(unprofit || 0) + '</div><div class="text-xs">' + (unroi > 0 ? '+' : '') + (unroi || 0).toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
+                '<td class="text-right ' + unprofitClass + '">' + (coin.holdingQty > 0 ? '<div class="font-bold">' + (unprofit > 0 ? '+' : '') + this.formatCurrency(unprofit) + '</div><div class="text-xs">' + (unroi > 0 ? '+' : '') + unroi.toFixed(2) + '%</div>' : '<span class="text-muted">-</span>') + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalBuyAmount) + '</td>' +
                 '<td class="text-right">' + this.formatCurrency(coin.totalSellAmount) + '</td>' +
                 '<td class="text-right text-muted">' + this.formatCurrency(coin.totalFee) + '</td>' +
