@@ -1109,6 +1109,8 @@ const App = {
             const sym = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
             const coinName = coin.koreanName || (typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(coin.market) : coin.coinSymbol);
             const isBithumb = coin.exchange === 'BITHUMB';
+            const isUnified = coin.exchange === '통합';
+            const badgeClass = isBithumb ? 'badge-bithumb' : (isUnified ? 'badge-indigo' : 'badge-upbit');
             const currentPrice = coin.currentPrice || 0;
             const unprofit = coin.unrealizedProfit || 0;
             const unroi = coin.unrealizedRoi || 0;
@@ -1127,7 +1129,7 @@ const App = {
             const winRateStr = (coin.winRate || 0).toFixed(0);
 
             html += '<tr>' +
-                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + (coin.coinSymbol || '-') + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (coin.exchange || 'UPBIT') + '</span></div><div class="coin-market-code">' + (coin.market || '-') + '</div></div></div></td>' +
+                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + (coin.coinSymbol || '-') + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + badgeClass + '">' + (coin.exchange || 'UPBIT') + '</span></div><div class="coin-market-code">' + (coin.market || '-') + '</div></div></div></td>' +
                 '<td class="text-right ' + profitClass + '"><div class="font-bold">' + this.formatCurrency(coin.realizedProfit) + '</div><div class="text-xs">' + (coin.realizedRoi > 0 ? '+' : '') + (coin.realizedRoi || 0).toFixed(2) + '%</div></td>' +
                 '<td class="text-right ' + stackingClass + '"><div class="font-bold">' + gainedQtyStr + '</div><div class="text-xs">' + gainedRoiStr + '</div></td>' +
                 '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +

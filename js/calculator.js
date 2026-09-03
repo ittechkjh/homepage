@@ -49,7 +49,7 @@ const ProfitCalculator = {
                 item.coinSymbol = 'POL';
                 item.market = 'KRW-POL';
             }
-            const groupKey = `${item.exchange || 'UPBIT'}:::${item.market}`;
+            const groupKey = item.market;
             if (!tradesByMarket[groupKey]) {
                 tradesByMarket[groupKey] = [];
             }
@@ -65,6 +65,7 @@ const ProfitCalculator = {
         const yearlyStatsMap = {};
 
         for (const [market, marketTrades] of Object.entries(tradesByMarket)) {
+            marketTrades.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
             const coinResult = method === 'fifo' 
                 ? this.calculateMarketFIFO(market, marketTrades)
                 : this.calculateMarketMovingAvg(market, marketTrades);
@@ -455,7 +456,8 @@ const ProfitCalculator = {
         let totalSellCount = 0;
 
         const market = marketKey.includes(':::') ? marketKey.split(':::')[1] : marketKey;
-        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT');
+        const uniqueExchanges = [...new Set(trades.map(t => t.exchange).filter(Boolean))];
+        const exchange = uniqueExchanges.length > 1 ? '통합' : (uniqueExchanges[0] || (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT'));
         const coinSymbol = market.includes('-') ? market.split('-')[1] : market;
 
         trades.forEach(trade => {
@@ -634,7 +636,8 @@ const ProfitCalculator = {
         let avgBuyPrice = 0;
 
         const market = marketKey.includes(':::') ? marketKey.split(':::')[1] : marketKey;
-        const exchange = (trades[0] && trades[0].exchange) ? trades[0].exchange : (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT');
+        const uniqueExchanges = [...new Set(trades.map(t => t.exchange).filter(Boolean))];
+        const exchange = uniqueExchanges.length > 1 ? '통합' : (uniqueExchanges[0] || (marketKey.includes(':::') ? marketKey.split(':::')[0] : 'UPBIT'));
         const coinSymbol = market.includes('-') ? market.split('-')[1] : market;
 
         trades.forEach(trade => {
