@@ -723,7 +723,7 @@ function renderForumPosts() {
 }
 window.renderForumPosts = renderForumPosts;
 
-function showForumListView() {
+function showForumListView(updateHistory = true) {
   const listView = document.getElementById('forum-list-view');
   const detailView = document.getElementById('forum-detail-view');
   const writeView = document.getElementById('forum-write-view');
@@ -735,11 +735,15 @@ function showForumListView() {
   currentCafePostId = null;
   isCafeEditMode = false;
   renderForumPosts();
+
+  if (updateHistory && window.location.hash !== '#/forum') {
+    history.pushState(null, '', '#/forum');
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 window.showForumListView = showForumListView;
 
-function showForumWriteView(editPostId = null) {
+function showForumWriteView(editPostId = null, updateHistory = true) {
   const listView = document.getElementById('forum-list-view');
   const detailView = document.getElementById('forum-detail-view');
   const writeView = document.getElementById('forum-write-view');
@@ -758,7 +762,7 @@ function showForumWriteView(editPostId = null) {
     isCafeEditMode = true;
     currentCafePostId = editPostId;
     const posts = getStoredPosts();
-    const post = posts.find(p => p.id === editPostId);
+    const post = posts.find(p => String(p.id) === String(editPostId));
     if (post) {
       if (heading) heading.innerText = '게시글 수정하기';
       if (submitBtn) submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> 수정 내용 저장하기';
@@ -776,13 +780,20 @@ function showForumWriteView(editPostId = null) {
     if (catSelect) catSelect.value = 'general';
   }
 
+  if (updateHistory) {
+    const targetHash = editPostId ? `#/forum/edit/${editPostId}` : `#/forum/write`;
+    if (window.location.hash !== targetHash) {
+      history.pushState(null, '', targetHash);
+    }
+  }
+
   if (titleInput) setTimeout(() => titleInput.focus(), 100);
   if (typeof lucide !== 'undefined') lucide.createIcons();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 window.showForumWriteView = showForumWriteView;
 
-function openPostDetailModal(postId) {
+function openPostDetailModal(postId, updateHistory = true) {
   const listView = document.getElementById('forum-list-view');
   const detailView = document.getElementById('forum-detail-view');
   const writeView = document.getElementById('forum-write-view');
@@ -792,13 +803,17 @@ function openPostDetailModal(postId) {
   if (detailView) detailView.classList.remove('hidden');
 
   const posts = getStoredPosts();
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => String(p.id) === String(postId));
   if (!post) return;
 
-  currentCafePostId = postId;
-  currentViewingPostId = postId;
+  currentCafePostId = post.id;
+  currentViewingPostId = post.id;
   post.views = (post.views || 0) + 1;
   saveStoredPosts(posts);
+
+  if (updateHistory && window.location.hash !== `#/forum/post/${post.id}`) {
+    history.pushState(null, '', `#/forum/post/${post.id}`);
+  }
 
   const catEl = document.getElementById('cafe-post-category');
   const titleEl = document.getElementById('cafe-post-title');
@@ -826,16 +841,15 @@ function openPostDetailModal(postId) {
     } catch(e) {}
   }
 
-  // Strictly ONLY the author who wrote this post can edit or delete!
   const isAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase()) || (typeof isAdmin === 'function' && isAdmin(currentUsername));
 
   if (controlsEl) {
     if (isAuthor) {
       controlsEl.innerHTML = `
-        <button onclick="showForumWriteView(${post.id})" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
+        <button onclick="showForumWriteView('${post.id}')" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
           <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
         </button>
-        <button onclick="handleDeleteCafePost(${post.id})" class="px-3.5 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition flex items-center gap-1.5">
+        <button onclick="handleDeleteCafePost('${post.id}')" class="px-3.5 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition flex items-center gap-1.5">
           <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
         </button>
       `;
@@ -852,10 +866,10 @@ function openPostDetailModal(postId) {
 }
 window.openPostDetailModal = openPostDetailModal;
 
-function renderCafeComments(comments) {
+function renderCafeComments(comments = []) {
   const container = document.getElementById('cafe-comments-list');
   const countEl = document.getElementById('cafe-comments-count');
-  if (countEl) countEl.innerText = comments.length;
+  if (countEl) countEl.innerText = `${comments.length}개`;
   if (!container) return;
 
   if (comments.length === 0) {
@@ -882,7 +896,7 @@ function handleCafeAddComment() {
   if (!text) return;
 
   const posts = getStoredPosts();
-  const post = posts.find(p => p.id === currentCafePostId);
+  const post = posts.find(p => String(p.id) === String(currentCafePostId));
   if (!post) return;
 
   const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
@@ -919,18 +933,21 @@ function handleDeleteCafePost(postId) {
   }
 
   let posts = getStoredPosts();
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => String(p.id) === String(postId));
   if (!post) return;
 
-  const isAdmin = currentUsername && currentUsername.toLowerCase() === 'admin';
-  if (!isAdmin && (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase())) {
+  const isAdminUser = typeof isAdmin === 'function' && isAdmin(currentUsername);
+  if (!isAdminUser && (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase())) {
     alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
     return;
   }
 
   if (!confirm('정말로 이 게시글을 삭제하시겠습니까? (삭제 시 복구 불가)')) return;
-  posts = posts.filter(p => p.id !== postId);
+  posts = posts.filter(p => String(p.id) !== String(postId));
   saveStoredPosts(posts);
+  if (typeof db !== 'undefined' && db) {
+    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+  }
   alert('🗑️ 게시글이 삭제되었습니다.');
   showForumListView();
 }
@@ -1051,16 +1068,23 @@ function handleCafeSubmitPost(e) {
   const posts = getStoredPosts();
 
   if (isCafeEditMode && currentCafePostId) {
-    const post = posts.find(p => p.id === currentCafePostId);
+    const post = posts.find(p => String(p.id) === String(currentCafePostId));
     if (post) {
       post.category = category;
       post.categoryName = categoryNames[category] || '💬 자유 토론';
       post.title = title;
       post.content = content;
       post.time = '수정됨 (방금 전)';
+      post.updatedAt = Date.now();
       saveStoredPosts(posts);
+      if (typeof db !== 'undefined' && db) {
+        db.collection('forum_posts').doc(post.id.toString()).set(post).catch(e => console.log(e));
+      }
+      isCafeEditMode = false;
+      const targetId = post.id;
+      currentCafePostId = null;
       alert('✏️ 게시글이 성공적으로 수정되었습니다!');
-      openPostDetailModal(currentCafePostId);
+      openPostDetailModal(targetId);
       return;
     }
   }
@@ -1082,6 +1106,9 @@ function handleCafeSubmitPost(e) {
 
   posts.unshift(newPost);
   saveStoredPosts(posts);
+  if (typeof db !== 'undefined' && db) {
+    db.collection('forum_posts').doc(newPost.id.toString()).set(newPost).catch(e => console.log(e));
+  }
 
   alert('🎉 게시글이 성공적으로 등록되었습니다!');
   showForumListView();
@@ -1091,7 +1118,28 @@ window.handleCafeSubmitPost = handleCafeSubmitPost;
 function handleVoteInModal(delta) {
   if (!currentViewingPostId) return;
   const posts = getStoredPosts();
-  const post = posts.find(p => p.id === currentViewingPostId);
+  const post = posts.find(p => String(p.id) === String(currentViewingPostId));
+  if (!post) return;
+
+  const voteKey = 'voted_post_' + currentViewingPostId;
+  if (delta > 0 && localStorage.getItem(voteKey)) {
+    alert('❌ 이미 추천한 게시글입니다. (계정당 1회만 추천 가능합니다.)');
+    return;
+  }
+
+  if (delta > 0) {
+    localStorage.setItem(voteKey, 'true');
+  } else if (delta < 0) {
+    localStorage.removeItem(voteKey);
+  }
+
+  post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
+  saveStoredPosts(posts);
+
+  const el = document.getElementById('cafe-post-upvotes');
+  if (el) el.innerText = post.upvotes;
+}
+window.handleVoteInModal = handleVoteInModal;
   if (!post) return;
 
   const voteKey = 'voted_post_' + currentViewingPostId;
@@ -2097,7 +2145,7 @@ function switchTab(tabId, updateHash = true) {
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
-    history.replaceState(null, '', `#/${tabId}`);
+    history.pushState(null, '', `#/${tabId}`);
   }
 
   updatePageSEO(tabId);
@@ -2146,6 +2194,38 @@ function simulateLiveFluctuations() {
   renderMarketUI();
 }
 
+function handleRoute() {
+  const rawHash = (window.location.hash || '').replace('#/', '').replace('#', '');
+  if (!rawHash) {
+    switchTab('analyzer', false);
+    return;
+  }
+
+  const parts = rawHash.split('/');
+  const tabId = parts[0];
+
+  if (tabId === 'forum') {
+    switchTab('forum', false);
+    if (parts[1] === 'post' && parts[2]) {
+      openPostDetailModal(parts[2], false);
+    } else if (parts[1] === 'edit' && parts[2]) {
+      showForumWriteView(parts[2], false);
+    } else if (parts[1] === 'write') {
+      showForumWriteView(null, false);
+    } else {
+      showForumListView(false);
+    }
+  } else if (tabId === 'calculators') {
+    switchTab('calculators', false);
+    if (parts[1] && typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.switchSubTab === 'function') {
+      CoinCalculators.switchSubTab(parts[1]);
+    }
+  } else {
+    switchTab(tabId, false);
+  }
+}
+window.handleRoute = handleRoute;
+
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   updateAuthUI();
@@ -2165,9 +2245,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderChatMessages();
 
-  const initialHash = (window.location.hash || '').replace('#/', '').replace('#', '');
-  const initialTab = initialHash || 'analyzer';
-  switchTab(initialTab, false);
+  if (!window.location.hash) {
+    history.replaceState(null, '', '#/analyzer');
+  }
+  handleRoute();
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
@@ -2194,12 +2275,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(simulateLiveFluctuations, 4000);
 });
 
-window.addEventListener('hashchange', function () {
-  const h = (window.location.hash || '').replace('#/', '').replace('#', '');
-  if (h && typeof switchTab === 'function') {
-    switchTab(h, false);
-  }
-});
+window.addEventListener('popstate', handleRoute);
+window.addEventListener('hashchange', handleRoute);
 
 
 // Sync with Firestore
@@ -2339,10 +2416,10 @@ window.handleDeleteCafePost = handleDeleteCafePost;
 
 // Override Edit Post (usually showForumWriteView is used)
 const originalShowForumWriteView = showForumWriteView;
-showForumWriteView = function(editPostId = null) {
+showForumWriteView = function(editPostId = null, updateHistory = true) {
   if (editPostId) {
     const posts = getStoredPosts();
-    const post = posts.find(p => p.id === editPostId);
+    const post = posts.find(p => String(p.id) === String(editPostId));
     if (post) {
       const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
       let currentUsername = '익명 트레이더';
@@ -2359,7 +2436,7 @@ showForumWriteView = function(editPostId = null) {
       }
     }
   }
-  originalShowForumWriteView(editPostId);
+  originalShowForumWriteView(editPostId, updateHistory);
 };
 window.showForumWriteView = showForumWriteView;
 
