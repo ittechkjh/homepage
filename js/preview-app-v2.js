@@ -2236,6 +2236,10 @@ function switchTab(tabId, updateHash = true) {
     }
   });
 
+  if (tabId === 'analyzer' && typeof App !== 'undefined' && typeof App.loadSavedTrades === 'function') {
+    App.loadSavedTrades();
+  }
+
   if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
     CoinCalculators.init();
   }

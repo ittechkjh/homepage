@@ -976,13 +976,15 @@ const UpbitAPI = {
             coin.currentPrice = livePrice;
             coin.change24h = change24hVal;
 
-            if (hQty > 1e-8 && livePrice > 0) {
+            if (hQty > 1e-4 && livePrice > 0 && (hQty * livePrice >= 50)) {
                 coin.currentValue = hQty * livePrice;
                 coin.unrealizedProfit = coin.currentValue - hCost;
                 coin.unrealizedRoi = hCost > 0 ? (coin.unrealizedProfit / hCost) * 100 : 0;
                 totalCurrentValue += coin.currentValue;
                 totalUnrealizedProfit += coin.unrealizedProfit;
             } else {
+                coin.holdingQty = 0;
+                coin.holdingCost = 0;
                 coin.currentValue = 0;
                 coin.unrealizedProfit = 0;
                 coin.unrealizedRoi = 0;

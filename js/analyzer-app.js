@@ -6,10 +6,16 @@
 const AnalyzerStorage = {
     getCurrentUserId: function () {
         try {
-            const nick = localStorage.getItem('coinhub_nickname') || 'guest';
-            return 'user_' + String(nick).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
+            const userStr = localStorage.getItem('coinhub_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const nick = user.username || user.nickname;
+                if (nick) return 'user_' + String(nick).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
+            }
+            const nickLegacy = localStorage.getItem('coinhub_nickname');
+            if (nickLegacy) return 'user_' + String(nickLegacy).trim().toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, '');
         } catch (e) {}
-        return 'user_guest';
+        return 'user_default';
     },
     
     getKey: function (key) {
@@ -20,10 +26,15 @@ const AnalyzerStorage = {
     getTrades: function () {
         const storageKey = this.getKey('trades');
         try {
-            const saved = localStorage.getItem(storageKey) || localStorage.getItem('coinhub_analyzer_trades');
+            const saved = localStorage.getItem(storageKey) || 
+                          localStorage.getItem('coinhub_analyzer_trades') ||
+                          localStorage.getItem('coinhub_trades') ||
+                          localStorage.getItem('coinhub_user_admin_trades') ||
+                          localStorage.getItem('coinhub_user_guest_trades') ||
+                          localStorage.getItem('coinhub_user_default_trades');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
+                if (Array.isArray(parsed) && parsed.length > 0) {
                     let needsResave = false;
                     const mapToUse = (typeof UpbitAPI !== 'undefined' && UpbitAPI && UpbitAPI.koreanToSymbolMap) ? UpbitAPI.koreanToSymbolMap : (typeof UpbitParser !== 'undefined' ? UpbitParser.koreanToSymbolMap : {});
                     const bithumbExclusiveSymbols = ['ASTR', 'EOSDAC', 'POPC', 'SOPH', 'CKB', '2Z', 'GEOD', 'PROS', 'META2', 'DOOD', 'USD1', 'BOUNTY', 'PIEVERSE', 'B3', 'NXPC', 'ANIME', 'MOCA', 'BLEND', 'ERA', 'NCT', 'FF', 'PLUME', 'ESP', 'CC', 'PRL', 'IN', 'WAL', 'AWE', 'HP', 'TRUST', 'SONIC', 'ARX', 'AVNT', 'O', 'LA', 'HYPER', 'RE', 'XAUT', 'CPOOL', 'CAP', 'LINEA', 'DATA', 'KERNEL', 'POKT', 'SENT', 'ZKC', 'ZKP', 'AUCTION', 'ORDER', 'FCT2'];
@@ -82,8 +93,10 @@ const AnalyzerStorage = {
                     });
                     if (needsResave) {
                         try {
-                            localStorage.setItem(storageKey, JSON.stringify(healed));
-                            localStorage.setItem('coinhub_analyzer_trades', JSON.stringify(healed));
+                            const json = JSON.stringify(healed);
+                            localStorage.setItem(storageKey, json);
+                            localStorage.setItem('coinhub_analyzer_trades', json);
+                            localStorage.setItem('coinhub_trades', json);
                         } catch (e) {}
                     }
                     return healed;
@@ -98,8 +111,13 @@ const AnalyzerStorage = {
     saveTrades: function (trades) {
         const storageKey = this.getKey('trades');
         try {
-            localStorage.setItem(storageKey, JSON.stringify(trades));
-            localStorage.setItem('coinhub_analyzer_trades', JSON.stringify(trades));
+            const json = JSON.stringify(trades);
+            localStorage.setItem(storageKey, json);
+            localStorage.setItem('coinhub_analyzer_trades', json);
+            localStorage.setItem('coinhub_trades', json);
+            localStorage.setItem('coinhub_user_admin_trades', json);
+            localStorage.setItem('coinhub_user_guest_trades', json);
+            localStorage.setItem('coinhub_user_default_trades', json);
         } catch (e) {
             console.warn('로컬 저장소 용량 초과:', e);
         }
@@ -111,6 +129,10 @@ const AnalyzerStorage = {
             localStorage.removeItem(storageKey);
         }
         localStorage.removeItem('coinhub_analyzer_trades');
+        localStorage.removeItem('coinhub_trades');
+        localStorage.removeItem('coinhub_user_admin_trades');
+        localStorage.removeItem('coinhub_user_guest_trades');
+        localStorage.removeItem('coinhub_user_default_trades');
     }
 };
 
@@ -900,11 +922,13 @@ const App = {
 
             const hQty = parseFloat(coin.holdingQty) || 0;
             const hCost = parseFloat(coin.holdingCost) || 0;
-            if (hQty > 1e-8 && currentPrice > 0) {
+            if (hQty > 1e-4 && currentPrice > 0 && (hQty * currentPrice >= 50)) {
                 coin.unrealizedProfit = (hQty * currentPrice) - hCost;
                 coin.unrealizedRoi = hCost > 0 ? (coin.unrealizedProfit / hCost) * 100 : 0;
                 coin.currentValue = hQty * currentPrice;
             } else {
+                coin.holdingQty = 0;
+                coin.holdingCost = 0;
                 coin.unrealizedProfit = 0;
                 coin.unrealizedRoi = 0;
                 coin.currentValue = 0;
