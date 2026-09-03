@@ -163,12 +163,22 @@ const CloudSyncManager = {
         localStorage.setItem('coinhub_storage_mode_' + uid, mode);
         
         if (mode === 'CLOUD') {
-            if (AnalyzerApp.state.rawTrades && AnalyzerApp.state.rawTrades.length > 0) {
-                await this.saveToCloud(AnalyzerApp.state.rawTrades);
+            if (App.state && App.state.rawTrades && App.state.rawTrades.length > 0) {
+                await this.saveToCloud(App.state.rawTrades);
+                App.showToast('☁️ 현재 거래 내역 ' + App.state.rawTrades.length + '건이 클라우드 DB에 안전하게 동기화되었습니다!', 'success');
+            } else {
+                const loaded = await this.loadFromCloud();
+                if (loaded && loaded.length > 0) {
+                    App.state.rawTrades = AnalyzerStorage.healTrades(loaded);
+                    App.recalculate();
+                    App.updateUserBanner();
+                    App.showToast('☁️ 클라우드에서 ' + loaded.length + '건의 거래 내역을 성공적으로 불러왔습니다!', 'success');
+                } else {
+                    App.showToast('☁️ 클라우드 동기화 모드가 활성화되었습니다. 모든 기기에서 접속 가능합니다.', 'success');
+                }
             }
-            AnalyzerApp.showToast('☁️ 클라우드 동기화 모드가 활성화되었습니다. 모든 기기에서 접속 가능합니다.', 'success');
         } else {
-            AnalyzerApp.showToast('🔒 100% 로컬 기기 보관 모드로 전환되었습니다. 서버 전송 0% 프라이버시가 유지됩니다.', 'info');
+            App.showToast('🔒 100% 로컬 기기 보관 모드로 전환되었습니다. 서버 전송 0% 프라이버시가 유지됩니다.', 'info');
         }
         this.updateUI();
         this.renderModalState();
@@ -279,19 +289,21 @@ const CloudSyncManager = {
             if (typeof openAuthModal === 'function') openAuthModal('login');
             return;
         }
-        if (!AnalyzerApp.state.rawTrades || AnalyzerApp.state.rawTrades.length === 0) {
-            AnalyzerApp.showToast('동기화할 거래 내역 데이터가 없습니다.', 'error');
+        if (!App.state.rawTrades || App.state.rawTrades.length === 0) {
+            App.showToast('동기화할 거래 내역 데이터가 없습니다.', 'error');
             return;
         }
-        AnalyzerApp.showLoading(true, '클라우드 DB에 안전하게 백업 중...');
+        App.showLoading(true, '클라우드 DB에 안전하게 백업 중...');
         try {
-            await this.setMode('CLOUD');
-            await this.saveToCloud(AnalyzerApp.state.rawTrades);
-            AnalyzerApp.showToast('🎉 현재 ' + AnalyzerApp.state.rawTrades.length + '건의 거래 내역이 클라우드 DB에 안전하게 백업되었습니다!', 'success');
+            localStorage.setItem('coinhub_storage_mode_' + uid, 'CLOUD');
+            await this.saveToCloud(App.state.rawTrades);
+            this.updateUI();
+            this.renderModalState();
+            App.showToast('🎉 현재 ' + App.state.rawTrades.length + '건의 거래 내역이 클라우드 DB에 안전하게 백업되었습니다!', 'success');
         } catch (e) {
-            AnalyzerApp.showToast('클라우드 동기화 중 오류가 발생했습니다.', 'error');
+            App.showToast('클라우드 동기화 중 오류가 발생했습니다.', 'error');
         } finally {
-            AnalyzerApp.showLoading(false);
+            App.showLoading(false);
         }
     },
 
@@ -301,7 +313,7 @@ const CloudSyncManager = {
         if (confirm('클라우드 DB에 보관된 거래 내역 백업을 완전히 삭제하시겠습니까?\\n(현재 기기의 로컬 데이터는 보존됩니다.)')) {
             await this.deleteFromCloud();
             await this.setMode('LOCAL');
-            AnalyzerApp.showToast('클라우드 백업 데이터가 완전히 삭제되었으며, 로컬 전용 모드로 변경되었습니다.', 'info');
+            App.showToast('클라우드 백업 데이터가 완전히 삭제되었으며, 로컬 전용 모드로 변경되었습니다.', 'info');
         }
     },
 
@@ -1723,9 +1735,10 @@ const App = {
 
     loadSavedTrades: async function () {
         let tradesToUse = [];
+        const uid = AnalyzerStorage.getCurrentUserId();
 
-        // 1. 회원이 '클라우드 동기화' 모드를 활성화한 경우 Firebase Firestore에서 로드
-        if (typeof CloudSyncManager !== 'undefined' && CloudSyncManager.getMode() === 'CLOUD') {
+        // 1. 회원이 로그인된 상태인 경우 Firebase Firestore 클라우드 백업을 우선 확인/로드
+        if (uid !== 'user_default' && typeof CloudSyncManager !== 'undefined') {
             try {
                 const cloudTrades = await CloudSyncManager.loadFromCloud();
                 if (Array.isArray(cloudTrades) && cloudTrades.length > 0) {
