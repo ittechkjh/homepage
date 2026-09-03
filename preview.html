@@ -2165,107 +2165,79 @@
           </div>
         </details>
         
-        <!-- HERO SECTION & FAST MOBILE ACTION ZONE -->
-        <div class="mb-4 sm:mb-8 p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-cyan-500/40 shadow-2xl relative overflow-hidden text-center">
+        <!-- UNIFIED ALL-IN-ONE HERO & UPLOAD DROPZONE -->
+        <div id="dropZone" class="mb-4 sm:mb-6 p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border-2 border-dashed border-cyan-500/40 hover:border-cyan-400 shadow-2xl relative overflow-hidden text-center transition cursor-pointer group">
+          <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
           <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div class="relative z-10 space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+            <!-- Privacy Badge -->
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] sm:text-xs font-bold shadow-sm">
               <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-              <span>100% 무료 • 무제한 분석 • 완전 로컬 프라이버시</span>
+              <span>🔒 100% 무료 • 무제한 분석 • 완전 로컬 프라이버시 (서버 전송 0%)</span>
             </div>
 
-            <h1 class="text-xl sm:text-4xl font-black text-white tracking-tight leading-snug">
+            <!-- Title -->
+            <h1 class="text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-snug">
               내 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">업비트·빗썸 실현손익</span> & 평단가 분석
             </h1>
 
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto hidden sm:block">
-              거래소에서 다운로드한 엑셀/CSV 파일을 올리면 복잡한 선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금 내역을 즉시 계산하여 보기 쉬운 통합 대시보드로 시각화합니다.
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              거래소에서 다운로드한 엑셀/CSV 파일을 끌어다 놓거나 선택하시면 <strong>선입선출(FIFO) 평단가, 매매 수수료, 실현손익, 입출금</strong>을 즉시 계산합니다.
             </p>
 
-            <!-- Compact Privacy Trust Guarantee Seal -->
-            <div class="p-2 sm:p-3 rounded-xl bg-navy-950/90 border border-cyan-500/30 text-xs text-slate-200 flex items-center justify-center gap-2 max-w-xl mx-auto shadow-inner">
-              <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400 shrink-0"></i>
-              <span class="text-[11px] sm:text-xs font-semibold text-slate-300">
-                🔒 <strong>100% Client-Side Only</strong> (외부 서버 전송 0% • 브라우저 단독 보관)
-              </span>
+            <!-- Main Upload CTA Button -->
+            <div class="pt-2">
+              <button type="button" onclick="document.getElementById('fileInput').click(); event.stopPropagation();" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black shadow-xl shadow-cyan-500/25 transition transform hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto text-sm sm:text-base cursor-pointer">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i> 엑셀 / CSV 파일 선택하기
+              </button>
             </div>
 
-            <!-- Fast Mobile 1-Tap CTA Action Buttons -->
-            <div class="pt-1 flex items-center justify-center gap-2 text-xs flex-wrap">
-              <button type="button" onclick="document.getElementById('fileInput').click();" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black shadow-lg shadow-cyan-500/25 transition flex items-center gap-1.5 cursor-pointer text-xs sm:text-sm">
-                <i data-lucide="upload" class="w-4 h-4"></i> 내 엑셀 올리기
+            <!-- 1-Click Sample & Guide Links -->
+            <div class="pt-1 flex overflow-x-auto no-scrollbar py-1 gap-2 justify-center flex-wrap" onclick="event.stopPropagation();">
+              <button type="button" onclick="AnalyzerApp.loadSampleData('ALL'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🔥 통합 샘플 1초 체험
               </button>
-              <button type="button" onclick="AnalyzerApp.loadSampleData('ALL');" class="px-3.5 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-bold transition flex items-center gap-1.5 cursor-pointer text-xs sm:text-sm">
-                🔥 1초 샘플 체험
+              <button type="button" onclick="AnalyzerApp.loadSampleData('UPBIT'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-navy-800 hover:border-cyan-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🔵 업비트 샘플
               </button>
-              <button type="button" onclick="openExcelGuideModal();" class="px-3 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 border border-navy-800 font-medium transition flex items-center gap-1 text-xs">
-                📌 엑셀 가이드
+              <button type="button" onclick="AnalyzerApp.loadSampleData('BITHUMB'); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-950 text-slate-300 hover:text-amber-300 border border-navy-800 hover:border-amber-500/40 font-bold text-xs transition cursor-pointer whitespace-nowrap">
+                🟠 빗썸 샘플
+              </button>
+              <button type="button" onclick="openExcelGuideModal(); event.stopPropagation();" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 border border-navy-800 font-medium text-xs transition cursor-pointer whitespace-nowrap">
+                📌 엑셀 다운로드 가이드
               </button>
             </div>
           </div>
         </div>
 
         <div class="app-container">
-          <!-- App Header -->
-          <header class="app-header mb-3 sm:mb-4">
-            <div class="flex items-center justify-between flex-wrap gap-2">
-              <div class="hidden sm:block">
-                <h1 class="text-base sm:text-lg font-bold text-white">업비트 & 빗썸 가상자산 거래내역 손익 정밀 분석</h1>
-                <div class="text-xs text-slate-400">Upbit & Bithumb Trade Analyzer • 실현손익/평단가/수수료/입출금/월별통계 종합 대시보드</div>
-              </div>
-              <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
-                <select id="globalExchangeSelect" class="select-control text-xs sm:text-sm py-1.5 px-2.5" style="font-weight: 700;">
-                  <option value="ALL">🌐 전체 (업비트+빗썸)</option>
-                  <option value="UPBIT">🔵 업비트 (Upbit)</option>
-                  <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
-                </select>
-                <div class="flex items-center gap-1.5">
-                  <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="refreshTickerBtn" title="실시간 시세 갱신">
-                    🔄 시세 갱신
-                  </button>
-                  <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="quickUploadBtn">
-                    📁 파일 추가
-                  </button>
-                  <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="exportExcelBtn">
-                    📊 엑셀 저장
-                  </button>
-                </div>
-              </div>
+          <!-- App Header (Filter & Refresh Controls Bar) -->
+          <header class="app-header mb-3 sm:mb-4 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span id="analyzerSavedCountBadge" class="px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-300 text-xs font-mono">저장된 거래: 0건</span>
+              <button onclick="App.clearDataWithConfirm()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-navy-800 hover:border-rose-500/40 transition flex items-center gap-1 text-xs" title="현재 사용자 데이터 전체 삭제">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 초기화
+              </button>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap ml-auto">
+              <select id="globalExchangeSelect" class="select-control text-xs sm:text-sm py-1.5 px-2.5" style="font-weight: 700;">
+                <option value="ALL">🌐 전체 (업비트+빗썸)</option>
+                <option value="UPBIT">🔵 업비트 (Upbit)</option>
+                <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
+              </select>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="refreshTickerBtn" title="실시간 시세 갱신">
+                🔄 시세 갱신
+              </button>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="quickUploadBtn">
+                📁 파일 추가
+              </button>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="exportExcelBtn">
+                📊 엑셀 저장
+              </button>
             </div>
           </header>
-
-          <!-- File Upload Drag & Drop Zone -->
-          <section class="upload-card py-4 px-3 sm:py-8 sm:px-6" id="dropZone">
-            <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display: none;">
-            <div class="upload-icon text-2xl sm:text-4xl mb-1">📂</div>
-            <div class="upload-title text-sm sm:text-base font-bold">업비트·빗썸 거래내역/입출금 엑셀 또는 CSV 파일을 올리세요</div>
-            <div class="upload-desc text-xs text-slate-400 max-w-xl mx-auto mb-3 hidden sm:block">
-              업비트(투자내역 > 거래내역/입출금) 및 빗썸(자산현황 > 거래내역/입출금)에서 다운로드한 엑셀/CSV 파일을 올리면 자동으로 완벽 분류하여 통합 분석합니다.
-            </div>
-            <div>
-              <button class="btn btn-primary py-2 px-5 text-xs sm:text-sm" onclick="document.getElementById('fileInput').click(); event.stopPropagation();">
-                파일 선택하기
-              </button>
-            </div>
-            
-            <div class="upload-sample-links flex overflow-x-auto no-scrollbar py-1 gap-2 justify-start sm:justify-center mt-3" onclick="event.stopPropagation();">
-              <button type="button" onclick="AnalyzerApp.loadSampleData('ALL'); event.stopPropagation();" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 border border-cyan-500/40 text-cyan-300 hover:text-navy-950 font-bold text-xs transition whitespace-nowrap shrink-0">
-                🔥 통합 샘플 1초 체험
-              </button>
-              <button type="button" onclick="AnalyzerApp.loadSampleData('UPBIT'); event.stopPropagation();" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 border border-navy-800 hover:border-cyan-500 text-slate-300 hover:text-navy-950 font-bold text-xs transition whitespace-nowrap shrink-0">
-                🔵 업비트 샘플
-              </button>
-              <button type="button" onclick="AnalyzerApp.loadSampleData('BITHUMB'); event.stopPropagation();" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-amber-500 border border-navy-800 hover:border-amber-500 text-slate-300 hover:text-navy-950 font-bold text-xs transition whitespace-nowrap shrink-0">
-                🟠 빗썸 샘플
-              </button>
-              <button type="button" onclick="openExcelGuideModal(); event.stopPropagation();" class="px-3 py-1.5 rounded-xl bg-navy-900 hover:bg-navy-800 border border-cyan-500/40 text-cyan-300 font-bold text-xs transition whitespace-nowrap shrink-0">
-                📌 엑셀 다운로드 가이드
-              </button>
-            </div>
-  
-          </section>
 
           <!-- Top Summary Stat Cards -->
           <section class="stats-grid">
