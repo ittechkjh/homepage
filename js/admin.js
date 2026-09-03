@@ -880,7 +880,40 @@ const AdminApp = {
         setDev('admin-dev-desktop-pct', stats.desktopPct);
     },
 
-    renderUsers: function () {
+    renderUsers: async function () {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
+            try {
+                const snap = await firestore.collection('users').get();
+                const list = [];
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data && data.username) {
+                        list.push({
+                            id: data.id || ('usr_' + data.username.toLowerCase()),
+                            username: data.username,
+                            email: data.email || (data.username + '@crytopnl.com'),
+                            role: data.role || 'USER',
+                            status: data.status || 'ACTIVE',
+                            joinedDate: data.joinedDate || (data.lastLoginAt ? data.lastLoginAt.slice(0, 10) : '2026.09.03'),
+                            lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                            lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                            reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
+                            tradesCount: AdminUserManager.getUserTradesCount(data.username),
+                            memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
+                        });
+                    }
+                });
+                if (list.length > 0) {
+                    AdminUserManager.cloudUsers = list;
+                    localStorage.setItem(AdminUserManager.STORAGE_KEY, JSON.stringify(list));
+                    localStorage.setItem('crytopnl_registered_users', JSON.stringify(list));
+                }
+            } catch (e) {
+                console.warn('Firestore fetch users error:', e);
+            }
+        }
+
         const users = AdminUserManager.getUsers();
         const tbody = document.getElementById('admin-users-table-body');
         if (!tbody) return;

@@ -2189,6 +2189,22 @@ async function handleUnifiedLoginSubmit(e) {
   localStorage.setItem('crytopnl_user', JSON.stringify(user));
   localStorage.setItem('coinhub_user', JSON.stringify(user));
 
+  try {
+    const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
+    let uList = [];
+    if (rawList) {
+      try { uList = JSON.parse(rawList); } catch(e){}
+    }
+    const existingIdx = uList.findIndex(x => x.username && x.username.toLowerCase() === user.username.toLowerCase());
+    if (existingIdx >= 0) {
+      uList[existingIdx] = Object.assign(uList[existingIdx], user);
+    } else {
+      uList.push(user);
+    }
+    localStorage.setItem('coinhub_registered_users', JSON.stringify(uList));
+    localStorage.setItem('crytopnl_registered_users', JSON.stringify(uList));
+  } catch (e) {}
+
   const firestore = window.db || (typeof db !== 'undefined' ? db : null);
   if (firestore) {
     try {
