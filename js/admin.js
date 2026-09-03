@@ -473,9 +473,10 @@ const AdminApp = {
     },
 
     initFirebaseSync: function () {
-        if (typeof db !== 'undefined' && db) {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
             try {
-                db.collection('system_config').doc('admin_settings').onSnapshot(doc => {
+                firestore.collection('system_config').doc('admin_settings').onSnapshot(doc => {
                     if (doc.exists) {
                         const data = doc.data();
                         if (data && data.adminPassword) {
@@ -506,8 +507,9 @@ const AdminApp = {
             localStorage.setItem('coinhub_admin_password', newPassword);
             
             // Firebase Firestore 중앙 데이터베이스에 실시간 영구 동기화
-            if (typeof db !== 'undefined' && db) {
-                db.collection('system_config').doc('admin_settings').set({
+            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestore) {
+                firestore.collection('system_config').doc('admin_settings').set({
                     adminPassword: newPassword,
                     updatedAt: new Date().toISOString()
                 }, { merge: true }).catch(e => console.warn('Firestore admin pw save error:', e));

@@ -2157,6 +2157,10 @@ function handleUnifiedLoginSubmit(e) {
   updateAdminNavVisibility();
   closeAuthModal();
 
+  if (typeof AnalyzerApp !== 'undefined' && AnalyzerApp.loadSavedTrades) {
+    AnalyzerApp.loadSavedTrades();
+  }
+
   alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
 }
 window.handleUnifiedLoginSubmit = handleUnifiedLoginSubmit;
@@ -2169,6 +2173,9 @@ function handleLogout() {
     sessionStorage.removeItem('coinhub_admin_authenticated');
     updateAuthUI();
     updateAdminNavVisibility();
+    if (typeof AnalyzerApp !== 'undefined' && AnalyzerApp.loadSavedTrades) {
+      AnalyzerApp.loadSavedTrades();
+    }
     alert('로그아웃되었습니다.');
     switchTab('analyzer');
   }

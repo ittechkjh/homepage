@@ -288,9 +288,27 @@
     }
   </style>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK & Global Database Initialization -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y",
+      authDomain: "homepage-437c0.firebaseapp.com",
+      projectId: "homepage-437c0",
+      storageBucket: "homepage-437c0.firebasestorage.app",
+      messagingSenderId: "999961105878",
+      appId: "1:999961105878:web:553876dfcfc35b3c1ac077",
+      measurementId: "G-9MPWPYW0MK"
+    };
+    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+      if (!firebase.apps || !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      window.db = firebase.firestore();
+      var db = window.db;
+    }
+  </script>
 </head>
 <body class="bg-navy-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-navy-950">
 
@@ -3645,17 +3663,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/upbit-api.js?v=20260903_35"></script>
-  <script src="js/parser.js?v=20260903_35"></script>
-  <script src="js/calculator.js?v=20260903_35"></script>
-  <script src="js/charts.js?v=20260903_35"></script>
-  <script src="js/exporter.js?v=20260903_35"></script>
-  <script src="js/sample-data.js?v=20260903_35"></script>
-  <script src="js/tools-calculators.js?v=20260903_35"></script>
-  <script src="js/analyzer-app.js?v=20260903_35"></script>
+  <script src="js/upbit-api.js?v=20260903_40"></script>
+  <script src="js/parser.js?v=20260903_40"></script>
+  <script src="js/calculator.js?v=20260903_40"></script>
+  <script src="js/charts.js?v=20260903_40"></script>
+  <script src="js/exporter.js?v=20260903_40"></script>
+  <script src="js/sample-data.js?v=20260903_40"></script>
+  <script src="js/tools-calculators.js?v=20260903_40"></script>
+  <script src="js/analyzer-app.js?v=20260903_40"></script>
 
-  <script src="js/admin.js?v=20260903_35"></script>
-  <script src="js/preview-app-v2.js?v=20260903_35"></script>
+  <script src="js/admin.js?v=20260903_40"></script>
+  <script src="js/preview-app-v2.js?v=20260903_40"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

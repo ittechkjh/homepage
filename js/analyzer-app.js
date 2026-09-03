@@ -163,7 +163,9 @@ const CloudSyncManager = {
         localStorage.setItem('coinhub_storage_mode_' + uid, mode);
         
         if (mode === 'CLOUD') {
-            await this.saveToCloud(AnalyzerApp.state.rawTrades);
+            if (AnalyzerApp.state.rawTrades && AnalyzerApp.state.rawTrades.length > 0) {
+                await this.saveToCloud(AnalyzerApp.state.rawTrades);
+            }
             AnalyzerApp.showToast('☁️ 클라우드 동기화 모드가 활성화되었습니다. 모든 기기에서 접속 가능합니다.', 'success');
         } else {
             AnalyzerApp.showToast('🔒 100% 로컬 기기 보관 모드로 전환되었습니다. 서버 전송 0% 프라이버시가 유지됩니다.', 'info');
@@ -176,41 +178,78 @@ const CloudSyncManager = {
     saveToCloud: async function (trades) {
         const uid = AnalyzerStorage.getCurrentUserId();
         if (uid === 'user_default' || this.getMode() !== 'CLOUD') return;
-        if (typeof db === 'undefined' || !db) return;
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (!firestore) {
+            console.warn('Firestore DB 연결 대기 중');
+            return;
+        }
 
         try {
-            const docRef = db.collection('user_trades').doc(uid);
-            const payload = {
+            const CHUNK_SIZE = 2000;
+            const chunks = [];
+            const safeTrades = Array.isArray(trades) ? trades : [];
+            for (let i = 0; i < safeTrades.length; i += CHUNK_SIZE) {
+                chunks.push(safeTrades.slice(i, i + CHUNK_SIZE));
+            }
+
+            const mainDocRef = firestore.collection('user_trades').doc(uid);
+            await mainDocRef.set({
                 uid: uid,
                 updatedAt: new Date().toISOString(),
-                count: trades.length,
-                tradesJson: JSON.stringify(trades)
-            };
-            await docRef.set(payload, { merge: true });
+                totalCount: safeTrades.length,
+                chunkCount: chunks.length
+            }, { merge: true });
+
+            const batch = firestore.batch();
+            for (let c = 0; c < chunks.length; c++) {
+                const chunkDocRef = mainDocRef.collection('chunks').doc('chunk_' + c);
+                batch.set(chunkDocRef, {
+                    index: c,
+                    tradesJson: JSON.stringify(chunks[c])
+                });
+            }
+            await batch.commit();
         } catch (e) {
-            console.warn('클라우드 동기화 저장 오류:', e);
+            console.error('클라우드 동기화 저장 오류:', e);
         }
     },
 
     loadFromCloud: async function () {
         const uid = AnalyzerStorage.getCurrentUserId();
-        if (uid === 'user_default' || this.getMode() !== 'CLOUD') return null;
-        if (typeof db === 'undefined' || !db) return null;
+        if (uid === 'user_default') return null;
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (!firestore) return null;
 
         try {
-            const docRef = db.collection('user_trades').doc(uid);
-            const doc = await docRef.get();
-            if (doc.exists) {
-                const data = doc.data();
-                if (data && data.tradesJson) {
-                    const parsed = JSON.parse(data.tradesJson);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        return parsed;
+            const mainDocRef = firestore.collection('user_trades').doc(uid);
+            const mainDoc = await mainDocRef.get();
+            if (!mainDoc.exists) return null;
+
+            const mainData = mainDoc.data();
+            const chunkCount = mainData.chunkCount || 0;
+            if (chunkCount === 0) return null;
+
+            const chunksSnapshot = await mainDocRef.collection('chunks').get();
+            let allTrades = [];
+            const chunkDocs = [];
+            chunksSnapshot.forEach(doc => chunkDocs.push(doc.data()));
+            chunkDocs.sort((a, b) => a.index - b.index);
+
+            for (const c of chunkDocs) {
+                if (c && c.tradesJson) {
+                    const parsed = JSON.parse(c.tradesJson);
+                    if (Array.isArray(parsed)) {
+                        allTrades = allTrades.concat(parsed);
                     }
                 }
             }
+
+            if (allTrades.length > 0) {
+                localStorage.setItem('coinhub_storage_mode_' + uid, 'CLOUD');
+                return allTrades;
+            }
         } catch (e) {
-            console.warn('클라우드 동기화 로드 오류:', e);
+            console.error('클라우드 동기화 로드 오류:', e);
         }
         return null;
     },
@@ -218,12 +257,19 @@ const CloudSyncManager = {
     deleteFromCloud: async function () {
         const uid = AnalyzerStorage.getCurrentUserId();
         if (uid === 'user_default') return;
-        if (typeof db === 'undefined' || !db) return;
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (!firestore) return;
 
         try {
-            await db.collection('user_trades').doc(uid).delete();
+            const mainDocRef = firestore.collection('user_trades').doc(uid);
+            const chunksSnapshot = await mainDocRef.collection('chunks').get();
+            const batch = firestore.batch();
+            chunksSnapshot.forEach(doc => batch.delete(doc.ref));
+            batch.delete(mainDocRef);
+            await batch.commit();
+            localStorage.setItem('coinhub_storage_mode_' + uid, 'LOCAL');
         } catch (e) {
-            console.warn('클라우드 데이터 삭제 오류:', e);
+            console.error('클라우드 데이터 삭제 오류:', e);
         }
     },
 
