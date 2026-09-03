@@ -966,6 +966,12 @@ const App = {
         if (cumBuyEl) cumBuyEl.textContent = this.formatCurrency(s.totalCumulativeBuyAmount);
         if (netDepositEl) netDepositEl.textContent = this.formatCurrency(s.netKrwDeposits);
 
+        const totalEvaluatedValue = Math.max(0, (s.currentPortfolioCost || 0) + totalUnrealized);
+        const totalEvalEl = document.getElementById('cardTotalEvaluatedValue');
+        const holdValEl = document.getElementById('cardCurrentHoldingValue');
+        if (totalEvalEl) totalEvalEl.textContent = this.formatCurrency(totalEvaluatedValue);
+        if (holdValEl) holdValEl.textContent = this.formatCurrency(totalEvaluatedValue);
+
         const feesEl = document.getElementById('cardTotalFees');
         const winRateEl = document.getElementById('cardWinRate');
         if (feesEl) feesEl.textContent = this.formatCurrency(s.totalFees);

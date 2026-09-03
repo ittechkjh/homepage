@@ -2150,7 +2150,10 @@
                 <span class="stat-badge" id="cardUnrealizedRoi">0.00%</span>
               </div>
               <div class="stat-value" id="cardUnrealizedProfit">0원</div>
-              <div class="stat-footer" id="lastTickerUpdateTime">현재 보유 중인 코인의 실시간 평가</div>
+              <div class="stat-footer">
+                현재 총 평가금액: <strong id="cardTotalEvaluatedValue">0원</strong><br>
+                <span id="lastTickerUpdateTime">실시간 시세 반영 대기중</span>
+              </div>
             </div>
 
             <!-- 3. 원금 세분화 -->
@@ -2161,6 +2164,7 @@
               </div>
               <div class="stat-value" id="cardCurrentHoldingCost">0원</div>
               <div class="stat-footer">
+                현재 총 평가금액: <strong id="cardCurrentHoldingValue">0원</strong><br>
                 순 투입 원금(입-출): <strong id="cardNetDeposit">0원</strong><br>
                 역대 누적 매수대금: <strong id="cardCumulativeBuy">0원</strong>
               </div>
@@ -3429,17 +3433,17 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/upbit-api.js?v=20260903_19"></script>
-  <script src="js/parser.js?v=20260903_19"></script>
-  <script src="js/calculator.js?v=20260903_19"></script>
-  <script src="js/charts.js?v=20260903_19"></script>
-  <script src="js/exporter.js?v=20260903_19"></script>
-  <script src="js/sample-data.js?v=20260903_19"></script>
-  <script src="js/tools-calculators.js?v=20260903_19"></script>
-  <script src="js/analyzer-app.js?v=20260903_19"></script>
+  <script src="js/upbit-api.js?v=20260903_20"></script>
+  <script src="js/parser.js?v=20260903_20"></script>
+  <script src="js/calculator.js?v=20260903_20"></script>
+  <script src="js/charts.js?v=20260903_20"></script>
+  <script src="js/exporter.js?v=20260903_20"></script>
+  <script src="js/sample-data.js?v=20260903_20"></script>
+  <script src="js/tools-calculators.js?v=20260903_20"></script>
+  <script src="js/analyzer-app.js?v=20260903_20"></script>
 
-  <script src="js/admin.js?v=20260903_19"></script>
-  <script src="js/preview-app-v2.js?v=20260903_19"></script>
+  <script src="js/admin.js?v=20260903_20"></script>
+  <script src="js/preview-app-v2.js?v=20260903_20"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
