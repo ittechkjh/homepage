@@ -4,21 +4,16 @@
  * HTML형식 엑셀, XML 2003, 바이너리 XLS, XLSX, CSV 100% 무손실 지원
  */
 
-let UpbitAPI;
-if (typeof require !== 'undefined') {
-    try {
-        UpbitAPI = require('./upbit-api.js');
-    } catch (e) {}
-}
-
 function getUpbitAPI() {
-    if (typeof UpbitAPI !== 'undefined' && UpbitAPI) return UpbitAPI;
     if (typeof window !== 'undefined' && window.UpbitAPI) return window.UpbitAPI;
     if (typeof globalThis !== 'undefined' && globalThis.UpbitAPI) return globalThis.UpbitAPI;
+    if (typeof require !== 'undefined') {
+        try { return require('./upbit-api.js'); } catch (e) {}
+    }
     return null;
 }
 
-const UpbitParser = {
+var UpbitParser = {
     // 한글 코인명 -> 심볼 매퍼 (빗썸 등 한글 종목명 지원)
     koreanToSymbolMap: {
         "엑스알피": "XRP", "리플": "XRP", "비체인": "VET", "비트코인": "BTC", "이더리움": "ETH",
