@@ -107,6 +107,25 @@ html {
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
 }
 
+/* Light mode admin subtabs */
+html.theme-light .admin-subtab-btn {
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html.theme-light .admin-subtab-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+html.theme-light .admin-subtab-btn.active {
+  background: #f3e8ff !important;
+  color: #7e22ce !important;
+  border: 1px solid #c084fc !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15) !important;
+}
+
+
 
 /* ==========================================================================
    GLOBAL 100% EXHAUSTIVE HIGH-CONTRAST LIGHT THEME (라이트 모드 완전 가독성 보장)
@@ -536,4 +555,29 @@ html.theme-light #cafe-post-content .pnl-verify-integrity-box strong {
   color: #042f2e !important;
   font-weight: 800 !important;
 }
+
+/* 15. Admin Analytics Charts & Progress Bars in Light Mode */
+html.theme-light #admin-visitor-chart {
+  border-bottom-color: #e2e8f0 !important;
+}
+html.theme-light .bg-navy-950.rounded-full {
+  background-color: #e2e8f0 !important;
+}
+html.theme-light [id^="admin-feat-"][id$="-bar"] {
+  border: none !important;
+  box-shadow: none !important;
+}
+html.theme-light #admin-feat-analyzer-bar {
+  background: linear-gradient(to right, #06b6d4, #3b82f6) !important;
+}
+html.theme-light #admin-feat-market-bar {
+  background: linear-gradient(to right, #a855f7, #ec4899) !important;
+}
+html.theme-light #admin-feat-news-bar {
+  background: linear-gradient(to right, #f59e0b, #eab308) !important;
+}
+html.theme-light #admin-feat-community-bar {
+  background: linear-gradient(to right, #10b981, #14b8a6) !important;
+}
+
 
