@@ -312,6 +312,18 @@ function updateAuthUI() {
     }
   }
 
+  const cardNickEl = document.getElementById('cardNick');
+  if (cardNickEl) {
+    if (isAuth) {
+      cardNickEl.value = 'admin';
+    } else if (user && user.username) {
+      cardNickEl.value = user.username;
+    }
+  }
+  if (window.CoinCalculators && typeof window.CoinCalculators.renderProfitCard === 'function') {
+    try { window.CoinCalculators.renderProfitCard(); } catch (e) {}
+  }
+
   updateAdminNavVisibility();
   if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 }

@@ -24,6 +24,21 @@ const CoinCalculators = {
     ],
     nextSellTierId: 2,
 
+    getLoggedInUsername: function () {
+        try {
+            const isSessionAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
+            const stored = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+            if (stored) {
+                const u = JSON.parse(stored);
+                if (u && (u.username || u.name || u.nickname)) {
+                    return (u.username || u.name || u.nickname).trim();
+                }
+            }
+            if (isSessionAdmin) return 'admin';
+        } catch (e) {}
+        return null;
+    },
+
     init: function () {
         this.bindEvents();
         this.renderWaterTiers();
@@ -32,6 +47,13 @@ const CoinCalculators = {
         this.calcTax();
         this.calcFutures();
         this.fetchKimpData();
+
+        const loggedUser = this.getLoggedInUsername();
+        const nickEl = document.getElementById('cardNick');
+        if (nickEl && loggedUser) {
+            nickEl.value = loggedUser;
+        }
+
         this.importProfitCardFromAnalyzer(false);
         this.renderProfitCard();
     },
@@ -93,6 +115,11 @@ const CoinCalculators = {
         if (tabId === 'kimp') {
             this.fetchKimpData();
         } else if (tabId === 'card') {
+            const loggedUser = this.getLoggedInUsername();
+            const nickEl = document.getElementById('cardNick');
+            if (nickEl && loggedUser) {
+                nickEl.value = loggedUser;
+            }
             this.renderProfitCard();
         }
 
@@ -700,9 +727,14 @@ const CoinCalculators = {
     renderProfitCard: function (targetCanvasId = null) {
         const targetIds = targetCanvasId ? [targetCanvasId] : ['profitCardCanvas', 'pnl-card-canvas'];
         const canvases = targetIds.map(id => document.getElementById(id)).filter(Boolean);
+        const loggedUser = this.getLoggedInUsername();
+        const nickInput = document.getElementById('cardNick');
+        if (nickInput && loggedUser && (!nickInput.value || nickInput.value === '익명 트레이더' || nickInput.value === '코인왕김수익')) {
+            nickInput.value = loggedUser;
+        }
+        const nick = (nickInput?.value || loggedUser || '익명 트레이더').trim();
         if (canvases.length === 0) return;
 
-        const nick = (document.getElementById('cardNick')?.value || '익명 트레이더').trim();
         const startStr = document.getElementById('pnl-card-start')?.value || document.getElementById('cardPeriodStart')?.value || '';
         const endStr = document.getElementById('pnl-card-end')?.value || document.getElementById('cardPeriodEnd')?.value || '';
         const hideAmountEl = document.getElementById('cardHideAmount');
@@ -1084,7 +1116,9 @@ const CoinCalculators = {
             endDate: endStr
         };
 
-        const nick = (typeof getNickname === 'function' ? getNickname() : '익명 트레이더');
+        const loggedUser = this.getLoggedInUsername();
+        const curInput = document.getElementById('cardNick')?.value?.trim();
+        const nick = loggedUser || (curInput && curInput !== '익명 트레이더' && curInput !== '코인왕김수익' ? curInput : '익명 트레이더');
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
 
         setVal('cardNick', nick);
