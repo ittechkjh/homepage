@@ -1093,12 +1093,8 @@ const CoinCalculators = {
                 if (raw) posts = JSON.parse(raw);
             } catch(e) {}
         }
-        if (!Array.isArray(posts) || posts.length === 0) {
-            if (typeof INITIAL_FORUM_POSTS !== 'undefined' && Array.isArray(INITIAL_FORUM_POSTS)) {
-                posts = [...INITIAL_FORUM_POSTS];
-            } else {
-                posts = [];
-            }
+        if (!Array.isArray(posts)) {
+            posts = [];
         }
 
         // 2. Add new post to top

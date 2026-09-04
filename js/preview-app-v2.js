@@ -673,52 +673,7 @@ window.generateChartData = generateChartData;
 // ----------------------------------------------------
 // Section 3: Full Page Cafe Style Forum Engine
 // ----------------------------------------------------
-const INITIAL_FORUM_POSTS = [
-  {
-    id: 101,
-    category: 'trading',
-    categoryName: '📈 트레이딩자료',
-    title: '비트코인 64K 지지선 테스트 및 주봉 RSI 다이버전스 분석',
-    content: '<p>주봉상 RSI가 50선에서 강력한 지지를 받고 있으며, 64,000달러 부근의 기관 매수세가 여전히 견고합니다. 70K 돌파 시 알트코인 순환매가 본격화될 것으로 예상됩니다.</p>',
-    author: 'CryptoWhale',
-    authorRank: 'PRO',
-    upvotes: 24,
-    views: 412,
-    time: '15분 전',
-    timestamp: Date.now() - 15 * 60 * 1000,
-    comments: [
-      { id: 1, author: '알트매니아', text: '솔라나 생태계 쪽으로 수급 이동이 눈에 띄네요!', time: '10분 전' }
-    ]
-  },
-  {
-    id: 102,
-    category: 'general',
-    categoryName: '💬 자유 토론',
-    title: '업비트 거래내역 엑셀로 올해 실현손익 계산해봤는데 진짜 편리하네요',
-    content: '<p>매매 횟수가 500회가 넘어서 수기 계산은 포기하고 있었는데, 파일 하나 올리니까 선입선출(FIFO)로 수수료까지 깔끔하게 떨어지네요. 세금 계산할 때 큰 도움 될 것 같습니다.</p>',
-    author: '세무공부중',
-    authorRank: 'Member',
-    upvotes: 18,
-    views: 350,
-    time: '1시간 전',
-    timestamp: Date.now() - 60 * 60 * 1000,
-    comments: []
-  },
-  {
-    id: 103,
-    category: 'altcoin',
-    categoryName: '🚀 알트코인 분석',
-    title: '이더리움 L2 생태계(아비트럼, 옵티미즘) TVL 회복세 분석',
-    content: '<p>덴쿤 업그레이드 이후 L2 가스비 절감 효과가 누적되면서 일일 트랜잭션 수가 전고점을 돌파하고 있습니다.</p>',
-    author: '이더리안',
-    authorRank: 'PRO',
-    upvotes: 15,
-    views: 280,
-    time: '2시간 전',
-    timestamp: Date.now() - 120 * 60 * 1000,
-    comments: []
-  }
-];
+const INITIAL_FORUM_POSTS = [];
 
 let activeCategory = 'all';
 let currentCafePostId = null;
@@ -730,10 +685,14 @@ function getStoredPosts() {
     const raw = localStorage.getItem('coinhub_forum_posts') || localStorage.getItem('crytopnl_forum_posts');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const dummyIds = [101, 102, 103, '101', '102', '103'];
+        const clean = parsed.filter(p => p && !dummyIds.includes(p.id) && !(p.title && p.title.includes('64K 지지선')));
+        return clean;
+      }
     }
   } catch (e) {}
-  return INITIAL_FORUM_POSTS;
+  return [];
 }
 window.getStoredPosts = getStoredPosts;
 
@@ -2750,27 +2709,24 @@ if (db) {
 
   db.collection('forum_posts').onSnapshot(snapshot => {
     let posts = [];
+    const dummyIds = ['101', '102', '103', 101, 102, 103];
     snapshot.forEach(doc => {
-      posts.push(doc.data());
+      const data = doc.data();
+      const isDummy = dummyIds.includes(doc.id) || dummyIds.includes(data.id) || (data.title && data.title.includes('64K 지지선'));
+      if (isDummy) {
+        // Automatically clean up dummy post from Firestore database
+        doc.ref.delete().catch(() => {});
+      } else {
+        posts.push(data);
+      }
     });
 
-    if (posts.length > 0) {
-      posts.sort((a,b) => (b.id || 0) - (a.id || 0));
-      localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-      localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-      if (typeof renderForumPosts === 'function') renderForumPosts();
-    } else if (!isInitialSyncDone) {
-      // If Firestore has no posts yet, migrate existing local posts to Firestore
-      isInitialSyncDone = true;
-      const localPosts = getStoredPosts();
-      if (localPosts && localPosts.length > 0) {
-        localPosts.forEach(p => {
-          db.collection('forum_posts').doc(p.id.toString()).set(p).catch(() => {});
-        });
-      }
-    }
+    posts.sort((a,b) => (b.id || 0) - (a.id || 0));
+    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+    if (typeof renderForumPosts === 'function') renderForumPosts();
 
-    // Check if user has posts in local storage that aren't in Firestore yet (e.g. created on another browser)
+    // Sync non-dummy local posts that are not yet in Firestore
     if (!isInitialSyncDone) {
       isInitialSyncDone = true;
       try {
@@ -2780,7 +2736,8 @@ if (db) {
           if (Array.isArray(localParsed)) {
             const dbIds = new Set(posts.map(p => String(p.id)));
             localParsed.forEach(lp => {
-              if (lp && lp.id && !dbIds.has(String(lp.id))) {
+              const isDummy = lp && (dummyIds.includes(lp.id) || (lp.title && lp.title.includes('64K 지지선')));
+              if (lp && lp.id && !isDummy && !dbIds.has(String(lp.id))) {
                 db.collection('forum_posts').doc(lp.id.toString()).set(lp).catch(() => {});
               }
             });
