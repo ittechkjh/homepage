@@ -2441,6 +2441,9 @@
               <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="exportExcelBtn">
                 📊 엑셀 저장
               </button>
+              <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/20" onclick="CoinCalculators.openVerificationModal()" title="수익 인증 카드 생성">
+                🖼️ 수익인증 카드
+              </button>
             </div>
           </header>
 
@@ -3768,7 +3771,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260904_08"></script>
+  <script src="js/tools-calculators.js?v=20260904_15"></script>
   <script src="js/analyzer-app.js?v=20260904_07"></script>
 
   <script src="js/admin.js?v=20260904_12"></script>
@@ -3777,7 +3780,7 @@
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
     <div class="absolute inset-0 bg-navy-950/80 backdrop-blur-sm" onclick="this.parentElement.classList.add('hidden')"></div>
-    <div class="relative bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div class="relative bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       <div class="p-6 border-b border-navy-800 flex justify-between items-center bg-navy-950/50">
         <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
           <i data-lucide="camera" class="w-5 h-5 text-indigo-400"></i> 수익 인증 카드 생성
@@ -3803,7 +3806,7 @@
         
         <!-- Canvas Container -->
         <div class="rounded-xl overflow-hidden border border-navy-700 bg-navy-950 flex justify-center items-center relative min-h-[200px]" id="pnl-card-preview-container">
-           <canvas id="pnl-card-canvas" width="600" height="360" class="max-w-full h-auto shadow-md"></canvas>
+           <canvas id="pnl-card-canvas" width="900" height="520" class="max-w-full h-auto shadow-md"></canvas>
         </div>
       </div>
       <div class="p-6 border-t border-navy-800 flex flex-col sm:flex-row gap-3 bg-navy-950/50">

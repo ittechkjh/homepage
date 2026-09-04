@@ -697,21 +697,16 @@ const CoinCalculators = {
     // ========================================================
     profitCardState: null,
 
-    renderProfitCard: function () {
-        const canvas = document.getElementById('profitCardCanvas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = 900;
-        canvas.height = 540;
+    renderProfitCard: function (targetCanvasId = null) {
+        const targetIds = targetCanvasId ? [targetCanvasId] : ['profitCardCanvas', 'pnl-card-canvas'];
+        const canvases = targetIds.map(id => document.getElementById(id)).filter(Boolean);
+        if (canvases.length === 0) return;
 
         const nick = (document.getElementById('cardNick')?.value || '익명 트레이더').trim();
-        const roiInput = (document.getElementById('cardRoi')?.value || '0.00%').trim();
-        const winrateInput = (document.getElementById('cardWinrate')?.value || '0.0%').trim();
-        const startStr = document.getElementById('cardPeriodStart')?.value || '';
-        const endStr = document.getElementById('cardPeriodEnd')?.value || '';
-        const theme = document.getElementById('cardTheme')?.value || 'cyber';
-        const hideAmount = document.getElementById('cardHideAmount')?.checked;
+        const startStr = document.getElementById('pnl-card-start')?.value || document.getElementById('cardPeriodStart')?.value || '';
+        const endStr = document.getElementById('pnl-card-end')?.value || document.getElementById('cardPeriodEnd')?.value || '';
+        const hideAmountEl = document.getElementById('cardHideAmount');
+        const hideAmount = hideAmountEl ? hideAmountEl.checked : true;
 
         let periodText = '전체 기간';
         if (startStr && endStr) {
@@ -724,188 +719,210 @@ const CoinCalculators = {
 
         const state = this.profitCardState || {};
         const realizedProfit = state.realizedProfit !== undefined ? state.realizedProfit : -9151549;
-        const realizedRoi = state.roi !== undefined ? state.roi : -0.58;
-        const unrealizedProfit = state.unrealizedProfit !== undefined ? state.unrealizedProfit : 0;
-        const unrealizedRoi = state.unrealizedRoi !== undefined ? state.unrealizedRoi : 0;
-        const holdingCost = state.holdingCost !== undefined ? state.holdingCost : 307205528;
-        const netDeposit = state.netDeposit !== undefined ? state.netDeposit : 305635139;
-        const cumBuy = state.cumBuyAmount !== undefined ? state.cumBuyAmount : 1881188182;
-        const totalFees = state.totalFees !== undefined ? state.totalFees : 1730228;
-        const winRate = state.winRate !== undefined ? state.winRate : 52.5;
-        const winTrades = state.winTrades || 3917;
-        const lossTrades = state.lossTrades || 3543;
-        const totalTrades = state.totalTrades || (winTrades + lossTrades) || 12689;
+        const realizedRoi = state.roi !== undefined ? state.roi : -1.60;
+        const unrealizedProfit = state.unrealizedProfit !== undefined ? state.unrealizedProfit : -24980000;
+        const unrealizedRoi = state.unrealizedRoi !== undefined ? state.unrealizedRoi : -24.98;
+        const holdingCost = state.holdingCost !== undefined ? state.holdingCost : 308170672;
+        const netDeposit = state.netDeposit !== undefined ? state.netDeposit : 399532690;
+        const cumBuy = state.cumBuyAmount !== undefined ? state.cumBuyAmount : 3231592530;
+        const totalFees = state.totalFees !== undefined ? state.totalFees : 2010853;
+        const winRate = state.winRate !== undefined ? state.winRate : 53.2;
+        const winTrades = state.winTrades || 4277;
+        const lossTrades = state.lossTrades || 3758;
+        const totalTrades = state.totalTrades || 13851;
 
-        // Background Theme Gradients
-        let bgGrad, borderColor, glowColor;
-        if (theme === 'gold') {
-            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
-            bgGrad.addColorStop(0, '#1c1503');
-            bgGrad.addColorStop(0.5, '#0b0f19');
-            bgGrad.addColorStop(1, '#2a1e05');
-            borderColor = '#f59e0b';
-            glowColor = 'rgba(245, 158, 11, 0.15)';
-        } else if (theme === 'emerald') {
-            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
-            bgGrad.addColorStop(0, '#021f17');
-            bgGrad.addColorStop(0.5, '#07090e');
-            bgGrad.addColorStop(1, '#063324');
-            borderColor = '#10b981';
-            glowColor = 'rgba(16, 185, 129, 0.15)';
-        } else {
-            bgGrad = ctx.createLinearGradient(0, 0, 900, 540);
-            bgGrad.addColorStop(0, '#07090e');
-            bgGrad.addColorStop(0.5, '#0f172a');
-            bgGrad.addColorStop(1, '#081e36');
-            borderColor = '#06b6d4';
-            glowColor = 'rgba(6, 182, 212, 0.15)';
-        }
-
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, 900, 540);
-
-        // Ambient Corner Glow
-        ctx.fillStyle = glowColor;
-        ctx.beginPath();
-        ctx.arc(840, 60, 140, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Dual Outer Border Frame
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = borderColor;
-        ctx.strokeRect(18, 18, 864, 504);
-
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeRect(24, 24, 852, 492);
-
-        // Header: Logo & Title
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Inter, sans-serif';
-        ctx.fillText('CryptoPnL PRO', 48, 60);
-
-        // Official Badge
-        ctx.fillStyle = borderColor;
-        ctx.font = 'bold 12px Inter, sans-serif';
-        ctx.fillText('• 업비트·빗썸 실거래 검증 종합 손익 인증서', 215, 59);
-
-        // Sub Header: Trader & Period
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '13px Inter, sans-serif';
-        ctx.fillText('트레이더: ', 48, 92);
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 13px Inter, sans-serif';
-        ctx.fillText(nick, 106, 92);
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '13px Inter, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(`검증 기간: ${periodText}`, 852, 92);
-        ctx.textAlign = 'left';
-
-        // Header Divider
-        ctx.strokeStyle = 'rgba(30, 41, 75, 0.8)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(48, 108);
-        ctx.lineTo(852, 108);
-        ctx.stroke();
-
-        // 4-Card Dashboard Grid Drawing Helper
-        const drawDashboardCard = (x, y, w, h, title, mainVal, badgeText, badgeColor, subLine1, subLine2, valColor) => {
-            // Card Background
-            ctx.fillStyle = 'rgba(11, 15, 25, 0.82)';
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = 'rgba(30, 41, 75, 0.9)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, w, h);
-
-            // Title
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 13px Inter, sans-serif';
-            ctx.fillText(title, x + 18, y + 30);
-
-            // Badge (Top Right of Card)
-            if (badgeText) {
-                ctx.font = 'bold 12px Inter, sans-serif';
-                const bWidth = ctx.measureText(badgeText).width + 16;
-                const bx = x + w - bWidth - 16;
-                const by = y + 16;
-                ctx.fillStyle = badgeColor === '#10b981' ? 'rgba(16, 185, 129, 0.15)' : (badgeColor === '#f43f5e' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(56, 189, 248, 0.15)');
-                ctx.fillRect(bx, by, bWidth, 22);
-                ctx.strokeStyle = badgeColor;
-                ctx.strokeRect(bx, by, bWidth, 22);
-                ctx.fillStyle = badgeColor;
-                ctx.fillText(badgeText, bx + 8, by + 16);
-            }
-
-            // Main Value
-            ctx.fillStyle = valColor || '#ffffff';
-            ctx.font = 'black 26px Inter, sans-serif';
-            ctx.fillText(mainVal, x + 18, y + 78);
-
-            // Subtext 1
-            if (subLine1) {
-                ctx.fillStyle = '#64748b';
-                ctx.font = '11px Inter, sans-serif';
-                ctx.fillText(subLine1, x + 18, y + 112);
-            }
-
-            // Subtext 2 (if present)
-            if (subLine2) {
-                ctx.fillStyle = '#64748b';
-                ctx.font = '11px Inter, sans-serif';
-                ctx.fillText(subLine2, x + 18, y + 130);
-            }
+        // Rounded Rect Helper
+        const drawRoundedRect = (ctx, x, y, width, height, radius) => {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
         };
 
-        const cardW = 388;
-        const cardH = 148;
-        const col1X = 48;
-        const col2X = 464;
-        const row1Y = 126;
-        const row2Y = 292;
+        canvases.forEach(canvas => {
+            const ctx = canvas.getContext('2d');
+            canvas.width = 900;
+            canvas.height = 520;
 
-        // Card 1: 누적 실현손익
-        const isRealizedPos = realizedProfit >= 0;
-        const realProfitStr = hideAmount ? `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%` : `${realizedProfit > 0 ? '+' : ''}${Math.round(realizedProfit).toLocaleString()}원`;
-        const realBadgeStr = `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%`;
-        const realColor = isRealizedPos ? '#10b981' : '#f43f5e';
-        drawDashboardCard(col1X, row1Y, cardW, cardH, '누적 실현손익', realProfitStr, realBadgeStr, realColor, '매도 완료된 코인의 순수익 (수수료 차감 후)', null, realColor);
+            // Deep Dark Navy Canvas Fill
+            ctx.fillStyle = '#070b14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Card 2: 실시간 평가손익 (미실현)
-        const isUnrealizedPos = unrealizedProfit >= 0;
-        const unRealProfitStr = hideAmount ? `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%` : `${unrealizedProfit > 0 ? '+' : ''}${Math.round(unrealizedProfit).toLocaleString()}원`;
-        const unRealBadgeStr = `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%`;
-        const unRealColor = unrealizedProfit === 0 ? '#94a3b8' : (isUnrealizedPos ? '#10b981' : '#f43f5e');
-        drawDashboardCard(col2X, row1Y, cardW, cardH, '실시간 평가손익 (미실현)', unRealProfitStr, unRealBadgeStr, unRealColor, '현재 보유 중인 코인의 실시간 평가', null, unRealColor);
+            // Outer Rounded Frame (r: 16)
+            drawRoundedRect(ctx, 16, 16, canvas.width - 32, canvas.height - 32, 16);
+            ctx.fillStyle = '#070b14';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
 
-        // Card 3: 현재 보유 코인 매수원금
-        const holdCostStr = `${Math.round(holdingCost).toLocaleString()}원`;
-        const netDepStr = `순 투입 원금(입-출): ${Math.round(netDeposit).toLocaleString()}원`;
-        const cumBuyStr = `역대 누적 매수대금: ${Math.round(cumBuy).toLocaleString()}원`;
-        drawDashboardCard(col1X, row2Y, cardW, cardH, '현재 보유 코인 매수원금', holdCostStr, '보유원금', '#38bdf8', netDepStr, cumBuyStr, '#ffffff');
+            // Ambient Top-Right Radial Glow
+            ctx.save();
+            drawRoundedRect(ctx, 16, 16, canvas.width - 32, canvas.height - 32, 16);
+            ctx.clip();
+            const glowGrad = ctx.createRadialGradient(canvas.width - 110, 65, 20, canvas.width - 110, 65, 300);
+            glowGrad.addColorStop(0, 'rgba(14, 116, 144, 0.32)');
+            glowGrad.addColorStop(0.45, 'rgba(6, 182, 212, 0.10)');
+            glowGrad.addColorStop(1, 'rgba(7, 11, 20, 0)');
+            ctx.fillStyle = glowGrad;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 110, 65, 300, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
 
-        // Card 4: 총 거래 수수료 & 매매 승률
-        const feeStr = `${Math.round(totalFees).toLocaleString()}원`;
-        const winrateLine = `매매 승률: ${winRate.toFixed(1)}% (${winTrades}승 ${lossTrades}패 / 총 ${totalTrades}건)`;
-        const trustLine = `데이터 신뢰도: 실측 FIFO 100% 로컬 독립 연산 검증`;
-        drawDashboardCard(col2X, row2Y, cardW, cardH, '총 거래 수수료', feeStr, '체결수수료', '#a855f7', winrateLine, trustLine, '#ffffff');
+            // Header: Brand & Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 24px "Inter", -apple-system, sans-serif';
+            ctx.fillText('CryptoPnL PRO', 48, 62);
+            const logoW = ctx.measureText('CryptoPnL PRO').width;
 
-        // Footer
-        ctx.fillStyle = '#64748b';
-        ctx.font = '12px Inter, sans-serif';
-        ctx.fillText('⚡ 100% 클라이언트 무손실 FIFO 정산 • https://cryptopnl.com', 48, 480);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '600 15px "Inter", -apple-system, sans-serif';
+            ctx.fillText(' ·  업비트·빗썸 실거래 검증 통합 손익 인증서', 48 + logoW, 60.5);
 
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 12px Inter, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('CryptoPnL Official Verified Result', 852, 480);
-        ctx.textAlign = 'left';
+            // Sub Header: Trader Nickname & Verification Period
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 13px "Inter", -apple-system, sans-serif';
+            ctx.fillText('트레이더: ', 48, 92);
+            const traderLabelW = ctx.measureText('트레이더: ').width;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px "Inter", -apple-system, sans-serif';
+            ctx.fillText(nick, 48 + traderLabelW, 92);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '500 13px "Inter", monospace, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`검증 기간: ${periodText}`, canvas.width - 48, 92);
+            ctx.textAlign = 'left';
+
+            // Divider Line
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(48, 106);
+            ctx.lineTo(canvas.width - 48, 106);
+            ctx.stroke();
+
+            // 4-Card Dashboard Grid Drawing Helper
+            const drawDashboardCard = (x, y, w, h, title, mainVal, badgeText, badgeColor, subLine1, subLine2, valColor, isRoiVal = false) => {
+                // Card Background & Border
+                drawRoundedRect(ctx, x, y, w, h, 12);
+                ctx.fillStyle = 'rgba(12, 19, 34, 0.72)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(51, 65, 85, 0.65)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Title
+                ctx.fillStyle = '#f1f5f9';
+                ctx.font = 'bold 14px "Inter", -apple-system, sans-serif';
+                ctx.fillText(title, x + 20, y + 32);
+
+                // Top-Right Pill Badge
+                if (badgeText) {
+                    ctx.font = 'bold 12px "Inter", sans-serif';
+                    const bTextW = ctx.measureText(badgeText).width;
+                    const bW = bTextW + 18;
+                    const bH = 24;
+                    const bX = x + w - bW - 20;
+                    const bY = y + 16;
+
+                    drawRoundedRect(ctx, bX, bY, bW, bH, 6);
+                    let bgRgba = 'rgba(56, 189, 248, 0.12)';
+                    let borderRgba = 'rgba(56, 189, 248, 0.4)';
+                    if (badgeColor === '#10b981') {
+                        bgRgba = 'rgba(16, 185, 129, 0.12)';
+                        borderRgba = 'rgba(16, 185, 129, 0.4)';
+                    } else if (badgeColor === '#f43f5e' || badgeColor === '#ef4444') {
+                        bgRgba = 'rgba(244, 63, 94, 0.12)';
+                        borderRgba = 'rgba(244, 63, 94, 0.4)';
+                    } else if (badgeColor === '#c084fc' || badgeColor === '#a855f7') {
+                        bgRgba = 'rgba(192, 132, 252, 0.12)';
+                        borderRgba = 'rgba(192, 132, 252, 0.4)';
+                    }
+                    ctx.fillStyle = bgRgba;
+                    ctx.fill();
+                    ctx.strokeStyle = borderRgba;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.fillStyle = badgeColor;
+                    ctx.fillText(badgeText, bX + 9, bY + 16.5);
+                }
+
+                // Main Value
+                ctx.fillStyle = valColor || '#ffffff';
+                ctx.font = isRoiVal ? '800 36px "Inter", sans-serif' : '800 28px "Inter", sans-serif';
+                ctx.fillText(mainVal, x + 20, y + 80);
+
+                // Subtext Lines
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px "Inter", -apple-system, sans-serif';
+                if (subLine1 && !subLine2) {
+                    ctx.fillText(subLine1, x + 20, y + 122);
+                } else if (subLine1 && subLine2) {
+                    ctx.fillText(subLine1, x + 20, y + 116);
+                    ctx.fillText(subLine2, x + 20, y + 134);
+                }
+            };
+
+            const cardW = 390;
+            const cardH = 146;
+            const col1X = 48;
+            const col2X = 462;
+            const row1Y = 122;
+            const row2Y = 288;
+
+            // Card 1: 누적 실현손익
+            const isRealizedPos = realizedProfit >= 0;
+            const realProfitStr = hideAmount ? `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%` : `${realizedProfit > 0 ? '+' : ''}${Math.round(realizedProfit).toLocaleString()}원`;
+            const realBadgeStr = `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%`;
+            const realColor = isRealizedPos ? '#10b981' : '#f43f5e';
+            drawDashboardCard(col1X, row1Y, cardW, cardH, '누적 실현손익', realProfitStr, realBadgeStr, realColor, '매도 완료된 코인의 순수익 (수수료 차감 후)', null, realColor, hideAmount);
+
+            // Card 2: 실시간 평가손익 (미실현)
+            const isUnrealizedPos = unrealizedProfit >= 0;
+            const unRealProfitStr = hideAmount ? `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%` : `${unrealizedProfit > 0 ? '+' : ''}${Math.round(unrealizedProfit).toLocaleString()}원`;
+            const unRealBadgeStr = `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%`;
+            const unRealColor = unrealizedProfit === 0 ? '#94a3b8' : (isUnrealizedPos ? '#10b981' : '#f43f5e');
+            drawDashboardCard(col2X, row1Y, cardW, cardH, '실시간 평가손익 (미실현)', unRealProfitStr, unRealBadgeStr, unRealColor, '현재 보유 중인 코인의 실시간 평가', null, unRealColor, hideAmount);
+
+            // Card 3: 현재 보유 코인 매수원금
+            const holdCostStr = `${Math.round(holdingCost).toLocaleString()}원`;
+            const netDepStr = `순 투입 원금(입-출): ${Math.round(netDeposit).toLocaleString()}원`;
+            const cumBuyStr = `역대 누적 매수대금: ${Math.round(cumBuy).toLocaleString()}원`;
+            drawDashboardCard(col1X, row2Y, cardW, cardH, '현재 보유 코인 매수원금', holdCostStr, '보유원금', '#38bdf8', netDepStr, cumBuyStr, '#38bdf8', false);
+
+            // Card 4: 총 거래 수수료 & 매매 승률
+            const feeStr = `${Math.round(totalFees).toLocaleString()}원`;
+            const winrateLine = `매매 승률: ${winRate.toFixed(1)}% (${winTrades}승 ${lossTrades}패 / 추정 ${totalTrades}건)`;
+            const trustLine = `데이터 신뢰도: 실측 FIFO 100% 로컬 독립 연산 검증`;
+            drawDashboardCard(col2X, row2Y, cardW, cardH, '총 거래 수수료', feeStr, '체결수수료', '#c084fc', winrateLine, trustLine, '#ffffff', false);
+
+            // Footer
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = '12px "Inter", sans-serif';
+            ctx.fillText('⚡', 48, 478);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('100% 클라이언트 무손실 FIFO 정산 • https://cryptopnl.com', 66, 478);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 13px "Inter", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('CryptoPnL Official Verified Result', canvas.width - 48, 478);
+            ctx.textAlign = 'left';
+        });
     },
 
-    downloadProfitCard: function () {
-        const canvas = document.getElementById('profitCardCanvas');
+    downloadProfitCard: function (targetCanvasId = null) {
+        const canvas = document.getElementById(targetCanvasId || 'profitCardCanvas') || document.getElementById('pnl-card-canvas');
         if (!canvas) return;
         const link = document.createElement('a');
         link.download = `CryptoPnL_종합손익인증_${Date.now()}.png`;
@@ -913,8 +930,8 @@ const CoinCalculators = {
         link.click();
     },
 
-    copyCardToClipboard: async function () {
-        const canvas = document.getElementById('profitCardCanvas');
+    copyCardToClipboard: async function (targetCanvasId = null) {
+        const canvas = document.getElementById(targetCanvasId || 'profitCardCanvas') || document.getElementById('pnl-card-canvas');
         if (!canvas) return;
         try {
             canvas.toBlob(async blob => {
@@ -924,6 +941,17 @@ const CoinCalculators = {
             });
         } catch (err) {
             alert('클립보드 복사를 지원하지 않는 브라우저입니다. [이미지 다운로드]를 이용해 주세요.');
+        }
+    },
+
+    openVerificationModal: function () {
+        const modal = document.getElementById('modal-pnl-verification');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            this.importProfitCardFromAnalyzer(false);
+            this.renderProfitCard('pnl-card-canvas');
+            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
         }
     },
 
@@ -942,8 +970,10 @@ const CoinCalculators = {
 
         const startEl = document.getElementById('cardPeriodStart');
         const endEl = document.getElementById('cardPeriodEnd');
-        let startStr = startEl?.value || '';
-        let endStr = endEl?.value || '';
+        const modalStartEl = document.getElementById('pnl-card-start');
+        const modalEndEl = document.getElementById('pnl-card-end');
+        let startStr = modalStartEl?.value || startEl?.value || '';
+        let endStr = modalEndEl?.value || endEl?.value || '';
 
         // Auto-detect min and max dates from trades if empty
         if (!startStr && !endStr) {
@@ -953,6 +983,8 @@ const CoinCalculators = {
                 endStr = validDates[validDates.length - 1];
                 if (startEl) startEl.value = startStr;
                 if (endEl) endEl.value = endStr;
+                if (modalStartEl) modalStartEl.value = startStr;
+                if (modalEndEl) modalEndEl.value = endStr;
             }
         }
 
@@ -1032,8 +1064,8 @@ const CoinCalculators = {
         }
     },
 
-    shareVerificationCardToForum: function() {
-        const canvas = document.getElementById('profitCardCanvas');
+    shareVerificationCardToForum: function(targetCanvasId = null) {
+        const canvas = document.getElementById(targetCanvasId || 'profitCardCanvas') || document.getElementById('pnl-card-canvas');
         if (!canvas) return;
         const dataUrl = canvas.toDataURL('image/png');
 
@@ -1133,6 +1165,23 @@ const CoinCalculators = {
 
 if (typeof window !== 'undefined') {
     window.CoinCalculators = CoinCalculators;
+    window.AnalyzerApp = window.AnalyzerApp || {};
+    window.AnalyzerApp.renderVerificationCard = function () {
+        const start = document.getElementById('pnl-card-start')?.value || '';
+        const end = document.getElementById('pnl-card-end')?.value || '';
+        const startEl = document.getElementById('cardPeriodStart');
+        const endEl = document.getElementById('cardPeriodEnd');
+        if (startEl && start) startEl.value = start;
+        if (endEl && end) endEl.value = end;
+        CoinCalculators.importProfitCardFromAnalyzer(false);
+        CoinCalculators.renderProfitCard();
+    };
+    window.AnalyzerApp.downloadVerificationCard = function () {
+        CoinCalculators.downloadProfitCard('pnl-card-canvas');
+    };
+    window.AnalyzerApp.shareVerificationCardToForum = function () {
+        CoinCalculators.shareVerificationCardToForum('pnl-card-canvas');
+    };
 }
 
 if (typeof document !== 'undefined') {
