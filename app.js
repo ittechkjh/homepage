@@ -287,24 +287,31 @@ function updateAuthUI() {
 
   const isAuth = isSessionAuth || isAdminUser;
   const authBtn = document.getElementById('btn-header-auth');
+  const regBtn = document.getElementById('btn-header-register');
 
   if (isAuth) {
     if (authBtn) {
       authBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i><span>admin (로그아웃)</span>';
-      authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
+    if (regBtn) regBtn.style.display = 'none';
   } else if (user && user.username) {
     if (authBtn) {
       authBtn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4 text-cyan-400"></i><span>${escapeHtml(user.username)} (로그아웃)</span>`;
       authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
+    if (regBtn) regBtn.style.display = 'none';
   } else {
     if (authBtn) {
-      authBtn.innerHTML = '<i data-lucide="user" class="w-4 h-4 text-cyan-400"></i><span>로그인</span>';
-      authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm cursor-pointer';
-      authBtn.onclick = openAuthModal;
+      authBtn.innerHTML = '<i data-lucide="log-in" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400"></i><span>로그인</span>';
+      authBtn.className = 'flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-[11px] sm:text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm cursor-pointer shrink-0';
+      authBtn.onclick = () => openAuthModal('login');
+    }
+    if (regBtn) {
+      regBtn.style.display = 'inline-flex';
+      regBtn.onclick = () => openAuthModal('register');
     }
   }
 
@@ -2082,7 +2089,7 @@ function switchAuthTab(mode) {
 
   if (mode === 'register') {
     if (regTab) {
-      regTab.className = 'py-2 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition text-center cursor-pointer font-bold';
+      regTab.className = 'py-2 rounded-lg bg-cyan-500 text-navy-950 font-black shadow-md transition text-center cursor-pointer';
     }
     if (loginTab) {
       loginTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition text-center cursor-pointer font-bold';
@@ -2095,7 +2102,7 @@ function switchAuthTab(mode) {
     if (submitText) submitText.innerText = '간편 회원가입 완료';
   } else {
     if (loginTab) {
-      loginTab.className = 'py-2 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition text-center cursor-pointer font-bold';
+      loginTab.className = 'py-2 rounded-lg bg-cyan-500 text-navy-950 font-black shadow-md transition text-center cursor-pointer';
     }
     if (regTab) {
       regTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition text-center cursor-pointer font-bold';
@@ -2262,30 +2269,26 @@ async function handleUnifiedLoginSubmit(e) {
       return;
     }
 
-    // Check if user already exists
-    let exists = false;
+    // Check if user already exists WITH A REGISTERED PASSWORD
+    let alreadyHasAccount = false;
     if (firestore) {
       try {
         const docSnap = await firestore.collection('users').doc(id.toLowerCase()).get();
-        if (docSnap.exists) exists = true;
+        if (docSnap.exists) {
+          const d = docSnap.data();
+          if (d && d.password) alreadyHasAccount = true;
+        }
       } catch (err) {
         console.warn(err);
       }
     }
 
-    if (!exists) {
-      const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
-      if (rawList) {
-        try {
-          const uList = JSON.parse(rawList);
-          if (uList.some(x => x.username && x.username.toLowerCase() === id.toLowerCase())) {
-            exists = true;
-          }
-        } catch (e) {}
-      }
+    if (!alreadyHasAccount) {
+      const localPw = localStorage.getItem('crytopnl_user_pw_' + id.toLowerCase()) || localStorage.getItem('coinhub_user_pw_' + id.toLowerCase());
+      if (localPw) alreadyHasAccount = true;
     }
 
-    if (exists) {
+    if (alreadyHasAccount) {
       alert(`❌ 이미 등록된 아이디/닉네임입니다.\n다른 아이디를 입력하시거나 [🔐 로그인] 탭에서 로그인해 주세요.`);
       switchAuthTab('login');
       if (idInput) idInput.value = id;
@@ -2326,7 +2329,12 @@ async function handleUnifiedLoginSubmit(e) {
       if (rawList) {
         try { uList = JSON.parse(rawList); } catch(e){}
       }
-      uList.push(newUser);
+      const existingIdx = uList.findIndex(x => x.username && x.username.toLowerCase() === id.toLowerCase());
+      if (existingIdx >= 0) {
+        uList[existingIdx] = newUser;
+      } else {
+        uList.push(newUser);
+      }
       localStorage.setItem('coinhub_registered_users', JSON.stringify(uList));
       localStorage.setItem('crytopnl_registered_users', JSON.stringify(uList));
     } catch (e) {}
@@ -2383,9 +2391,9 @@ async function handleUnifiedLoginSubmit(e) {
     }
   }
 
-  // Not registered yet -> Block and prompt to register
-  if (!existingUser && !storedPw) {
-    alert(`❌ 가입되지 않은 아이디/닉네임입니다.\n먼저 [✨ 간편 회원가입] 탭에서 회원가입을 완료해 주세요.`);
+  // Not registered yet OR never set a password -> Block and prompt to register
+  if (!existingUser || !storedPw) {
+    alert(`❌ 가입되지 않았거나 비밀번호가 등록되지 않은 아이디/닉네임입니다.\n먼저 [✨ 간편 회원가입] 탭에서 회원가입을 완료해 주세요.`);
     switchAuthTab('register');
     if (idInput) idInput.value = id;
     if (pwInput) {
@@ -2396,7 +2404,7 @@ async function handleUnifiedLoginSubmit(e) {
   }
 
   // Check password
-  if (storedPw && pw !== storedPw) {
+  if (pw !== storedPw) {
     alert('❌ 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
     if (pwInput) {
       pwInput.value = '';
