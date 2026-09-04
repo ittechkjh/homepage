@@ -1097,7 +1097,7 @@ function processCafeImageBlob(file) {
       const canvas = document.createElement('canvas');
       let width = img.width;
       let height = img.height;
-      const maxDim = 1280;
+      const maxDim = 1080; // FHD 최적화: 텍스트 및 차트 가독성 보존 + 용량 50% 절감
 
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -1114,13 +1114,13 @@ function processCafeImageBlob(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Target under 1MB (1,000,000 bytes). Base64 string length <= 1,300,000 chars.
-      let quality = 0.85;
+      // 목표 용량: 약 120KB ~ 160KB (Base64 길이 약 160,000 ~ 200,000자)
+      let quality = 0.78;
       let base64 = canvas.toDataURL('image/jpeg', quality);
-      const targetMaxChars = 1000 * 1024 * 1.30; // ~1MB in Base64
+      const targetMaxChars = 150 * 1024 * 1.33; // ~150KB 바이너리 기준
 
-      while (base64.length > targetMaxChars && quality > 0.25) {
-        quality -= 0.12;
+      while (base64.length > targetMaxChars && quality > 0.35) {
+        quality -= 0.08;
         base64 = canvas.toDataURL('image/jpeg', quality);
       }
 
@@ -1131,6 +1131,14 @@ function processCafeImageBlob(file) {
   reader.readAsDataURL(file);
 }
 window.processCafeImageBlob = processCafeImageBlob;
+
+function handleCafeImageFileSelect(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  processCafeImageBlob(file);
+  input.value = '';
+}
+window.handleCafeImageFileSelect = handleCafeImageFileSelect;
 
 function handleCafeSubmitPost(e) {
   if (e && e.preventDefault) e.preventDefault();

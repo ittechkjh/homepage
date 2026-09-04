@@ -1728,13 +1728,19 @@
             <input type="text" id="cafe-write-title" required placeholder="제목을 입력하세요 (예: 비트코인 65K 지지선 및 9월 FOMC 시나리오 분석)" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-sm sm:text-base font-medium text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
           </div>
 
-          <!-- Body Textarea with Clipboard Paste -->
+          <!-- Body Textarea with Clipboard Paste & Image Upload -->
           <div>
-            <label class="block text-xs font-bold text-slate-200 mb-2 flex items-center justify-between">
-              <span>본문 내용</span>
-              <span class="text-[11px] text-cyan-400 font-mono">💡 스크린샷 직접 붙여넣기(Ctrl+V) 지원</span>
-            </label>
-            <div id="cafe-write-content" contenteditable="true" data-placeholder="자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요... (스크린샷 복사 후 Ctrl+V 붙여넣기 지원)" class="w-full min-h-[360px] p-4 sm:p-5 text-sm sm:text-base text-slate-100 leading-7 font-sans bg-navy-950 border border-navy-700 rounded-2xl overflow-y-auto focus:outline-none focus:border-cyan-500"></div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-bold text-slate-200">본문 내용</label>
+              <div class="flex items-center gap-2">
+                <input type="file" id="cafe-write-image-input" accept="image/*" class="hidden" onchange="handleCafeImageFileSelect(this)">
+                <button type="button" onclick="document.getElementById('cafe-write-image-input').click()" class="px-3 py-1 rounded-xl bg-navy-800 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:border-cyan-400 text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i> 사진 첨부
+                </button>
+                <span class="text-[11px] text-slate-400 font-mono hidden sm:inline">💡 Ctrl+V 붙여넣기 지원</span>
+              </div>
+            </div>
+            <div id="cafe-write-content" contenteditable="true" data-placeholder="자신의 분석, 생각, 매매 일지, 질문 내용을 자유롭게 작성하세요... (사진 첨부 또는 스크린샷 Ctrl+V 붙여넣기 지원)" class="w-full min-h-[360px] p-4 sm:p-5 text-sm sm:text-base text-slate-100 leading-7 font-sans bg-navy-950 border border-navy-700 rounded-2xl overflow-y-auto focus:outline-none focus:border-cyan-500"></div>
           </div>
 
           <!-- Bottom Submit Buttons -->
@@ -3728,7 +3734,7 @@
   <script src="js/analyzer-app.js?v=20260904_07"></script>
 
   <script src="js/admin.js?v=20260904_06"></script>
-  <script src="js/preview-app-v2.js?v=20260904_10"></script>
+  <script src="js/preview-app-v2.js?v=20260904_11"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
