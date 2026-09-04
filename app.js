@@ -723,6 +723,28 @@ function filterForum(category) {
 }
 window.filterForum = filterForum;
 
+let forumSearchQuery = '';
+
+function handleForumSearch(query) {
+  forumSearchQuery = (query || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('forum-search-clear');
+  if (clearBtn) {
+    clearBtn.classList.toggle('hidden', !forumSearchQuery);
+  }
+  renderForumPosts();
+}
+window.handleForumSearch = handleForumSearch;
+
+function clearForumSearch() {
+  forumSearchQuery = '';
+  const input = document.getElementById('forum-search-input');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('forum-search-clear');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderForumPosts();
+}
+window.clearForumSearch = clearForumSearch;
+
 function renderForumPosts() {
   const container = document.getElementById('forum-posts-list');
   if (!container) return;
@@ -735,6 +757,19 @@ function renderForumPosts() {
       if (activeCategory === 'trading' && (p.category === 'market' || p.category === 'trading')) return true;
       if (activeCategory === 'feature' && p.category === 'qna') return true;
       return false;
+    });
+  }
+
+  if (forumSearchQuery) {
+    posts = posts.filter(p => {
+      const title = (p.title || '').toLowerCase();
+      const content = (p.content || '').replace(/<[^>]+>/g, ' ').toLowerCase();
+      const author = (p.author || '').toLowerCase();
+      const catName = (p.categoryName || '').toLowerCase();
+      return title.includes(forumSearchQuery) || 
+             content.includes(forumSearchQuery) || 
+             author.includes(forumSearchQuery) || 
+             catName.includes(forumSearchQuery);
     });
   }
 
@@ -755,12 +790,23 @@ function renderForumPosts() {
   });
 
   if (posts.length === 0) {
-    container.innerHTML = `
-      <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
-        <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600 mb-3"></i>
-        <p class="text-sm">작성된 게시글이 없습니다. 첫 번째 토론 글을 남겨보세요!</p>
-      </div>
-    `;
+    if (forumSearchQuery) {
+      container.innerHTML = `
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
+          <i data-lucide="search-x" class="w-10 h-10 mx-auto text-slate-600 mb-3"></i>
+          <p class="text-sm font-bold text-slate-200 mb-1">'${escapeHtml(forumSearchQuery)}' 검색 결과가 없습니다.</p>
+          <p class="text-xs text-slate-500 mb-4">다른 검색어를 입력하시거나 검색어를 지워보세요.</p>
+          <button onclick="clearForumSearch()" class="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold transition">검색어 초기화</button>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
+          <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-600 mb-3"></i>
+          <p class="text-sm">작성된 게시글이 없습니다. 첫 번째 토론 글을 남겨보세요!</p>
+        </div>
+      `;
+    }
     if (typeof lucide !== 'undefined') lucide.createIcons();
     return;
   }

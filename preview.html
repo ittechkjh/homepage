@@ -1149,13 +1149,8 @@
         </button>
       </nav>
 
-      <!-- Right Actions: Search & Auth Profile -->
+      <!-- Right Actions: Theme Toggle & Auth Profile -->
       <div class="flex items-center gap-3">
-        <div class="relative hidden sm:block">
-          <input type="text" id="coin-search" oninput="handleSearch(this.value)" placeholder="코인/토큰 검색..." class="bg-navy-950 border border-navy-800 text-xs rounded-lg pl-8 pr-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-44 focus:w-60 transition-all">
-          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
-        </div>
-
         <div id="auth-section" class="flex items-center gap-1.5 shrink-0">
           <!-- Theme Toggle Button (Dark / Light) -->
           <button type="button" id="btn-theme-toggle" onclick="toggleTheme()" class="flex items-center gap-1 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm cursor-pointer shrink-0" title="다크/라이트 모드 전환">
@@ -1581,8 +1576,9 @@
           </button>
         </div>
 
-        <!-- Filter & Sort Bar -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
+        <!-- Filter & Search Bar -->
+        <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3.5 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
+          <!-- Category Filter Buttons -->
           <div class="flex flex-wrap items-center gap-2" id="forum-category-filters">
             <button onclick="filterForum('all')" data-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition">전체</button>
             <button onclick="filterForum('general')" data-cat="general" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💬 자유 토론</button>
@@ -1592,13 +1588,25 @@
             <button onclick="filterForum('feature')" data-cat="feature" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💡 추가기능요청</button>
           </div>
 
-          <div class="flex items-center gap-2 self-end sm:self-auto text-xs">
-            <span class="text-slate-500">정렬:</span>
-            <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-950 border border-navy-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
-              <option value="latest">최신 등록순</option>
-              <option value="popular">추천 많은순</option>
-              <option value="comments">댓글 많은순</option>
-            </select>
+          <!-- Search & Sort Controls -->
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+            <!-- Forum Search Box -->
+            <div class="relative flex-1 sm:w-64">
+              <input type="text" id="forum-search-input" oninput="handleForumSearch(this.value)" placeholder="게시글 제목, 내용, 작성자 검색..." class="w-full bg-navy-950 border border-navy-800 text-xs rounded-xl pl-8 pr-7 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
+              <button type="button" onclick="clearForumSearch()" id="forum-search-clear" class="hidden absolute right-2.5 top-2 text-slate-500 hover:text-slate-300">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Sort Select -->
+            <div class="flex items-center gap-1.5 text-xs shrink-0">
+              <select id="forum-sort" onchange="renderForumPosts()" class="bg-navy-950 border border-navy-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
+                <option value="latest">최신 등록순</option>
+                <option value="popular">추천 많은순</option>
+                <option value="comments">댓글 많은순</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -3764,7 +3772,7 @@
   <script src="js/analyzer-app.js?v=20260904_07"></script>
 
   <script src="js/admin.js?v=20260904_12"></script>
-  <script src="js/preview-app-v2.js?v=20260904_13"></script>
+  <script src="js/preview-app-v2.js?v=20260904_14"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
