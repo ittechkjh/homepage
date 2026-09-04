@@ -3544,11 +3544,27 @@
                 <div class="text-[10px] text-slate-500 mt-0.5">Windows & macOS 브라우저</div>
               </div>
             </div>
-            <div class="text-xs text-slate-400 pt-2 border-t border-navy-800 flex justify-between font-mono">
-              <span>Chrome: 66%</span>
-              <span>Safari: 21%</span>
-              <span>Samsung: 8%</span>
-              <span>Edge: 5%</span>
+            <div id="admin-browser-breakdown" class="text-xs text-slate-400 pt-2 border-t border-navy-800 grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono">
+              <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                <span class="text-slate-300 text-[11px]">Chrome:</span>
+                <span class="text-cyan-400 font-bold text-[11px] ml-auto">--%</span>
+              </div>
+              <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                <span class="text-slate-300 text-[11px]">Safari:</span>
+                <span class="text-purple-400 font-bold text-[11px] ml-auto">--%</span>
+              </div>
+              <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                <span class="text-slate-300 text-[11px]">Samsung:</span>
+                <span class="text-blue-400 font-bold text-[11px] ml-auto">--%</span>
+              </div>
+              <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="text-slate-300 text-[11px]">Edge:</span>
+                <span class="text-emerald-400 font-bold text-[11px] ml-auto">--%</span>
+              </div>
             </div>
           </div>
         </div>
@@ -3733,8 +3749,8 @@
   <script src="js/tools-calculators.js?v=20260904_08"></script>
   <script src="js/analyzer-app.js?v=20260904_07"></script>
 
-  <script src="js/admin.js?v=20260904_06"></script>
-  <script src="js/preview-app-v2.js?v=20260904_11"></script>
+  <script src="js/admin.js?v=20260904_12"></script>
+  <script src="js/preview-app-v2.js?v=20260904_12"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

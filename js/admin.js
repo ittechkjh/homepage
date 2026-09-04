@@ -9,6 +9,18 @@
 
 const AdminAnalytics = {
     STORAGE_KEY: 'coinhub_admin_real_analytics',
+    cloudStatsCache: null,
+
+    getBrowserName: function () {
+        const ua = navigator.userAgent;
+        if (/Whale/i.test(ua)) return 'Whale';
+        if (/SamsungBrowser/i.test(ua)) return 'Samsung';
+        if (/Edg/i.test(ua)) return 'Edge';
+        if (/Chrome/i.test(ua)) return 'Chrome';
+        if (/Safari/i.test(ua)) return 'Safari';
+        if (/Firefox/i.test(ua)) return 'Firefox';
+        return 'Other';
+    },
 
     init: function () {
         this.recordVisit();
@@ -50,8 +62,20 @@ const AdminAnalytics = {
 
     recordVisit: function (featureName = null) {
         try {
-            const data = this.getAnalyticsData();
             const todayStr = new Date().toISOString().slice(0, 10);
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+            const devKey = isMobile ? 'mobile' : 'desktop';
+            const browserName = this.getBrowserName();
+
+            // 1. Session-based unique visitor check
+            let isNewVisitor = false;
+            if (!sessionStorage.getItem('crytopnl_visited_' + todayStr)) {
+                isNewVisitor = true;
+                sessionStorage.setItem('crytopnl_visited_' + todayStr, '1');
+            }
+
+            // 2. Update LocalStorage cache
+            const data = this.getAnalyticsData();
             let todayEntry = data.history.find(h => h.date === todayStr);
 
             if (!todayEntry) {
@@ -60,11 +84,9 @@ const AdminAnalytics = {
                 if (data.history.length > 30) data.history.shift();
                 data.totalVisitorsAllTime += 1;
             } else {
-                // Session-based unique visitor check
-                if (!sessionStorage.getItem('coinhub_session_tracked')) {
+                if (isNewVisitor) {
                     todayEntry.visitors += 1;
                     data.totalVisitorsAllTime += 1;
-                    sessionStorage.setItem('coinhub_session_tracked', '1');
                 }
                 todayEntry.pageviews += 1;
             }
@@ -75,19 +97,174 @@ const AdminAnalytics = {
                 data.features[featureName] += 1;
             }
 
-            // Track real device
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                data.devices.mobile = (data.devices.mobile || 0) + 1;
-            } else {
-                data.devices.desktop = (data.devices.desktop || 0) + 1;
-            }
+            data.devices[devKey] = (data.devices[devKey] || 0) + 1;
+            data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+
+            // 3. Firestore Cloud Real-time Aggregation
+            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+                const updateObj = {
+                    date: todayStr,
+                    pageviews: firebase.firestore.FieldValue.increment(1),
+                    [`devices.${devKey}`]: firebase.firestore.FieldValue.increment(1),
+                    [`browsers.${browserName}`]: firebase.firestore.FieldValue.increment(1),
+                    lastVisitAt: new Date().toISOString()
+                };
+
+                if (isNewVisitor) {
+                    updateObj.visitors = firebase.firestore.FieldValue.increment(1);
+                }
+
+                if (featureName) {
+                    updateObj[`features.${featureName}`] = firebase.firestore.FieldValue.increment(1);
+                }
+
+                firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
+                    .catch(e => console.warn('Firestore analytics sync note:', e));
+
+                // Totals accumulator doc
+                const totalsObj = {
+                    totalPageviews: firebase.firestore.FieldValue.increment(1)
+                };
+                if (isNewVisitor) {
+                    totalsObj.totalVisitors = firebase.firestore.FieldValue.increment(1);
+                }
+                firestore.collection('site_analytics').doc('totals').set(totalsObj, { merge: true })
+                    .catch(e => console.warn('Firestore totals sync note:', e));
+            }
         } catch (e) {}
     },
 
+    fetchCloudStats: async function () {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        const dateKeys = [];
+        const now = new Date();
+        for (let i = 13; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            dateKeys.push(d.toISOString().slice(0, 10));
+        }
+        const todayStr = dateKeys[dateKeys.length - 1];
+        const yesterdayStr = dateKeys[dateKeys.length - 2];
+
+        if (!firestore) {
+            return this.getTodayStats();
+        }
+
+        try {
+            const docsSnap = await firestore.collection('site_analytics')
+                .where(firebase.firestore.FieldPath.documentId(), '>=', dateKeys[0])
+                .get();
+
+            const dayMap = {};
+            let aggMobile = 0;
+            let aggDesktop = 0;
+            const aggBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Other: 0 };
+            const aggFeatures = { analyzer: 0, market: 0, news: 0, community: 0 };
+
+            docsSnap.forEach(doc => {
+                const d = doc.data();
+                if (d) {
+                    dayMap[doc.id] = d;
+                    if (d.devices) {
+                        aggMobile += Number(d.devices.mobile || 0);
+                        aggDesktop += Number(d.devices.desktop || 0);
+                    }
+                    if (d.browsers) {
+                        Object.keys(d.browsers).forEach(b => {
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(d.browsers[b] || 0);
+                        });
+                    }
+                    if (d.features) {
+                        Object.keys(d.features).forEach(f => {
+                            aggFeatures[f] = (aggFeatures[f] || 0) + Number(d.features[f] || 0);
+                        });
+                    }
+                }
+            });
+
+            // Also check totals doc
+            let cloudTotalVisitors = 0;
+            let cloudTotalPV = 0;
+            try {
+                const totalsDoc = await firestore.collection('site_analytics').doc('totals').get();
+                if (totalsDoc.exists) {
+                    const t = totalsDoc.data();
+                    cloudTotalVisitors = Number(t.totalVisitors || 0);
+                    cloudTotalPV = Number(t.totalPageviews || 0);
+                }
+            } catch (e) {}
+
+            const history14 = dateKeys.map(k => {
+                const entry = dayMap[k];
+                return {
+                    date: k,
+                    visitors: entry ? Number(entry.visitors || 0) : 0,
+                    pageviews: entry ? Number(entry.pageviews || 0) : 0
+                };
+            });
+
+            const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
+            const yesterdayEntry = dayMap[yesterdayStr] || { visitors: 0, pageviews: 0 };
+
+            // Ensure today is at least counted with local session if connection just initialized
+            const todayVisitors = Math.max(Number(todayEntry.visitors || 0), 1);
+            const todayPageviews = Math.max(Number(todayEntry.pageviews || 0), 1);
+            const yesterdayVisitors = Number(yesterdayEntry.visitors || 0);
+
+            let growthRate = '0.0%';
+            if (yesterdayVisitors > 0) {
+                const pct = (((todayVisitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
+                growthRate = (pct >= 0 ? '+' : '') + pct + '%';
+            } else if (todayVisitors > 0) {
+                growthRate = '+100%';
+            }
+
+            const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0) || todayVisitors;
+            const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0) || todayVisitors;
+
+            const totalDev = aggMobile + aggDesktop;
+            const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 50;
+            const desktopPct = totalDev > 0 ? (100 - mobilePct) : 50;
+
+            let realLiveCount = 1;
+            const activeListEl = document.getElementById('chat-active-users-list');
+            if (activeListEl && activeListEl.children.length > 0) {
+                realLiveCount = Math.max(1, activeListEl.children.length);
+            }
+
+            const stats = {
+                todayVisitors,
+                todayPageviews,
+                yesterdayVisitors,
+                growthRate,
+                weeklyVisitors,
+                monthlyVisitors,
+                liveUsers: realLiveCount,
+                totalVisitorsAllTime: Math.max(cloudTotalVisitors, weeklyVisitors),
+                totalPageviewsAllTime: Math.max(cloudTotalPV, todayPageviews),
+                history: history14,
+                mobilePct,
+                desktopPct,
+                browsers: aggBrowsers,
+                features: aggFeatures
+            };
+
+            this.cloudStatsCache = stats;
+            return stats;
+        } catch (err) {
+            console.warn('fetchCloudStats error, fallback:', err);
+            return this.getTodayStats();
+        }
+    },
+
     getTodayStats: function () {
+        if (this.cloudStatsCache) {
+            return this.cloudStatsCache;
+        }
+
         const data = this.getAnalyticsData();
         const todayStr = new Date().toISOString().slice(0, 10);
         const today = data.history.find(h => h.date === todayStr) || { visitors: 1, pageviews: 1 };
@@ -144,6 +321,7 @@ const AdminAnalytics = {
             history: history14,
             mobilePct,
             desktopPct,
+            browsers: data.browsers || {},
             features: data.features || { analyzer: 0, market: 0, news: 0, community: 0 }
         };
     }
@@ -839,8 +1017,8 @@ const AdminApp = {
         this.renderSystemHealth();
     },
 
-    renderAnalytics: function () {
-        const stats = AdminAnalytics.getTodayStats();
+    renderAnalytics: async function () {
+        const stats = await AdminAnalytics.fetchCloudStats();
 
         // 1. Real KPI Cards
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -899,6 +1077,32 @@ const AdminApp = {
         };
         setDev('admin-dev-mobile-pct', stats.mobilePct);
         setDev('admin-dev-desktop-pct', stats.desktopPct);
+
+        // 5. Update Dynamic Browser Environment Breakdown
+        const bContainer = document.getElementById('admin-browser-breakdown');
+        if (bContainer) {
+            const bMap = stats.browsers || {};
+            const bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
+            const bNames = [
+                { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+                { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
+                { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
+                { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+                { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
+                { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
+            ];
+            bContainer.innerHTML = bNames.map(b => {
+                const cnt = Number(bMap[b.key] || 0);
+                const pct = bTotal > 0 ? Math.round((cnt / bTotal) * 100) : (b.key === 'Chrome' ? 100 : 0);
+                return `
+                  <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                    <span class="w-2 h-2 rounded-full ${b.dot}"></span>
+                    <span class="text-slate-300 text-[11px]">${b.name}:</span>
+                    <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
+                  </div>
+                `;
+            }).join('');
+        }
     },
 
     renderUsers: async function () {
@@ -1217,10 +1421,16 @@ const AdminApp = {
     }
 };
 
-// Global Attach
+// Global Attach & Auto Init
 if (typeof window !== 'undefined') {
     window.AdminAnalytics = AdminAnalytics;
     window.AdminUserManager = AdminUserManager;
     window.AdminApp = AdminApp;
+
+    // Immediately record visit & sync stats
+    try {
+        AdminAnalytics.init();
+        AdminUserManager.initFirebaseSync();
+    } catch (e) {}
 }
 
