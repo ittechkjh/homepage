@@ -2079,6 +2079,8 @@ function switchAuthTab(mode) {
   const regTab = document.getElementById('auth-tab-register');
   const labelId = document.getElementById('auth-label-id');
   const inputId = document.getElementById('login-identifier');
+  const confirmContainer = document.getElementById('auth-pw-confirm-container');
+  const confirmInput = document.getElementById('login-password-confirm');
   const benefits = document.getElementById('auth-register-benefits');
   const submitText = document.getElementById('auth-submit-text');
 
@@ -2091,6 +2093,8 @@ function switchAuthTab(mode) {
     }
     if (labelId) labelId.innerText = '가입할 아이디 / 닉네임';
     if (inputId) inputId.placeholder = '사용할 새 닉네임 입력 (예: 비트고수)';
+    if (confirmContainer) confirmContainer.style.display = 'block';
+    if (confirmInput) confirmInput.required = true;
     if (benefits) benefits.style.display = 'block';
     if (submitText) submitText.innerText = '간편 회원가입 완료';
   } else {
@@ -2102,6 +2106,11 @@ function switchAuthTab(mode) {
     }
     if (labelId) labelId.innerText = '아이디 / 닉네임';
     if (inputId) inputId.placeholder = '아이디 또는 사용할 닉네임 입력';
+    if (confirmContainer) confirmContainer.style.display = 'none';
+    if (confirmInput) {
+      confirmInput.required = false;
+      confirmInput.value = '';
+    }
     if (benefits) benefits.style.display = 'none';
     if (submitText) submitText.innerText = '로그인 완료';
   }
@@ -2152,11 +2161,20 @@ async function handleUnifiedLoginSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
   const idInput = document.getElementById('login-identifier');
   const pwInput = document.getElementById('login-password');
+  const pwConfirmInput = document.getElementById('login-password-confirm');
   const id = (idInput ? idInput.value : '').trim();
   const pw = (pwInput ? pwInput.value : '').trim();
+  const pwConfirm = (pwConfirmInput ? pwConfirmInput.value : '').trim();
 
   if (!id) {
     alert('아이디 또는 닉네임을 입력해 주세요.');
+    if (idInput) idInput.focus();
+    return;
+  }
+
+  if (!pw) {
+    alert('비밀번호를 입력해 주세요.');
+    if (pwInput) pwInput.focus();
     return;
   }
 
@@ -2229,49 +2247,195 @@ async function handleUnifiedLoginSubmit(e) {
     }
   }
 
-  // 2. Normal Member Login / Register (Saves to Firestore 'users' collection with exact last login timestamp)
+  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+
+  // 2. Case: REGISTER (간편 회원가입)
+  if (currentAuthTabMode === 'register') {
+    if (!pwConfirm) {
+      alert('비밀번호 확인을 입력해 주세요.');
+      if (pwConfirmInput) pwConfirmInput.focus();
+      return;
+    }
+
+    if (pw !== pwConfirm) {
+      alert('❌ 비밀번호와 비밀번호 확인이 일치하지 않습니다. 다시 확인해 주세요.');
+      if (pwConfirmInput) {
+        pwConfirmInput.value = '';
+        pwConfirmInput.focus();
+      }
+      return;
+    }
+
+    // Check if user already exists
+    let exists = false;
+    if (firestore) {
+      try {
+        const docSnap = await firestore.collection('users').doc(id.toLowerCase()).get();
+        if (docSnap.exists) exists = true;
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
+    if (!exists) {
+      const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
+      if (rawList) {
+        try {
+          const uList = JSON.parse(rawList);
+          if (uList.some(x => x.username && x.username.toLowerCase() === id.toLowerCase())) {
+            exists = true;
+          }
+        } catch (e) {}
+      }
+    }
+
+    if (exists) {
+      alert(`❌ 이미 등록된 아이디/닉네임입니다.\n다른 아이디를 입력하시거나 [🔐 로그인] 탭에서 로그인해 주세요.`);
+      switchAuthTab('login');
+      if (idInput) idInput.value = id;
+      if (pwInput) {
+        pwInput.value = '';
+        pwInput.focus();
+      }
+      return;
+    }
+
+    // Create new account
+    const now = new Date();
+    const timeFormatted = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    
+    const newUser = {
+      id: 'usr_' + id.toLowerCase(),
+      username: id,
+      email: id.includes('@') ? id : `${id}@crytopnl.com`,
+      role: 'MEMBER',
+      rank: 'PRO',
+      status: 'ACTIVE',
+      password: pw,
+      joinedDate: timeFormatted.slice(0, 10),
+      lastLogin: timeFormatted,
+      lastLoginAt: timeFormatted,
+      reputation: 100,
+      updatedAt: now.toISOString()
+    };
+
+    localStorage.setItem('crytopnl_user', JSON.stringify(newUser));
+    localStorage.setItem('coinhub_user', JSON.stringify(newUser));
+    localStorage.setItem('crytopnl_user_pw_' + id.toLowerCase(), pw);
+    localStorage.setItem('coinhub_user_pw_' + id.toLowerCase(), pw);
+
+    try {
+      const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
+      let uList = [];
+      if (rawList) {
+        try { uList = JSON.parse(rawList); } catch(e){}
+      }
+      uList.push(newUser);
+      localStorage.setItem('coinhub_registered_users', JSON.stringify(uList));
+      localStorage.setItem('crytopnl_registered_users', JSON.stringify(uList));
+    } catch (e) {}
+
+    if (firestore) {
+      try {
+        await firestore.collection('users').doc(id.toLowerCase()).set(newUser, { merge: true });
+      } catch (err) {
+        console.warn('Firestore user doc write warning:', err);
+      }
+    }
+
+    updateAuthUI();
+    updateAdminNavVisibility();
+    closeAuthModal();
+
+    if (typeof AnalyzerApp !== 'undefined') {
+      if (AnalyzerApp.loadSavedTrades) await AnalyzerApp.loadSavedTrades();
+      if (AnalyzerApp.updateUserBanner) AnalyzerApp.updateUserBanner();
+      if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
+    }
+
+    alert(`🎉 반갑습니다, ${id}님! 간편 회원가입 및 로그인이 완료되었습니다.\n이제 여러 기기에서 거래내역 클라우드 동기화 기능을 이용하실 수 있습니다.`);
+    return;
+  }
+
+  // 3. Case: LOGIN (기존 회원 로그인) - Must verify existing account!
+  let existingUser = null;
+  let storedPw = localStorage.getItem('crytopnl_user_pw_' + id.toLowerCase()) || localStorage.getItem('coinhub_user_pw_' + id.toLowerCase());
+
+  if (firestore) {
+    try {
+      const docSnap = await firestore.collection('users').doc(id.toLowerCase()).get();
+      if (docSnap.exists) {
+        existingUser = docSnap.data();
+        if (existingUser && existingUser.password) storedPw = existingUser.password;
+      }
+    } catch (err) {
+      console.warn('Firestore check user warning:', err);
+    }
+  }
+
+  if (!existingUser) {
+    const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
+    if (rawList) {
+      try {
+        const uList = JSON.parse(rawList);
+        const found = uList.find(x => x.username && x.username.toLowerCase() === id.toLowerCase());
+        if (found) {
+          existingUser = found;
+          if (found.password) storedPw = found.password;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Not registered yet -> Block and prompt to register
+  if (!existingUser && !storedPw) {
+    alert(`❌ 가입되지 않은 아이디/닉네임입니다.\n먼저 [✨ 간편 회원가입] 탭에서 회원가입을 완료해 주세요.`);
+    switchAuthTab('register');
+    if (idInput) idInput.value = id;
+    if (pwInput) {
+      pwInput.value = '';
+      pwInput.focus();
+    }
+    return;
+  }
+
+  // Check password
+  if (storedPw && pw !== storedPw) {
+    alert('❌ 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
+    if (pwInput) {
+      pwInput.value = '';
+      pwInput.focus();
+    }
+    return;
+  }
+
+  // Successful Login
   const now = new Date();
   const timeFormatted = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-  
-  const user = {
-    id: 'usr_' + id.toLowerCase(),
-    username: id,
-    email: id.includes('@') ? id : `${id}@crytopnl.com`,
-    role: 'MEMBER',
-    rank: 'PRO',
-    status: 'ACTIVE',
-    joinedDate: timeFormatted.slice(0, 10),
+
+  const user = Object.assign({}, existingUser || {}, {
+    id: existingUser?.id || ('usr_' + id.toLowerCase()),
+    username: existingUser?.username || id,
+    email: existingUser?.email || (id.includes('@') ? id : `${id}@crytopnl.com`),
+    role: existingUser?.role || 'MEMBER',
+    rank: existingUser?.rank || 'PRO',
+    status: existingUser?.status || 'ACTIVE',
+    password: storedPw || pw,
     lastLogin: timeFormatted,
     lastLoginAt: timeFormatted,
-    reputation: 100,
     updatedAt: now.toISOString()
-  };
+  });
 
   localStorage.setItem('crytopnl_user', JSON.stringify(user));
   localStorage.setItem('coinhub_user', JSON.stringify(user));
+  localStorage.setItem('crytopnl_user_pw_' + id.toLowerCase(), user.password);
+  localStorage.setItem('coinhub_user_pw_' + id.toLowerCase(), user.password);
 
-  try {
-    const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
-    let uList = [];
-    if (rawList) {
-      try { uList = JSON.parse(rawList); } catch(e){}
-    }
-    const existingIdx = uList.findIndex(x => x.username && x.username.toLowerCase() === user.username.toLowerCase());
-    if (existingIdx >= 0) {
-      uList[existingIdx] = Object.assign(uList[existingIdx], user);
-    } else {
-      uList.push(user);
-    }
-    localStorage.setItem('coinhub_registered_users', JSON.stringify(uList));
-    localStorage.setItem('crytopnl_registered_users', JSON.stringify(uList));
-  } catch (e) {}
-
-  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
   if (firestore) {
     try {
       await firestore.collection('users').doc(id.toLowerCase()).set(user, { merge: true });
     } catch (err) {
-      console.warn('Firestore user doc write warning:', err);
+      console.warn('Firestore user doc update warning:', err);
     }
   }
 
@@ -2285,11 +2449,7 @@ async function handleUnifiedLoginSubmit(e) {
     if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
   }
 
-  if (currentAuthTabMode === 'register') {
-    alert(`🎉 반갑습니다, ${id}님! 간편 회원가입 및 로그인이 완료되었습니다.\n클라우드 동기화와 모든 정회원 기능을 이용하실 수 있습니다.`);
-  } else {
-    alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
-  }
+  alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
 }
 window.handleUnifiedLoginSubmit = handleUnifiedLoginSubmit;
 
