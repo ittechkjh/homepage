@@ -1026,20 +1026,27 @@ function handleDeleteCafePost(postId) {
 
   let posts = getStoredPosts();
   const post = posts.find(p => String(p.id) === String(postId));
-  if (!post) return;
+  if (!post) {
+    alert('삭제할 게시글을 찾을 수 없습니다.');
+    return;
+  }
 
-  if (!currentUsername || currentUsername.toLowerCase() !== (post.author || '').trim().toLowerCase()) {
-    if (typeof isAdmin !== 'function' || !isAdmin(currentUsername)) {
-      alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
-      return;
-    }
+  const isPostAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase());
+  const isUserAdmin = typeof isAdmin === 'function' && isAdmin(currentUsername);
+
+  if (!isPostAuthor && !isUserAdmin) {
+    alert('❌ 본인이 직접 작성한 게시글만 삭제할 수 있습니다.');
+    return;
   }
 
   if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
   posts = posts.filter(p => String(p.id) !== String(postId));
-  saveStoredPosts(posts);
+  try {
+    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+  } catch(e) {}
   if (typeof db !== 'undefined' && db) {
-    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
   }
   alert('🗑️ 게시글이 삭제되었습니다.');
   showForumListView();
@@ -1203,8 +1210,21 @@ function handleCafeSubmitPost(e) {
   posts.unshift(newPost);
   saveStoredPosts(posts);
 
+  if (typeof db !== 'undefined' && db) {
+    db.collection('forum_posts').doc(newPost.id.toString()).set(newPost).catch(e => console.error('Firestore save error:', e));
+  }
+
+  // Reset input form
+  if (titleInput) titleInput.value = '';
+  if (editor) editor.innerHTML = '';
+  const noticeChk = document.getElementById('cafe-write-is-notice');
+  if (noticeChk) noticeChk.checked = false;
+
   alert('🎉 게시글이 성공적으로 등록되었습니다!');
-  showForumListView();
+  if (typeof filterForum === 'function') {
+    filterForum('all');
+  }
+  openPostDetailModal(newPost.id);
 }
 window.handleCafeSubmitPost = handleCafeSubmitPost;
 
@@ -2833,41 +2853,76 @@ window.handleSendChat = handleSendChat;
 // === UPDATES FOR ADMIN, CHAT CHANNELS, AND ONLINE COUNT ===
 
 // 1. Admin Logic
-const ADMIN_NAMES = ['admin'];
+const ADMIN_NAMES = ['admin', '관리자'];
 window.isAdmin = function(user) {
-  if (!user) return false;
-  return ADMIN_NAMES.includes(user.toLowerCase());
+  // Session admin authentication check (Admin Password Login)
+  if (sessionStorage.getItem('coinhub_admin_authenticated') === '1' || 
+      sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || 
+      sessionStorage.getItem('cryptopnl_admin_authenticated') === '1') {
+    return true;
+  }
+  // User profile check in localStorage
+  const stored = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
+  if (stored) {
+    try {
+      const u = JSON.parse(stored);
+      if (u && (
+        ADMIN_NAMES.includes((u.username || '').trim().toLowerCase()) ||
+        u.role === 'ADMIN' ||
+        u.rank === 'ADMIN'
+      )) {
+        return true;
+      }
+    } catch(e) {}
+  }
+  // Explicit user parameter check
+  if (user) {
+    if (typeof user === 'string') {
+      return ADMIN_NAMES.includes(user.trim().toLowerCase());
+    }
+    if (typeof user === 'object') {
+      return ADMIN_NAMES.includes((user.username || '').trim().toLowerCase()) || user.role === 'ADMIN' || user.rank === 'ADMIN';
+    }
+  }
+  return false;
 };
 
 // Override Delete Post
 const originalHandleDeleteCafePost = handleDeleteCafePost;
 handleDeleteCafePost = function(postId) {
   let posts = getStoredPosts();
-  const post = posts.find(p => p.id === postId);
-  if (!post) return;
+  const post = posts.find(p => String(p.id) === String(postId));
+  if (!post) {
+    alert('삭제할 게시글을 찾을 수 없습니다.');
+    return;
+  }
 
   const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
   let currentUsername = '익명 트레이더';
   if (storedUser) {
     try {
       const u = JSON.parse(storedUser);
-      if (u && u.username) currentUsername = u.username;
+      if (u && u.username) currentUsername = u.username.trim();
     } catch(e) {}
   }
 
   // Check if admin or author
-  const isPostAuthor = currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase();
-  if (!isPostAuthor && !isAdmin(currentUsername)) {
+  const isPostAuthor = Boolean(currentUsername && currentUsername.toLowerCase() === (post.author || '').trim().toLowerCase());
+  const isUserAdmin = typeof isAdmin === 'function' && isAdmin(currentUsername);
+  if (!isPostAuthor && !isUserAdmin) {
     alert('❌ 본인이 작성한 게시글만 삭제할 수 있습니다.');
     return;
   }
 
   if (!confirm('정말 삭제하시겠습니까?')) return;
-  posts = posts.filter(p => p.id !== postId);
-  saveStoredPosts(posts);
+  posts = posts.filter(p => String(p.id) !== String(postId));
+  try {
+    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+  } catch(e) {}
   
-  if (db) {
-    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+  if (typeof db !== 'undefined' && db) {
+    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
   }
   
   alert('🗑️ 게시글이 삭제되었습니다.');
