@@ -2641,6 +2641,14 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
     CoinCalculators.init();
+    const loggedUser = typeof CoinCalculators.getLoggedInUsername === 'function' ? CoinCalculators.getLoggedInUsername() : null;
+    const nickEl = document.getElementById('cardNick');
+    if (nickEl && loggedUser) {
+      nickEl.value = loggedUser;
+      if (typeof CoinCalculators.renderProfitCard === 'function') {
+        CoinCalculators.renderProfitCard();
+      }
+    }
   }
 
   if (tabId === 'market') {

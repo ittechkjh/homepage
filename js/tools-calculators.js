@@ -26,15 +26,39 @@ const CoinCalculators = {
 
     getLoggedInUsername: function () {
         try {
-            const isSessionAdmin = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
-            const stored = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || localStorage.getItem('cryptopnl_user');
-            if (stored) {
-                const u = JSON.parse(stored);
-                if (u && (u.username || u.name || u.nickname)) {
-                    return (u.username || u.name || u.nickname).trim();
+            // 1. Check header auth button directly (authoritative active login state in UI)
+            const authBtn = document.getElementById('btn-header-auth');
+            if (authBtn && authBtn.innerText && authBtn.innerText.includes('로그아웃')) {
+                const clean = authBtn.innerText.replace(/\(로그아웃\)|로그아웃/g, '').trim();
+                if (clean && clean !== '로그인') return clean;
+            }
+
+            // 2. Check all possible localStorage and sessionStorage user keys
+            const userKeys = ['crytopnl_user', 'cryptopnl_user', 'coinhub_user'];
+            for (const k of userKeys) {
+                const raw = localStorage.getItem(k) || sessionStorage.getItem(k);
+                if (raw) {
+                    try {
+                        const u = JSON.parse(raw);
+                        if (u && (u.username || u.name || u.nickname)) {
+                            return (u.username || u.name || u.nickname).trim();
+                        }
+                    } catch (e) {}
                 }
             }
-            if (isSessionAdmin) return 'admin';
+
+            // 3. Check admin session authentication
+            const adminKeys = ['coinhub_admin_authenticated', 'crytopnl_admin_authenticated', 'cryptopnl_admin_authenticated'];
+            for (const k of adminKeys) {
+                if (sessionStorage.getItem(k) === '1' || localStorage.getItem(k) === '1') {
+                    return 'admin';
+                }
+            }
+
+            // 4. Global object fallback
+            if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) {
+                return currentUser.username.trim();
+            }
         } catch (e) {}
         return null;
     },
@@ -50,8 +74,12 @@ const CoinCalculators = {
 
         const loggedUser = this.getLoggedInUsername();
         const nickEl = document.getElementById('cardNick');
-        if (nickEl && loggedUser) {
-            nickEl.value = loggedUser;
+        if (nickEl) {
+            if (loggedUser) {
+                nickEl.value = loggedUser;
+            } else if (!nickEl.value || nickEl.value === '코인왕김수익') {
+                nickEl.value = '익명 트레이더';
+            }
         }
 
         this.importProfitCardFromAnalyzer(false);
@@ -1260,10 +1288,14 @@ const CoinCalculators = {
   </table>
 </div>
 
-<div style="padding: 14px 16px; background: rgba(8, 145, 178, 0.08); border-left: 3px solid #06b6d4; border-radius: 8px; margin-top: 14px; font-size: 13px; color: #cbd5e1; line-height: 1.6;">
-  🔒 <strong>데이터 무결성 검증 보증:</strong><br>
-  본 인증서는 업비트 및 빗썸의 거래 내역 원본을 바탕으로 브라우저 로컬 단에서 <strong>100% 무손실 선입선출(FIFO) 독립 연산 엔진</strong>을 통해 정산 검증되었습니다.<br>
-  (외부 서버로 일체의 거래 데이터가 전송되지 않는 안전한 클라이언트 검증 리포트입니다.)
+<div class="pnl-verify-integrity-box" style="padding: 16px 18px; background: #0c1322; border: 1px solid rgba(56, 189, 248, 0.35); border-left: 4px solid #06b6d4; border-radius: 12px; margin-top: 16px; font-size: 13.5px; color: #f1f5f9; line-height: 1.65; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+  <div style="font-weight: 800; color: #38bdf8; margin-bottom: 6px; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+    🔒 <span>데이터 무결성 검증 보증</span>
+  </div>
+  <div style="color: #e2e8f0; font-size: 13px;">
+    본 인증서는 업비트 및 빗썸의 거래 내역 원본을 바탕으로 브라우저 로컬 단에서 <strong style="color: #38bdf8; font-weight: 800;">100% 무손실 선입선출(FIFO) 독립 연산 엔진</strong>을 통해 정산 검증되었습니다.<br>
+    <span style="color: #94a3b8; font-size: 12px;">(외부 서버로 일체의 거래 데이터가 전송되지 않는 안전한 클라이언트 검증 리포트입니다.)</span>
+  </div>
 </div>`,
             isNotice: false,
             author: authorName,

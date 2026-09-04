@@ -511,3 +511,29 @@ html.theme-light ::-webkit-scrollbar-thumb {
 html.theme-light ::-webkit-scrollbar-thumb:hover {
   background: #0284c7 !important;
 }
+
+/* 14. Forum Verification Post Detail & Integrity Notice in Light Mode */
+html.theme-light #cafe-post-content [style*="rgba(8, 145, 178"],
+html.theme-light #cafe-post-content [style*="rgba(8,145,178"],
+html.theme-light #cafe-post-content .pnl-verify-integrity-box {
+  background-color: #f0fdfa !important;
+  border-left: 4px solid #0891b2 !important;
+  border-top: 1px solid #ccfbf1 !important;
+  border-right: 1px solid #ccfbf1 !important;
+  border-bottom: 1px solid #ccfbf1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #cafe-post-content [style*="rgba(8, 145, 178"] *,
+html.theme-light #cafe-post-content [style*="rgba(8,145,178"] *,
+html.theme-light #cafe-post-content .pnl-verify-integrity-box * {
+  color: #1e293b !important;
+}
+
+html.theme-light #cafe-post-content [style*="rgba(8, 145, 178"] strong,
+html.theme-light #cafe-post-content [style*="rgba(8,145,178"] strong,
+html.theme-light #cafe-post-content .pnl-verify-integrity-box strong {
+  color: #042f2e !important;
+  font-weight: 800 !important;
+}
+
