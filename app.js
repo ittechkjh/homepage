@@ -287,7 +287,6 @@ function updateAuthUI() {
 
   const isAuth = isSessionAuth || isAdminUser;
   const authBtn = document.getElementById('btn-header-auth');
-  const regBtn = document.getElementById('btn-header-register');
 
   if (isAuth) {
     if (authBtn) {
@@ -295,23 +294,17 @@ function updateAuthUI() {
       authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
-    if (regBtn) regBtn.style.display = 'none';
   } else if (user && user.username) {
     if (authBtn) {
       authBtn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4 text-cyan-400"></i><span>${escapeHtml(user.username)} (로그아웃)</span>`;
-      authBtn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
-    if (regBtn) regBtn.style.display = 'none';
   } else {
     if (authBtn) {
-      authBtn.innerHTML = '<i data-lucide="log-in" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400"></i><span>로그인</span>';
+      authBtn.innerHTML = '<i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400"></i><span>로그인</span>';
       authBtn.className = 'flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-cyan-500/40 hover:border-cyan-400 text-[11px] sm:text-xs font-bold text-cyan-300 hover:text-white transition shadow-sm cursor-pointer shrink-0';
-      authBtn.onclick = () => openAuthModal('login');
-    }
-    if (regBtn) {
-      regBtn.style.display = 'inline-flex';
-      regBtn.onclick = () => openAuthModal('register');
+      authBtn.onclick = openAuthModal;
     }
   }
 
