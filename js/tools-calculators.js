@@ -755,11 +755,27 @@ const CoinCalculators = {
             ctx.fillStyle = '#070b14';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            const themeEl = document.getElementById('cardTheme');
+            const theme = themeEl ? themeEl.value : 'cyber';
+
+            let frameBorder = 'rgba(56, 189, 248, 0.22)';
+            let glowColor1 = 'rgba(14, 116, 144, 0.32)';
+            let glowColor2 = 'rgba(6, 182, 212, 0.10)';
+            if (theme === 'gold') {
+                frameBorder = 'rgba(245, 158, 11, 0.35)';
+                glowColor1 = 'rgba(245, 158, 11, 0.28)';
+                glowColor2 = 'rgba(217, 119, 6, 0.08)';
+            } else if (theme === 'emerald') {
+                frameBorder = 'rgba(16, 185, 129, 0.35)';
+                glowColor1 = 'rgba(16, 185, 129, 0.28)';
+                glowColor2 = 'rgba(5, 150, 105, 0.08)';
+            }
+
             // Outer Rounded Frame (r: 16)
             drawRoundedRect(ctx, 16, 16, canvas.width - 32, canvas.height - 32, 16);
             ctx.fillStyle = '#070b14';
             ctx.fill();
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+            ctx.strokeStyle = frameBorder;
             ctx.lineWidth = 1.2;
             ctx.stroke();
 
@@ -768,8 +784,8 @@ const CoinCalculators = {
             drawRoundedRect(ctx, 16, 16, canvas.width - 32, canvas.height - 32, 16);
             ctx.clip();
             const glowGrad = ctx.createRadialGradient(canvas.width - 110, 65, 20, canvas.width - 110, 65, 300);
-            glowGrad.addColorStop(0, 'rgba(14, 116, 144, 0.32)');
-            glowGrad.addColorStop(0.45, 'rgba(6, 182, 212, 0.10)');
+            glowGrad.addColorStop(0, glowColor1);
+            glowGrad.addColorStop(0.45, glowColor2);
             glowGrad.addColorStop(1, 'rgba(7, 11, 20, 0)');
             ctx.fillStyle = glowGrad;
             ctx.beginPath();
@@ -811,7 +827,7 @@ const CoinCalculators = {
             ctx.stroke();
 
             // 4-Card Dashboard Grid Drawing Helper
-            const drawDashboardCard = (x, y, w, h, title, mainVal, badgeText, badgeColor, subLine1, subLine2, valColor, isRoiVal = false) => {
+            const drawDashboardCard = (x, y, w, h, title, mainVal, badgeText, badgeColor, subLine1, subLine2, valColor, isRoiVal = false, subAmtText = null) => {
                 // Card Background & Border
                 drawRoundedRect(ctx, x, y, w, h, 12);
                 ctx.fillStyle = 'rgba(12, 19, 34, 0.72)';
