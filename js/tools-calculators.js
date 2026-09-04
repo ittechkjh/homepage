@@ -1134,7 +1134,7 @@ const CoinCalculators = {
             id: Date.now(),
             category: 'profit',
             categoryName: '💵 실현손익',
-            title: `[수익인증] ${authorName}님의 손익 인증 (누적 실현: ${realizedProfitText} / 실시간 평가: ${unrealizedProfitText})`,
+            title: `[수익인증] ${authorName}님의 ${periodText} (누적 실현: ${realizedProfitText} / 실시간 평가: ${unrealizedProfitText})`,
             content: `<p><img src="${dataUrl}" alt="CryptoPnL 실거래 통합 손익 인증 카드" style="max-width:100%; border-radius:14px; margin: 12px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.45); border: 1px solid rgba(56, 189, 248, 0.25);"></p>
 
 <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 14px; padding: 18px 20px; margin: 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
