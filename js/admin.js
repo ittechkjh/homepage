@@ -230,9 +230,22 @@ const AdminAnalytics = {
             const desktopPct = totalDev > 0 ? (100 - mobilePct) : 50;
 
             let realLiveCount = 1;
-            const activeListEl = document.getElementById('chat-active-users-list');
-            if (activeListEl && activeListEl.children.length > 0) {
-                realLiveCount = Math.max(1, activeListEl.children.length);
+            try {
+                const presenceSnap = await firestore.collection('chat_presence').get();
+                const nowTime = Date.now();
+                let pCount = 0;
+                presenceSnap.forEach(p => {
+                    const pd = p.data();
+                    if (pd && pd.lastSeen && Number(pd.lastSeen) >= nowTime - 60000) {
+                        pCount++;
+                    }
+                });
+                if (pCount > 0) realLiveCount = pCount;
+            } catch (e) {
+                const activeListEl = document.getElementById('chat-active-users-list');
+                if (activeListEl && activeListEl.children.length > 0) {
+                    realLiveCount = Math.max(1, activeListEl.children.length);
+                }
             }
 
             const stats = {

@@ -1308,6 +1308,10 @@ function renderChatMessages() {
 window.renderChatMessages = renderChatMessages;
 
 function renderChatActiveUsers() {
+  if (typeof ChatPresenceManager !== 'undefined' && typeof ChatPresenceManager.renderPresenceUI === 'function') {
+    ChatPresenceManager.renderPresenceUI();
+    return;
+  }
   const el = document.getElementById('online-count') || document.getElementById('chat-online-count');
   if (el) {
     const userList = document.getElementById('chat-active-users-list');
@@ -3059,12 +3063,49 @@ function switchChatChannel(channel, activeBtn, allBtns) {
       activeBtn.classList.add('bg-cyan-500/10', 'border', 'border-cyan-500/30', 'text-cyan-400');
     }
   }
+
+  // Update mobile buttons style
+  document.querySelectorAll('.m-chat-channel-btn').forEach(btn => {
+    btn.classList.remove('bg-cyan-500/20', 'text-cyan-400', 'font-bold', 'border', 'border-cyan-500/40');
+    btn.classList.add('text-slate-400', 'font-medium');
+  });
+  const activeMBtn = document.getElementById('m-chat-tab-' + channel);
+  if (activeMBtn) {
+    activeMBtn.classList.remove('text-slate-400', 'font-medium');
+    activeMBtn.classList.add('bg-cyan-500/20', 'text-cyan-400', 'font-bold', 'border', 'border-cyan-500/40');
+  }
   
   const chatHeader = document.querySelector('#tab-chat h3.text-white');
   if (chatHeader) chatHeader.innerText = '# ' + channelNames[channel];
 
   listenToChatChannel(channel);
+
+  if (typeof ChatPresenceManager !== 'undefined') {
+    ChatPresenceManager.sendHeartbeat(channel);
+    ChatPresenceManager.renderPresenceUI();
+  }
 }
+
+function switchChatChannelMobile(channel) {
+  const channelBtnMap = {
+    global: 0,
+    trading: 1,
+    altcoin: 2
+  };
+  const chatHeader = document.querySelector('#tab-chat h3.text-white');
+  let btn = null;
+  let buttons = null;
+  if (chatHeader) {
+    const buttonsContainer = chatHeader.closest('.lg\\:col-span-3')?.previousElementSibling;
+    if (buttonsContainer) {
+      buttons = buttonsContainer.querySelectorAll('button');
+      const idx = channelBtnMap[channel] !== undefined ? channelBtnMap[channel] : 0;
+      btn = buttons[idx];
+    }
+  }
+  switchChatChannel(channel, btn, buttons);
+}
+window.switchChatChannelMobile = switchChatChannelMobile;
 
 function listenToChatChannel(channel) {
   if (chatListenerUnsubscribe) {
@@ -3134,23 +3175,165 @@ handleSendChat = function(e) {
   renderChatMessages();
 };
 
-// 3. Dynamic Online Count
-function updateDynamicOnlineCount() {
-  const el = document.getElementById('online-count');
-  if (el) {
-    const userList = document.getElementById('chat-active-users-list');
-    const finalCount = userList ? userList.children.length : 1;
-    el.innerText = finalCount + '명 접속중';
+// 3. Real-time Firestore Chat Presence Engine
+const ChatPresenceManager = {
+  clientId: null,
+  heartbeatInterval: null,
+  presenceListenerUnsubscribe: null,
+  cachedActiveUsers: [],
+
+  getClientId: function () {
+    if (!this.clientId) {
+      this.clientId = sessionStorage.getItem('crytopnl_chat_client_id');
+      if (!this.clientId) {
+        this.clientId = 'client_' + Math.random().toString(36).substring(2, 9);
+        sessionStorage.setItem('crytopnl_chat_client_id', this.clientId);
+      }
+    }
+    return this.clientId;
+  },
+
+  getCurrentUsername: function () {
+    try {
+      const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
+      if (storedUser) {
+        const u = JSON.parse(storedUser);
+        if (u && u.username) return u.username;
+      }
+    } catch (e) {}
+
+    let anon = sessionStorage.getItem('crytopnl_anon_nick');
+    if (!anon) {
+      anon = '트레이더_' + this.getClientId().slice(-4);
+      sessionStorage.setItem('crytopnl_anon_nick', anon);
+    }
+    return anon;
+  },
+
+  sendHeartbeat: function (channel = null) {
+    const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestore) return;
+
+    const ch = channel || currentChatChannel || 'global';
+    const cId = this.getClientId();
+    const uName = this.getCurrentUsername();
+
+    firestore.collection('chat_presence').doc(cId).set({
+      id: cId,
+      username: uName,
+      channel: ch,
+      lastSeen: Date.now()
+    }, { merge: true }).catch(err => console.warn('Chat presence send note:', err));
+  },
+
+  leaveChat: function () {
+    const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+    if (!firestore) return;
+    const cId = this.getClientId();
+    try {
+      firestore.collection('chat_presence').doc(cId).delete().catch(() => {});
+    } catch (e) {}
+  },
+
+  init: function () {
+    this.sendHeartbeat();
+    
+    // Heartbeat every 25 seconds
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), 25000);
+
+    // Leave on window unload
+    window.addEventListener('beforeunload', () => this.leaveChat());
+
+    // Listen to active presence across all users in Firestore
+    const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+    if (firestore) {
+      if (this.presenceListenerUnsubscribe) {
+        this.presenceListenerUnsubscribe();
+      }
+
+      this.presenceListenerUnsubscribe = firestore.collection('chat_presence').onSnapshot(snap => {
+        const now = Date.now();
+        const activeCutoff = now - 60000; // Active within last 60 seconds
+        const users = [];
+
+        snap.forEach(doc => {
+          const d = doc.data();
+          if (d && d.lastSeen && Number(d.lastSeen) >= activeCutoff) {
+            users.push(d);
+          }
+        });
+
+        // Ensure current user is present
+        const myId = this.getClientId();
+        if (!users.some(u => u.id === myId)) {
+          users.push({
+            id: myId,
+            username: this.getCurrentUsername(),
+            channel: currentChatChannel || 'global',
+            lastSeen: now
+          });
+        }
+
+        this.cachedActiveUsers = users;
+        this.renderPresenceUI();
+      }, err => console.warn('Presence listener note:', err));
+    }
+  },
+
+  renderPresenceUI: function () {
+    const ch = currentChatChannel || 'global';
+    const usersInChannel = this.cachedActiveUsers.filter(u => u.channel === ch);
+    const count = Math.max(usersInChannel.length, 1);
+
+    const countText = count + '명 접속중';
+    const onlineEl = document.getElementById('online-count');
+    if (onlineEl) onlineEl.innerText = countText;
+
+    const mOnlineEl = document.getElementById('chat-mobile-online-count');
+    if (mOnlineEl) mOnlineEl.innerText = countText;
+
+    const myDisplayEl = document.getElementById('chat-current-user-display');
+    const myName = this.getCurrentUsername();
+    if (myDisplayEl) {
+      myDisplayEl.innerText = myName + ' (접속 중)';
+    }
+
+    const listEl = document.getElementById('chat-active-users-list');
+    if (listEl) {
+      const myId = this.getClientId();
+      let html = `
+        <div class="flex items-center gap-2 py-1 px-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+          <div class="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center font-bold text-[10px] text-navy-950 font-mono">나</div>
+          <span class="text-slate-100 font-semibold truncate text-xs">${myName}</span>
+          <span class="text-[9px] px-1.5 py-0.2 bg-cyan-500/20 text-cyan-400 rounded ml-auto font-bold font-mono">LIVE</span>
+        </div>
+      `;
+
+      usersInChannel.forEach(u => {
+        if (u.id === myId) return;
+        const initial = (u.username || 'U').slice(0, 1).toUpperCase();
+        html += `
+          <div class="flex items-center gap-2 py-1 px-1.5 rounded-lg hover:bg-navy-800/40 transition">
+            <div class="w-6 h-6 rounded-full bg-navy-800 border border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-300 font-mono">${initial}</div>
+            <span class="text-slate-300 font-medium truncate text-xs">${u.username || '익명 트레이더'}</span>
+            <span class="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 rounded ml-auto font-bold font-mono">LIVE</span>
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+    }
   }
-}
-setInterval(updateDynamicOnlineCount, 15000); // update every 15s
+};
+window.ChatPresenceManager = ChatPresenceManager;
 
 // Initialize logic
 setTimeout(() => {
   setupChatChannels();
   listenToChatChannel('global');
-  updateDynamicOnlineCount();
-}, 1000);
+  ChatPresenceManager.init();
+}, 800);
 
 // ========================================================
 // ON-CHAIN INTELLIGENCE ENGINE (온체인 데이터 연동)
