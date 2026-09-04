@@ -857,10 +857,27 @@ const CoinCalculators = {
                     ctx.fillText(badgeText, bX + 9, bY + 16.5);
                 }
 
-                // Main Value
+                // Main Value: Percentage + Amount together
                 ctx.fillStyle = valColor || '#ffffff';
-                ctx.font = isRoiVal ? '800 36px "Inter", sans-serif' : '800 28px "Inter", sans-serif';
-                ctx.fillText(mainVal, x + 20, y + 80);
+                if (subAmtText) {
+                    ctx.font = '800 28px "Inter", -apple-system, sans-serif';
+                    ctx.fillText(mainVal, x + 20, y + 80);
+                    const roiW = ctx.measureText(mainVal).width;
+
+                    const amtText = ` (${subAmtText})`;
+                    let amtFontSize = 16;
+                    ctx.font = `bold ${amtFontSize}px "Inter", -apple-system, sans-serif`;
+                    let amtW = ctx.measureText(amtText).width;
+                    if (roiW + amtW + 24 > w - 30) {
+                        amtFontSize = 13.5;
+                        ctx.font = `bold ${amtFontSize}px "Inter", -apple-system, sans-serif`;
+                    }
+                    ctx.fillStyle = valColor || '#ffffff';
+                    ctx.fillText(amtText, x + 20 + roiW + 4, y + 78);
+                } else {
+                    ctx.font = isRoiVal ? '800 36px "Inter", sans-serif' : '800 28px "Inter", sans-serif';
+                    ctx.fillText(mainVal, x + 20, y + 80);
+                }
 
                 // Subtext Lines
                 ctx.fillStyle = '#94a3b8';
@@ -880,19 +897,19 @@ const CoinCalculators = {
             const row1Y = 122;
             const row2Y = 288;
 
-            // Card 1: 누적 실현손익
+            // Card 1: 누적 실현손익 (퍼센트와 금액 동시 표기)
             const isRealizedPos = realizedProfit >= 0;
-            const realProfitStr = hideAmount ? `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%` : `${realizedProfit > 0 ? '+' : ''}${Math.round(realizedProfit).toLocaleString()}원`;
-            const realBadgeStr = `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%`;
+            const realRoiStr = `${realizedRoi > 0 ? '+' : ''}${realizedRoi.toFixed(2)}%`;
+            const realAmtStr = `${realizedProfit > 0 ? '+' : ''}${Math.round(realizedProfit).toLocaleString()}원`;
             const realColor = isRealizedPos ? '#10b981' : '#f43f5e';
-            drawDashboardCard(col1X, row1Y, cardW, cardH, '누적 실현손익', realProfitStr, realBadgeStr, realColor, '매도 완료된 코인의 순수익 (수수료 차감 후)', null, realColor, hideAmount);
+            drawDashboardCard(col1X, row1Y, cardW, cardH, '누적 실현손익', realRoiStr, realRoiStr, realColor, '매도 완료된 코인의 순수익 (수수료 차감 후)', null, realColor, false, realAmtStr);
 
-            // Card 2: 실시간 평가손익 (미실현)
+            // Card 2: 실시간 평가손익 (미실현) (퍼센트와 금액 동시 표기)
             const isUnrealizedPos = unrealizedProfit >= 0;
-            const unRealProfitStr = hideAmount ? `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%` : `${unrealizedProfit > 0 ? '+' : ''}${Math.round(unrealizedProfit).toLocaleString()}원`;
-            const unRealBadgeStr = `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%`;
+            const unRealRoiStr = `${unrealizedRoi > 0 ? '+' : ''}${unrealizedRoi.toFixed(2)}%`;
+            const unRealAmtStr = `${unrealizedProfit > 0 ? '+' : ''}${Math.round(unrealizedProfit).toLocaleString()}원`;
             const unRealColor = unrealizedProfit === 0 ? '#94a3b8' : (isUnrealizedPos ? '#10b981' : '#f43f5e');
-            drawDashboardCard(col2X, row1Y, cardW, cardH, '실시간 평가손익 (미실현)', unRealProfitStr, unRealBadgeStr, unRealColor, '현재 보유 중인 코인의 실시간 평가', null, unRealColor, hideAmount);
+            drawDashboardCard(col2X, row1Y, cardW, cardH, '실시간 평가손익 (미실현)', unRealRoiStr, unRealRoiStr, unRealColor, '현재 보유 중인 코인의 실시간 평가', null, unRealColor, false, unRealAmtStr);
 
             // Card 3: 현재 보유 코인 매수원금
             const holdCostStr = `${Math.round(holdingCost).toLocaleString()}원`;
@@ -1094,15 +1111,83 @@ const CoinCalculators = {
             } catch (e) {}
         }
 
-        const rawProfit = state.realizedProfit !== undefined ? state.realizedProfit : 0;
-        const profitText = (rawProfit > 0 ? '+' : '') + Math.round(rawProfit).toLocaleString() + '원';
+        const rawRealizedProfit = state.realizedProfit !== undefined ? state.realizedProfit : 0;
+        const rawRealizedRoi = state.roi !== undefined ? state.roi : (parseFloat(roiStr) || 0);
+        const rawUnrealizedProfit = state.unrealizedProfit !== undefined ? state.unrealizedProfit : 0;
+        const rawUnrealizedRoi = state.unrealizedRoi !== undefined ? state.unrealizedRoi : 0;
+
+        const realizedProfitText = (rawRealizedProfit > 0 ? '+' : '') + Math.round(rawRealizedProfit).toLocaleString() + '원';
+        const realizedRoiText = (rawRealizedRoi > 0 ? '+' : '') + (typeof rawRealizedRoi === 'number' ? rawRealizedRoi.toFixed(2) : rawRealizedRoi) + '%';
+        const unrealizedProfitText = (rawUnrealizedProfit > 0 ? '+' : '') + Math.round(rawUnrealizedProfit).toLocaleString() + '원';
+        const unrealizedRoiText = (rawUnrealizedRoi > 0 ? '+' : '') + (typeof rawUnrealizedRoi === 'number' ? rawUnrealizedRoi.toFixed(2) : rawUnrealizedRoi) + '%';
+
+        const holdingCostText = Math.round(state.holdingCost || 0).toLocaleString() + '원';
+        const netDepositText = Math.round(state.netDeposit || 0).toLocaleString() + '원';
+        const cumBuyText = Math.round(state.cumBuyAmount || 0).toLocaleString() + '원';
+        const totalFeesText = Math.round(state.totalFees || 0).toLocaleString() + '원';
+        const winRateText = (typeof state.winRate === 'number' ? state.winRate.toFixed(1) : (winrateStr.replace('%', '') || '0.0')) + '%';
+        const winTrades = state.winTrades || 0;
+        const lossTrades = state.lossTrades || 0;
+        const totalTrades = state.totalTrades || (winTrades + lossTrades) || 0;
 
         const newPost = {
             id: Date.now(),
             category: 'profit',
             categoryName: '💵 실현손익',
-            title: `[수익인증] ${authorName}님의 ${periodText} 종합 손익 인증 (${profitText} / ${roiStr})`,
-            content: `<p><img src="${dataUrl}" alt="CryptoPnL 종합손익인증" style="max-width:100%; border-radius:14px; margin: 12px 0; box-shadow: 0 6px 20px rgba(0,0,0,0.35);"></p><p><br></p><p>📊 <strong>검증 기간:</strong> ${periodText}</p><p>💰 <strong>누적 실현손익:</strong> ${profitText} (${roiStr})</p><p>🎯 <strong>매매 승률:</strong> ${winrateStr} (${state.winTrades || 0}승 ${state.lossTrades || 0}패 / 총 ${state.totalTrades || 0}건)</p><p>CryptoPnL 100% 클라이언트 FIFO 연산 엔진으로 정산 검증된 공식 실거래 종합 손익 인증 카드입니다.</p>`,
+            title: `[수익인증] ${authorName}님의 손익 인증 (누적 실현: ${realizedProfitText} / 실시간 평가: ${unrealizedProfitText})`,
+            content: `<p><img src="${dataUrl}" alt="CryptoPnL 실거래 통합 손익 인증 카드" style="max-width:100%; border-radius:14px; margin: 12px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.45); border: 1px solid rgba(56, 189, 248, 0.25);"></p>
+
+<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 14px; padding: 18px 20px; margin: 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="font-size: 16px; font-weight: 800; color: #38bdf8; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+    📊 <span>업비트·빗썸 실거래 손익 검증 상세 리포트</span>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.5; color: #e2e8f0;">
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">📅 검증 기간</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 700; color: #f8fafc;">${periodText}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">💰 누적 실현손익</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 800; color: ${rawRealizedProfit >= 0 ? '#10b981' : '#f43f5e'};">
+        ${realizedProfitText} <span style="font-size: 12px; font-weight: 600;">(${realizedRoiText})</span>
+      </td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">📈 실시간 평가손익 (미실현)</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 800; color: ${rawUnrealizedProfit >= 0 ? '#10b981' : '#f43f5e'};">
+        ${unrealizedProfitText} <span style="font-size: 12px; font-weight: 600;">(${unrealizedRoiText})</span>
+      </td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">💎 현재 보유 코인 매수원금</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 700; color: #38bdf8;">${holdingCostText}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">💵 순 투입 원금 (입금 - 출금)</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 600; color: #f8fafc;">${netDepositText}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">🔄 역대 누적 매수대금</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 600; color: #f8fafc;">${cumBuyText}</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+      <td style="padding: 10px 4px; color: #94a3b8;">💸 총 거래 수수료</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 700; color: #c084fc;">${totalFeesText}</td>
+    </tr>
+    <tr>
+      <td style="padding: 10px 4px; color: #94a3b8;">🎯 매매 승률 및 체결 현황</td>
+      <td style="padding: 10px 4px; text-align: right; font-weight: 700; color: #f8fafc;">
+        ${winRateText} <span style="font-size: 12px; color: #94a3b8;">(${winTrades}승 ${lossTrades}패 / 추정 ${totalTrades}건)</span>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div style="padding: 14px 16px; background: rgba(8, 145, 178, 0.08); border-left: 3px solid #06b6d4; border-radius: 8px; margin-top: 14px; font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+  🔒 <strong>데이터 무결성 검증 보증:</strong><br>
+  본 인증서는 업비트 및 빗썸의 거래 내역 원본을 바탕으로 브라우저 로컬 단에서 <strong>100% 무손실 선입선출(FIFO) 독립 연산 엔진</strong>을 통해 정산 검증되었습니다.<br>
+  (외부 서버로 일체의 거래 데이터가 전송되지 않는 안전한 클라이언트 검증 리포트입니다.)
+</div>`,
             isNotice: false,
             author: authorName,
             authorRank: authorRank,
