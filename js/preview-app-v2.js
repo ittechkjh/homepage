@@ -693,17 +693,50 @@ let currentCafePostId = null;
 let isCafeEditMode = false;
 let currentViewingPostId = null;
 
+function getDeletedPostIds() {
+  try {
+    const raw = localStorage.getItem('crytopnl_deleted_post_ids');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) {
+    return [];
+  }
+}
+window.getDeletedPostIds = getDeletedPostIds;
+
+function addDeletedPostId(id) {
+  if (!id) return;
+  try {
+    const ids = getDeletedPostIds();
+    const sId = String(id);
+    if (!ids.includes(sId)) {
+      ids.push(sId);
+      localStorage.setItem('crytopnl_deleted_post_ids', JSON.stringify(ids));
+    }
+  } catch(e) {}
+}
+window.addDeletedPostId = addDeletedPostId;
+
 function getStoredPosts() {
+  const deletedIds = getDeletedPostIds();
+  const isInvalidPost = (p) => {
+    if (!p) return true;
+    const sId = String(p.id);
+    if (deletedIds.includes(sId)) return true;
+    if (p.title === 'ㅅㄷㄴㅅ' || p.content === 'ㅅㄷㄴㅅ') return true;
+    if (sId === '101' || sId === '102' || sId === '103') return true;
+    if (p.title && p.title.includes('64K 지지선')) return true;
+    return false;
+  };
+
   if (Array.isArray(inMemoryForumPosts) && inMemoryForumPosts.length > 0) {
-    return inMemoryForumPosts;
+    return inMemoryForumPosts.filter(p => !isInvalidPost(p));
   }
   try {
     const raw = localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const dummyIds = [101, 102, 103, '101', '102', '103'];
-        inMemoryForumPosts = parsed.filter(p => p && !dummyIds.includes(p.id) && !(p.title && p.title.includes('64K 지지선')));
+        inMemoryForumPosts = parsed.filter(p => !isInvalidPost(p));
         return inMemoryForumPosts;
       }
     }
@@ -713,9 +746,20 @@ function getStoredPosts() {
 window.getStoredPosts = getStoredPosts;
 
 function saveStoredPosts(posts) {
-  inMemoryForumPosts = posts;
+  const deletedIds = getDeletedPostIds();
+  const cleanPosts = (posts || []).filter(p => {
+    if (!p) return false;
+    const sId = String(p.id);
+    if (deletedIds.includes(sId)) return false;
+    if (p.title === 'ㅅㄷㄴㅅ' || p.content === 'ㅅㄷㄴㅅ') return false;
+    if (sId === '101' || sId === '102' || sId === '103') return false;
+    if (p.title && p.title.includes('64K 지지선')) return false;
+    return true;
+  });
+
+  inMemoryForumPosts = cleanPosts;
   try {
-    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(cleanPosts));
     try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
   } catch(e) {
     console.warn('localStorage quota reached, operating in memory/Firestore mode:', e);
@@ -1105,14 +1149,24 @@ function handleDeleteCafePost(postId) {
   }
 
   if (!confirm('정말로 이 게시글을 삭제하시겠습니까?')) return;
-  posts = posts.filter(p => String(p.id) !== String(postId));
-  try {
-    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-  } catch(e) {}
-  if (typeof db !== 'undefined' && db) {
-    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
+
+  if (typeof addDeletedPostId === 'function') {
+    addDeletedPostId(postId);
   }
+
+  posts = posts.filter(p => String(p.id) !== String(postId));
+  saveStoredPosts(posts);
+
+  const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestoreDb && typeof firestoreDb.collection === 'function') {
+    firestoreDb.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
+    firestoreDb.collection('deleted_forum_posts').doc(postId.toString()).set({
+      id: String(postId),
+      title: post.title || '',
+      deletedAt: new Date().toISOString()
+    }).catch(() => {});
+  }
+
   alert('🗑️ 게시글이 삭제되었습니다.');
   showForumListView();
 }
@@ -2810,51 +2864,30 @@ window.addEventListener('hashchange', handleRoute);
 
 // Sync with Firestore
 if (db) {
-  let isInitialSyncDone = false;
-
   db.collection('forum_posts').onSnapshot(snapshot => {
     let posts = [];
     const dummyIds = ['101', '102', '103', 101, 102, 103];
+    const deletedIds = (typeof getDeletedPostIds === 'function') ? getDeletedPostIds() : [];
+
     snapshot.forEach(doc => {
       const data = doc.data();
-      const isDummy = dummyIds.includes(doc.id) || dummyIds.includes(data.id) || (data.title && data.title.includes('64K 지지선'));
-      if (isDummy) {
-        // Automatically clean up dummy post from Firestore database
+      const docIdStr = String(doc.id);
+      const dataIdStr = data ? String(data.id) : '';
+      const isDeleted = deletedIds.includes(docIdStr) || deletedIds.includes(dataIdStr);
+      const isDummy = dummyIds.includes(docIdStr) || dummyIds.includes(dataIdStr) || 
+                      (data && (data.title === 'ㅅㄷㄴㅅ' || data.content === 'ㅅㄷㄴㅅ' || (data.title && data.title.includes('64K 지지선'))));
+
+      if (isDummy || isDeleted) {
+        // Automatically clean up deleted or dummy post from Firestore database
         doc.ref.delete().catch(() => {});
-      } else {
+      } else if (data) {
         posts.push(data);
       }
     });
 
     posts.sort((a,b) => (b.id || 0) - (a.id || 0));
-    inMemoryForumPosts = posts;
-    try {
-      localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-      try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
-    } catch(e) {
-      console.warn('localStorage quota reached in onSnapshot; running with in-memory posts:', e);
-    }
+    saveStoredPosts(posts);
     if (typeof renderForumPosts === 'function') renderForumPosts();
-
-    // Sync non-dummy local posts that are not yet in Firestore
-    if (!isInitialSyncDone) {
-      isInitialSyncDone = true;
-      try {
-        const localRaw = localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
-        if (localRaw) {
-          const localParsed = JSON.parse(localRaw);
-          if (Array.isArray(localParsed)) {
-            const dbIds = new Set(posts.map(p => String(p.id)));
-            localParsed.forEach(lp => {
-              const isDummy = lp && (dummyIds.includes(lp.id) || (lp.title && lp.title.includes('64K 지지선')));
-              if (lp && lp.id && !isDummy && !dbIds.has(String(lp.id))) {
-                db.collection('forum_posts').doc(lp.id.toString()).set(lp).catch(() => {});
-              }
-            });
-          }
-        }
-      } catch(e) {}
-    }
   }, err => {
     console.warn('Firestore forum_posts onSnapshot error:', err);
   });
@@ -3000,14 +3033,22 @@ handleDeleteCafePost = function(postId) {
   }
 
   if (!confirm('정말 삭제하시겠습니까?')) return;
+
+  if (typeof addDeletedPostId === 'function') {
+    addDeletedPostId(postId);
+  }
+
   posts = posts.filter(p => String(p.id) !== String(postId));
-  try {
-    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-  } catch(e) {}
-  
-  if (typeof db !== 'undefined' && db) {
-    db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
+  saveStoredPosts(posts);
+
+  const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestoreDb && typeof firestoreDb.collection === 'function') {
+    firestoreDb.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.error('Firestore delete error:', e));
+    firestoreDb.collection('deleted_forum_posts').doc(postId.toString()).set({
+      id: String(postId),
+      title: post.title || '',
+      deletedAt: new Date().toISOString()
+    }).catch(() => {});
   }
   
   alert('🗑️ 게시글이 삭제되었습니다.');

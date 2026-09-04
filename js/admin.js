@@ -1319,7 +1319,11 @@ const AdminApp = {
         const forumContainer = document.getElementById('admin-forum-preview');
         if (forumContainer) {
             let posts = [];
-            try { posts = JSON.parse(localStorage.getItem('coinhub_forum_posts') || '[]'); } catch(e){}
+            if (typeof getStoredPosts === 'function') {
+                posts = getStoredPosts();
+            } else {
+                try { posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || '[]'); } catch(e){}
+            }
             forumContainer.innerHTML = posts.map((p) => `
               <div class="flex items-center justify-between p-2.5 rounded-xl bg-navy-950 border border-navy-800 text-xs">
                 <div class="flex items-center gap-2 truncate">
@@ -1328,7 +1332,7 @@ const AdminApp = {
                   <span class="text-slate-500 text-[10px]">by ${escapeHtml(p.author)}</span>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
-                  <button onclick="AdminApp.deleteForumPost(${p.id})" class="text-slate-400 hover:text-rose-400 text-xs px-2 py-1 bg-navy-900 rounded border border-navy-700">삭제</button>
+                  <button onclick="AdminApp.deleteForumPost('${p.id}')" class="text-slate-400 hover:text-rose-400 text-xs px-2 py-1 bg-navy-900 rounded border border-navy-700">삭제</button>
                 </div>
               </div>
             `).join('');
@@ -1431,17 +1435,35 @@ const AdminApp = {
 
     deleteForumPost: function (postId) {
         if (confirm('해당 포럼 게시글을 영구 삭제하시겠습니까?')) {
-            let posts = [];
-            try { posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts') || '[]'); } catch(e){}
-            posts = posts.filter(p => String(p.id) !== String(postId));
-            localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-            localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-            if (typeof db !== 'undefined' && db) {
-                db.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+            if (typeof addDeletedPostId === 'function') {
+                addDeletedPostId(postId);
             }
+            let posts = [];
+            if (typeof getStoredPosts === 'function') {
+                posts = getStoredPosts();
+            } else {
+                try { posts = JSON.parse(localStorage.getItem('crytopnl_forum_posts') || '[]'); } catch(e){}
+            }
+            posts = posts.filter(p => String(p.id) !== String(postId));
+            if (typeof saveStoredPosts === 'function') {
+                saveStoredPosts(posts);
+            } else {
+                localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+                try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
+            }
+
+            const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+            if (firestoreDb && typeof firestoreDb.collection === 'function') {
+                firestoreDb.collection('forum_posts').doc(postId.toString()).delete().catch(e => console.log(e));
+                firestoreDb.collection('deleted_forum_posts').doc(postId.toString()).set({
+                    id: String(postId),
+                    deletedAt: new Date().toISOString()
+                }).catch(() => {});
+            }
+
             if (typeof renderForumPosts === 'function') renderForumPosts();
             this.renderModeration();
-            alert('게시글이 삭제되었습니다.');
+            alert('게시글이 영구 삭제되었습니다.');
         }
     },
 
