@@ -283,7 +283,8 @@ html.theme-light .upload-desc {
 html.theme-light [class*="bg-rose-950"],
 html.theme-light [class*="bg-amber-950"],
 html.theme-light [class*="bg-cyan-950"],
-html.theme-light [class*="bg-indigo-950"] {
+html.theme-light [class*="bg-indigo-950"],
+html.theme-light [class*="bg-emerald-950"] {
   background-color: #f8fafc !important;
   border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
@@ -293,6 +294,89 @@ html.theme-light [class*="bg-rose-950"] * { color: #9f1239 !important; }
 html.theme-light [class*="bg-amber-950"] * { color: #92400e !important; }
 html.theme-light [class*="bg-cyan-950"] * { color: #075985 !important; }
 html.theme-light [class*="bg-indigo-950"] * { color: #3730a3 !important; }
+html.theme-light [class*="bg-emerald-950"] * { color: #065f46 !important; }
+
+/* 7-1. Storage Mode Badges (Dark Mode Default) */
+#storageModeBadge button.badge-local {
+  background: rgba(6, 78, 59, 0.45) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.6) !important;
+  color: #34d399 !important;
+  font-weight: 800 !important;
+}
+#storageModeBadge button.badge-local * {
+  color: #34d399 !important;
+  font-weight: 800 !important;
+}
+#storageModeBadge button.badge-local:hover {
+  background: rgba(6, 78, 59, 0.7) !important;
+  border-color: #10b981 !important;
+}
+
+#storageModeBadge button.badge-cloud {
+  background: rgba(8, 51, 68, 0.45) !important;
+  border: 1.5px solid rgba(6, 182, 212, 0.6) !important;
+  color: #22d3ee !important;
+  font-weight: 800 !important;
+}
+#storageModeBadge button.badge-cloud * {
+  color: #22d3ee !important;
+  font-weight: 800 !important;
+}
+
+#storageModeBadge button.badge-guest {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1.5px solid rgba(100, 116, 139, 0.4) !important;
+  color: #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+#storageModeBadge button.badge-guest * {
+  color: #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
+/* 7-2. Storage Mode Badges (Light Theme High Contrast) */
+html.theme-light #storageModeBadge button.badge-local {
+  background-color: #ecfdf5 !important;
+  border: 1.5px solid #059669 !important;
+  color: #064e3b !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2) !important;
+}
+html.theme-light #storageModeBadge button.badge-local * {
+  color: #064e3b !important;
+  font-weight: 900 !important;
+}
+html.theme-light #storageModeBadge button.badge-local:hover {
+  background-color: #d1fae5 !important;
+  border-color: #047857 !important;
+}
+
+html.theme-light #storageModeBadge button.badge-cloud {
+  background-color: #ecfeff !important;
+  border: 1.5px solid #0891b2 !important;
+  color: #155e75 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 3px rgba(6, 182, 212, 0.2) !important;
+}
+html.theme-light #storageModeBadge button.badge-cloud * {
+  color: #155e75 !important;
+  font-weight: 900 !important;
+}
+html.theme-light #storageModeBadge button.badge-cloud:hover {
+  background-color: #cffafe !important;
+  border-color: #0e7490 !important;
+}
+
+html.theme-light #storageModeBadge button.badge-guest {
+  background-color: #f8fafc !important;
+  border: 1.5px solid #0ea5e9 !important;
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
+html.theme-light #storageModeBadge button.badge-guest * {
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
 
 /* 8. Inputs, Selects, Textareas & Contenteditable */
 html.theme-light input,

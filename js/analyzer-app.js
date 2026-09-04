@@ -323,26 +323,26 @@ const CloudSyncManager = {
         if (badgeEl) {
             if (uid === 'user_default') {
                 badgeEl.innerHTML = `
-                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 text-xs font-medium transition cursor-pointer shadow-sm">
-                        <i data-lucide="shield" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="badge-guest inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer shadow-sm">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
                         <span>🔒 로컬 기기 보관 (비회원)</span>
-                        <span class="text-cyan-400 text-[10px] font-bold underline ml-0.5">설정</span>
+                        <span class="text-[10px] font-black underline ml-0.5">설정</span>
                     </button>
                 `;
             } else if (mode === 'CLOUD') {
                 badgeEl.innerHTML = `
-                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/80 hover:bg-cyan-900/90 border border-cyan-500/50 text-cyan-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-cyan-500/20">
-                        <i data-lucide="cloud" class="w-3.5 h-3.5 text-cyan-400 animate-pulse"></i>
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="badge-cloud inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition cursor-pointer shadow-sm">
+                        <i data-lucide="cloud" class="w-3.5 h-3.5 animate-pulse"></i>
                         <span>☁️ 클라우드 동기화 (회원)</span>
-                        <span class="text-slate-400 text-[10px] font-normal ml-0.5">변경</span>
+                        <span class="text-[10px] font-black underline ml-0.5">변경</span>
                     </button>
                 `;
             } else {
                 badgeEl.innerHTML = `
-                    <button type="button" onclick="CloudSyncManager.openModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-500/40 text-emerald-300 text-xs font-medium transition cursor-pointer shadow-sm">
-                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <button type="button" onclick="CloudSyncManager.openModal()" class="badge-local inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition cursor-pointer shadow-sm">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
                         <span>🔒 100% 로컬 보관 (회원)</span>
-                        <span class="text-slate-400 text-[10px] font-normal ml-0.5">변경</span>
+                        <span class="text-[10px] font-black underline ml-0.5">변경</span>
                     </button>
                 `;
             }
