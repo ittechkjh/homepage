@@ -670,6 +670,7 @@ window.generateChartData = generateChartData;
 // Section 3: Full Page Cafe Style Forum Engine
 // ----------------------------------------------------
 const INITIAL_FORUM_POSTS = [];
+let inMemoryForumPosts = [];
 
 let activeCategory = 'all';
 let currentCafePostId = null;
@@ -677,14 +678,17 @@ let isCafeEditMode = false;
 let currentViewingPostId = null;
 
 function getStoredPosts() {
+  if (Array.isArray(inMemoryForumPosts) && inMemoryForumPosts.length > 0) {
+    return inMemoryForumPosts;
+  }
   try {
-    const raw = localStorage.getItem('coinhub_forum_posts') || localStorage.getItem('crytopnl_forum_posts');
+    const raw = localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         const dummyIds = [101, 102, 103, '101', '102', '103'];
-        const clean = parsed.filter(p => p && !dummyIds.includes(p.id) && !(p.title && p.title.includes('64K 지지선')));
-        return clean;
+        inMemoryForumPosts = parsed.filter(p => p && !dummyIds.includes(p.id) && !(p.title && p.title.includes('64K 지지선')));
+        return inMemoryForumPosts;
       }
     }
   } catch (e) {}
@@ -693,10 +697,13 @@ function getStoredPosts() {
 window.getStoredPosts = getStoredPosts;
 
 function saveStoredPosts(posts) {
+  inMemoryForumPosts = posts;
   try {
     localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
-  } catch(e) {}
+    try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
+  } catch(e) {
+    console.warn('localStorage quota reached, operating in memory/Firestore mode:', e);
+  }
 }
 window.saveStoredPosts = saveStoredPosts;
 
@@ -2735,8 +2742,13 @@ if (db) {
     });
 
     posts.sort((a,b) => (b.id || 0) - (a.id || 0));
-    localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
-    localStorage.setItem('coinhub_forum_posts', JSON.stringify(posts));
+    inMemoryForumPosts = posts;
+    try {
+      localStorage.setItem('crytopnl_forum_posts', JSON.stringify(posts));
+      try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
+    } catch(e) {
+      console.warn('localStorage quota reached in onSnapshot; running with in-memory posts:', e);
+    }
     if (typeof renderForumPosts === 'function') renderForumPosts();
 
     // Sync non-dummy local posts that are not yet in Firestore
@@ -2769,8 +2781,10 @@ if (db) {
     });
     if (msgs.length > 0) {
       chatMessages = msgs;
-      localStorage.setItem('crytopnl_chat_messages', JSON.stringify(msgs));
-      localStorage.setItem('coinhub_chat_messages', JSON.stringify(msgs));
+      try {
+        localStorage.setItem('crytopnl_chat_messages', JSON.stringify(msgs));
+        localStorage.setItem('coinhub_chat_messages', JSON.stringify(msgs));
+      } catch(e) {}
     }
     if (typeof renderChatMessages === 'function') renderChatMessages();
   });
@@ -2787,13 +2801,6 @@ if (db) {
 const originalSaveStoredPosts = saveStoredPosts;
 saveStoredPosts = function(posts) {
   originalSaveStoredPosts(posts);
-  if (db) {
-    posts.forEach(post => {
-      if (post && post.id) {
-        db.collection('forum_posts').doc(post.id.toString()).set(post).catch(e => console.warn('Firestore save error:', e));
-      }
-    });
-  }
 };
 window.saveStoredPosts = saveStoredPosts;
 
