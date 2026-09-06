@@ -1134,6 +1134,11 @@
           <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
         <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i> 계산기 5종</button>
+        <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 group shadow-sm">
+          <i data-lucide="landmark" class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform"></i>
+          <span>🏛️ 정책 혜택</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
+        </button>
         <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="newspaper" class="w-4 h-4"></i> 속보
         </button>
@@ -1167,40 +1172,44 @@
   </header>
 
   <!-- Mobile Bottom Navigation Bar -->
-  <div class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur border-t border-navy-800 z-[9999] flex justify-around py-1.5 px-1 shadow-2xl">
-    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+  <div class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur-md border-t border-navy-800 z-[9999] flex items-center gap-1 overflow-x-auto no-scrollbar py-1 px-2 shadow-2xl">
+    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="trending-up" class="w-4 h-4"></i>
       <span>시세</span>
     </button>
-    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="messages-square" class="w-4 h-4"></i>
       <span>포럼</span>
     </button>
-    <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="message-circle" class="w-4 h-4"></i>
       <span>채팅</span>
     </button>
-    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95">
+    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calculator" class="w-4 h-4"></i>
       <span>분석기</span>
     </button>
-    <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-0.5 text-amber-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-0.5 text-amber-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calculator" class="w-4 h-4"></i>
       <span>계산기</span>
     </button>
-    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('policy')" id="m-nav-policy" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
+      <i data-lucide="landmark" class="w-4 h-4"></i>
+      <span>정책</span>
+    </button>
+    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calendar" class="w-4 h-4"></i>
       <span>일정</span>
     </button>
-    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="newspaper" class="w-4 h-4"></i>
       <span>뉴스</span>
     </button>
-    <button onclick="switchTab('guides')" id="m-nav-guides" class="flex flex-col items-center gap-0.5 text-indigo-400 text-[10px] font-medium transition active:scale-95">
+    <button onclick="switchTab('guides')" id="m-nav-guides" class="flex flex-col items-center gap-0.5 text-indigo-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="book-open" class="w-4 h-4"></i>
       <span>가이드</span>
     </button>
-    <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95">
+    <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="shield-check" class="w-4 h-4"></i>
       <span>관리자</span>
     </button>
@@ -3354,6 +3363,246 @@
     </section>
 
 
+    <!-- ==============================================
+         TAB: GOVERNMENT POLICY & WELFARE BENEFITS (2026 정부 정책 & 복지 혜택 가이드)
+         ============================================== -->
+    <section id="tab-policy" class="tab-content hidden w-full space-y-6">
+
+      <!-- 1. Hero Header & Introduction -->
+      <div class="bg-gradient-to-r from-emerald-950/80 via-navy-900 to-navy-950 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="space-y-1.5 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold" id="policy-live-badge">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>2026 대한민국 최신 정부 정책 & 복지 혜택 (정부24 연동)</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <span>정부 정책 & 복지 혜택 허브</span>
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 font-mono text-xl sm:text-2xl">Policy & Welfare</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              놓치기 쉬운 <strong>다자녀 가구 고속도로 50% 할인</strong>, <strong>전기·가스 공공요금 감면</strong>, <strong>K-패스 환급</strong>, <strong>신생아 특례대출</strong> 등 핵심 지원 정책을 쉽고 빠르게 검색하고 3초 만에 맞춤 진단해 보세요.
+            </p>
+          </div>
+
+          <!-- Quick Stat Counters -->
+          <div class="flex items-center gap-3 bg-navy-950/80 p-3 rounded-2xl border border-navy-800 shrink-0">
+            <div class="px-3 py-1 text-center border-r border-navy-800">
+              <span class="block text-[10px] text-slate-400 font-semibold">등록 정책</span>
+              <span id="policy-result-count" class="text-xl font-black text-emerald-400 font-mono">14</span>
+            </div>
+            <div class="px-3 py-1 text-center">
+              <span class="block text-[10px] text-slate-400 font-semibold">최대 감면율</span>
+              <span class="text-xl font-black text-cyan-400 font-mono">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Search & Category Tabs -->
+        <div class="pt-4 border-t border-navy-800/80 space-y-4">
+          <!-- Search Input -->
+          <div class="relative max-w-2xl">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="policy-search-input" 
+              oninput="PolicyHub.handleSearch(this.value)" 
+              placeholder="정책명, 혜택, 대상(다자녀, 청년, 전기차, 고속도로 등) 검색..." 
+              class="w-full pl-11 pr-10 py-3.5 bg-navy-950/90 border border-navy-700 focus:border-emerald-500 rounded-2xl text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition shadow-inner"
+            />
+            <button 
+              type="button" 
+              id="policy-search-clear" 
+              onclick="PolicyHub.clearSearch()" 
+              class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition"
+              title="검색어 지우기"
+            >
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Category Pills -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button type="button" onclick="PolicyHub.filterCategory('all')" data-cat="all" class="policy-cat-btn active px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-sm bg-cyan-500/20 text-cyan-400 border border-cyan-500/50">
+              <span>🌟 전체 정책</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('traffic')" data-cat="traffic" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🚗 교통/차량 (고속도로 할인)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('family')" data-cat="family" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>👨‍👩‍👧‍👦 다자녀/가족 (출산·돌봄)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('utility')" data-cat="utility" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>💡 공공요금 감면 (전기·가스·난방)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('youth')" data-cat="youth" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🧑‍🎓 청년 지원 (도약계좌·월세)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('housing')" data-cat="housing" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🏠 주거/부동산/금융 (디딤돌·특례)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('tax')" data-cat="tax" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>💼 세제/장려금 (근로장려금·공제)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Interactive "3초 맞춤 혜택 진단기" (Quick Eligibility Diagnosis) -->
+      <div class="bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow">
+              <i data-lucide="check-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>3초 맞춤 혜택 간편 진단기</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">추천</span>
+              </h3>
+              <p class="text-xs text-slate-400">내 가구 형태와 보유 차량을 선택하면 해당되는 정부 지원 정책만 자동으로 추출됩니다.</p>
+            </div>
+          </div>
+          <button type="button" onclick="PolicyHub.resetFilters()" class="px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>필터 초기화</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <!-- Filter 1: 가구 구성 -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold text-slate-400 block">가구 구성</label>
+            <select class="policy-quiz-select w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition" onchange="PolicyHub.updateQuizFilter('household', this.value)">
+              <option value="all">가구 형태 전체</option>
+              <option value="children_2plus">👨‍👩‍👧‍👦 다자녀 (자녀 2명 이상)</option>
+              <option value="newborn">👶 신생아 출산/영유아 가구</option>
+              <option value="single">👤 1인 가구 / 일반</option>
+            </select>
+          </div>
+
+          <!-- Filter 2: 연령대 -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold text-slate-400 block">연령 구분</label>
+            <select class="policy-quiz-select w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition" onchange="PolicyHub.updateQuizFilter('age', this.value)">
+              <option value="all">연령대 전체</option>
+              <option value="youth">청년층 (만 19세 ~ 34세)</option>
+              <option value="adult">일반 성인 (만 35세 이상)</option>
+            </select>
+          </div>
+
+          <!-- Filter 3: 보유 차량 -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold text-slate-400 block">보유 차량</label>
+            <select class="policy-quiz-select w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition" onchange="PolicyHub.updateQuizFilter('car', this.value)">
+              <option value="all">보유 차량 전체</option>
+              <option value="ev">⚡ 전기차 / 수소차 (친환경)</option>
+              <option value="car_general">🚗 내연기관차 (일반 차량)</option>
+              <option value="public_transit">🚌 대중교통 이용 (차량 없음)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Policy Cards Grid -->
+      <div id="policy-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered dynamically by PolicyHub.renderPolicyGrid() -->
+      </div>
+
+      <!-- Load More Button -->
+      <div id="policy-load-more-container" class="hidden text-center pt-4 pb-2">
+        <button type="button" onclick="PolicyHub.loadMore()" class="px-8 py-3.5 rounded-2xl bg-navy-900 hover:bg-navy-800 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 hover:text-white font-bold text-xs sm:text-sm shadow-xl transition inline-flex items-center gap-2 group">
+          <span>더 많은 정책 보기</span>
+          <span id="policy-remaining-count" class="text-xs text-slate-400 font-mono"></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 group-hover:translate-y-0.5 transition-transform"></i>
+        </button>
+      </div>
+
+      <!-- 4. Policy Detail Modal -->
+      <div id="modal-policy-detail" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto items-center justify-center">
+        <div class="bg-navy-900 border border-navy-700 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 relative my-auto animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+          
+          <!-- Modal Header -->
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-2">
+              <span id="modal-policy-badge" class="inline-block text-[11px] font-black px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono shadow-sm">
+                혜택 요약
+              </span>
+              <h3 id="modal-policy-title" class="text-xl sm:text-2xl font-black text-white leading-snug">
+                정책 명칭
+              </h3>
+            </div>
+            <button type="button" onclick="PolicyHub.closeDetailModal()" class="p-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-400 hover:text-white border border-navy-800 transition shrink-0" title="닫기">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Policy Summary Box -->
+          <div class="p-4 rounded-2xl bg-navy-950/80 border border-navy-800 space-y-3">
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">지원 대상</span>
+              <p id="modal-policy-target" class="text-xs sm:text-sm font-semibold text-emerald-300">
+                -
+              </p>
+            </div>
+            <div class="pt-2 border-t border-navy-800/80">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">정책 개요</span>
+              <p id="modal-policy-summary" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                -
+              </p>
+            </div>
+          </div>
+
+          <!-- Detailed Benefits List -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="list-checks" class="w-4 h-4 text-emerald-400"></i>
+              <span>상세 지원 내용 & 혜택</span>
+            </h4>
+            <ul id="modal-policy-details-list" class="space-y-2 bg-navy-950/40 p-4 rounded-2xl border border-navy-800/60">
+              <!-- Rendered dynamically -->
+            </ul>
+          </div>
+
+          <!-- Required Documents -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i>
+              <span>신청 시 필요 서류 / 준비물</span>
+            </h4>
+            <div id="modal-policy-docs-list" class="flex flex-wrap gap-2">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Footer Actions & Direct Application Link -->
+          <div class="pt-4 border-t border-navy-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-400 text-center sm:text-left">
+              <span class="block text-[10px] text-slate-500">소관 기관</span>
+              <span id="modal-policy-agency" class="font-bold text-slate-300">-</span>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button type="button" onclick="PolicyHub.closeDetailModal()" class="flex-1 sm:flex-initial px-5 py-3 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 text-slate-300 hover:text-white text-xs font-bold transition">
+                닫기
+              </button>
+              <a id="modal-policy-apply-btn" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-navy-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                <span>공식 누리집 신청 바로가기</span>
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+
+
+
+
     <section id="tab-admin" class="tab-content hidden space-y-6">
 
       <!-- 1. ADMIN AUTH GUARD (비관리자 접근 시 노출되는 잠금/인증 화면) -->
@@ -3774,6 +4023,7 @@
   <script src="js/analyzer-app.js?v=20260904_07"></script>
 
   <script src="js/admin.js?v=20260904_23"></script>
+  <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/preview-app-v2.js?v=20260906_01"></script>
 
     <!-- PnL Verification Modal -->
