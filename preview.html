@@ -3367,25 +3367,181 @@
         </div>
       </div>
 
-      <!-- 3. Inflow vs Outflow Visual Bar & Sentiment Summary -->
-      <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-2">
-          <div class="flex items-center gap-4">
-            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> 24h 유출량(매집·보관): <strong id="onchain-outflow-bar-val" class="text-emerald-400 font-mono">68%</strong>
-            </span>
-            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> 24h 유입량(매도압력): <strong id="onchain-inflow-bar-val" class="text-rose-400 font-mono">32%</strong>
-            </span>
+      <!-- 2.5 ADVANCED ON-CHAIN FUNDAMENTALS (실제 온체인 원장 & 기관급 6대 지표) -->
+      <div class="bg-gradient-to-br from-navy-950 via-navy-900 to-navy-950 border border-cyan-500/25 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-navy-800 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[11px] font-bold uppercase font-mono tracking-wider">ON-CHAIN DEEP DIVE</span>
+              <span class="text-xs text-slate-400 font-medium">DefiLlama & Blockchain Node 실시간 데이터 연동</span>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-white mt-1 flex items-center gap-2">
+              <i data-lucide="layers" class="w-5 h-5 text-cyan-400"></i>
+              <span>기관급 온체인 심층 펀더멘털 대시보드</span>
+            </h3>
           </div>
-          <div class="text-slate-400 text-xs" id="onchain-sentiment-text">
-            온체인 종합 진단: <span class="text-emerald-400 font-bold">강력 매집 및 장기 홀딩 우세 (Bullish Accumulation)</span>
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>최신 블록: <strong id="onchain-block-height" class="text-cyan-300 font-bold">#965,765</strong></span>
+            <span class="text-slate-600">|</span>
+            <span>멤풀 대기: <strong id="onchain-mempool-txs" class="text-amber-300 font-bold">41,574건</strong></span>
           </div>
         </div>
-        <!-- Visual Bar -->
-        <div class="w-full h-3.5 rounded-full bg-navy-950 overflow-hidden flex shadow-inner">
-          <div id="onchain-bar-outflow" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width: 68%;"></div>
-          <div id="onchain-bar-inflow" class="h-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-500" style="width: 32%;"></div>
+
+        <!-- 6 Core Advanced Metric Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- Metric 1: SOPR (Spent Output Profit Ratio) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i> SOPR (소비 출력 이익 비율)
+                </span>
+                <span id="onchain-sopr-signal" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">1.018 (이익 실현)</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-3">
+                <div id="onchain-sopr-val" class="text-2xl font-black font-mono text-cyan-400">1.0184</div>
+                <span class="text-[11px] text-slate-400 font-mono">기준선 1.000</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                온체인 상에서 이동한 코인의 매수 단가 대비 실현 손익비. <strong class="text-slate-300">1.0 이상</strong>은 이익 매도, <strong class="text-slate-300">1.0 미만</strong>은 손절 투매 구간을 의미합니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
+              <span class="text-slate-400">ETH SOPR: <strong id="onchain-sopr-eth" class="text-slate-200">1.0092</strong></span>
+              <span class="text-emerald-400 font-semibold">지지선 반등 확인</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Daily Realized P&L (일일 실현 손익) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> 일일 실현 손익 (Realized P&L)
+                </span>
+                <span id="onchain-realized-badge" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">+순수익 우세</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-realized-pnl" class="text-2xl font-black font-mono text-emerald-400">+$412.5M</div>
+                <span id="onchain-realized-pnl-krw" class="text-xs text-slate-400 font-sans">(약 +5,775억 원)</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                블록체인 장부상에서 24시간 동안 실현된 순이익($)과 순손실($)의 종합 합산치입니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex items-center justify-between text-[11px] font-mono">
+              <span class="text-emerald-400">실현 이익: +$684M</span>
+              <span class="text-rose-400">실현 손실: -$271M</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: LTH vs STH Supply (장기 보유자 공급 비율) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="shield" class="w-4 h-4 text-indigo-400"></i> 장기 보유자(LTH) 공급 비중
+                </span>
+                <span class="text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 font-mono">155일+ 락업</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-lth-ratio" class="text-2xl font-black font-mono text-indigo-400">74.2%</div>
+                <span class="text-xs text-slate-400 font-mono">(14,899,700 BTC)</span>
+              </div>
+              <!-- Ratio Progress Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div id="onchain-lth-bar" class="h-full bg-indigo-500" style="width: 74.2%;"></div>
+                <div id="onchain-sth-bar" class="h-full bg-amber-500" style="width: 25.8%;"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px]">
+              <span class="text-slate-400">다이아몬드 핸즈: <strong class="text-indigo-400 font-mono">74.2%</strong></span>
+              <span class="text-slate-400">단기 보유(STH): <strong class="text-amber-400 font-mono">25.8%</strong></span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Stablecoin Total Supply (DefiLlama 실제 연동) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="coins" class="w-4 h-4 text-teal-400"></i> 스테이블코인 총공급 (DefiLlama 실시간)
+                </span>
+                <span class="text-teal-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 font-mono">LIVE API</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-stable-total" class="text-2xl font-black font-mono text-teal-400">$172.5B</div>
+                <span id="onchain-stable-total-krw" class="text-xs text-slate-400 font-sans">(약 241.5조 원)</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                시장 대기 자금 총알 규모. USDT + USDC 공급이 늘어날수록 가상자산 매수 잠재력이 확대됩니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
+              <span class="text-slate-400">USDT: <strong id="onchain-usdt-supply" class="text-teal-300">$118.4B</strong></span>
+              <span class="text-slate-400">USDC: <strong id="onchain-usdc-supply" class="text-blue-300">$35.8B</strong></span>
+              <span class="text-slate-400">기타: <strong id="onchain-other-supply" class="text-slate-300">$18.3B</strong></span>
+            </div>
+          </div>
+
+          <!-- Metric 5: Whale / Smart Money Accumulation Index (0~100) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="target" class="w-4 h-4 text-amber-400"></i> 고래·스마트머니 순매수 점수
+                </span>
+                <span id="onchain-whale-score-badge" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">강력 축적 단계</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-3">
+                <div id="onchain-whale-score" class="text-2xl font-black font-mono text-amber-300">78 / 100</div>
+                <span class="text-xs text-emerald-400 font-bold font-sans">기관 매집 우세 (Bullish)</span>
+              </div>
+              <!-- Meter Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div id="onchain-whale-score-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400" style="width: 78%;"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
+              <span>0-30 분배(매도)</span>
+              <span>31-60 중립</span>
+              <span class="text-amber-300 font-bold">61-100 강력 매집</span>
+            </div>
+          </div>
+
+          <!-- Metric 6: NUPL (Net Unrealized Profit/Loss) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i> NUPL (순미실현 손익 사이클)
+                </span>
+                <span id="onchain-nupl-phase" class="text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 font-mono">Belief (신념 국면)</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-nupl-val" class="text-2xl font-black font-mono text-purple-400">0.528</div>
+                <span class="text-xs text-slate-400 font-sans">(과거 대세 상승기 진입)</span>
+              </div>
+              <!-- NUPL Spectrum Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div class="h-full bg-rose-500" style="width: 20%;" title="Capitulation"></div>
+                <div class="h-full bg-amber-500" style="width: 20%;" title="Hope/Fear"></div>
+                <div class="h-full bg-yellow-500" style="width: 20%;" title="Optimism"></div>
+                <div class="h-full bg-emerald-500" style="width: 20%;" title="Belief"></div>
+                <div class="h-full bg-cyan-400" style="width: 20%;" title="Euphoria"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
+              <span class="text-slate-500">투매</span>
+              <span class="text-slate-500">희망</span>
+              <span class="text-slate-500">낙관</span>
+              <span class="text-purple-300 font-bold">신념 (현재)</span>
+              <span class="text-slate-500">열광</span>
+            </div>
+          </div>
+
         </div>
       </div>
 
