@@ -712,15 +712,24 @@ function getStoredPosts() {
     return false;
   };
 
+  const normalizePost = (p) => {
+    if (!p) return p;
+    if (p.category === 'altcoin' || p.categoryName === '🚀 알트코인' || p.categoryName === '알트코인') {
+      p.category = 'altcoin';
+      p.categoryName = '💰 재테크 정보';
+    }
+    return p;
+  };
+
   if (Array.isArray(inMemoryForumPosts) && inMemoryForumPosts.length > 0) {
-    return inMemoryForumPosts.filter(p => !isInvalidPost(p));
+    return inMemoryForumPosts.filter(p => !isInvalidPost(p)).map(normalizePost);
   }
   try {
     const raw = localStorage.getItem('crytopnl_forum_posts') || localStorage.getItem('coinhub_forum_posts');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryForumPosts = parsed.filter(p => !isInvalidPost(p));
+        inMemoryForumPosts = parsed.filter(p => !isInvalidPost(p)).map(normalizePost);
         return inMemoryForumPosts;
       }
     }
@@ -865,7 +874,7 @@ function renderForumPosts() {
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
-            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml(post.categoryName)}</span>
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '💰 재테크 정보' : post.categoryName)}</span>
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
             <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.timestamp || post.time))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
@@ -999,10 +1008,11 @@ function openPostDetailModal(postId, updateHistory = true) {
   const upvotesEl = document.getElementById('cafe-post-upvotes');
 
   if (catEl) {
+    const catDisplayName = (post.category === 'altcoin' || post.categoryName === '🚀 알트코인' || post.categoryName === '알트코인') ? '💰 재테크 정보' : post.categoryName;
     if (post.isNotice) {
-      catEl.innerHTML = `<span class="text-rose-400 font-bold mr-2">📢 공지</span>${post.categoryName}`;
+      catEl.innerHTML = `<span class="text-rose-400 font-bold mr-2">📢 공지</span>${catDisplayName}`;
     } else {
-      catEl.innerText = post.categoryName;
+      catEl.innerText = catDisplayName;
     }
   }
   if (titleEl) titleEl.innerText = post.title;
@@ -1259,7 +1269,7 @@ function handleCafeSubmitPost(e) {
   const categoryNames = {
     general: '💬 자유 토론',
     profit: '💵 실현손익',
-    altcoin: '🚀 알트코인',
+    altcoin: '💰 재테크 정보',
     trading: '📈 트레이딩자료',
     feature: '💡 추가기능요청'
   };
