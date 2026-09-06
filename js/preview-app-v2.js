@@ -2631,6 +2631,10 @@ const ROUTE_SEO_MAP = {
   admin: {
     title: "CrytoPnL – 최고 관리자(Admin) 전용 센터",
     desc: "CrytoPnL 사이트 운영, 방문자 트래픽 모니터링 및 시스템 관리"
+  },
+  game: {
+    title: "CrytoPnL – 크립토 마블 & 브라우저 아케이드 게임",
+    desc: "순수 브라우저에서 동작하는 모두의 마블 스타일 암호화폐 보드게임! 코인 매수, 노드 구축 및 독점으로 승리하세요."
   }
 };
 
@@ -2647,7 +2651,7 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'game'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
@@ -2677,10 +2681,12 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
         } else if (t === 'calendar') {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+        } else if (t === 'game') {
+          navBtn.classList.add('bg-purple-500/20', 'border-purple-500/40', 'text-purple-300');
         }
       }
       if (mNavBtn) {
-        mNavBtn.classList.add('text-cyan-400', 'font-bold');
+        mNavBtn.classList.add('text-purple-400', 'font-bold');
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
@@ -2690,10 +2696,10 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300');
       }
       if (mNavBtn) {
-        mNavBtn.classList.remove('text-cyan-400', 'font-bold');
+        mNavBtn.classList.remove('text-purple-400', 'font-bold');
         mNavBtn.classList.add('text-slate-400');
       }
     }
@@ -2735,6 +2741,10 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'admin' && typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') {
     AdminApp.checkAdminAccess();
+  }
+
+  if (tabId === 'game' && typeof CryptoMarble !== 'undefined' && typeof CryptoMarble.init === 'function') {
+    CryptoMarble.init();
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
