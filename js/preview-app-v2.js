@@ -2635,6 +2635,10 @@ const ROUTE_SEO_MAP = {
   policy: {
     title: "CrytoPnL – 2026 정부 정책 & 복지 혜택 가이드 (다자녀·청년·교통)",
     desc: "다자녀 고속도로 통행료 50% 할인, K-패스, 공공요금 감면, 신생아 특례대출 등 2026년 최신 정부 지원 정책 및 맞춤 혜택 검색"
+  },
+  onchain: {
+    title: "CrytoPnL – 실시간 온체인 펀더멘털 & 고래 이동 레이더",
+    desc: "비트코인·이더리움 등 주요 가상자산 고래 지갑 이동, 거래소 순유출입(Net Flow), MVRV, NVT 밸류에이션 실시간 분석"
   }
 };
 
@@ -2651,7 +2655,7 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
@@ -2683,10 +2687,12 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
         } else if (t === 'policy') {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+        } else if (t === 'onchain') {
+          navBtn.classList.add('bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
         }
       }
       if (mNavBtn) {
-        mNavBtn.classList.add('text-emerald-400', 'font-bold');
+        mNavBtn.classList.add('text-cyan-400', 'font-bold');
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
@@ -2696,10 +2702,10 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
       }
       if (mNavBtn) {
-        mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'font-bold');
+        mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'font-bold');
         mNavBtn.classList.add('text-slate-400');
       }
     }
@@ -2745,6 +2751,10 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'policy' && typeof PolicyHub !== 'undefined' && typeof PolicyHub.init === 'function') {
     PolicyHub.init();
+  }
+
+  if (tabId === 'onchain' && typeof OnChainEngine !== 'undefined') {
+    OnChainEngine.init();
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
@@ -3723,6 +3733,70 @@ const OnChainEngine = {
     this.render();
   },
 
+  currentFilterType: 'all',
+  currentFilterSize: 'all',
+
+  setFilterType: function(type) {
+    this.currentFilterType = type;
+    document.querySelectorAll('.onchain-filter-type-btn').forEach(btn => {
+      if (btn.getAttribute('data-type') === type) {
+        btn.classList.add('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+        btn.classList.remove('bg-navy-950', 'text-slate-400');
+      } else {
+        btn.classList.remove('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+        btn.classList.add('bg-navy-950', 'text-slate-400');
+      }
+    });
+    this.render();
+  },
+
+  setFilterSize: function(size) {
+    this.currentFilterSize = size;
+    document.querySelectorAll('.onchain-filter-size-btn').forEach(btn => {
+      if (btn.getAttribute('data-size') === size) {
+        btn.classList.add('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+        btn.classList.remove('bg-navy-950', 'text-slate-400');
+      } else {
+        btn.classList.remove('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-300');
+        btn.classList.add('bg-navy-950', 'text-slate-400');
+      }
+    });
+    this.render();
+  },
+
+  getAllWhaleAlerts: function() {
+    const list = [];
+    Object.keys(this.data).forEach(coin => {
+      if (this.data[coin].whaleAlerts) {
+        this.data[coin].whaleAlerts.forEach(w => list.push(w));
+      }
+    });
+    list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return list;
+  },
+
+  renderTicker: function() {
+    const track = document.getElementById('global-whale-marquee-track');
+    if (!track) return;
+    const allAlerts = this.getAllWhaleAlerts().slice(0, 10);
+    if (!allAlerts.length) return;
+
+    track.innerHTML = allAlerts.map(w => {
+      const isOutflow = w.type && w.type.includes('유출');
+      const icon = isOutflow ? '💎' : (w.type && w.type.includes('입금') ? '🚨' : '⚡');
+      return `
+        <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-navy-900/90 border border-navy-700/80 text-[11px] text-slate-200 shrink-0 hover:border-cyan-400 transition cursor-pointer">
+          <span>${icon}</span>
+          <span class="font-bold text-white">${w.coin}</span>
+          <span class="font-mono text-cyan-300 font-semibold">${w.qty}</span>
+          <span class="font-mono text-amber-300 font-bold">(${w.usd})</span>
+          <span class="text-slate-400 text-[10px]">${w.fromTo}</span>
+          <span class="${w.typeClass} font-bold text-[10px] ml-1">${w.type}</span>
+        </span>
+      `;
+    }).join(' ');
+  },
+
   refresh: function () {
     const btn = document.getElementById('onchain-refresh-btn');
     if (btn) {
@@ -3789,20 +3863,63 @@ const OnChainEngine = {
     if (elBarInflow) elBarInflow.style.width = d.inflowPct + '%';
     if (elSentiment) elSentiment.innerHTML = d.sentimentText;
 
-    // 3. Whale Table
+    // 3. Whale Table with Filtering & KRW conversion
     const tbody = document.getElementById('onchain-whale-table-body');
     if (tbody && d.whaleAlerts) {
-      tbody.innerHTML = d.whaleAlerts.map(w => `
-        <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
-          <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${formatDateTime(w.timestamp || w.time, true)}</td>
-          <td class="py-2.5 px-3 font-bold text-white">${w.coin}</td>
-          <td class="py-2.5 px-3 text-right font-bold text-slate-200 font-mono">${w.qty}</td>
-          <td class="py-2.5 px-3 text-right text-cyan-400 font-bold font-mono">${w.usd}</td>
-          <td class="py-2.5 px-3 text-slate-300 text-xs">${w.fromTo}</td>
-          <td class="py-2.5 px-3 text-center font-bold ${w.typeClass}">${w.type}</td>
-        </tr>
-      `).join('');
+      let filtered = d.whaleAlerts.slice();
+
+      // Filter by Type
+      if (this.currentFilterType === 'outflow') {
+        filtered = filtered.filter(w => w.type && (w.type.includes('유출') || w.type.includes('매집')));
+      } else if (this.currentFilterType === 'inflow') {
+        filtered = filtered.filter(w => w.type && (w.type.includes('입금') || w.type.includes('주의')));
+      } else if (this.currentFilterType === 'defi') {
+        filtered = filtered.filter(w => w.type && (w.type.includes('DeFi') || w.type.includes('스테이킹') || w.type.includes('이체')));
+      }
+
+      // Filter by Size
+      if (this.currentFilterSize === 'mega') {
+        filtered = filtered.filter(w => {
+          const val = parseFloat(w.usd.replace(/[^0-9.]/g, '')) || 0;
+          return val >= 10;
+        });
+      } else if (this.currentFilterSize === 'large') {
+        filtered = filtered.filter(w => {
+          const val = parseFloat(w.usd.replace(/[^0-9.]/g, '')) || 0;
+          return val >= 1;
+        });
+      }
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 font-sans">선택한 필터 조건에 해당하는 고래 트랜잭션이 없습니다.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(w => {
+          const numUsd = parseFloat(w.usd.replace(/[^0-9.]/g, '')) || 0;
+          const krwEst = numUsd > 0 ? `약 ${(numUsd * 14).toFixed(0)}억 원` : '-';
+          return `
+            <tr class="border-b border-navy-800/60 hover:bg-navy-900/60 transition">
+              <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${formatDateTime(w.timestamp || w.time, true)}</td>
+              <td class="py-2.5 px-3 font-bold text-white flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span>${w.coin}</span>
+              </td>
+              <td class="py-2.5 px-3 text-right font-bold text-slate-200 font-mono">${w.qty}</td>
+              <td class="py-2.5 px-3 text-right font-bold font-mono">
+                <span class="text-cyan-400">${w.usd}</span>
+                <span class="block text-[10px] text-slate-500 font-sans">${krwEst}</span>
+              </td>
+              <td class="py-2.5 px-3 text-slate-300 text-xs">${w.fromTo}</td>
+              <td class="py-2.5 px-3 text-center font-bold ${w.typeClass}">
+                <span class="inline-block px-2 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-[11px]">${w.type}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
     }
+
+    this.renderTicker();
+
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
       lucide.createIcons();
     }
@@ -3810,13 +3927,11 @@ const OnChainEngine = {
 
   init: function () {
     this.render();
+    this.renderTicker();
     if (!this._interval) {
       this._interval = setInterval(() => {
-        const forumTab = document.getElementById('tab-forum');
-        if (forumTab && !forumTab.classList.contains('hidden')) {
-          this.updateLiveMetrics();
-        }
-      }, 10000);
+        this.updateLiveMetrics();
+      }, 7000);
     }
   }
 };
