@@ -156,7 +156,7 @@
       overflow-wrap: break-word;
     }
 
-    /* Mobile-First Compact UX Optimizations */
+    /* Mobile-First Compact UX Optimizations (Preview Test) */
     @media (max-width: 640px) {
       .container, .app-container {
         max-width: 100vw !important;
@@ -1117,9 +1117,14 @@
       </a>
 
       <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink-0">
+      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink-0 max-w-full overflow-x-auto no-scrollbar">
         <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="trending-up" class="w-4 h-4"></i> 시세
+        </button>
+        <button onclick="switchTab('onchain')" id="nav-onchain" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-cyan-300 hover:text-cyan-100">
+          <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+          <span>온체인·고래</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
         </button>
         <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼
@@ -1177,6 +1182,10 @@
       <i data-lucide="trending-up" class="w-4 h-4"></i>
       <span>시세</span>
     </button>
+    <button onclick="switchTab('onchain')" id="m-nav-onchain" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
+      <i data-lucide="activity" class="w-4 h-4"></i>
+      <span>온체인</span>
+    </button>
     <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="messages-square" class="w-4 h-4"></i>
       <span>포럼</span>
@@ -1214,6 +1223,23 @@
       <span>관리자</span>
     </button>
   </div>
+
+  <!-- Real-time Whale Alert Live Marquee Ticker Bar (Option 1) -->
+  <aside aria-label="고래 경보 티커" class="bg-gradient-to-r from-navy-950 via-cyan-950/40 to-navy-950 border-b border-cyan-500/20 py-2 px-4 shadow-md flex items-center gap-3 text-xs overflow-hidden cursor-pointer group select-none" onclick="switchTab('onchain')" title="클릭 시 온체인·고래 레이더 분석 센터로 이동">
+    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[11px] font-black shrink-0 animate-pulse">
+      <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+      <span class="tracking-wide uppercase font-mono">WHALE RADAR</span>
+    </div>
+    <div class="flex-1 overflow-hidden relative">
+      <div id="global-whale-marquee-track" class="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap py-0.5">
+        <span class="text-slate-400 text-xs font-mono">실시간 대형 온체인 고래 트랜잭션 감지 중...</span>
+      </div>
+    </div>
+    <div class="hidden sm:flex items-center gap-1 text-[11px] text-cyan-400 group-hover:text-cyan-300 shrink-0 font-bold">
+      <span>온체인 분석</span>
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+    </div>
+  </aside>
 
   <!-- Main Content Container -->
   <main class="flex-1 container mx-auto px-4 py-6 mb-16 md:mb-6">
@@ -1410,148 +1436,27 @@
 
       </div>
 
-      <!-- ==============================================
-           ON-CHAIN INTELLIGENCE & EXCHANGE NET FLOW (온체인 데이터 연동)
-           ============================================== -->
-      <div class="bg-navy-900 border border-cyan-500/30 rounded-3xl p-6 shadow-xl space-y-6">
-        <!-- Header & Coin Selector -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-navy-800 pb-5">
+      <!-- Quick Link Banner to Dedicated On-Chain Radar Tab -->
+      <div class="bg-gradient-to-r from-navy-900 via-cyan-950/40 to-navy-900 border border-cyan-500/30 rounded-3xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl shadow-md shadow-cyan-500/10 shrink-0">
+            🐋
+          </div>
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold mb-2">
-              <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-              <span>실시간 온체인 & 거래소 유출입 레이더</span>
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-mono font-bold mb-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>LIVE ON-CHAIN RADAR</span>
             </div>
-            <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-              <i data-lucide="network" class="w-6 h-6 text-cyan-400"></i> 코인별 온체인 지표 & 거래소 순유입/유출 분석
-            </h2>
-            <p class="text-xs text-slate-400">블록체인 네트워크 고래 지갑 이동, 거래소 보유 잔고 및 온체인 수급 펀더멘털</p>
-          </div>
-
-          <!-- Coin Selectors & Refresh -->
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="flex flex-wrap items-center gap-1.5 bg-navy-950 p-1.5 rounded-2xl border border-navy-800" id="onchain-coin-selectors">
-              <button onclick="OnChainEngine.selectCoin('BTC')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-cyan-500 text-navy-950 shadow-md" data-coin="BTC">BTC</button>
-              <button onclick="OnChainEngine.selectCoin('ETH')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="ETH">ETH</button>
-              <button onclick="OnChainEngine.selectCoin('SOL')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="SOL">SOL</button>
-              <button onclick="OnChainEngine.selectCoin('XRP')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="XRP">XRP</button>
-              <button onclick="OnChainEngine.selectCoin('DOGE')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="DOGE">DOGE</button>
-              <button onclick="OnChainEngine.selectCoin('SUI')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="SUI">SUI</button>
-              <button onclick="OnChainEngine.selectCoin('AVAX')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="AVAX">AVAX</button>
-              <button onclick="OnChainEngine.selectCoin('LINK')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="LINK">LINK</button>
-            </div>
-            <button onclick="OnChainEngine.refresh()" class="px-3 py-2 rounded-2xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="온체인 지표 실시간 동기화">
-              <i data-lucide="refresh-cw" id="onchain-refresh-btn" class="w-3.5 h-3.5"></i>
-              <span class="hidden sm:inline">새로고침</span>
-            </button>
+            <h4 class="text-base font-bold text-white flex items-center gap-2">
+              <span>실시간 온체인 펀더멘털 & 고래 이동 레이더 센터</span>
+            </h4>
+            <p class="text-xs text-slate-400 mt-0.5">거래소 24h 순유출입(Net Flow), 거래소 잔고 추이, 고래 지갑 실시간 이체, MVRV·NVT 밸류에이션 심층 분석</p>
           </div>
         </div>
-
-        <!-- 4 Key On-Chain Metric Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Card 1: 24h Net Exchange Flow -->
-          <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800 relative overflow-hidden">
-            <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-                <i data-lucide="arrow-left-right" class="w-3.5 h-3.5 text-cyan-400"></i> 거래소 24h 순유출입
-              </span>
-              <span id="onchain-flow-signal" class="badge-green text-[11px] font-bold px-2 py-0.5 rounded-full">강력 매집</span>
-            </div>
-            <div id="onchain-net-flow" class="text-2xl font-black font-mono text-emerald-400 mt-3">-18,420 BTC</div>
-            <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-              <span>거래소 외부 유출 (매집)</span>
-              <span id="onchain-net-flow-usd" class="font-mono text-slate-300">-$2.36B</span>
-            </div>
-          </div>
-
-          <!-- Card 2: Exchange Reserve Balance -->
-          <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800">
-            <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-                <i data-lucide="wallet" class="w-3.5 h-3.5 text-indigo-400"></i> 거래소 총 보유 잔고
-              </span>
-              <span id="onchain-reserve-change" class="text-emerald-400 text-xs font-mono font-bold">-1.28%</span>
-            </div>
-            <div id="onchain-reserve-balance" class="text-2xl font-black font-mono text-white mt-3">2,184,200 BTC</div>
-            <div class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
-          </div>
-
-          <!-- Card 3: Whale Large Transactions (>$1M) -->
-          <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800">
-            <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-                <i data-lucide="boxes" class="w-3.5 h-3.5 text-amber-400"></i> 24h 대형 고래 이체액
-              </span>
-              <span id="onchain-whale-count" class="text-amber-300 text-xs font-mono font-bold">142건 감지</span>
-            </div>
-            <div id="onchain-whale-volume" class="text-2xl font-black font-mono text-amber-300 mt-3">$4.82B</div>
-            <div class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
-          </div>
-
-          <!-- Card 4: Active Addresses & MVRV Valuation -->
-          <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800">
-            <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-                <i data-lucide="fingerprint" class="w-3.5 h-3.5 text-purple-400"></i> 활성 지갑 & MVRV
-              </span>
-              <span id="onchain-mvrv-status" class="text-cyan-400 text-xs font-mono font-bold">저평가/매수구간</span>
-            </div>
-            <div id="onchain-active-wallets" class="text-2xl font-black font-mono text-white mt-3">984,200 주소</div>
-            <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
-              <span>MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
-              <span>NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Inflow vs Outflow Visual Bar & Sentiment Summary -->
-        <div class="p-4 rounded-2xl bg-navy-950 border border-navy-800 space-y-3">
-          <div class="flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-2">
-            <div class="flex items-center gap-4">
-              <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> 24h 유출량(매집): <strong id="onchain-outflow-bar-val" class="text-emerald-400 font-mono">68%</strong>
-              </span>
-              <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> 24h 유입량(매도압력): <strong id="onchain-inflow-bar-val" class="text-rose-400 font-mono">32%</strong>
-              </span>
-            </div>
-            <div class="text-slate-400 text-[11px]" id="onchain-sentiment-text">
-              온체인 종합 진단: <span class="text-emerald-400 font-bold">강력 매집 및 장기 홀딩 우세 (Bullish Accumulation)</span>
-            </div>
-          </div>
-          <!-- Visual Bar -->
-          <div class="w-full h-3 rounded-full bg-navy-900 overflow-hidden flex">
-            <div id="onchain-bar-outflow" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width: 68%;"></div>
-            <div id="onchain-bar-inflow" class="h-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-500" style="width: 32%;"></div>
-          </div>
-        </div>
-
-        <!-- Real-Time Whale Alert Activity Feed Table -->
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i data-lucide="radio" class="w-4 h-4 text-rose-400 animate-pulse"></i> 실시간 대량 온체인 이동 레이더 (Live Whale Alert)
-            </h3>
-            <span class="text-xs text-slate-400">블록 익스플로러 실시간 연동 감지</span>
-          </div>
-
-          <div class="overflow-x-auto rounded-2xl border border-navy-800">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-navy-950 text-slate-400 font-mono">
-                <tr class="border-b border-navy-800">
-                  <th class="py-2.5 px-3">감지 시간</th>
-                  <th class="py-2.5 px-3">자산</th>
-                  <th class="py-2.5 px-3 text-right">이체 수량</th>
-                  <th class="py-2.5 px-3 text-right">환산 금액 (USD)</th>
-                  <th class="py-2.5 px-3">출발지 ➔ 도착지</th>
-                  <th class="py-2.5 px-3 text-center">온체인 성격</th>
-                </tr>
-              </thead>
-              <tbody id="onchain-whale-table-body" class="divide-y divide-navy-800/60 font-mono bg-navy-950/50">
-                <!-- Dynamically injected -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <button onclick="switchTab('onchain')" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-xs transition flex items-center gap-2 shrink-0 shadow-lg shadow-cyan-500/25 cursor-pointer">
+          <span>온체인 레이더 전용 대시보드</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
       </div>
     </section>
 
@@ -2362,7 +2267,8 @@
     <section id="tab-analyzer" class="tab-content block space-y-6">
 
       <!-- MAIN ANALYZER DASHBOARD: 로그인 회원 전용 대시보드 -->
-      <div id="analyzer-main-content" class="space-y-6 block">
+      <div id="analyzer-main-content" class="space-y-4 sm:space-y-6 block">
+        
         <!-- Mobile Compact & Expandable Disclaimer Banner -->
         <details class="group p-2.5 sm:p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/25 text-xs text-rose-300 transition">
           <summary class="flex items-center justify-between cursor-pointer list-none select-none text-[11px] sm:text-xs">
@@ -3361,6 +3267,367 @@
       </div>
 
     </section>
+
+    <!-- ==============================================
+         TAB: ON-CHAIN INTELLIGENCE & WHALE RADAR (실시간 온체인 & 고래 레이더)
+         ============================================== -->
+    <section id="tab-onchain" class="tab-content hidden w-full space-y-6">
+
+      <!-- 1. Hero Header & Overview -->
+      <div class="bg-gradient-to-r from-navy-950 via-cyan-950/50 to-navy-900 border border-cyan-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold" id="onchain-live-badge">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span>실시간 블록체인 온체인 노드 & 지갑 레이더 연동</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <span>온체인 펀더멘털 & 고래 레이더</span>
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 font-mono text-xl sm:text-2xl">Whale & On-Chain</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              기관 및 대형 고래의 <strong>거래소 대량 유출입(Net Flow)</strong>, <strong>거래소 잔고 고갈 추이</strong>, <strong>$1M+ 이상 초대형 트랜잭션</strong> 및 <strong>MVRV / NVT 밸류에이션 저평가 지표</strong>를 실시간으로 탐지합니다.
+            </p>
+          </div>
+
+          <!-- Quick Actions & Coin Selector -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-navy-950/80 p-3 rounded-2xl border border-navy-800 shrink-0">
+            <div class="flex flex-wrap items-center gap-1.5" id="onchain-coin-selectors">
+              <button onclick="OnChainEngine.selectCoin('BTC')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-cyan-500 text-navy-950 shadow-md" data-coin="BTC">BTC</button>
+              <button onclick="OnChainEngine.selectCoin('ETH')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="ETH">ETH</button>
+              <button onclick="OnChainEngine.selectCoin('SOL')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="SOL">SOL</button>
+              <button onclick="OnChainEngine.selectCoin('XRP')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="XRP">XRP</button>
+              <button onclick="OnChainEngine.selectCoin('DOGE')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="DOGE">DOGE</button>
+              <button onclick="OnChainEngine.selectCoin('SUI')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="SUI">SUI</button>
+              <button onclick="OnChainEngine.selectCoin('AVAX')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="AVAX">AVAX</button>
+              <button onclick="OnChainEngine.selectCoin('LINK')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="LINK">LINK</button>
+            </div>
+            <button onclick="OnChainEngine.refresh()" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="온체인 지표 수동 새로고침">
+              <i data-lucide="refresh-cw" id="onchain-refresh-btn" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">동기화</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 4 Key On-Chain Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: 24h Net Exchange Flow -->
+        <div class="p-5 rounded-3xl bg-navy-900 border border-cyan-500/30 shadow-xl relative overflow-hidden group">
+          <div class="flex justify-between items-start">
+            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 거래소 24h 순유출입
+            </span>
+            <span id="onchain-flow-signal" class="badge-green text-[11px] font-bold px-2 py-0.5 rounded-full">강력 매집</span>
+          </div>
+          <div id="onchain-net-flow" class="text-2xl font-black font-mono text-emerald-400 mt-3">-18,420 BTC</div>
+          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+            <span>거래소 외부 유출 (매집)</span>
+            <span id="onchain-net-flow-usd" class="font-mono text-slate-300 font-bold">-$2.36B</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Exchange Reserve Balance -->
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
+          <div class="flex justify-between items-start">
+            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 거래소 총 보유 잔고
+            </span>
+            <span id="onchain-reserve-change" class="text-emerald-400 text-xs font-mono font-bold">-1.28%</span>
+          </div>
+          <div id="onchain-reserve-balance" class="text-2xl font-black font-mono text-white mt-3">2,184,200 BTC</div>
+          <div class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
+        </div>
+
+        <!-- Card 3: Whale Large Transactions (>$1M) -->
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
+          <div class="flex justify-between items-start">
+            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 고래 이체액
+            </span>
+            <span id="onchain-whale-count" class="text-amber-300 text-xs font-mono font-bold">142건 감지</span>
+          </div>
+          <div id="onchain-whale-volume" class="text-2xl font-black font-mono text-amber-300 mt-3">$4.82B</div>
+          <div class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
+        </div>
+
+        <!-- Card 4: Active Addresses & MVRV Valuation -->
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
+          <div class="flex justify-between items-start">
+            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 활성 지갑 & MVRV
+            </span>
+            <span id="onchain-mvrv-status" class="text-cyan-400 text-xs font-mono font-bold">저평가/매수구간</span>
+          </div>
+          <div id="onchain-active-wallets" class="text-2xl font-black font-mono text-white mt-3">984,200 주소</div>
+          <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
+            <span>MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
+            <span>NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.5 ADVANCED ON-CHAIN FUNDAMENTALS (실제 온체인 원장 & 기관급 6대 지표) -->
+      <div class="bg-gradient-to-br from-navy-950 via-navy-900 to-navy-950 border border-cyan-500/25 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-navy-800 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[11px] font-bold uppercase font-mono tracking-wider">ON-CHAIN DEEP DIVE</span>
+              <span class="text-xs text-slate-400 font-medium">DefiLlama & Blockchain Node 실시간 데이터 연동</span>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-white mt-1 flex items-center gap-2">
+              <i data-lucide="layers" class="w-5 h-5 text-cyan-400"></i>
+              <span>기관급 온체인 심층 펀더멘털 대시보드</span>
+            </h3>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>최신 블록: <strong id="onchain-block-height" class="text-cyan-300 font-bold">#965,765</strong></span>
+            <span class="text-slate-600">|</span>
+            <span>멤풀 대기: <strong id="onchain-mempool-txs" class="text-amber-300 font-bold">41,574건</strong></span>
+          </div>
+        </div>
+
+        <!-- 6 Core Advanced Metric Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- Metric 1: SOPR (Spent Output Profit Ratio) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i> SOPR (소비 출력 이익 비율)
+                </span>
+                <span id="onchain-sopr-signal" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">1.018 (이익 실현)</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-3">
+                <div id="onchain-sopr-val" class="text-2xl font-black font-mono text-cyan-400">1.0184</div>
+                <span class="text-[11px] text-slate-400 font-mono">기준선 1.000</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                온체인 상에서 이동한 코인의 매수 단가 대비 실현 손익비. <strong class="text-slate-300">1.0 이상</strong>은 이익 매도, <strong class="text-slate-300">1.0 미만</strong>은 손절 투매 구간을 의미합니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
+              <span class="text-slate-400">ETH SOPR: <strong id="onchain-sopr-eth" class="text-slate-200">1.0092</strong></span>
+              <span class="text-emerald-400 font-semibold">지지선 반등 확인</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Daily Realized P&L (일일 실현 손익) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> 일일 실현 손익 (Realized P&L)
+                </span>
+                <span id="onchain-realized-badge" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">+순수익 우세</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-realized-pnl" class="text-2xl font-black font-mono text-emerald-400">+$412.5M</div>
+                <span id="onchain-realized-pnl-krw" class="text-xs text-slate-400 font-sans">(약 +5,775억 원)</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                블록체인 장부상에서 24시간 동안 실현된 순이익($)과 순손실($)의 종합 합산치입니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex items-center justify-between text-[11px] font-mono">
+              <span class="text-emerald-400">실현 이익: +$684M</span>
+              <span class="text-rose-400">실현 손실: -$271M</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: LTH vs STH Supply (장기 보유자 공급 비율) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="shield" class="w-4 h-4 text-indigo-400"></i> 장기 보유자(LTH) 공급 비중
+                </span>
+                <span class="text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 font-mono">155일+ 락업</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-lth-ratio" class="text-2xl font-black font-mono text-indigo-400">74.2%</div>
+                <span class="text-xs text-slate-400 font-mono">(14,899,700 BTC)</span>
+              </div>
+              <!-- Ratio Progress Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div id="onchain-lth-bar" class="h-full bg-indigo-500" style="width: 74.2%;"></div>
+                <div id="onchain-sth-bar" class="h-full bg-amber-500" style="width: 25.8%;"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px]">
+              <span class="text-slate-400">다이아몬드 핸즈: <strong class="text-indigo-400 font-mono">74.2%</strong></span>
+              <span class="text-slate-400">단기 보유(STH): <strong class="text-amber-400 font-mono">25.8%</strong></span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Stablecoin Total Supply (DefiLlama 실제 연동) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="coins" class="w-4 h-4 text-teal-400"></i> 스테이블코인 총공급 (DefiLlama 실시간)
+                </span>
+                <span class="text-teal-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 font-mono">LIVE API</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-stable-total" class="text-2xl font-black font-mono text-teal-400">$172.5B</div>
+                <span id="onchain-stable-total-krw" class="text-xs text-slate-400 font-sans">(약 241.5조 원)</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                시장 대기 자금 총알 규모. USDT + USDC 공급이 늘어날수록 가상자산 매수 잠재력이 확대됩니다.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
+              <span class="text-slate-400">USDT: <strong id="onchain-usdt-supply" class="text-teal-300">$118.4B</strong></span>
+              <span class="text-slate-400">USDC: <strong id="onchain-usdc-supply" class="text-blue-300">$35.8B</strong></span>
+              <span class="text-slate-400">기타: <strong id="onchain-other-supply" class="text-slate-300">$18.3B</strong></span>
+            </div>
+          </div>
+
+          <!-- Metric 5: Whale / Smart Money Accumulation Index (0~100) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="target" class="w-4 h-4 text-amber-400"></i> 고래·스마트머니 순매수 점수
+                </span>
+                <span id="onchain-whale-score-badge" class="badge-green text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">강력 축적 단계</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-3">
+                <div id="onchain-whale-score" class="text-2xl font-black font-mono text-amber-300">78 / 100</div>
+                <span class="text-xs text-emerald-400 font-bold font-sans">기관 매집 우세 (Bullish)</span>
+              </div>
+              <!-- Meter Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div id="onchain-whale-score-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400" style="width: 78%;"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
+              <span>0-30 분배(매도)</span>
+              <span>31-60 중립</span>
+              <span class="text-amber-300 font-bold">61-100 강력 매집</span>
+            </div>
+          </div>
+
+          <!-- Metric 6: NUPL (Net Unrealized Profit/Loss) -->
+          <div class="p-5 rounded-2xl bg-navy-950/70 border border-navy-800 hover:border-cyan-500/40 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i> NUPL (순미실현 손익 사이클)
+                </span>
+                <span id="onchain-nupl-phase" class="text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 font-mono">Belief (신념 국면)</span>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <div id="onchain-nupl-val" class="text-2xl font-black font-mono text-purple-400">0.528</div>
+                <span class="text-xs text-slate-400 font-sans">(과거 대세 상승기 진입)</span>
+              </div>
+              <!-- NUPL Spectrum Bar -->
+              <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
+                <div class="h-full bg-rose-500" style="width: 20%;" title="Capitulation"></div>
+                <div class="h-full bg-amber-500" style="width: 20%;" title="Hope/Fear"></div>
+                <div class="h-full bg-yellow-500" style="width: 20%;" title="Optimism"></div>
+                <div class="h-full bg-emerald-500" style="width: 20%;" title="Belief"></div>
+                <div class="h-full bg-cyan-400" style="width: 20%;" title="Euphoria"></div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
+              <span class="text-slate-500">투매</span>
+              <span class="text-slate-500">희망</span>
+              <span class="text-slate-500">낙관</span>
+              <span class="text-purple-300 font-bold">신념 (현재)</span>
+              <span class="text-slate-500">열광</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 4. Interactive Live Whale Alert Feed with Dual Filters -->
+      <div class="bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-navy-800/80 pb-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="radio" class="w-5 h-5 text-rose-400 animate-pulse"></i>
+              <span>실시간 대량 온체인 이동 레이더 (Live Whale Feed)</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">글로벌 탑 거래소 및 미확인 거대 지갑 간 $1,000,000 이상 트랜잭션 실시간 수집</p>
+          </div>
+
+          <!-- Dual Filter Bar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filter: Type -->
+            <div class="flex items-center gap-1 bg-navy-950 p-1 rounded-xl border border-navy-800 text-xs">
+              <button onclick="OnChainEngine.setFilterType('all')" data-type="all" class="onchain-filter-type-btn px-2.5 py-1 rounded-lg font-bold transition bg-cyan-500/20 border border-cyan-500/50 text-cyan-300">전체</button>
+              <button onclick="OnChainEngine.setFilterType('outflow')" data-type="outflow" class="onchain-filter-type-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">매집 유출 💎</button>
+              <button onclick="OnChainEngine.setFilterType('inflow')" data-type="inflow" class="onchain-filter-type-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">입금 주의 🚨</button>
+              <button onclick="OnChainEngine.setFilterType('defi')" data-type="defi" class="onchain-filter-type-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">DeFi·이체 ⚡</button>
+            </div>
+
+            <!-- Filter: Size -->
+            <div class="flex items-center gap-1 bg-navy-950 p-1 rounded-xl border border-navy-800 text-xs">
+              <button onclick="OnChainEngine.setFilterSize('all')" data-size="all" class="onchain-filter-size-btn px-2.5 py-1 rounded-lg font-bold transition bg-cyan-500/20 border border-cyan-500/50 text-cyan-300">전체 규모</button>
+              <button onclick="OnChainEngine.setFilterSize('mega')" data-size="mega" class="onchain-filter-size-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">$10M+ 메가 고래</button>
+              <button onclick="OnChainEngine.setFilterSize('large')" data-size="large" class="onchain-filter-size-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">$1M+ 대형</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Whale Alert Table -->
+        <div class="overflow-x-auto rounded-2xl border border-navy-800 bg-navy-950/40">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-navy-950 text-slate-400 font-mono">
+              <tr class="border-b border-navy-800">
+                <th class="py-3 px-4">감지 시간</th>
+                <th class="py-3 px-4">자산</th>
+                <th class="py-3 px-4 text-right">이체 수량</th>
+                <th class="py-3 px-4 text-right">환산 금액 (USD / KRW)</th>
+                <th class="py-3 px-4">출발지 ➔ 도착지</th>
+                <th class="py-3 px-4 text-center">온체인 성격</th>
+              </tr>
+            </thead>
+            <tbody id="onchain-whale-table-body" class="divide-y divide-navy-800/60 font-mono">
+              <!-- Injected dynamically by OnChainEngine.render() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 5. Educational / Interpretation Guide Card -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800 text-xs space-y-1.5">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>거래소 순유출 (Outflow)</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            거래소에서 외부 콜드월렛으로 코인이 이동하면 시장 매도 가능 물량이 줄어들어 장기 보유(HODL) 및 강세 요인으로 작용합니다.
+          </p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800 text-xs space-y-1.5">
+          <div class="flex items-center gap-2 text-rose-400 font-bold">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            <span>거래소 순유입 (Inflow)</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            외부 지갑에서 중앙 거래소로 대량 유입 시 매도 차익 실현 및 시장 청산 압력으로 이어질 수 있으므로 단기 변동성에 주의해야 합니다.
+          </p>
+        </div>
+        <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800 text-xs space-y-1.5">
+          <div class="flex items-center gap-2 text-cyan-400 font-bold">
+            <i data-lucide="compass" class="w-4 h-4"></i>
+            <span>MVRV & NVT 비율</span>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            시가총액과 실현총액의 비율(MVRV)이 1.0 이하이면 역사적 바닥 구간, 3.5 이상이면 시장 과열 고점 구간을 나타내는 핵심 지표입니다.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
 
 
     <!-- ==============================================
