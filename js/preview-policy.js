@@ -308,51 +308,104 @@
   ];
 
   // 2. State & Controller
+  let activePolicyList = [...POLICY_DATA];
   let currentFilter = 'all';
   let searchQuery = '';
+  let visibleLimit = 18;
+  let isFetchingRemote = false;
   let quizFilters = {
     household: 'all',
     age: 'all',
     car: 'all'
   };
 
+  async function loadRemotePolicies() {
+    if (isFetchingRemote) return;
+    isFetchingRemote = true;
+    try {
+      const res = await fetch('data/policy-data.json?v=' + Date.now());
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.policies) && json.policies.length > 0) {
+          const seen = new Set();
+          const merged = [];
+
+          // Curated policies first
+          for (const item of POLICY_DATA) {
+            seen.add(item.id);
+            seen.add(item.title);
+            merged.push(item);
+          }
+
+          // Remote extracted policies from API
+          for (const item of json.policies) {
+            if (!seen.has(item.id) && !seen.has(item.title)) {
+              seen.add(item.id);
+              seen.add(item.title);
+              merged.push(item);
+            }
+          }
+
+          activePolicyList = merged;
+          renderPolicyGrid();
+
+          const liveBadge = document.getElementById('policy-live-badge');
+          if (liveBadge) {
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> <span>정부24 공공데이터 자동 연동 (${activePolicyList.length}건)</span>`;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Fallback to local curated policies:', e);
+    } finally {
+      isFetchingRemote = false;
+    }
+  }
+
   function getFilteredPolicies() {
-    return POLICY_DATA.filter(item => {
+    return activePolicyList.filter(item => {
       // Category filter
       if (currentFilter !== 'all' && item.category !== currentFilter) {
         return false;
       }
 
       // Quiz conditional matching
-      if (quizFilters.household === 'multi-child') {
-        const isMulti = item.tags.includes('다자녀') || item.target.includes('2자녀') || item.target.includes('3자녀') || item.category === 'family';
+      const targetStr = (item.target || '') + ' ' + (item.summary || '');
+      const tagList = item.tags || [];
+
+      if (quizFilters.household === 'children_2plus') {
+        const isMulti = tagList.includes('다자녀') || targetStr.includes('다자녀') || targetStr.includes('2자녀') || targetStr.includes('3자녀') || item.category === 'family';
         if (!isMulti) return false;
+      } else if (quizFilters.household === 'newborn') {
+        const isNewborn = tagList.includes('출산') || targetStr.includes('출산') || targetStr.includes('신생아') || targetStr.includes('영유아') || targetStr.includes('부모급여');
+        if (!isNewborn) return false;
       } else if (quizFilters.household === 'single') {
-        const isFamilyOnly = item.category === 'family' && !item.tags.includes('청년');
+        const isFamilyOnly = (item.category === 'family' || targetStr.includes('다자녀')) && !tagList.includes('청년');
         if (isFamilyOnly) return false;
       }
 
       if (quizFilters.age === 'youth') {
-        const isYouth = item.tags.includes('청년') || item.target.includes('청년') || item.target.includes('19세');
-        // keep youth or universal items
+        const isYouth = item.category === 'youth' || tagList.includes('청년') || targetStr.includes('청년') || targetStr.includes('19세');
+        if (!isYouth && item.category === 'youth') return false;
       }
 
-      if (quizFilters.car === 'yes') {
-        // car friendly
-      } else if (quizFilters.car === 'no') {
+      if (quizFilters.car === 'ev') {
+        const isEv = tagList.includes('전기차') || tagList.includes('수소차') || targetStr.includes('전기차') || targetStr.includes('수소차');
+        if (item.category === 'traffic' && !isEv && !targetStr.includes('고속도로')) return false;
+      } else if (quizFilters.car === 'public_transit') {
         if (item.id === 'traffic-01' || item.id === 'traffic-02' || item.id === 'family-04') {
-          return false; // Skip vehicle specific benefits
+          return false;
         }
       }
 
       // Text search
       if (searchQuery) {
         const q = searchQuery.toLowerCase().trim();
-        const inTitle = item.title.toLowerCase().includes(q);
-        const inSummary = item.summary.toLowerCase().includes(q);
-        const inTags = item.tags.some(t => t.toLowerCase().includes(q));
-        const inAgency = item.agency.toLowerCase().includes(q);
-        const inTarget = item.target.toLowerCase().includes(q);
+        const inTitle = item.title && item.title.toLowerCase().includes(q);
+        const inSummary = item.summary && item.summary.toLowerCase().includes(q);
+        const inTags = Array.isArray(item.tags) && item.tags.some(t => t && t.toLowerCase().includes(q));
+        const inAgency = item.agency && item.agency.toLowerCase().includes(q);
+        const inTarget = item.target && item.target.toLowerCase().includes(q);
         return inTitle || inSummary || inTags || inAgency || inTarget;
       }
 
@@ -363,12 +416,15 @@
   function renderPolicyGrid() {
     const container = document.getElementById('policy-cards-grid');
     const countEl = document.getElementById('policy-result-count');
+    const loadMoreContainer = document.getElementById('policy-load-more-container');
+    const remainingCountEl = document.getElementById('policy-remaining-count');
     if (!container) return;
 
     const items = getFilteredPolicies();
     if (countEl) countEl.innerText = items.length;
 
     if (items.length === 0) {
+      if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
       container.innerHTML = `
         <div class="col-span-full py-16 text-center bg-navy-900/60 border border-navy-800 rounded-3xl p-8">
           <div class="w-16 h-16 rounded-2xl bg-navy-800/80 border border-navy-700 flex items-center justify-center text-slate-400 text-2xl mx-auto mb-3">
@@ -384,17 +440,34 @@
       return;
     }
 
-    container.innerHTML = items.map(item => {
+    const visibleItems = items.slice(0, visibleLimit);
+
+    if (loadMoreContainer) {
+      if (items.length > visibleLimit) {
+        loadMoreContainer.classList.remove('hidden');
+        if (remainingCountEl) {
+          remainingCountEl.innerText = `(남은 ${items.length - visibleLimit}개)`;
+        }
+      } else {
+        loadMoreContainer.classList.add('hidden');
+      }
+    }
+
+    container.innerHTML = visibleItems.map(item => {
+      const badge = item.benefitBadge || '정부 지원';
+      const agency = item.agency || '대한민국 정부';
+      const categoryName = item.categoryName || '🏛️ 정부정책';
+
       return `
         <div class="bg-navy-900 border border-navy-800 hover:border-cyan-500/40 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer relative overflow-hidden" onclick="PolicyHub.openDetailModal('${item.id}')">
           <!-- Top Category & Benefit Badge -->
           <div>
             <div class="flex items-center justify-between gap-2 mb-3">
               <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 text-slate-300">
-                ${item.categoryName}
+                ${categoryName}
               </span>
-              <span class="text-[11px] font-black px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono shadow-sm">
-                ${item.benefitBadge}
+              <span class="text-[11px] font-black px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono shadow-sm truncate max-w-[140px]">
+                ${badge}
               </span>
             </div>
 
@@ -415,7 +488,7 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-              <span class="truncate">${item.agency}</span>
+              <span class="truncate">${agency}</span>
               <span class="text-cyan-400 font-bold group-hover:translate-x-0.5 transition flex items-center gap-1 shrink-0">
                 상세보기 <i data-lucide="chevron-right" class="w-3.5 h-3.5 inline"></i>
               </span>
@@ -430,8 +503,13 @@
     }
   }
 
+  function loadMore() {
+    visibleLimit += 18;
+    renderPolicyGrid();
+  }
+
   function openDetailModal(policyId) {
-    const item = POLICY_DATA.find(p => p.id === policyId);
+    const item = activePolicyList.find(p => p.id === policyId);
     if (!item) return;
 
     const modal = document.getElementById('modal-policy-detail');
@@ -447,13 +525,14 @@
     const applyBtn = document.getElementById('modal-policy-apply-btn');
 
     if (titleEl) titleEl.innerText = item.title;
-    if (badgeEl) badgeEl.innerText = item.benefitBadge;
+    if (badgeEl) badgeEl.innerText = item.benefitBadge || '정부 지원';
     if (summaryEl) summaryEl.innerText = item.summary;
     if (targetEl) targetEl.innerText = item.target;
-    if (agencyEl) agencyEl.innerText = item.agency;
+    if (agencyEl) agencyEl.innerText = item.agency || '대한민국 정부';
 
     if (detailsListEl) {
-      detailsListEl.innerHTML = item.details.map(d => `
+      const detailsArr = Array.isArray(item.details) && item.details.length > 0 ? item.details : [item.summary];
+      detailsListEl.innerHTML = detailsArr.map(d => `
         <li class="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0"></span>
           <span>${d}</span>
@@ -462,7 +541,8 @@
     }
 
     if (docsListEl) {
-      docsListEl.innerHTML = item.docs.map(doc => `
+      const docsArr = Array.isArray(item.docs) && item.docs.length > 0 ? item.docs : ['신분증', '주민등록등본', '자격확인서류'];
+      docsListEl.innerHTML = docsArr.map(doc => `
         <span class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-mono">
           📄 ${doc}
         </span>
@@ -470,8 +550,8 @@
     }
 
     if (applyBtn) {
-      applyBtn.href = item.applyUrl;
-      applyBtn.innerHTML = `<span>${item.applyName} 바로가기</span> <i data-lucide="external-link" class="w-4 h-4 inline"></i>`;
+      applyBtn.href = item.applyUrl || 'https://www.gov.kr';
+      applyBtn.innerHTML = `<span>${item.applyName || '정부24 바로가기'}</span> <i data-lucide="external-link" class="w-4 h-4 inline"></i>`;
     }
 
     modal.classList.remove('hidden');
@@ -491,6 +571,7 @@
 
   function filterCategory(cat) {
     currentFilter = cat;
+    visibleLimit = 18;
     const buttons = document.querySelectorAll('.policy-cat-btn');
     buttons.forEach(btn => {
       if (btn.dataset.cat === cat) {
@@ -506,6 +587,7 @@
 
   function handleSearch(val) {
     searchQuery = val || '';
+    visibleLimit = 18;
     const clearBtn = document.getElementById('policy-search-clear');
     if (clearBtn) {
       if (searchQuery) clearBtn.classList.remove('hidden');
@@ -516,6 +598,7 @@
 
   function clearSearch() {
     searchQuery = '';
+    visibleLimit = 18;
     const input = document.getElementById('policy-search-input');
     if (input) input.value = '';
     const clearBtn = document.getElementById('policy-search-clear');
@@ -525,12 +608,14 @@
 
   function updateQuizFilter(key, value) {
     quizFilters[key] = value;
+    visibleLimit = 18;
     renderPolicyGrid();
   }
 
   function resetFilters() {
     currentFilter = 'all';
     searchQuery = '';
+    visibleLimit = 18;
     quizFilters = { household: 'all', age: 'all', car: 'all' };
 
     const input = document.getElementById('policy-search-input');
@@ -546,7 +631,9 @@
   window.PolicyHub = {
     init: function () {
       renderPolicyGrid();
+      loadRemotePolicies();
     },
+    loadMore,
     filterCategory,
     handleSearch,
     clearSearch,

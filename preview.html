@@ -3373,9 +3373,9 @@
       <div class="bg-gradient-to-r from-emerald-950/80 via-navy-900 to-navy-950 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div class="space-y-1.5 max-w-2xl">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              <span>2026 대한민국 최신 정부 정책 & 복지 혜택 캘린더</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold" id="policy-live-badge">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>2026 대한민국 최신 정부 정책 & 복지 혜택 (정부24 연동)</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
               <span>정부 정책 & 복지 혜택 허브</span>
@@ -3426,20 +3426,26 @@
 
           <!-- Category Pills -->
           <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button type="button" onclick="PolicyHub.filterCategory('all')" data-cat="all" class="policy-cat-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-sm bg-cyan-500/20 text-cyan-400 border border-cyan-500/50">
+            <button type="button" onclick="PolicyHub.filterCategory('all')" data-cat="all" class="policy-cat-btn active px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-sm bg-cyan-500/20 text-cyan-400 border border-cyan-500/50">
               <span>🌟 전체 정책</span>
             </button>
-            <button type="button" onclick="PolicyHub.filterCategory('traffic')" data-cat="traffic" class="policy-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
-              <span>🚗 교통/차량 (다자녀 통행료)</span>
+            <button type="button" onclick="PolicyHub.filterCategory('traffic')" data-cat="traffic" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🚗 교통/차량 (고속도로 할인)</span>
             </button>
-            <button type="button" onclick="PolicyHub.filterCategory('family')" data-cat="family" class="policy-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
-              <span>👨‍👩‍👧‍👦 다자녀/가족 (공공요금 감면)</span>
+            <button type="button" onclick="PolicyHub.filterCategory('family')" data-cat="family" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>👨‍👩‍👧‍👦 다자녀/가족 (출산·돌봄)</span>
             </button>
-            <button type="button" onclick="PolicyHub.filterCategory('housing')" data-cat="housing" class="policy-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
-              <span>🏠 주거/금융 (신생아 특례)</span>
+            <button type="button" onclick="PolicyHub.filterCategory('utility')" data-cat="utility" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>💡 공공요금 감면 (전기·가스·난방)</span>
             </button>
-            <button type="button" onclick="PolicyHub.filterCategory('tax')" data-cat="tax" class="policy-cat-btn px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
-              <span>💼 근로/세제 (장려금)</span>
+            <button type="button" onclick="PolicyHub.filterCategory('youth')" data-cat="youth" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🧑‍🎓 청년 지원 (도약계좌·월세)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('housing')" data-cat="housing" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>🏠 주거/부동산/금융 (디딤돌·특례)</span>
+            </button>
+            <button type="button" onclick="PolicyHub.filterCategory('tax')" data-cat="tax" class="policy-cat-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap bg-navy-950 text-slate-400 border border-navy-800 hover:text-white">
+              <span>💼 세제/장려금 (근로장려금·공제)</span>
             </button>
           </div>
         </div>
@@ -3504,6 +3510,15 @@
       <!-- 3. Policy Cards Grid -->
       <div id="policy-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <!-- Rendered dynamically by PolicyHub.renderPolicyGrid() -->
+      </div>
+
+      <!-- Load More Button -->
+      <div id="policy-load-more-container" class="hidden text-center pt-4 pb-2">
+        <button type="button" onclick="PolicyHub.loadMore()" class="px-8 py-3.5 rounded-2xl bg-navy-900 hover:bg-navy-800 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 hover:text-white font-bold text-xs sm:text-sm shadow-xl transition inline-flex items-center gap-2 group">
+          <span>더 많은 정책 보기</span>
+          <span id="policy-remaining-count" class="text-xs text-slate-400 font-mono"></span>
+          <i data-lucide="chevron-down" class="w-4 h-4 group-hover:translate-y-0.5 transition-transform"></i>
+        </button>
       </div>
 
       <!-- 4. Policy Detail Modal -->
