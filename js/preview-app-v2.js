@@ -2632,9 +2632,9 @@ const ROUTE_SEO_MAP = {
     title: "CrytoPnL – 최고 관리자(Admin) 전용 센터",
     desc: "CrytoPnL 사이트 운영, 방문자 트래픽 모니터링 및 시스템 관리"
   },
-  game: {
-    title: "CrytoPnL – 크립토 마블 & 브라우저 아케이드 게임",
-    desc: "순수 브라우저에서 동작하는 모두의 마블 스타일 암호화폐 보드게임! 코인 매수, 노드 구축 및 독점으로 승리하세요."
+  policy: {
+    title: "CrytoPnL – 2026 정부 정책 & 복지 혜택 가이드 (다자녀·청년·교통)",
+    desc: "다자녀 고속도로 통행료 50% 할인, K-패스, 공공요금 감면, 신생아 특례대출 등 2026년 최신 정부 지원 정책 및 맞춤 혜택 검색"
   }
 };
 
@@ -2651,7 +2651,7 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'game'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
@@ -2681,12 +2681,12 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
         } else if (t === 'calendar') {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
-        } else if (t === 'game') {
-          navBtn.classList.add('bg-purple-500/20', 'border-purple-500/40', 'text-purple-300');
+        } else if (t === 'policy') {
+          navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
         }
       }
       if (mNavBtn) {
-        mNavBtn.classList.add('text-purple-400', 'font-bold');
+        mNavBtn.classList.add('text-emerald-400', 'font-bold');
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
@@ -2699,7 +2699,7 @@ function switchTab(tabId, updateHash = true) {
         navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300');
       }
       if (mNavBtn) {
-        mNavBtn.classList.remove('text-purple-400', 'font-bold');
+        mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'font-bold');
         mNavBtn.classList.add('text-slate-400');
       }
     }
@@ -2743,8 +2743,8 @@ function switchTab(tabId, updateHash = true) {
     AdminApp.checkAdminAccess();
   }
 
-  if (tabId === 'game' && typeof CryptoMarble !== 'undefined' && typeof CryptoMarble.init === 'function') {
-    CryptoMarble.init();
+  if (tabId === 'policy' && typeof PolicyHub !== 'undefined' && typeof PolicyHub.init === 'function') {
+    PolicyHub.init();
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
