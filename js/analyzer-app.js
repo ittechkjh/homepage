@@ -803,6 +803,7 @@ const App = {
             pageSize: 20
         },
         journalFilter: {
+            exchange: 'ALL',
             setup: 'ALL',
             result: 'ALL',
             market: 'ALL',
@@ -844,6 +845,7 @@ const App = {
             
             this.checkAuthStatus();
             await this.loadSavedTrades();
+            this.initJournalDB();
         } catch (err) {
             console.error('App 초기화 오류:', err);
         }
@@ -1964,18 +1966,134 @@ const App = {
         try {
             localStorage.setItem('coinhub_trade_journal', JSON.stringify(data));
         } catch (e) {
-            console.error('저널 저장 오류:', e);
+            console.error('저널 로컬 저장 오류:', e);
         }
     },
 
+    initJournalDB: async function () {
+        try {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().onAuthStateChanged(async (user) => {
+                    if (user) {
+                        const loaded = await this.loadJournalFromDB();
+                        if (loaded) {
+                            this.renderJournalView(true);
+                        }
+                    } else {
+                        const badge = document.getElementById('journalDbStatusBadge');
+                        if (badge) {
+                            badge.innerHTML = '💾 로컬 캐시 모드 (로그인 시 DB 자동 연동)';
+                            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-slate-300';
+                        }
+                    }
+                });
+            } else {
+                await this.loadJournalFromDB();
+            }
+        } catch (e) {
+            console.warn('저널 DB 초기화 오류:', e);
+        }
+    },
+
+    saveJournalToDB: async function (store) {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        const uid = (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : null)
+            || (window.auth && window.auth.currentUser ? window.auth.currentUser.uid : null);
+
+        const badge = document.getElementById('journalDbStatusBadge');
+
+        if (!firestore || !uid || uid === 'user_default') {
+            if (badge) {
+                badge.innerHTML = '💾 로컬 캐시 모드 (로그인 시 DB 자동 연동)';
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-slate-300';
+            }
+            return;
+        }
+
+        try {
+            if (badge) {
+                badge.innerHTML = '☁️ DB 저장 중...';
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-[11px] font-bold text-cyan-300 animate-pulse';
+            }
+
+            // 사용자 맞춤 메모, 수동 지정 셋업 및 감정 기록만 필터링하여 1MB 한도 초과 방지
+            const entriesToSave = {};
+            Object.entries(store).forEach(([k, v]) => {
+                if (!v.isAuto || (v.note && v.note.trim()) || (v.emotion && v.emotion !== 'calm')) {
+                    entriesToSave[k] = v;
+                }
+            });
+
+            await firestore.collection('user_trade_journal').doc(uid).set({
+                uid: uid,
+                updatedAt: new Date().toISOString(),
+                journal: entriesToSave
+            }, { merge: true });
+
+            if (badge) {
+                badge.innerHTML = '☁️ DB 실시간 연동 완료';
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-[11px] font-bold text-emerald-300';
+            }
+        } catch (e) {
+            console.warn('저널 DB 동기화 오류 (로컬 보관):', e);
+            if (badge) {
+                badge.innerHTML = '⚠️ DB 동기화 지연 (로컬 안전 보관)';
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-950/60 border border-amber-500/40 text-[11px] font-bold text-amber-300';
+            }
+        }
+    },
+
+    loadJournalFromDB: async function () {
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        const uid = (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : null)
+            || (window.auth && window.auth.currentUser ? window.auth.currentUser.uid : null);
+
+        const badge = document.getElementById('journalDbStatusBadge');
+
+        if (!firestore || !uid || uid === 'user_default') {
+            if (badge) {
+                badge.innerHTML = '💾 로컬 캐시 모드 (로그인 시 DB 자동 연동)';
+                badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-slate-300';
+            }
+            return false;
+        }
+
+        try {
+            const docSnap = await firestore.collection('user_trade_journal').doc(uid).get();
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                if (data && data.journal) {
+                    const localStore = this.getJournalStorage();
+                    const merged = { ...localStore, ...data.journal };
+                    this.saveJournalStorage(merged);
+                    if (badge) {
+                        badge.innerHTML = '☁️ DB 실시간 연동 완료';
+                        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-[11px] font-bold text-emerald-300';
+                    }
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.warn('저널 DB 불러오기 실패:', e);
+        }
+        return false;
+    },
+
     getTradeKey: function (t) {
-        return (t.id || (t.time + '_' + (t.market || t.coinSymbol) + '_' + Math.round(t.price || 0) + '_' + Math.round((t.qty || 0) * 10000)));
+        return (t.id || (t.time + '_' + (t.exchange || 'UPBIT') + '_' + (t.market || t.coinSymbol) + '_' + Math.round(t.price || 0) + '_' + Math.round((t.qty || 0) * 10000)));
     },
 
     getJournalEntry: function (t) {
         const key = this.getTradeKey(t);
         const store = this.getJournalStorage();
-        if (store[key]) return store[key];
+        if (store[key]) {
+            const entry = store[key];
+            // 과거 알고리즘 버그로 모든 거래가 'pullback'으로 쏠렸던 자동 태깅 데이터 보정
+            if (entry.isAuto || (!entry.note && entry.setup === 'pullback' && !entry.manuallyLocked)) {
+                entry.setup = this.autoClassifyTradeSetup(t);
+            }
+            return entry;
+        }
         const defaultSetup = this.autoClassifyTradeSetup(t);
         return { setup: defaultSetup, note: '', emotion: 'calm', isAuto: true };
     },
@@ -1987,8 +2105,10 @@ const App = {
         }
         store[tradeKey][field] = value;
         store[tradeKey].isAuto = false;
+        store[tradeKey].manuallyLocked = true;
         store[tradeKey].updatedAt = Date.now();
         this.saveJournalStorage(store);
+        this.saveJournalToDB(store);
 
         // 상단 지표 및 셋업 성적표 실시간 재계산
         const realizedTrades = (this.state.reportData && this.state.reportData.trades)
@@ -2002,32 +2122,77 @@ const App = {
     onTradeSetupSelect: function (tradeKey, newSetup) {
         this.saveJournalField(tradeKey, 'setup', newSetup);
         const setupName = TRADING_SETUPS[newSetup]?.name || newSetup;
-        this.showToast('🎯 매매 셋업이 "' + setupName + '"(으)로 저장되었습니다.', 'success');
+        this.showToast('🎯 매매 셋업이 "' + setupName + '"(으)로 DB 동기화되었습니다.', 'success');
     },
 
     onTradeEmotionSelect: function (tradeKey, newEmotion) {
         this.saveJournalField(tradeKey, 'emotion', newEmotion);
-        this.showToast('심리 상태가 반영되었습니다.', 'info');
+        this.showToast('심리 상태가 반영되어 DB에 동기화되었습니다.', 'info');
     },
 
     onTradeNoteChange: function (tradeKey, newNote) {
         this.saveJournalField(tradeKey, 'note', newNote.trim());
-        this.showToast('📝 복기 메모가 자동 저장되었습니다.', 'success');
+        this.showToast('📝 복기 메모가 클라우드 DB에 안전하게 동기화되었습니다.', 'success');
     },
 
     autoClassifyTradeSetup: function (t) {
-        const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (t.realizedProfit / t.buyCost) * 100 : 0);
         const profit = t.realizedProfit || 0;
+        let roi = 0;
+        if (t.realizedRoi !== undefined && !isNaN(t.realizedRoi)) {
+            roi = Number(t.realizedRoi);
+        } else if (t.profitRate !== undefined && !isNaN(t.profitRate)) {
+            roi = Number(t.profitRate);
+        } else {
+            const cost = t.costBasis || t.buyCost || (t.avgBuyPrice && t.qty ? t.avgBuyPrice * t.qty : 0);
+            if (cost > 0) {
+                roi = (profit / cost) * 100;
+            }
+        }
 
-        if (profit < 0 && roi <= -8) return 'fomo'; // -8% 이하 큰 손실: 뇌동/손절 지연
-        if (roi >= 12) return 'breakout'; // 12% 이상 급등 익절: 돌파 매매
-        if (roi > 0 && roi <= 2.5) return 'scalping'; // 2.5% 이내 짧은 익절: 스캘핑
-        if (roi >= 4 && roi < 12) return 'trend'; // 4~12% 안정적 추세 수익: 추세 추종
-        if (profit < 0) return 'pullback'; // 지지선 이탈 손절
-        return 'pullback'; // 기본값: 눌림목 반등
+        const isWin = profit > 0;
+        const sym = (t.coinSymbol || (t.market ? t.market.replace('KRW-', '') : '')).toUpperCase();
+        const isMajor = ['BTC', 'ETH', 'SOL', 'XRP'].includes(sym);
+
+        // 1. 뇌동/충동 손실 (fomo): 급락 손절 지연 (-6% 이하 큰 손실 or 50만원 이상 손실 or 복합 손실)
+        if (!isWin && (roi <= -6.0 || profit <= -500000 || (roi <= -3.5 && profit <= -150000))) {
+            return 'fomo';
+        }
+
+        // 2. 호재/공시 급등 (news): 알트코인 대형 급등 익절 (+20% 이상 익절)
+        if (isWin && roi >= 20.0 && !['BTC', 'ETH'].includes(sym)) {
+            return 'news';
+        }
+
+        // 3. 돌파 매매 (breakout): 강력한 슈팅 돌파 (+10% 이상 익절 or 100만원 이상 대형 익절)
+        if (isWin && (roi >= 10.0 || profit >= 1000000)) {
+            return 'breakout';
+        }
+
+        // 4. 단타/스캘핑 (scalping): ±2% 이내의 초단기 짧은 매매
+        if ((isWin && roi > 0 && roi <= 2.2) || (!isWin && roi >= -2.0 && roi < 0)) {
+            return 'scalping';
+        }
+
+        // 5. 추세 추종 (trend): 지속적인 추세 탑승 익절 (+4.5% ~ +10.0%)
+        if (isWin && roi >= 4.5 && roi < 10.0) {
+            return 'trend';
+        }
+
+        // 6. 분할/DCA (dca): 메이저 코인(BTC/ETH/SOL/XRP)의 안정적인 적립식 분할 매수 후 익절 (+2.0% ~ +7.0%)
+        if (isMajor && isWin && roi >= 2.0 && roi < 7.0) {
+            return 'dca';
+        }
+
+        // 7. 눌림목/지지선 반등 (pullback): 지지선 반등 익절 (+2.2% ~ +4.5%) 또는 지지선 이탈 원칙 손절 (-2.0% ~ -6.0%)
+        if ((isWin && roi > 2.2 && roi <= 4.5) || (!isWin && roi > -6.0 && roi <= -2.0)) {
+            return 'pullback';
+        }
+
+        // 8. 일반/미분류 (general): 기본
+        return 'general';
     },
 
-    autoTagAllTrades: function () {
+    autoTagAllTrades: function (forceAll = false) {
         if (!this.state.reportData || !this.state.reportData.trades) {
             this.showToast('분석할 거래 내역이 없습니다. 먼저 엑셀 파일을 업로드하거나 샘플 데이터를 로드하세요.', 'error');
             return;
@@ -2044,7 +2209,8 @@ const App = {
 
         realizedTrades.forEach(t => {
             const key = this.getTradeKey(t);
-            if (!store[key] || store[key].isAuto) {
+            const shouldTag = !store[key] || store[key].isAuto || (forceAll && !store[key].note && !store[key].manuallyLocked);
+            if (shouldTag) {
                 const setup = this.autoClassifyTradeSetup(t);
                 store[key] = {
                     setup: setup,
@@ -2058,13 +2224,15 @@ const App = {
         });
 
         this.saveJournalStorage(store);
+        this.saveJournalToDB(store);
         this.renderJournalView(true);
-        this.showToast('✨ 총 ' + taggedCount + '건의 거래에 AI 셋업 추천 태깅이 완료되었습니다!', 'success');
+        this.showToast('✨ 총 ' + taggedCount + '건의 거래에 AI 매매 전략 분석 태깅 및 DB 저장이 완료되었습니다!', 'success');
     },
 
     resetJournalStorage: function () {
-        if (!confirm('저장된 모든 매매 일지 메모와 셋업 설정을 초기화하시겠습니까?')) return;
+        if (!confirm('저장된 모든 매매 일지 메모와 셋업 설정을 초기화하시겠습니까? (로컬 및 DB 초기화)')) return;
         localStorage.removeItem('coinhub_trade_journal');
+        this.saveJournalToDB({});
         this.renderJournalView(true);
         this.showToast('트레이딩 저널 데이터가 초기화되었습니다.', 'info');
     },
@@ -2094,22 +2262,22 @@ const App = {
 
         if (!realizedTrades || realizedTrades.length === 0) {
             container.innerHTML = `
-              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+              <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
                 <span class="text-xs text-slate-400">총 실현 매도 거래</span>
                 <span class="text-xl font-mono font-bold text-white mt-1">0건</span>
                 <span class="text-[11px] text-slate-500 mt-2">데이터 업로드 대기</span>
               </div>
-              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+              <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
                 <span class="text-xs text-slate-400">최고 수익 셋업</span>
                 <span class="text-xl font-mono font-bold text-emerald-400 mt-1">-</span>
                 <span class="text-[11px] text-slate-500 mt-2">수익 기여도 1위</span>
               </div>
-              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+              <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
                 <span class="text-xs text-slate-400">최대 손실 셋업</span>
                 <span class="text-xl font-mono font-bold text-rose-400 mt-1">-</span>
                 <span class="text-[11px] text-slate-500 mt-2">리스크 개선 필요</span>
               </div>
-              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+              <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
                 <span class="text-xs text-slate-400">포트폴리오 자산 배분</span>
                 <span class="text-xl font-mono font-bold text-cyan-400 mt-1">-</span>
                 <span class="text-[11px] text-slate-500 mt-2">자산 진단 대기</span>
@@ -2163,7 +2331,7 @@ const App = {
 
         container.innerHTML = `
           <!-- Card 1: 총 실현 매도 & 승률 -->
-          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+          <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-400">총 실현 매도 거래</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${overallWinRate >= 50 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
@@ -2183,7 +2351,7 @@ const App = {
           </div>
 
           <!-- Card 2: 최고 수익 셋업 -->
-          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+          <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-400">최고 수익 셋업</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300">효자 전략</span>
@@ -2206,7 +2374,7 @@ const App = {
           </div>
 
           <!-- Card 3: 최대 손실 셋업 -->
-          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+          <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-400">최대 손실 셋업</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-300">개선 필요</span>
@@ -2229,7 +2397,7 @@ const App = {
           </div>
 
           <!-- Card 4: 포트폴리오 자산 배분 & 건전성 -->
-          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+          <div class="journal-kpi-card p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-400">포트폴리오 자산 배분</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${majorRatio >= 40 ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/20 text-amber-300'}">
@@ -2312,7 +2480,7 @@ const App = {
             }
 
             html += `
-              <div class="p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80 hover:border-cyan-500/30 transition">
+              <div class="journal-setup-item p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80 hover:border-cyan-500/30 transition">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                   <div class="flex items-center gap-2">
                     <span class="text-lg">${s.icon}</span>
@@ -2429,7 +2597,7 @@ const App = {
 
         container.innerHTML = `
           <!-- Overall Portfolio Snapshot -->
-          <div class="p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80">
+          <div class="portfolio-health-box p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80">
             <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>총 평가손익 (수익률)</span>
               <span>총 투자원금: ${this.formatCurrency(totalInvested)}</span>
@@ -2465,13 +2633,13 @@ const App = {
           <!-- Top Holdings List -->
           <div class="space-y-1">
             <div class="text-xs font-bold text-slate-300 mb-1">보유 자산 비중 Top 5</div>
-            <div class="p-2.5 rounded-xl bg-navy-950/50 border border-navy-800/60">
+            <div class="portfolio-health-box p-2.5 rounded-xl bg-navy-950/50 border border-navy-800/60">
               ${coinsListHtml || '<div class="text-center py-2 text-xs text-slate-500">보유 종목 없음</div>'}
             </div>
           </div>
 
           <!-- Health Advice Note -->
-          <div class="p-3 rounded-xl bg-navy-900 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed">
+          <div class="portfolio-health-box p-3 rounded-xl bg-navy-900 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed">
             ${healthTip}
           </div>
         `;
@@ -2498,17 +2666,24 @@ const App = {
             const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t), note: '' };
             const setupObj = TRADING_SETUPS[entry.setup] || TRADING_SETUPS.general;
             const profit = t.realizedProfit || 0;
-            const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0);
+            const roi = (t.realizedRoi !== undefined && !isNaN(t.realizedRoi))
+                ? Number(t.realizedRoi)
+                : (t.profitRate !== undefined ? Number(t.profitRate) : (t.costBasis > 0 ? (profit / t.costBasis) * 100 : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0)));
+            const ex = (t.exchange || 'UPBIT').toUpperCase();
+            const exBadge = ex === 'BITHUMB'
+                ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">빗썸</span>'
+                : '<span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">업비트</span>';
 
             return `
-              <div class="p-3 rounded-xl bg-navy-950/80 border border-navy-800/80 flex items-center justify-between gap-3">
+              <div class="journal-subcard-item p-3 rounded-xl bg-navy-950/80 border border-navy-800/80 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isBest ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
                     ${rank}
                   </span>
                   <div class="min-w-0">
-                    <div class="font-bold text-xs text-white flex items-center gap-1.5">
+                    <div class="font-bold text-xs text-white flex items-center gap-1.5 flex-wrap">
                       <span>${t.coinSymbol || t.market}</span>
+                      ${exBadge}
                       <span class="text-[10px] px-1.5 py-0.2 rounded bg-navy-800 text-slate-400 font-mono">${(t.time || '').substring(0, 10)}</span>
                     </div>
                     <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
@@ -2556,6 +2731,11 @@ const App = {
 
         let filtered = realizedTrades;
 
+        // Filter by Exchange
+        if (f.exchange && f.exchange !== 'ALL') {
+            filtered = filtered.filter(t => (t.exchange || 'UPBIT').toUpperCase() === f.exchange);
+        }
+
         // Filter by Setup
         if (f.setup && f.setup !== 'ALL') {
             filtered = filtered.filter(t => {
@@ -2592,7 +2772,7 @@ const App = {
         if (countBadge) countBadge.textContent = filtered.length + '건';
 
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-muted">일치하는 매매 저널 내역이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-muted">일치하는 매매 저널 내역이 없습니다.</td></tr>';
             const pagin = document.getElementById('journalPagination');
             if (pagin) pagin.innerHTML = '';
             return;
@@ -2601,8 +2781,8 @@ const App = {
         // Sorting
         const sort = this.state.sortStates.journalTable || { col: 'time', asc: false };
         filtered.sort((a, b) => {
-            let valA = a[sort.col] || 0;
-            let valB = b[sort.col] || 0;
+            let valA = a[sort.col] !== undefined ? a[sort.col] : (sort.col === 'exchange' ? (a.exchange || 'UPBIT') : 0);
+            let valB = b[sort.col] !== undefined ? b[sort.col] : (sort.col === 'exchange' ? (b.exchange || 'UPBIT') : 0);
             if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             return sort.asc ? valA - valB : valB - valA;
         });
@@ -2621,9 +2801,15 @@ const App = {
             const key = this.getTradeKey(t);
             const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t), note: '', emotion: 'calm', isAuto: true };
             const profit = t.realizedProfit || 0;
-            const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0);
+            const roi = (t.realizedRoi !== undefined && !isNaN(t.realizedRoi))
+                ? Number(t.realizedRoi)
+                : (t.profitRate !== undefined ? Number(t.profitRate) : (t.costBasis > 0 ? (profit / t.costBasis) * 100 : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0)));
             const profitClass = this.getProfitColorClass(profit);
             const coinName = UpbitAPI.getKoreanName(t.market || t.coinSymbol) || t.coinSymbol;
+            const ex = (t.exchange || 'UPBIT').toUpperCase();
+            const exBadge = ex === 'BITHUMB'
+                ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">빗썸</span>'
+                : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">업비트</span>';
 
             // Setup select options
             let setupOptionsHtml = '';
@@ -2642,6 +2828,7 @@ const App = {
             html += `
               <tr>
                 <td class="text-xs text-muted font-mono whitespace-nowrap">${t.time || '-'}</td>
+                <td class="text-center whitespace-nowrap">${exBadge}</td>
                 <td>
                   <div class="flex-center-gap">
                     <span class="coin-symbol-badge-sm">${t.coinSymbol}</span>
@@ -2654,24 +2841,24 @@ const App = {
                 </td>
                 <td class="text-right font-mono font-medium">
                   <div>${this.formatPrice(t.avgBuyPrice)}</div>
-                  <div class="text-[11px] text-muted">${this.formatCurrency(t.buyCost || (t.avgBuyPrice * t.qty))}</div>
+                  <div class="text-[11px] text-muted">${this.formatCurrency(t.costBasis || t.buyCost || (t.avgBuyPrice * t.qty))}</div>
                 </td>
                 <td class="text-right ${profitClass} font-mono">
                   <div class="font-bold text-sm">${profit > 0 ? '+' : ''}${this.formatCurrency(profit)}</div>
                   <div class="text-xs">${roi > 0 ? '+' : ''}${roi.toFixed(2)}%</div>
                 </td>
                 <td class="text-center">
-                  <select onchange="App.onTradeSetupSelect('${key}', this.value)" class="w-full bg-navy-950 border border-navy-700 text-slate-200 text-xs rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
+                  <select onchange="App.onTradeSetupSelect('${key}', this.value)" class="journal-select w-full rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
                     ${setupOptionsHtml}
                   </select>
                 </td>
                 <td class="text-center">
-                  <select onchange="App.onTradeEmotionSelect('${key}', this.value)" class="w-full bg-navy-950 border border-navy-700 text-slate-200 text-xs rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
+                  <select onchange="App.onTradeEmotionSelect('${key}', this.value)" class="journal-select w-full rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
                     ${emotionOptionsHtml}
                   </select>
                 </td>
                 <td>
-                  <input type="text" value="${(entry.note || '').replace(/"/g, '&quot;')}" placeholder="복기 메모 입력 후 엔터..." onchange="App.onTradeNoteChange('${key}', this.value)" class="w-full bg-navy-950 border border-navy-800 hover:border-navy-700 focus:border-cyan-500 text-slate-200 placeholder-slate-600 text-xs rounded-lg px-2.5 py-1 outline-none transition">
+                  <input type="text" value="${(entry.note || '').replace(/"/g, '&quot;')}" placeholder="복기 메모 입력 후 엔터 (DB 자동 동기화)..." onchange="App.onTradeNoteChange('${key}', this.value)" class="journal-input placeholder-slate-500 text-xs rounded-lg px-2.5 py-1 outline-none transition w-full">
                 </td>
               </tr>
             `;
@@ -2706,10 +2893,12 @@ const App = {
     },
 
     onJournalFilterChange: function () {
+        const exEl = document.getElementById('journalExchangeFilter');
         const setupEl = document.getElementById('journalSetupFilter');
         const resultEl = document.getElementById('journalResultFilter');
         const coinEl = document.getElementById('journalCoinFilter');
 
+        if (exEl) this.state.journalFilter.exchange = exEl.value;
         if (setupEl) this.state.journalFilter.setup = setupEl.value;
         if (resultEl) this.state.journalFilter.result = resultEl.value;
         if (coinEl) this.state.journalFilter.market = coinEl.value;
