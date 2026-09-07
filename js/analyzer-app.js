@@ -2081,7 +2081,8 @@ const App = {
     },
 
     getTradeKey: function (t) {
-        return (t.id || (t.time + '_' + (t.exchange || 'UPBIT') + '_' + (t.market || t.coinSymbol) + '_' + Math.round(t.price || 0) + '_' + Math.round((t.qty || 0) * 10000)));
+        const qtyVal = t.quantity !== undefined ? t.quantity : (t.qty || 0);
+        return (t.id || (t.time + '_' + (t.exchange || 'UPBIT') + '_' + (t.market || t.coinSymbol) + '_' + Math.round(t.price || 0) + '_' + Math.round(qtyVal * 10000)));
     },
 
     getJournalEntry: function (t) {
@@ -2843,6 +2844,11 @@ const App = {
             } else if (sort.col === 'emotion') {
                 valA = this.getJournalEntry(a).emotion || 'calm';
                 valB = this.getJournalEntry(b).emotion || 'calm';
+            } else if (sort.col === 'avgBuyPrice') {
+                const qtyA = a.quantity !== undefined ? a.quantity : (a.qty || 0);
+                const qtyB = b.quantity !== undefined ? b.quantity : (b.qty || 0);
+                valA = a.avgBuyPrice || a.currentAvgPrice || (a.costBasis && qtyA > 0 ? a.costBasis / qtyA : 0);
+                valB = b.avgBuyPrice || b.currentAvgPrice || (b.costBasis && qtyB > 0 ? b.costBasis / qtyB : 0);
             } else {
                 valA = a[sort.col] !== undefined ? a[sort.col] : 0;
                 valB = b[sort.col] !== undefined ? b[sort.col] : 0;
@@ -2875,6 +2881,22 @@ const App = {
                 ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">빗썸</span>'
                 : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">업비트</span>';
 
+            const tradeQty = (t.quantity !== undefined && !isNaN(t.quantity))
+                ? Number(t.quantity)
+                : ((t.qty !== undefined && !isNaN(t.qty)) ? Number(t.qty) : 0);
+
+            const avgBuyPrice = (t.avgBuyPrice !== undefined && t.avgBuyPrice > 0)
+                ? Number(t.avgBuyPrice)
+                : ((t.currentAvgPrice !== undefined && t.currentAvgPrice > 0)
+                    ? Number(t.currentAvgPrice)
+                    : (t.costBasis > 0 && tradeQty > 0 ? (t.costBasis / tradeQty) : 0));
+
+            const totalCost = (t.costBasis !== undefined && t.costBasis > 0)
+                ? t.costBasis
+                : (t.buyCost !== undefined && t.buyCost > 0
+                    ? t.buyCost
+                    : (avgBuyPrice > 0 && tradeQty > 0 ? avgBuyPrice * tradeQty : 0));
+
             // Setup select options
             let setupOptionsHtml = '';
             Object.values(TRADING_SETUPS).forEach(s => {
@@ -2901,11 +2923,11 @@ const App = {
                 </td>
                 <td class="text-right font-mono font-medium">
                   <div>${this.formatPrice(t.price)}</div>
-                  <div class="text-[11px] text-muted">${t.qty ? Number(t.qty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-'} ${t.coinSymbol}</div>
+                  <div class="text-[11px] text-muted">${tradeQty > 0 ? Number(tradeQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-'} ${t.coinSymbol}</div>
                 </td>
                 <td class="text-right font-mono font-medium">
-                  <div>${this.formatPrice(t.avgBuyPrice)}</div>
-                  <div class="text-[11px] text-muted">${this.formatCurrency(t.costBasis || t.buyCost || (t.avgBuyPrice * t.qty))}</div>
+                  <div>${this.formatPrice(avgBuyPrice)}</div>
+                  <div class="text-[11px] text-muted">${this.formatCurrency(totalCost)}</div>
                 </td>
                 <td class="text-right ${profitClass} font-mono">
                   <div class="font-bold text-sm">${profit > 0 ? '+' : ''}${this.formatCurrency(profit)}</div>

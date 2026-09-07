@@ -534,6 +534,8 @@ const ProfitCalculator = {
                 else if (tradeProfit < 0) lossTrades++;
 
                 enriched.costBasis = netCostBasis;
+                enriched.avgBuyPrice = trade.quantity > 0 ? (netCostBasis / trade.quantity) : 0;
+                enriched.currentAvgPrice = enriched.avgBuyPrice;
                 enriched.realizedProfit = tradeProfit;
                 enriched.realizedRoi = tradeRoi;
                 enrichedTrades.push(enriched);
@@ -701,9 +703,10 @@ const ProfitCalculator = {
                 }
 
                 enriched.costBasis = costBasis;
+                enriched.avgBuyPrice = avgBuyPrice;
+                enriched.currentAvgPrice = avgBuyPrice;
                 enriched.realizedProfit = tradeProfit;
                 enriched.realizedRoi = tradeRoi;
-                enriched.currentAvgPrice = avgBuyPrice;
                 enrichedTrades.push(enriched);
 
             } else if (trade.type === '코인출금' || trade.type === '출금' || trade.type.includes('출금')) {
