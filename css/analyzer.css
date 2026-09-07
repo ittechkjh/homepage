@@ -332,6 +332,54 @@ table th:hover {
     color: var(--text-primary);
 }
 
+table th.resizable-th {
+    position: relative;
+}
+
+.col-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    user-select: none;
+    z-index: 10;
+    touch-action: none;
+}
+
+.col-resizer::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    bottom: 20%;
+    right: 2px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 1px;
+    transition: all 0.15s ease;
+}
+
+.col-resizer:hover::after,
+.col-resizer.is-resizing::after {
+    background: #06b6d4;
+    box-shadow: 0 0 6px rgba(6, 182, 212, 0.8);
+    top: 10%;
+    bottom: 10%;
+    width: 2px;
+}
+
+.col-resizer:hover,
+.col-resizer.is-resizing {
+    background-color: rgba(6, 182, 212, 0.12);
+}
+
+body.resizing-col,
+body.resizing-col * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
 table td {
     border-bottom: 1px solid var(--border-light);
     color: var(--text-primary);

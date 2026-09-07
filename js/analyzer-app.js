@@ -504,6 +504,10 @@ const ColumnManager = {
                 td.style.display = isHidden ? 'none' : '';
             });
         });
+
+        if (typeof TableResizeManager !== 'undefined') {
+            TableResizeManager.makeResizable(tableId);
+        }
     },
 
     renderColumnDropdown: function (tableId, containerId) {
@@ -519,7 +523,16 @@ const ColumnManager = {
             itemsHtml += '<label class="col-toggle-item"><input type="checkbox" data-table="' + tableId + '" data-col="' + col.id + '" ' + (isChecked ? 'checked' : '') + '><span>' + col.name + '</span></label>';
         });
 
-        container.innerHTML = '<div class="col-dropdown"><button class="btn btn-sm btn-outline col-dropdown-btn">⚙️ 컬럼 설정 ▼</button><div class="col-dropdown-menu"><div class="col-dropdown-header">표시할 컬럼 선택</div>' + itemsHtml + '</div></div>';
+        container.innerHTML = '<div class="col-dropdown">' +
+            '<button class="btn btn-sm btn-outline col-dropdown-btn">⚙️ 컬럼 설정 ▼</button>' +
+            '<div class="col-dropdown-menu">' +
+                '<div class="col-dropdown-header">표시할 컬럼 선택</div>' +
+                itemsHtml +
+                '<div style="border-top: 1px solid var(--border-color, rgba(255,255,255,0.1)); margin-top: 6px; padding-top: 6px;">' +
+                    '<button type="button" class="btn-reset-widths" data-table="' + tableId + '" style="background: none; border: none; color: var(--text-muted, #94a3b8); font-size: 0.75rem; cursor: pointer; padding: 4px 6px; width: 100%; text-align: left; transition: color 0.15s;">↺ 컬럼 너비 기본값으로 초기화</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
 
         const btn = container.querySelector('.col-dropdown-btn');
         const menu = container.querySelector('.col-dropdown-menu');
@@ -539,12 +552,142 @@ const ColumnManager = {
                 });
             });
 
+            const resetBtn = container.querySelector('.btn-reset-widths');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    TableResizeManager.resetTableWidths(tableId);
+                    menu.classList.remove('show');
+                    if (typeof App !== 'undefined' && App.showToast) {
+                        App.showToast('컬럼 너비가 기본값으로 초기화되었습니다.', 'info');
+                    }
+                });
+            }
+
             document.addEventListener('click', (e) => {
                 if (!container.contains(e.target)) {
                     menu.classList.remove('show');
                 }
             });
         }
+    }
+};
+
+const TableResizeManager = {
+    tables: ['coinsTable', 'transfersTable', 'allActivitiesTable', 'monthlyTable'],
+
+    init: function () {
+        this.tables.forEach(tableId => {
+            this.makeResizable(tableId);
+        });
+    },
+
+    getSavedWidths: function (tableId) {
+        try {
+            const saved = localStorage.getItem('coinhub_col_widths_' + tableId);
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return {};
+    },
+
+    saveWidths: function (tableId, widths) {
+        try {
+            localStorage.setItem('coinhub_col_widths_' + tableId, JSON.stringify(widths));
+        } catch (e) {}
+    },
+
+    makeResizable: function (tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const thead = table.querySelector('thead');
+        if (!thead) return;
+
+        const thList = thead.querySelectorAll('tr:first-child th');
+        if (!thList || thList.length === 0) return;
+
+        const savedWidths = this.getSavedWidths(tableId);
+
+        thList.forEach((th, colIdx) => {
+            th.classList.add('resizable-th');
+            const colKey = th.dataset.sort || ('col_' + colIdx);
+
+            if (savedWidths[colKey]) {
+                const w = savedWidths[colKey];
+                th.style.width = w + 'px';
+                th.style.minWidth = w + 'px';
+            }
+
+            if (th.querySelector('.col-resizer')) return;
+
+            const resizer = document.createElement('div');
+            resizer.className = 'col-resizer';
+            resizer.setAttribute('title', '드래그: 너비 조절 / 더블클릭: 기본값');
+
+            resizer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+            });
+
+            resizer.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+
+                const startX = e.pageX;
+                const startWidth = th.offsetWidth;
+                resizer.classList.add('is-resizing');
+                document.body.classList.add('resizing-col');
+
+                const onMouseMove = (moveEvent) => {
+                    moveEvent.preventDefault();
+                    const diff = moveEvent.pageX - startX;
+                    const newWidth = Math.max(45, startWidth + diff);
+                    th.style.width = newWidth + 'px';
+                    th.style.minWidth = newWidth + 'px';
+                };
+
+                const onMouseUp = (upEvent) => {
+                    upEvent.preventDefault();
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    resizer.classList.remove('is-resizing');
+                    document.body.classList.remove('resizing-col');
+
+                    const currentWidths = TableResizeManager.getSavedWidths(tableId);
+                    currentWidths[colKey] = th.offsetWidth;
+                    TableResizeManager.saveWidths(tableId, currentWidths);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            resizer.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                th.style.width = '';
+                th.style.minWidth = '';
+                const currentWidths = TableResizeManager.getSavedWidths(tableId);
+                delete currentWidths[colKey];
+                TableResizeManager.saveWidths(tableId, currentWidths);
+            });
+
+            th.appendChild(resizer);
+        });
+    },
+
+    resetTableWidths: function (tableId) {
+        try {
+            localStorage.removeItem('coinhub_col_widths_' + tableId);
+            const table = document.getElementById(tableId);
+            if (table) {
+                table.querySelectorAll('thead th').forEach(th => {
+                    th.style.width = '';
+                    th.style.minWidth = '';
+                });
+            }
+        } catch (e) {}
     }
 };
 
@@ -600,6 +743,9 @@ const App = {
         try {
             this.initColumnDropdowns();
             this.bindEvents();
+            if (typeof TableResizeManager !== 'undefined') {
+                TableResizeManager.init();
+            }
             
             if (typeof UpbitAPI !== 'undefined' && UpbitAPI.initMarketInfo) {
                 await UpbitAPI.initMarketInfo();
@@ -857,6 +1003,7 @@ const App = {
         if (!thead) return;
 
         thead.onclick = (e) => {
+            if (e.target.closest('.col-resizer')) return;
             const th = e.target.closest('th[data-sort]');
             if (!th) return;
             const sortKey = th.dataset.sort;
@@ -1476,7 +1623,7 @@ const App = {
             const name = typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(t.market || t.coinSymbol) : (t.market || t.coinSymbol || '');
 
             const qtyStr = isKrw ? this.formatCurrency(t.amount || t.quantity) : Number(t.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol;
-            const feeStr = t.fee > 0 ? (isKrw ? this.formatCurrency(t.fee) : t.fee + ' ' + t.coinSymbol) : (isKrw ? '0원' : '0 ' + t.coinSymbol);
+            const feeStr = t.fee > 0 ? (isKrw ? this.formatCurrency(t.fee) : Number(t.fee).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol) : (isKrw ? '0원' : '0 ' + t.coinSymbol);
             const settlementStr = isKrw ? this.formatCurrency(t.settlement || t.amount) : (t.settlement || t.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + t.coinSymbol;
 
             html += '<tr>' +
@@ -1586,13 +1733,24 @@ const App = {
             const profitClass = this.getProfitColorClass(it.realizedProfit || 0);
             const name = typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(it.market || it.coinSymbol) : (it.market || it.coinSymbol || '');
             const isKrw = (it.type && it.type.includes('원화')) || it.coinSymbol === 'KRW';
+            const isTrade = it.category === 'trade' || it.type === '매수' || it.type === '매도';
+            const isBtcOrUsdtMarket = it.market && (it.market.startsWith('BTC-') || it.market.startsWith('USDT-'));
+            const feeIsKrw = (isTrade && !isBtcOrUsdtMarket) || isKrw || (it.market && it.market.startsWith('KRW-'));
 
             const qtyStr = isKrw 
                 ? this.formatCurrency(it.amount || it.quantity) 
                 : (it.quantity ? Number(it.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) : '-') + ' ' + (it.coinSymbol !== 'KRW' ? it.coinSymbol : '');
-            const feeStr = it.fee > 0 
-                ? (isKrw ? this.formatCurrency(it.fee) : it.fee + ' ' + it.coinSymbol) 
-                : (isKrw ? '0원' : '0 ' + (it.coinSymbol !== 'KRW' ? it.coinSymbol : '원'));
+            
+            let feeStr = '0원';
+            if (feeIsKrw) {
+                feeStr = it.fee > 0 ? this.formatCurrency(it.fee) : '0원';
+            } else {
+                const feeUnit = isBtcOrUsdtMarket ? it.market.split('-')[0] : (it.coinSymbol || '');
+                feeStr = it.fee > 0 
+                    ? (Number(it.fee).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + feeUnit) 
+                    : ('0 ' + feeUnit);
+            }
+
             const settlementStr = isKrw 
                 ? this.formatCurrency(it.settlement || it.amount) 
                 : (it.category === 'transfer' ? (it.settlement || it.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + it.coinSymbol : this.formatCurrency(it.settlement));
