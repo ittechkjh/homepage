@@ -691,6 +691,88 @@ const TableResizeManager = {
     }
 };
 
+const TRADING_SETUPS = {
+    pullback: {
+        id: 'pullback',
+        name: '눌림목 / 지지선 반등',
+        badgeBg: 'rgba(6, 182, 212, 0.15)',
+        badgeColor: '#06b6d4',
+        border: 'rgba(6, 182, 212, 0.3)',
+        icon: '🎯',
+        desc: '주요 지지선 또는 피보나치/이평선 눌림목 반등 확인 후 진입'
+    },
+    breakout: {
+        id: 'breakout',
+        name: '돌파 매매 / 변동성 돌파',
+        badgeBg: 'rgba(59, 130, 246, 0.15)',
+        badgeColor: '#3b82f6',
+        border: 'rgba(59, 130, 246, 0.3)',
+        icon: '🚀',
+        desc: '주요 저항선, 전고점 돌파 또는 박스권 상단 거래량 실린 돌파 진입'
+    },
+    trend: {
+        id: 'trend',
+        name: '추세 추종 / 이평 정배열',
+        badgeBg: 'rgba(16, 185, 129, 0.15)',
+        badgeColor: '#10b981',
+        border: 'rgba(16, 185, 129, 0.3)',
+        icon: '🌊',
+        desc: '중장기 상승 추세선 및 이동평균선 정배열 국면에서 모멘텀 편승'
+    },
+    scalping: {
+        id: 'scalping',
+        name: '단타 / 스캘핑',
+        badgeBg: 'rgba(245, 158, 11, 0.15)',
+        badgeColor: '#f59e0b',
+        border: 'rgba(245, 158, 11, 0.3)',
+        icon: '⚡',
+        desc: '분봉/호가창 기반의 초단기 거래, 빠른 손익 실현'
+    },
+    dca: {
+        id: 'dca',
+        name: '분할 매수 / DCA 적립식',
+        badgeBg: 'rgba(139, 92, 246, 0.15)',
+        badgeColor: '#8b5cf6',
+        border: 'rgba(139, 92, 246, 0.3)',
+        icon: '🧱',
+        desc: '정기적 또는 가격 하락 구간마다 계획적인 분할 매수 후 익절'
+    },
+    news: {
+        id: 'news',
+        name: '공시 / 호재 / 뉴스 매매',
+        badgeBg: 'rgba(236, 72, 153, 0.15)',
+        badgeColor: '#ec4899',
+        border: 'rgba(236, 72, 153, 0.3)',
+        icon: '📢',
+        desc: '상장, 메인넷, 파트너십, 거시 경제 발표 등 재료 기반 매매'
+    },
+    fomo: {
+        id: 'fomo',
+        name: '뇌동 매매 / 충동 진입',
+        badgeBg: 'rgba(244, 63, 94, 0.15)',
+        badgeColor: '#f43f5e',
+        border: 'rgba(244, 63, 94, 0.3)',
+        icon: '⚠️',
+        desc: '급등 추격 매수 또는 원칙 없는 충동적 감정 매매 (개선 필요)'
+    },
+    general: {
+        id: 'general',
+        name: '일반 / 미분류',
+        badgeBg: 'rgba(100, 116, 139, 0.15)',
+        badgeColor: '#94a3b8',
+        border: 'rgba(100, 116, 139, 0.3)',
+        icon: '📦',
+        desc: '특별한 셋업 분류 없이 진행된 기본 매매'
+    }
+};
+
+const TRADE_EMOTIONS = {
+    calm: { id: 'calm', label: '😊 침착·원칙준수', color: '#10b981' },
+    greedy: { id: 'greedy', label: '🤑 탐욕·흥분', color: '#f59e0b' },
+    fear: { id: 'fear', label: '😰 불안·공포', color: '#8b5cf6' },
+    revenge: { id: 'revenge', label: '😡 뇌동·분노', color: '#f43f5e' }
+};
+
 const App = {
     state: {
         rawTrades: [],
@@ -702,7 +784,8 @@ const App = {
             coinsTable: { col: 'realizedProfit', asc: false },
             transfersTable: { col: 'time', asc: false },
             allActivitiesTable: { col: 'time', asc: false },
-            monthlyTable: { col: 'period', asc: false }
+            monthlyTable: { col: 'period', asc: false },
+            journalTable: { col: 'time', asc: false }
         },
         activityFilter: {
             search: '',
@@ -716,6 +799,14 @@ const App = {
         transferFilter: {
             search: '',
             type: 'ALL',
+            page: 1,
+            pageSize: 20
+        },
+        journalFilter: {
+            setup: 'ALL',
+            result: 'ALL',
+            market: 'ALL',
+            search: '',
             page: 1,
             pageSize: 20
         }
@@ -886,6 +977,7 @@ const App = {
         this.bindTableSorting('transfersTable');
         this.bindTableSorting('allActivitiesTable');
         this.bindTableSorting('monthlyTable');
+        this.bindTableSorting('journalTable');
 
         // 필터 이벤트 바인딩
         const actSearch = document.getElementById('activitySearchInput');
@@ -993,6 +1085,7 @@ const App = {
         else if (tableId === 'transfersTable') this.renderTransfersTable();
         else if (tableId === 'allActivitiesTable') this.renderAllActivitiesTable();
         else if (tableId === 'monthlyTable') this.renderMonthlyTable();
+        else if (tableId === 'journalTable') this.renderJournalTable();
     },
 
     bindTableSorting: function (tableId) {
@@ -1055,6 +1148,8 @@ const App = {
             this.renderAllActivitiesTable();
         } else if (tabId === "monthly") {
             this.renderMonthlyTable();
+        } else if (tabId === "journal") {
+            this.renderJournalView();
         } else if (tabId === "settings") {
             this.updateUserBanner();
             this.updateCalcMethodUI();
@@ -1260,6 +1355,7 @@ const App = {
         this.renderCoinsTable();
         this.renderAllActivitiesTable();
         this.renderMonthlyTable();
+        this.renderJournalView();
         this.renderTransfersView();
         
         if (this.state.reportData) {
@@ -1524,6 +1620,11 @@ const App = {
             html += '<option value="' + c.market + '">' + name + ' (' + c.coinSymbol + ')</option>';
         });
         select.innerHTML = html;
+
+        const journalSelect = document.getElementById('journalCoinFilter');
+        if (journalSelect) {
+            journalSelect.innerHTML = html;
+        }
     },
 
     renderTransfersView: function () {
@@ -1845,6 +1946,782 @@ const App = {
 
         tbody.innerHTML = html;
         ColumnManager.applyVisibility('monthlyTable');
+    },
+
+    // ==========================================
+    // 📓 트레이딩 저널 & 셋업 분석 + 포트폴리오 트래커
+    // ==========================================
+    getJournalStorage: function () {
+        try {
+            const saved = localStorage.getItem('coinhub_trade_journal');
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            return {};
+        }
+    },
+
+    saveJournalStorage: function (data) {
+        try {
+            localStorage.setItem('coinhub_trade_journal', JSON.stringify(data));
+        } catch (e) {
+            console.error('저널 저장 오류:', e);
+        }
+    },
+
+    getTradeKey: function (t) {
+        return (t.id || (t.time + '_' + (t.market || t.coinSymbol) + '_' + Math.round(t.price || 0) + '_' + Math.round((t.qty || 0) * 10000)));
+    },
+
+    getJournalEntry: function (t) {
+        const key = this.getTradeKey(t);
+        const store = this.getJournalStorage();
+        if (store[key]) return store[key];
+        const defaultSetup = this.autoClassifyTradeSetup(t);
+        return { setup: defaultSetup, note: '', emotion: 'calm', isAuto: true };
+    },
+
+    saveJournalField: function (tradeKey, field, value) {
+        const store = this.getJournalStorage();
+        if (!store[tradeKey]) {
+            store[tradeKey] = { setup: 'general', note: '', emotion: 'calm' };
+        }
+        store[tradeKey][field] = value;
+        store[tradeKey].isAuto = false;
+        store[tradeKey].updatedAt = Date.now();
+        this.saveJournalStorage(store);
+
+        // 상단 지표 및 셋업 성적표 실시간 재계산
+        const realizedTrades = (this.state.reportData && this.state.reportData.trades)
+            ? this.state.reportData.trades.filter(t => t.type === '매도' && t.realizedProfit !== undefined)
+            : [];
+        this.renderJournalKPIs(realizedTrades, store);
+        this.renderSetupAnalytics(realizedTrades, store);
+        this.renderBestWorstTrades(realizedTrades, store);
+    },
+
+    onTradeSetupSelect: function (tradeKey, newSetup) {
+        this.saveJournalField(tradeKey, 'setup', newSetup);
+        const setupName = TRADING_SETUPS[newSetup]?.name || newSetup;
+        this.showToast('🎯 매매 셋업이 "' + setupName + '"(으)로 저장되었습니다.', 'success');
+    },
+
+    onTradeEmotionSelect: function (tradeKey, newEmotion) {
+        this.saveJournalField(tradeKey, 'emotion', newEmotion);
+        this.showToast('심리 상태가 반영되었습니다.', 'info');
+    },
+
+    onTradeNoteChange: function (tradeKey, newNote) {
+        this.saveJournalField(tradeKey, 'note', newNote.trim());
+        this.showToast('📝 복기 메모가 자동 저장되었습니다.', 'success');
+    },
+
+    autoClassifyTradeSetup: function (t) {
+        const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (t.realizedProfit / t.buyCost) * 100 : 0);
+        const profit = t.realizedProfit || 0;
+
+        if (profit < 0 && roi <= -8) return 'fomo'; // -8% 이하 큰 손실: 뇌동/손절 지연
+        if (roi >= 12) return 'breakout'; // 12% 이상 급등 익절: 돌파 매매
+        if (roi > 0 && roi <= 2.5) return 'scalping'; // 2.5% 이내 짧은 익절: 스캘핑
+        if (roi >= 4 && roi < 12) return 'trend'; // 4~12% 안정적 추세 수익: 추세 추종
+        if (profit < 0) return 'pullback'; // 지지선 이탈 손절
+        return 'pullback'; // 기본값: 눌림목 반등
+    },
+
+    autoTagAllTrades: function () {
+        if (!this.state.reportData || !this.state.reportData.trades) {
+            this.showToast('분석할 거래 내역이 없습니다. 먼저 엑셀 파일을 업로드하거나 샘플 데이터를 로드하세요.', 'error');
+            return;
+        }
+
+        const realizedTrades = this.state.reportData.trades.filter(t => t.type === '매도' && t.realizedProfit !== undefined);
+        if (realizedTrades.length === 0) {
+            this.showToast('분석할 실현 매도 거래가 없습니다.', 'info');
+            return;
+        }
+
+        const store = this.getJournalStorage();
+        let taggedCount = 0;
+
+        realizedTrades.forEach(t => {
+            const key = this.getTradeKey(t);
+            if (!store[key] || store[key].isAuto) {
+                const setup = this.autoClassifyTradeSetup(t);
+                store[key] = {
+                    setup: setup,
+                    note: store[key]?.note || '',
+                    emotion: store[key]?.emotion || (t.realizedProfit > 0 ? 'calm' : (setup === 'fomo' ? 'revenge' : 'calm')),
+                    isAuto: true,
+                    updatedAt: Date.now()
+                };
+                taggedCount++;
+            }
+        });
+
+        this.saveJournalStorage(store);
+        this.renderJournalView(true);
+        this.showToast('✨ 총 ' + taggedCount + '건의 거래에 AI 셋업 추천 태깅이 완료되었습니다!', 'success');
+    },
+
+    resetJournalStorage: function () {
+        if (!confirm('저장된 모든 매매 일지 메모와 셋업 설정을 초기화하시겠습니까?')) return;
+        localStorage.removeItem('coinhub_trade_journal');
+        this.renderJournalView(true);
+        this.showToast('트레이딩 저널 데이터가 초기화되었습니다.', 'info');
+    },
+
+    renderJournalView: function (fullTableRender = true) {
+        const pane = document.getElementById('journalTab');
+        if (!pane) return;
+
+        const realizedTrades = (this.state.reportData && this.state.reportData.trades)
+            ? this.state.reportData.trades.filter(t => t.type === '매도' && t.realizedProfit !== undefined)
+            : [];
+        const journalStore = this.getJournalStorage();
+
+        this.renderJournalKPIs(realizedTrades, journalStore);
+        this.renderSetupAnalytics(realizedTrades, journalStore);
+        this.renderPortfolioTracker();
+        this.renderBestWorstTrades(realizedTrades, journalStore);
+
+        if (fullTableRender) {
+            this.renderJournalTable();
+        }
+    },
+
+    renderJournalKPIs: function (realizedTrades, journalStore) {
+        const container = document.getElementById('journalKpiCards');
+        if (!container) return;
+
+        if (!realizedTrades || realizedTrades.length === 0) {
+            container.innerHTML = `
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">총 실현 매도 거래</span>
+                <span class="text-xl font-mono font-bold text-white mt-1">0건</span>
+                <span class="text-[11px] text-slate-500 mt-2">데이터 업로드 대기</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">최고 수익 셋업</span>
+                <span class="text-xl font-mono font-bold text-emerald-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">수익 기여도 1위</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">최대 손실 셋업</span>
+                <span class="text-xl font-mono font-bold text-rose-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">리스크 개선 필요</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">포트폴리오 자산 배분</span>
+                <span class="text-xl font-mono font-bold text-cyan-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">자산 진단 대기</span>
+              </div>
+            `;
+            return;
+        }
+
+        const totalTrades = realizedTrades.length;
+        let winTrades = 0;
+        let lossTrades = 0;
+        let totalRealized = 0;
+
+        // Group by setup
+        const setupStats = {};
+        Object.keys(TRADING_SETUPS).forEach(sId => {
+            setupStats[sId] = { id: sId, count: 0, win: 0, loss: 0, profit: 0 };
+        });
+
+        realizedTrades.forEach(t => {
+            const key = this.getTradeKey(t);
+            const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t) };
+            const sId = entry.setup && setupStats[entry.setup] ? entry.setup : 'general';
+            const p = t.realizedProfit || 0;
+
+            totalRealized += p;
+            setupStats[sId].count++;
+            setupStats[sId].profit += p;
+
+            if (p > 0) {
+                winTrades++;
+                setupStats[sId].win++;
+            } else if (p < 0) {
+                lossTrades++;
+                setupStats[sId].loss++;
+            }
+        });
+
+        const overallWinRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0;
+
+        // Find best & worst setup
+        const sortedSetups = Object.values(setupStats).filter(s => s.count > 0).sort((a, b) => b.profit - a.profit);
+        const bestSetup = sortedSetups.length > 0 && sortedSetups[0].profit > 0 ? sortedSetups[0] : null;
+        const worstSetup = sortedSetups.length > 0 && sortedSetups[sortedSetups.length - 1].profit < 0 ? sortedSetups[sortedSetups.length - 1] : null;
+
+        // Portfolio summary
+        const totalEval = this.state.reportData?.summary?.totalCurrentValue || 0;
+        const heldCoins = (this.state.reportData?.coinSummaries || []).filter(c => c.holdingQty > 1e-4);
+        const btcEthVal = heldCoins.filter(c => ['BTC', 'ETH'].includes(c.coinSymbol)).reduce((sum, c) => sum + (c.currentValue || 0), 0);
+        const majorRatio = totalEval > 0 ? Math.round((btcEthVal / totalEval) * 100) : 0;
+
+        container.innerHTML = `
+          <!-- Card 1: 총 실현 매도 & 승률 -->
+          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-400">총 실현 매도 거래</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${overallWinRate >= 50 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+                승률 ${overallWinRate.toFixed(1)}%
+              </span>
+            </div>
+            <div class="mt-2">
+              <span class="text-xl font-mono font-bold text-white">${totalTrades}건</span>
+              <span class="text-xs text-slate-400 ml-1.5 font-medium">(${winTrades}승 ${lossTrades}패)</span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 pt-2 border-t border-navy-800 flex items-center justify-between">
+              <span>누적 실현손익</span>
+              <span class="font-mono font-bold ${totalRealized >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                ${totalRealized >= 0 ? '+' : ''}${this.formatCurrency(totalRealized)}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card 2: 최고 수익 셋업 -->
+          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-400">최고 수익 셋업</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300">효자 전략</span>
+            </div>
+            <div class="mt-2">
+              <div class="text-base font-extrabold text-white flex items-center gap-1.5 truncate">
+                <span>${bestSetup ? TRADING_SETUPS[bestSetup.id]?.icon : '✨'}</span>
+                <span>${bestSetup ? TRADING_SETUPS[bestSetup.id]?.name : '분석 진행 중'}</span>
+              </div>
+              <div class="text-lg font-mono font-bold text-emerald-400 mt-0.5">
+                ${bestSetup ? '+' + this.formatCurrency(bestSetup.profit) : '수익 셋업 없음'}
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 pt-2 border-t border-navy-800 flex items-center justify-between">
+              <span>해당 셋업 승률</span>
+              <span class="font-bold text-slate-200">
+                ${bestSetup && bestSetup.count > 0 ? ((bestSetup.win / bestSetup.count) * 100).toFixed(0) + '% (' + bestSetup.win + '승 ' + bestSetup.loss + '패)' : '-'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card 3: 최대 손실 셋업 -->
+          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-400">최대 손실 셋업</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-300">개선 필요</span>
+            </div>
+            <div class="mt-2">
+              <div class="text-base font-extrabold text-white flex items-center gap-1.5 truncate">
+                <span>${worstSetup ? TRADING_SETUPS[worstSetup.id]?.icon : '🛡️'}</span>
+                <span>${worstSetup ? TRADING_SETUPS[worstSetup.id]?.name : '손실 셋업 없음'}</span>
+              </div>
+              <div class="text-lg font-mono font-bold text-rose-400 mt-0.5">
+                ${worstSetup ? this.formatCurrency(worstSetup.profit) : '손실 없음 (우수)'}
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 pt-2 border-t border-navy-800 flex items-center justify-between">
+              <span>해당 셋업 승률</span>
+              <span class="font-bold text-slate-200">
+                ${worstSetup && worstSetup.count > 0 ? ((worstSetup.win / worstSetup.count) * 100).toFixed(0) + '% (' + worstSetup.win + '승 ' + worstSetup.loss + '패)' : '-'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card 4: 포트폴리오 자산 배분 & 건전성 -->
+          <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-400">포트폴리오 자산 배분</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${majorRatio >= 40 ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/20 text-amber-300'}">
+                ${majorRatio >= 40 ? '🛡️ 메이저 중심' : '🔥 알트 중심'}
+              </span>
+            </div>
+            <div class="mt-2">
+              <span class="text-xl font-mono font-bold text-cyan-400">${this.formatCurrency(totalEval)}</span>
+              <div class="text-xs text-slate-400 mt-0.5">보유 ${heldCoins.length}개 코인 운용 중</div>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 pt-2 border-t border-navy-800 flex items-center justify-between">
+              <span>비트코인·이더 비중</span>
+              <span class="font-bold text-slate-200">${majorRatio}%</span>
+            </div>
+          </div>
+        `;
+    },
+
+    renderSetupAnalytics: function (realizedTrades, journalStore) {
+        const container = document.getElementById('setupAnalyticsList');
+        if (!container) return;
+
+        if (!realizedTrades || realizedTrades.length === 0) {
+            container.innerHTML = '<p class="text-center py-6 text-xs text-slate-500">실현 매도 거래 데이터가 없습니다.</p>';
+            return;
+        }
+
+        const setupStats = {};
+        Object.keys(TRADING_SETUPS).forEach(sId => {
+            setupStats[sId] = {
+                ...TRADING_SETUPS[sId],
+                count: 0,
+                win: 0,
+                loss: 0,
+                profit: 0,
+                totalWinProfit: 0,
+                totalLossAmount: 0
+            };
+        });
+
+        realizedTrades.forEach(t => {
+            const key = this.getTradeKey(t);
+            const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t) };
+            const sId = entry.setup && setupStats[entry.setup] ? entry.setup : 'general';
+            const p = t.realizedProfit || 0;
+
+            setupStats[sId].count++;
+            setupStats[sId].profit += p;
+            if (p > 0) {
+                setupStats[sId].win++;
+                setupStats[sId].totalWinProfit += p;
+            } else if (p < 0) {
+                setupStats[sId].loss++;
+                setupStats[sId].totalLossAmount += Math.abs(p);
+            }
+        });
+
+        const totalTrades = realizedTrades.length;
+        const sortedList = Object.values(setupStats).sort((a, b) => b.profit - a.profit);
+
+        let html = '';
+        sortedList.forEach(s => {
+            const winRate = s.count > 0 ? (s.win / s.count) * 100 : 0;
+            const share = totalTrades > 0 ? (s.count / totalTrades) * 100 : 0;
+            const profitFactor = s.totalLossAmount > 0 ? (s.totalWinProfit / s.totalLossAmount).toFixed(2) : (s.totalWinProfit > 0 ? '∞' : '-');
+
+            let badgeHtml = '';
+            if (s.count === 0) {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400">표본 없음</span>';
+            } else if (s.id === 'fomo') {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">🛑 원칙 개선 필수</span>';
+            } else if (s.profit > 0 && winRate >= 65) {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">🚀 핵심 수익 셋업</span>';
+            } else if (s.profit > 0 && winRate >= 50) {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">🟢 안정적 익절</span>';
+            } else if (s.profit < 0) {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">⚠️ 손실 유발 주의</span>';
+            } else {
+                badgeHtml = '<span class="text-[10px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300">보통</span>';
+            }
+
+            html += `
+              <div class="p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80 hover:border-cyan-500/30 transition">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg">${s.icon}</span>
+                    <div>
+                      <div class="font-bold text-sm text-white flex items-center gap-1.5 flex-wrap">
+                        <span>${s.name}</span>
+                        ${badgeHtml}
+                      </div>
+                      <div class="text-[11px] text-slate-400">${s.desc}</div>
+                    </div>
+                  </div>
+                  <div class="text-right sm:self-center">
+                    <div class="text-sm font-mono font-extrabold ${s.profit > 0 ? 'text-emerald-400' : (s.profit < 0 ? 'text-rose-400' : 'text-slate-400')}">
+                      ${s.profit > 0 ? '+' : ''}${this.formatCurrency(s.profit)}
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono">
+                      손익비: <strong class="text-slate-200">${profitFactor}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Progress & Stats Bar -->
+                <div class="space-y-1 pt-1.5 border-t border-navy-900">
+                  <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>${s.count}건 거래 (${share.toFixed(0)}% 비중) · ${s.win}승 ${s.loss}패</span>
+                    <span class="font-bold ${winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}">승률 ${winRate.toFixed(0)}%</span>
+                  </div>
+                  <div class="w-full bg-navy-900 rounded-full h-1.5 overflow-hidden flex">
+                    <div class="bg-emerald-500 h-full transition-all" style="width: ${winRate}%"></div>
+                    <div class="bg-rose-500 h-full transition-all" style="width: ${100 - winRate}%"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    },
+
+    renderPortfolioTracker: function () {
+        const container = document.getElementById('portfolioTrackerContent');
+        if (!container) return;
+
+        const report = this.state.reportData;
+        if (!report || !report.coinSummaries) {
+            container.innerHTML = '<p class="text-center py-6 text-xs text-slate-500">포트폴리오 분석 데이터가 없습니다.</p>';
+            return;
+        }
+
+        const totalEval = report.summary?.totalCurrentValue || 0;
+        const totalInvested = report.summary?.currentPortfolioCost || 0;
+        const totalUpnl = report.summary?.totalUnrealizedProfit || 0;
+        const totalRoi = totalInvested > 0 ? (totalUpnl / totalInvested) * 100 : 0;
+
+        const held = report.coinSummaries.filter(c => c.holdingQty > 1e-4 && (c.currentValue >= 100 || c.holdingCost >= 100));
+        held.sort((a, b) => (b.currentValue || 0) - (a.currentValue || 0));
+
+        // Group by category
+        const majorCoins = ['BTC', 'ETH'];
+        const largeAlts = ['SOL', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT', 'NEAR', 'SUI', 'SHIB', 'POL', 'TRX'];
+
+        let majorVal = 0;
+        let largeAltVal = 0;
+        let smallAltVal = 0;
+
+        held.forEach(c => {
+            const sym = (c.coinSymbol || '').toUpperCase();
+            const val = c.currentValue || 0;
+            if (majorCoins.includes(sym)) majorVal += val;
+            else if (largeAlts.includes(sym)) largeAltVal += val;
+            else smallAltVal += val;
+        });
+
+        const majorPct = totalEval > 0 ? (majorVal / totalEval) * 100 : 0;
+        const largePct = totalEval > 0 ? (largeAltVal / totalEval) * 100 : 0;
+        const smallPct = totalEval > 0 ? (smallAltVal / totalEval) * 100 : 0;
+
+        // Health check advice
+        let healthTip = '';
+        if (held.length === 0) {
+            healthTip = '현재 보유 중인 코인이 없습니다. 전체 매매 내역은 저널 테이블에서 확인하세요.';
+        } else if (held.length === 1 && totalEval > 100000) {
+            healthTip = '⚠️ <strong>단일 종목 올인 상태:</strong> 1개 종목에 100% 집중되어 변동성 리스크가 매우 큽니다. 분산 매매를 권장합니다.';
+        } else if (majorPct >= 50) {
+            healthTip = '🛡️ <strong>안정적 포트폴리오:</strong> 비트코인/이더리움 메이저 자산이 과반수를 차지하여 시장 급변 시 하방 경직성이 우수합니다.';
+        } else if (smallPct >= 50) {
+            healthTip = '🔥 <strong>고위험 중소형 알트 과다:</strong> 급등락 위험이 높으므로 익절 목표가를 사전에 설정하고 현금 비중을 확보하세요.';
+        } else {
+            healthTip = '⚖️ <strong>균형 잡힌 배분:</strong> 메이저와 주요 대형 알트가 고르게 분산되어 있어 리스크 관리에 유리한 상태입니다.';
+        }
+
+        let coinsListHtml = '';
+        held.slice(0, 5).forEach((c, idx) => {
+            const pct = totalEval > 0 ? ((c.currentValue || 0) / totalEval) * 100 : 0;
+            const pnl = c.unrealizedProfit || 0;
+            const roi = c.unrealizedRoi || 0;
+
+            coinsListHtml += `
+              <div class="flex items-center justify-between py-1.5 text-xs border-b border-navy-800/60 last:border-b-0">
+                <div class="flex items-center gap-2">
+                  <span class="w-4 text-center font-mono text-[10px] text-slate-500 font-bold">${idx + 1}</span>
+                  <span class="font-bold text-white">${c.koreanName || c.coinSymbol}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">(${pct.toFixed(1)}%)</span>
+                </div>
+                <div class="text-right font-mono">
+                  <div class="text-slate-200 font-medium">${this.formatCurrency(c.currentValue || 0)}</div>
+                  <div class="text-[10px] ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                    ${pnl >= 0 ? '+' : ''}${this.formatCurrency(pnl)} (${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%)
+                  </div>
+                </div>
+              </div>
+            `;
+        });
+
+        container.innerHTML = `
+          <!-- Overall Portfolio Snapshot -->
+          <div class="p-3.5 rounded-xl bg-navy-950/70 border border-navy-800/80">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+              <span>총 평가손익 (수익률)</span>
+              <span>총 투자원금: ${this.formatCurrency(totalInvested)}</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-lg font-mono font-extrabold ${totalUpnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                ${totalUpnl >= 0 ? '+' : ''}${this.formatCurrency(totalUpnl)}
+              </span>
+              <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg ${totalRoi >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+                ${totalRoi >= 0 ? '+' : ''}${totalRoi.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+
+          <!-- Asset Allocation Segmented Bar -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+              <span>자산군 배분 비율</span>
+              <span class="text-[11px] text-slate-400">${held.length}개 보유 종목</span>
+            </div>
+            <div class="w-full h-3 rounded-full overflow-hidden flex bg-navy-950 border border-navy-800">
+              <div class="bg-amber-500 h-full transition-all" style="width: ${majorPct}%" title="메이저 (BTC/ETH): ${majorPct.toFixed(1)}%"></div>
+              <div class="bg-indigo-500 h-full transition-all" style="width: ${largePct}%" title="대형 알트: ${largePct.toFixed(1)}%"></div>
+              <div class="bg-cyan-500 h-full transition-all" style="width: ${smallPct}%" title="중소형 알트: ${smallPct.toFixed(1)}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> 메이저 ${majorPct.toFixed(0)}%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span> 대형알트 ${largePct.toFixed(0)}%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-500 inline-block"></span> 기타 ${smallPct.toFixed(0)}%</span>
+            </div>
+          </div>
+
+          <!-- Top Holdings List -->
+          <div class="space-y-1">
+            <div class="text-xs font-bold text-slate-300 mb-1">보유 자산 비중 Top 5</div>
+            <div class="p-2.5 rounded-xl bg-navy-950/50 border border-navy-800/60">
+              ${coinsListHtml || '<div class="text-center py-2 text-xs text-slate-500">보유 종목 없음</div>'}
+            </div>
+          </div>
+
+          <!-- Health Advice Note -->
+          <div class="p-3 rounded-xl bg-navy-900 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed">
+            ${healthTip}
+          </div>
+        `;
+    },
+
+    renderBestWorstTrades: function (realizedTrades, journalStore) {
+        const bestContainer = document.getElementById('journalBestTrades');
+        const worstContainer = document.getElementById('journalWorstTrades');
+        if (!bestContainer || !worstContainer) return;
+
+        if (!realizedTrades || realizedTrades.length === 0) {
+            bestContainer.innerHTML = '<div class="text-center py-4 text-xs text-slate-500">실현 매도 거래 데이터가 없습니다.</div>';
+            worstContainer.innerHTML = '<div class="text-center py-4 text-xs text-slate-500">실현 매도 거래 데이터가 없습니다.</div>';
+            return;
+        }
+
+        // Sort descending for best
+        const sortedBest = [...realizedTrades].sort((a, b) => (b.realizedProfit || 0) - (a.realizedProfit || 0));
+        // Sort ascending for worst
+        const sortedWorst = [...realizedTrades].sort((a, b) => (a.realizedProfit || 0) - (b.realizedProfit || 0));
+
+        const renderItem = (t, rank, isBest) => {
+            const key = this.getTradeKey(t);
+            const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t), note: '' };
+            const setupObj = TRADING_SETUPS[entry.setup] || TRADING_SETUPS.general;
+            const profit = t.realizedProfit || 0;
+            const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0);
+
+            return `
+              <div class="p-3 rounded-xl bg-navy-950/80 border border-navy-800/80 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isBest ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+                    ${rank}
+                  </span>
+                  <div class="min-w-0">
+                    <div class="font-bold text-xs text-white flex items-center gap-1.5">
+                      <span>${t.coinSymbol || t.market}</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-navy-800 text-slate-400 font-mono">${(t.time || '').substring(0, 10)}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
+                      <span>${setupObj.icon}</span>
+                      <span>${setupObj.name}</span>
+                      ${entry.note ? `<span class="text-slate-500 truncate">· "${entry.note}"</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right flex-shrink-0 font-mono">
+                  <div class="text-xs font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                    ${profit >= 0 ? '+' : ''}${this.formatCurrency(profit)}
+                  </div>
+                  <div class="text-[10px] ${roi >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                    ${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+            `;
+        };
+
+        const bestList = sortedBest.filter(t => (t.realizedProfit || 0) > 0).slice(0, 3);
+        const worstList = sortedWorst.filter(t => (t.realizedProfit || 0) < 0).slice(0, 3);
+
+        bestContainer.innerHTML = bestList.length > 0
+            ? bestList.map((t, idx) => renderItem(t, idx + 1, true)).join('')
+            : '<div class="text-center py-4 text-xs text-slate-500">익절 거래가 없습니다.</div>';
+
+        worstContainer.innerHTML = worstList.length > 0
+            ? worstList.map((t, idx) => renderItem(t, idx + 1, false)).join('')
+            : '<div class="text-center py-4 text-xs text-slate-500">손실 거래가 없습니다 (100% 승률!).</div>';
+    },
+
+    renderJournalTable: function () {
+        const tbody = document.querySelector('#journalTable tbody');
+        if (!tbody) return;
+
+        const realizedTrades = (this.state.reportData && this.state.reportData.trades)
+            ? this.state.reportData.trades.filter(t => t.type === '매도' && t.realizedProfit !== undefined)
+            : [];
+
+        const countBadge = document.getElementById('journalTotalCountBadge');
+        const journalStore = this.getJournalStorage();
+        const f = this.state.journalFilter;
+
+        let filtered = realizedTrades;
+
+        // Filter by Setup
+        if (f.setup && f.setup !== 'ALL') {
+            filtered = filtered.filter(t => {
+                const key = this.getTradeKey(t);
+                const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t) };
+                return entry.setup === f.setup;
+            });
+        }
+
+        // Filter by Result
+        if (f.result === 'WIN') {
+            filtered = filtered.filter(t => (t.realizedProfit || 0) > 0);
+        } else if (f.result === 'LOSS') {
+            filtered = filtered.filter(t => (t.realizedProfit || 0) < 0);
+        }
+
+        // Filter by Market/Coin
+        if (f.market && f.market !== 'ALL') {
+            filtered = filtered.filter(t => t.market === f.market || t.coinSymbol === f.market || t.coinSymbol === f.market.replace('KRW-', ''));
+        }
+
+        // Filter by Search
+        if (f.search) {
+            filtered = filtered.filter(t => {
+                const key = this.getTradeKey(t);
+                const entry = journalStore[key] || {};
+                const note = (entry.note || '').toLowerCase();
+                const sym = (t.coinSymbol || '').toLowerCase();
+                const name = (UpbitAPI.getKoreanName(t.market || t.coinSymbol) || '').toLowerCase();
+                return sym.includes(f.search) || name.includes(f.search) || note.includes(f.search);
+            });
+        }
+
+        if (countBadge) countBadge.textContent = filtered.length + '건';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-muted">일치하는 매매 저널 내역이 없습니다.</td></tr>';
+            const pagin = document.getElementById('journalPagination');
+            if (pagin) pagin.innerHTML = '';
+            return;
+        }
+
+        // Sorting
+        const sort = this.state.sortStates.journalTable || { col: 'time', asc: false };
+        filtered.sort((a, b) => {
+            let valA = a[sort.col] || 0;
+            let valB = b[sort.col] || 0;
+            if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            return sort.asc ? valA - valB : valB - valA;
+        });
+
+        // Pagination
+        const totalItems = filtered.length;
+        const totalPages = Math.ceil(totalItems / f.pageSize);
+        if (f.page > totalPages) f.page = totalPages;
+        if (f.page < 1) f.page = 1;
+
+        const startIndex = (f.page - 1) * f.pageSize;
+        const pageItems = filtered.slice(startIndex, startIndex + f.pageSize);
+
+        let html = '';
+        pageItems.forEach(t => {
+            const key = this.getTradeKey(t);
+            const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t), note: '', emotion: 'calm', isAuto: true };
+            const profit = t.realizedProfit || 0;
+            const roi = t.profitRate !== undefined ? t.profitRate : (t.buyCost > 0 ? (profit / t.buyCost) * 100 : 0);
+            const profitClass = this.getProfitColorClass(profit);
+            const coinName = UpbitAPI.getKoreanName(t.market || t.coinSymbol) || t.coinSymbol;
+
+            // Setup select options
+            let setupOptionsHtml = '';
+            Object.values(TRADING_SETUPS).forEach(s => {
+                const isSelected = entry.setup === s.id ? 'selected' : '';
+                setupOptionsHtml += `<option value="${s.id}" ${isSelected}>${s.icon} ${s.name}</option>`;
+            });
+
+            // Emotion select options
+            let emotionOptionsHtml = '';
+            Object.values(TRADE_EMOTIONS).forEach(em => {
+                const isSelected = entry.emotion === em.id ? 'selected' : '';
+                emotionOptionsHtml += `<option value="${em.id}" ${isSelected}>${em.label}</option>`;
+            });
+
+            html += `
+              <tr>
+                <td class="text-xs text-muted font-mono whitespace-nowrap">${t.time || '-'}</td>
+                <td>
+                  <div class="flex-center-gap">
+                    <span class="coin-symbol-badge-sm">${t.coinSymbol}</span>
+                    <span class="font-bold text-white">${coinName}</span>
+                  </div>
+                </td>
+                <td class="text-right font-mono font-medium">
+                  <div>${this.formatPrice(t.price)}</div>
+                  <div class="text-[11px] text-muted">${t.qty ? Number(t.qty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-'} ${t.coinSymbol}</div>
+                </td>
+                <td class="text-right font-mono font-medium">
+                  <div>${this.formatPrice(t.avgBuyPrice)}</div>
+                  <div class="text-[11px] text-muted">${this.formatCurrency(t.buyCost || (t.avgBuyPrice * t.qty))}</div>
+                </td>
+                <td class="text-right ${profitClass} font-mono">
+                  <div class="font-bold text-sm">${profit > 0 ? '+' : ''}${this.formatCurrency(profit)}</div>
+                  <div class="text-xs">${roi > 0 ? '+' : ''}${roi.toFixed(2)}%</div>
+                </td>
+                <td class="text-center">
+                  <select onchange="App.onTradeSetupSelect('${key}', this.value)" class="w-full bg-navy-950 border border-navy-700 text-slate-200 text-xs rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
+                    ${setupOptionsHtml}
+                  </select>
+                </td>
+                <td class="text-center">
+                  <select onchange="App.onTradeEmotionSelect('${key}', this.value)" class="w-full bg-navy-950 border border-navy-700 text-slate-200 text-xs rounded-lg px-2 py-1 outline-none focus:border-cyan-500 cursor-pointer">
+                    ${emotionOptionsHtml}
+                  </select>
+                </td>
+                <td>
+                  <input type="text" value="${(entry.note || '').replace(/"/g, '&quot;')}" placeholder="복기 메모 입력 후 엔터..." onchange="App.onTradeNoteChange('${key}', this.value)" class="w-full bg-navy-950 border border-navy-800 hover:border-navy-700 focus:border-cyan-500 text-slate-200 placeholder-slate-600 text-xs rounded-lg px-2.5 py-1 outline-none transition">
+                </td>
+              </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        this.renderJournalPagination(totalItems, f.page, totalPages);
+    },
+
+    renderJournalPagination: function (totalItems, currentPage, totalPages) {
+        const paginContainer = document.getElementById('journalPagination');
+        if (!paginContainer) return;
+
+        if (totalItems === 0) {
+            paginContainer.innerHTML = '';
+            return;
+        }
+
+        paginContainer.innerHTML = '<div class="pagination-info text-xs text-muted">총 <strong>' + totalItems + '</strong>건 중 ' + ((currentPage - 1) * this.state.journalFilter.pageSize + 1) + ' - ' + Math.min(currentPage * this.state.journalFilter.pageSize, totalItems) + '건</div>' +
+            '<div class="pagination-controls">' +
+                '<button class="btn btn-sm" ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="App.goToJournalPage(1)">«</button>' +
+                '<button class="btn btn-sm" ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="App.goToJournalPage(' + (currentPage - 1) + ')">‹ 이전</button>' +
+                '<span class="page-current text-sm px-2 font-bold">' + currentPage + ' / ' + totalPages + '</span>' +
+                '<button class="btn btn-sm" ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="App.goToJournalPage(' + (currentPage + 1) + ')">다음 ›</button>' +
+                '<button class="btn btn-sm" ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="App.goToJournalPage(' + totalPages + ')">»</button>' +
+            '</div>';
+    },
+
+    goToJournalPage: function (page) {
+        this.state.journalFilter.page = page;
+        this.renderJournalTable();
+    },
+
+    onJournalFilterChange: function () {
+        const setupEl = document.getElementById('journalSetupFilter');
+        const resultEl = document.getElementById('journalResultFilter');
+        const coinEl = document.getElementById('journalCoinFilter');
+
+        if (setupEl) this.state.journalFilter.setup = setupEl.value;
+        if (resultEl) this.state.journalFilter.result = resultEl.value;
+        if (coinEl) this.state.journalFilter.market = coinEl.value;
+
+        this.state.journalFilter.page = 1;
+        this.renderJournalTable();
+    },
+
+    onJournalSearchInput: function (e) {
+        this.state.journalFilter.search = e.target.value.trim().toLowerCase();
+        this.state.journalFilter.page = 1;
+        this.renderJournalTable();
     },
 
     formatCurrency: function (num) {

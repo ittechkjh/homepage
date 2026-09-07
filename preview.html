@@ -2585,6 +2585,9 @@
             <button class="analyzer-subtab" data-tab="monthly">
               📅 월별 통계
             </button>
+            <button class="analyzer-subtab" data-tab="journal">
+              📓 트레이딩 저널 & 셋업
+            </button>
             <button class="analyzer-subtab" data-tab="settings">
               ⚙️ 계산 설정 및 관리
             </button>
@@ -2850,6 +2853,182 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          <!-- TAB 5-2: 트레이딩 저널 & 셋업 분석 + 포트폴리오 트래커 -->
+          <div class="analyzer-tab-pane" id="journalTab">
+            <!-- 1. Header Hero Banner -->
+            <div class="mb-6 p-5 rounded-2xl bg-gradient-to-r from-navy-900 via-navy-850 to-navy-900 border border-cyan-500/20 shadow-lg">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="text-xl">📓</span>
+                    <h3 class="text-base sm:text-lg font-extrabold text-white">트레이딩 저널 & 셋업 분석 + 포트폴리오 트래커</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">실전 투자 복기</span>
+                  </div>
+                  <p class="text-xs text-slate-400">
+                    내가 어떤 셋업(전략)에서 돈을 벌고 잃었는지 데이터로 검증하고, 나만의 복기 메모와 실시간 포트폴리오 자산 배분을 추적합니다.
+                  </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" id="journalAutoTagBtn" onclick="App.autoTagAllTrades()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/30 transition flex items-center gap-1.5 shadow-sm">
+                    ✨ AI 셋업 자동 추천 태깅
+                  </button>
+                  <button type="button" id="journalResetBtn" onclick="App.resetJournalStorage()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition flex items-center gap-1.5">
+                    🔄 저널 메모 초기화
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Top Summary KPI Cards (4 Cards) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="journalKpiCards">
+              <!-- Dynamically populated by App.renderJournalView() -->
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">총 실현 매도 거래</span>
+                <span class="text-xl font-mono font-bold text-white mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">승률 집계 대기</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">최고 수익 셋업</span>
+                <span class="text-xl font-mono font-bold text-emerald-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">수익 기여도 1위</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">최대 손실 셋업</span>
+                <span class="text-xl font-mono font-bold text-rose-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">리스크 개선 필요</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-navy-900/90 border border-navy-800 flex flex-col justify-between">
+                <span class="text-xs text-slate-400">포트폴리오 자산 배분</span>
+                <span class="text-xl font-mono font-bold text-cyan-400 mt-1">-</span>
+                <span class="text-[11px] text-slate-500 mt-2">리스크 집중도 점검</span>
+              </div>
+            </div>
+
+            <!-- 3. Setup Analytics & Portfolio Health Grid (2 Columns) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+              <!-- Left: Setup Performance Breakdown (7 cols) -->
+              <div class="lg:col-span-7 space-y-4">
+                <div class="p-5 rounded-2xl bg-navy-900/90 border border-navy-800 shadow-md">
+                  <div class="flex items-center justify-between pb-3 mb-4 border-b border-navy-800 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base">🎯</span>
+                      <h4 class="font-extrabold text-sm text-white">매매 셋업(전략)별 손익 & 승률 성적표</h4>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium">어떤 셋업에서 돈을 벌고 잃는가?</span>
+                  </div>
+                  <div class="space-y-3" id="setupAnalyticsList">
+                    <p class="text-center py-6 text-xs text-slate-500">거래 데이터를 불러오면 셋업별 성적표가 자동 계산됩니다.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Portfolio Tracker & Health (5 cols) -->
+              <div class="lg:col-span-5 space-y-4">
+                <div class="p-5 rounded-2xl bg-navy-900/90 border border-navy-800 shadow-md">
+                  <div class="flex items-center justify-between pb-3 mb-4 border-b border-navy-800 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base">💼</span>
+                      <h4 class="font-extrabold text-sm text-white">실시간 포트폴리오 트래커</h4>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium">자산 배분 & 건전성</span>
+                  </div>
+                  <div id="portfolioTrackerContent" class="space-y-4">
+                    <p class="text-center py-6 text-xs text-slate-500">보유 코인 및 자산 현황 분석 대기 중</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Best vs Worst Realized Trades Review -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <!-- Best 3 Trades -->
+              <div class="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 shadow-sm">
+                <div class="flex items-center justify-between mb-3.5">
+                  <span class="text-xs font-extrabold text-emerald-400 flex items-center gap-1.5">
+                    🏆 최고 수익 거래 Top 3 (Best Trades)
+                  </span>
+                  <span class="text-[10px] text-emerald-300/70">수익 극대화 셋업 복기</span>
+                </div>
+                <div id="journalBestTrades" class="space-y-2.5">
+                  <div class="text-center py-4 text-xs text-slate-500">데이터 없음</div>
+                </div>
+              </div>
+
+              <!-- Worst 3 Trades -->
+              <div class="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/20 shadow-sm">
+                <div class="flex items-center justify-between mb-3.5">
+                  <span class="text-xs font-extrabold text-rose-400 flex items-center gap-1.5">
+                    🚨 최대 손실 거래 Top 3 (Worst Trades)
+                  </span>
+                  <span class="text-[10px] text-rose-300/70">손실 원인 및 뇌동 방지 반면교사</span>
+                </div>
+                <div id="journalWorstTrades" class="space-y-2.5">
+                  <div class="text-center py-4 text-xs text-slate-500">데이터 없음</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Interactive Trading Journal Table -->
+            <div class="table-card">
+              <div class="table-toolbar flex flex-col md:flex-row gap-3 md:items-center justify-between p-4 border-b border-navy-800">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-white">매매 복기 일지 (Trade Journal)</span>
+                  <span id="journalTotalCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-navy-800 text-cyan-300 font-mono font-bold">0건</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <!-- Setup Filter -->
+                  <select id="journalSetupFilter" onchange="App.onJournalFilterChange()" class="bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 outline-none focus:border-cyan-500">
+                    <option value="ALL">전체 셋업</option>
+                    <option value="pullback">🎯 눌림목/지지선</option>
+                    <option value="breakout">🚀 돌파 매매</option>
+                    <option value="trend">🌊 추세 추종</option>
+                    <option value="scalping">⚡ 단타/스캘핑</option>
+                    <option value="dca">🧱 분할/DCA</option>
+                    <option value="news">📢 공시/호재</option>
+                    <option value="fomo">⚠️ 뇌동 매매</option>
+                    <option value="general">📦 일반/미분류</option>
+                  </select>
+
+                  <!-- Result Filter -->
+                  <select id="journalResultFilter" onchange="App.onJournalFilterChange()" class="bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 outline-none focus:border-cyan-500">
+                    <option value="ALL">전체 손익</option>
+                    <option value="WIN">🟢 익절 거래 (Win)</option>
+                    <option value="LOSS">🔴 손절 거래 (Loss)</option>
+                  </select>
+
+                  <!-- Coin Filter -->
+                  <select id="journalCoinFilter" onchange="App.onJournalFilterChange()" class="bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 outline-none focus:border-cyan-500">
+                    <option value="ALL">전체 코인</option>
+                  </select>
+
+                  <!-- Search Input -->
+                  <input type="text" id="journalSearchInput" oninput="App.onJournalSearchInput(event)" placeholder="코인명 또는 메모 검색..." class="bg-navy-950 border border-navy-700 text-slate-200 placeholder-slate-500 rounded-xl px-3 py-1.5 outline-none focus:border-cyan-500 text-xs w-36 sm:w-48">
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table id="journalTable">
+                  <thead>
+                    <tr>
+                      <th data-sort="time">체결일시 ⬍</th>
+                      <th data-sort="market">마켓 ⬍</th>
+                      <th class="text-right" data-sort="price">체결단가 / 수량 ⬍</th>
+                      <th class="text-right" data-sort="avgBuyPrice">매수평단 / 원가 ⬍</th>
+                      <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
+                      <th class="text-center" style="min-width: 170px;">매매 셋업 (전략 선택)</th>
+                      <th class="text-center" style="min-width: 130px;">심리 상태</th>
+                      <th style="min-width: 220px;">복기 메모 (자동 저장)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="8" class="text-center py-8 text-muted">거래 데이터가 없습니다. 먼저 엑셀 파일을 업로드하거나 샘플 데이터를 로드하세요.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pagination-container" id="journalPagination"></div>
             </div>
           </div>
 
@@ -4517,7 +4696,7 @@
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
   <script src="js/tools-calculators.js?v=20260904_21"></script>
-  <script src="js/analyzer-app.js?v=20260907_01"></script>
+  <script src="js/analyzer-app.js?v=20260907_02"></script>
 
   <script src="js/admin.js?v=20260904_23"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
