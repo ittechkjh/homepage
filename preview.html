@@ -3009,6 +3009,15 @@
                     <option value="LOSS">🔴 손절 거래 (Loss)</option>
                   </select>
 
+                  <!-- Emotion Filter -->
+                  <select id="journalEmotionFilter" onchange="App.onJournalFilterChange()" class="journal-select rounded-xl px-2.5 py-1.5 outline-none focus:border-cyan-500">
+                    <option value="ALL">전체 심리</option>
+                    <option value="calm">😊 침착·원칙준수</option>
+                    <option value="greedy">🤑 탐욕·흥분</option>
+                    <option value="fear">😰 불안·공포</option>
+                    <option value="revenge">😡 뇌동·분노</option>
+                  </select>
+
                   <!-- Coin Filter -->
                   <select id="journalCoinFilter" onchange="App.onJournalFilterChange()" class="journal-select rounded-xl px-2.5 py-1.5 outline-none focus:border-cyan-500">
                     <option value="ALL">전체 코인</option>
@@ -3030,7 +3039,7 @@
                       <th class="text-right" data-sort="avgBuyPrice">매수평단 / 원가 ⬍</th>
                       <th class="text-right" data-sort="realizedProfit">실현손익 (수익률) ⬍</th>
                       <th class="text-center" style="min-width: 170px;">매매 셋업 (전략 선택)</th>
-                      <th class="text-center" style="min-width: 130px;">심리 상태</th>
+                      <th class="text-center" data-sort="emotion" style="min-width: 130px;">심리 상태 ⬍</th>
                       <th style="min-width: 220px;">복기 메모 (DB 동기화)</th>
                     </tr>
                   </thead>
@@ -4707,7 +4716,7 @@
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
   <script src="js/tools-calculators.js?v=20260904_21"></script>
-  <script src="js/analyzer-app.js?v=20260907_03"></script>
+  <script src="js/analyzer-app.js?v=20260907_04"></script>
 
   <script src="js/admin.js?v=20260904_23"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>

@@ -805,6 +805,7 @@ const App = {
         journalFilter: {
             exchange: 'ALL',
             setup: 'ALL',
+            emotion: 'ALL',
             result: 'ALL',
             market: 'ALL',
             search: '',
@@ -2092,10 +2093,15 @@ const App = {
             if (entry.isAuto || (!entry.note && entry.setup === 'pullback' && !entry.manuallyLocked)) {
                 entry.setup = this.autoClassifyTradeSetup(t);
             }
+            // 심리 상태도 자동 상태이거나 수동 지정하지 않은 경우 행동 패턴 기반으로 정밀 재추론
+            if (entry.isAuto || (!entry.manuallyLocked && (!entry.emotion || entry.emotion === 'calm'))) {
+                entry.emotion = this.autoClassifyTradeEmotion(t, entry.setup);
+            }
             return entry;
         }
         const defaultSetup = this.autoClassifyTradeSetup(t);
-        return { setup: defaultSetup, note: '', emotion: 'calm', isAuto: true };
+        const defaultEmotion = this.autoClassifyTradeEmotion(t, defaultSetup);
+        return { setup: defaultSetup, note: '', emotion: defaultEmotion, isAuto: true };
     },
 
     saveJournalField: function (tradeKey, field, value) {
@@ -2127,7 +2133,8 @@ const App = {
 
     onTradeEmotionSelect: function (tradeKey, newEmotion) {
         this.saveJournalField(tradeKey, 'emotion', newEmotion);
-        this.showToast('심리 상태가 반영되어 DB에 동기화되었습니다.', 'info');
+        const emotionLabel = TRADE_EMOTIONS[newEmotion]?.label || newEmotion;
+        this.showToast('심리 상태가 "' + emotionLabel + '"(으)로 DB에 반영되었습니다.', 'info');
     },
 
     onTradeNoteChange: function (tradeKey, newNote) {
@@ -2192,6 +2199,45 @@ const App = {
         return 'general';
     },
 
+    autoClassifyTradeEmotion: function (t, setup) {
+        const profit = t.realizedProfit || 0;
+        let roi = 0;
+        if (t.realizedRoi !== undefined && !isNaN(t.realizedRoi)) {
+            roi = Number(t.realizedRoi);
+        } else if (t.profitRate !== undefined && !isNaN(t.profitRate)) {
+            roi = Number(t.profitRate);
+        } else {
+            const cost = t.costBasis || t.buyCost || (t.avgBuyPrice && t.qty ? t.avgBuyPrice * t.qty : 0);
+            if (cost > 0) roi = (profit / cost) * 100;
+        }
+
+        const currentSetup = setup || this.autoClassifyTradeSetup(t);
+
+        // 1. 😡 뇌동·분노 (revenge): fomo 셋업, -6% 이하 큰 손실 방치, 50만원 이상 대형 손실
+        if (currentSetup === 'fomo' || roi <= -6.0 || profit <= -500000) {
+            return 'revenge';
+        }
+
+        // 2. 🤑 탐욕·흥분 (greedy): +12% 이상 급등 익절, news/breakout 셋업, 80만원 이상 대형 익절
+        if (roi >= 12.0 || currentSetup === 'news' || currentSetup === 'breakout' || profit >= 800000) {
+            return 'greedy';
+        }
+
+        // 3. 😰 불안·공포 (fear):
+        //    - 손실 공포 패닉컷: -1.5% ~ -6.0% 손절 (지지선 이탈 공포)
+        //    - 수익 반납 공포 조기 청산: +0.05% ~ +0.8% 극소 익절 (불안해서 바로 던짐)
+        if ((roi < 0 && roi > -6.0) || (profit > 0 && roi > 0 && roi <= 0.8)) {
+            return 'fear';
+        }
+
+        // 4. 😊 침착·원칙준수 (calm):
+        //    - 메이저 적립식 분할 매매 (dca)
+        //    - 추세 추종 (trend, +4.5% ~ +10%)
+        //    - 단타/스캘핑 정석 익절 (scalping, +0.8% ~ +2.2%)
+        //    - 눌림목 지지선 반등 정석 익절 (pullback, +2.2% ~ +4.5%)
+        return 'calm';
+    },
+
     autoTagAllTrades: function (forceAll = false) {
         if (!this.state.reportData || !this.state.reportData.trades) {
             this.showToast('분석할 거래 내역이 없습니다. 먼저 엑셀 파일을 업로드하거나 샘플 데이터를 로드하세요.', 'error');
@@ -2212,10 +2258,11 @@ const App = {
             const shouldTag = !store[key] || store[key].isAuto || (forceAll && !store[key].note && !store[key].manuallyLocked);
             if (shouldTag) {
                 const setup = this.autoClassifyTradeSetup(t);
+                const emotion = this.autoClassifyTradeEmotion(t, setup);
                 store[key] = {
                     setup: setup,
                     note: store[key]?.note || '',
-                    emotion: store[key]?.emotion || (t.realizedProfit > 0 ? 'calm' : (setup === 'fomo' ? 'revenge' : 'calm')),
+                    emotion: emotion,
                     isAuto: true,
                     updatedAt: Date.now()
                 };
@@ -2226,7 +2273,7 @@ const App = {
         this.saveJournalStorage(store);
         this.saveJournalToDB(store);
         this.renderJournalView(true);
-        this.showToast('✨ 총 ' + taggedCount + '건의 거래에 AI 매매 전략 분석 태깅 및 DB 저장이 완료되었습니다!', 'success');
+        this.showToast('✨ 총 ' + taggedCount + '건의 거래에 AI 매매 전략 및 심리 상태 정밀 분석 태깅이 완료되었습니다!', 'success');
     },
 
     resetJournalStorage: function () {
@@ -2739,9 +2786,16 @@ const App = {
         // Filter by Setup
         if (f.setup && f.setup !== 'ALL') {
             filtered = filtered.filter(t => {
-                const key = this.getTradeKey(t);
-                const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t) };
+                const entry = this.getJournalEntry(t);
                 return entry.setup === f.setup;
+            });
+        }
+
+        // Filter by Emotion
+        if (f.emotion && f.emotion !== 'ALL') {
+            filtered = filtered.filter(t => {
+                const entry = this.getJournalEntry(t);
+                return (entry.emotion || 'calm') === f.emotion;
             });
         }
 
@@ -2781,8 +2835,18 @@ const App = {
         // Sorting
         const sort = this.state.sortStates.journalTable || { col: 'time', asc: false };
         filtered.sort((a, b) => {
-            let valA = a[sort.col] !== undefined ? a[sort.col] : (sort.col === 'exchange' ? (a.exchange || 'UPBIT') : 0);
-            let valB = b[sort.col] !== undefined ? b[sort.col] : (sort.col === 'exchange' ? (b.exchange || 'UPBIT') : 0);
+            let valA;
+            let valB;
+            if (sort.col === 'exchange') {
+                valA = a.exchange || 'UPBIT';
+                valB = b.exchange || 'UPBIT';
+            } else if (sort.col === 'emotion') {
+                valA = this.getJournalEntry(a).emotion || 'calm';
+                valB = this.getJournalEntry(b).emotion || 'calm';
+            } else {
+                valA = a[sort.col] !== undefined ? a[sort.col] : 0;
+                valB = b[sort.col] !== undefined ? b[sort.col] : 0;
+            }
             if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             return sort.asc ? valA - valB : valB - valA;
         });
@@ -2799,7 +2863,7 @@ const App = {
         let html = '';
         pageItems.forEach(t => {
             const key = this.getTradeKey(t);
-            const entry = journalStore[key] || { setup: this.autoClassifyTradeSetup(t), note: '', emotion: 'calm', isAuto: true };
+            const entry = this.getJournalEntry(t);
             const profit = t.realizedProfit || 0;
             const roi = (t.realizedRoi !== undefined && !isNaN(t.realizedRoi))
                 ? Number(t.realizedRoi)
@@ -2895,11 +2959,13 @@ const App = {
     onJournalFilterChange: function () {
         const exEl = document.getElementById('journalExchangeFilter');
         const setupEl = document.getElementById('journalSetupFilter');
+        const emoEl = document.getElementById('journalEmotionFilter');
         const resultEl = document.getElementById('journalResultFilter');
         const coinEl = document.getElementById('journalCoinFilter');
 
         if (exEl) this.state.journalFilter.exchange = exEl.value;
         if (setupEl) this.state.journalFilter.setup = setupEl.value;
+        if (emoEl) this.state.journalFilter.emotion = emoEl.value;
         if (resultEl) this.state.journalFilter.result = resultEl.value;
         if (coinEl) this.state.journalFilter.market = coinEl.value;
 
