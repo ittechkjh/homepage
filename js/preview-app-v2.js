@@ -3940,6 +3940,86 @@ const OnChainEngine = {
     }
   },
 
+  summaryData: {
+    BTC: {
+      badge: '기관 매집 우세 (Strong Bullish)',
+      badgeClass: 'badge-green',
+      title: '거래소 잔고 3년 최저치 경신 & 장기 보유자(74.2%) 락업 견고 ➔ 중장기 강력 축적 국면',
+      desc: '거래소 밖으로의 순유출이 지속되고 있으며 155일 이상 장기 홀더(LTH)가 유통량의 74.2%를 보유 중입니다. 매도 공급 부족으로 단기 변동성에도 하방 지지력이 매우 탄탄합니다.',
+      pressure: '매수 압력 우위 (84%)'
+    },
+    ETH: {
+      badge: 'DeFi & 스테이킹 락업 (Bullish)',
+      badgeClass: 'badge-green',
+      title: 'DeFi 및 스테이킹 예치 물량 증가로 유통 공급 감소 중 ➔ 현물 ETF 유입세와 완만한 매집',
+      desc: '유통 중인 이더리움 중 28% 이상이 스마트 컨트랙트 및 스테이킹에 락업되어 있어 시장 유통 가능 물량이 급감하는 디플레이션 압력이 유지되고 있습니다.',
+      pressure: '매수 압력 우위 (78%)'
+    },
+    SOL: {
+      badge: '네트워크 활성도 폭발 (Strong Bullish)',
+      badgeClass: 'badge-green',
+      title: '활성 지갑 수 120만 개 돌파 및 DEX 거래량 호조 ➔ 강력한 온체인 펀더멘털 유지',
+      desc: '생태계 내 일일 활성 수수료와 거래량이 이더리움을 상회하는 국면이 이어지며, 온체인 유동성 유입이 지속적으로 가격을 견인하고 있습니다.',
+      pressure: '매수 압력 우위 (82%)'
+    },
+    XRP: {
+      badge: '에스크로 안정 & 매집 관망 (Neutral)',
+      badgeClass: 'badge-yellow',
+      title: '월간 에스크로 락업 정상 진행 및 기관 커스터디 이동 ➔ 변동성 대비 매집 관망세',
+      desc: '거래소 대량 입출금이 균형을 이루고 있으며, 주요 고래 지갑 간 분산 이체가 감지되어 대형 방향성 분기점을 준비하는 관망 흐름입니다.',
+      pressure: '중립 균형 (52%)'
+    },
+    DOGE: {
+      badge: '단기 차익 실현 & 분산 공존 (Neutral)',
+      badgeClass: 'badge-yellow',
+      title: '단기 차익 실현 유입과 커뮤니티 분산 보유 공존 ➔ 단기 중립/박스권 횡보 국면',
+      desc: '거래소 단기 입금이 소폭 증가하였으나 대형 홀더들의 패닉셀은 없으며, 지지선 근처에서 거래량이 회복되는 모습입니다.',
+      pressure: '중립 균형 (48%)'
+    },
+    SUI: {
+      badge: 'DeFi TVL 신고가 경신 (Very Bullish)',
+      badgeClass: 'badge-green',
+      title: '온체인 DeFi TVL 10억 달러 돌파 및 거래소 잔고 급감 ➔ 온체인 자금 급유입 강세 모멘텀',
+      desc: '주요 렌딩 및 DEX 프로토콜로 외부 자금이 빠르게 유입되며, 거래소 내 매도 잔고가 3.1% 이상 감소하여 강한 상승 탄력을 보입니다.',
+      pressure: '매수 압력 우위 (88%)'
+    },
+    AVAX: {
+      badge: '서브넷 RWA 활성화 (Bullish)',
+      badgeClass: 'badge-green',
+      title: '서브넷 스테이킹 안정화 및 기관 RWA 실증 거래 증가 ➔ 적정 가치 구간 매집 흐름',
+      desc: '기관 금융 서브넷 구축 발표 이후 장기 스테이킹 비율이 증가하고 있으며 거래소 순유출이 꾸준히 유지되는 안정적인 축적 국면입니다.',
+      pressure: '매수 압력 우위 (72%)'
+    },
+    LINK: {
+      badge: 'CCIP 크로스체인 순매집 (Strong Bullish)',
+      badgeClass: 'badge-green',
+      title: 'CCIP 크로스체인 트랜잭션 급증 및 고래 지갑 3개월 연속 순매집 ➔ 장기 저평가 탈출',
+      desc: '스마트머니와 기관 지갑이 거래소 물량을 지속적으로 콜드월렛으로 이전 중이며, MVRV 지표상 역사적 저평가 매수 영역에 위치합니다.',
+      pressure: '매수 압력 우위 (85%)'
+    }
+  },
+
+  renderSummaryBanner: function () {
+    const s = this.summaryData[this.currentCoin] || this.summaryData['BTC'];
+    const elBadge = document.getElementById('onchain-summary-badge');
+    const elBadgeText = document.getElementById('onchain-summary-badge-text');
+    const elTitle = document.getElementById('onchain-summary-title');
+    const elDesc = document.getElementById('onchain-summary-desc');
+    const elPressure = document.getElementById('onchain-summary-pressure');
+
+    if (elBadge && elBadgeText) {
+      elBadgeText.innerText = s.badge;
+      const pingDot = elBadge.querySelector('.animate-ping');
+      if (pingDot) {
+        pingDot.className = `w-1.5 h-1.5 rounded-full ${s.badgeClass === 'badge-green' ? 'bg-emerald-400' : 'bg-amber-400'} animate-ping`;
+      }
+      elBadge.className = `${s.badgeClass} text-[11px] font-bold px-2.5 py-0.5 rounded-full font-mono flex items-center gap-1.5`;
+    }
+    if (elTitle) elTitle.innerText = s.title;
+    if (elDesc) elDesc.innerText = s.desc;
+    if (elPressure) elPressure.innerText = s.pressure;
+  },
+
   selectCoin: function (coinSym) {
     if (!this.data[coinSym]) return;
     this.currentCoin = coinSym;
@@ -4093,6 +4173,7 @@ const OnChainEngine = {
 
   render: function () {
     const d = this.data[this.currentCoin] || this.data['BTC'];
+    this.renderSummaryBanner();
     
     // 1. Cards
     const elFlow = document.getElementById('onchain-net-flow');

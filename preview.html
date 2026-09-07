@@ -3468,59 +3468,113 @@
         </div>
       </div>
 
+      <!-- 1.5 Comprehensive On-Chain Summary Banner (종합 한줄 요약) -->
+      <div class="bg-gradient-to-r from-navy-900 via-cyan-950/40 to-navy-900 border border-cyan-500/40 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+          <div class="flex items-start gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-xl shadow-md shrink-0 mt-0.5">
+              🧭
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="onchain-summary-badge" class="badge-green text-[11px] font-bold px-2.5 py-0.5 rounded-full font-mono flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span id="onchain-summary-badge-text">기관 매집 우세 (Strong Bullish)</span>
+                </span>
+                <span class="text-xs text-slate-400 font-mono">실시간 온체인 종합 진단</span>
+              </div>
+              <h3 class="text-base sm:text-lg font-bold text-white tracking-tight" id="onchain-summary-title">
+                거래소 잔고 3년 최저치 경신 & 장기 보유자 락업 견고 ➔ 중장기 강력 축적 국면
+              </h3>
+              <p class="text-xs text-slate-300 leading-relaxed max-w-4xl" id="onchain-summary-desc">
+                거래소 밖으로의 순유출이 지속되고 있으며 155일 이상 장기 홀더(LTH)가 유통량의 74.2%를 보유 중입니다. 매도 공급 부족으로 단기 변동성에도 하방 지지력이 매우 탄탄합니다.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-end md:self-center shrink-0 bg-navy-950/80 px-4 py-2.5 rounded-2xl border border-navy-800">
+            <div class="text-right">
+              <div class="text-[10px] text-slate-400 font-bold">온체인 종합 매수 압력</div>
+              <div class="text-sm font-black font-mono text-cyan-400" id="onchain-summary-pressure">매수 압력 우위 (84%)</div>
+            </div>
+            <div class="w-2 h-7 rounded-full bg-gradient-to-t from-emerald-500 to-cyan-400 ml-1"></div>
+          </div>
+        </div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none"></div>
+      </div>
+
       <!-- 2. 4 Key On-Chain Metric Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: 24h Net Exchange Flow -->
-        <div class="p-5 rounded-3xl bg-navy-900 border border-cyan-500/30 shadow-xl relative overflow-hidden group">
-          <div class="flex justify-between items-start">
-            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 거래소 24h 순유출입
-            </span>
-            <span id="onchain-flow-signal" class="badge-green text-[11px] font-bold px-2 py-0.5 rounded-full">강력 매집</span>
+        <div class="p-5 rounded-3xl bg-navy-900 border border-cyan-500/30 shadow-xl relative overflow-hidden group flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 거래소 24h 순유출입
+              </span>
+              <span id="onchain-flow-signal" class="badge-green text-[11px] font-bold px-2 py-0.5 rounded-full">강력 매집</span>
+            </div>
+            <div id="onchain-net-flow" class="text-2xl font-black font-mono text-emerald-400 mt-3">-18,420 BTC</div>
+            <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+              <span>거래소 외부 유출 (매집)</span>
+              <span id="onchain-net-flow-usd" class="font-mono text-slate-300 font-bold">-$2.36B</span>
+            </div>
           </div>
-          <div id="onchain-net-flow" class="text-2xl font-black font-mono text-emerald-400 mt-3">-18,420 BTC</div>
-          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-            <span>거래소 외부 유출 (매집)</span>
-            <span id="onchain-net-flow-usd" class="font-mono text-slate-300 font-bold">-$2.36B</span>
+          <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+            💡 <span class="text-emerald-400 font-semibold">실전 해석:</span> 거래소 밖(콜드월렛)으로 빠져나갈수록 매도 가능 물량이 줄어 가격 상승에 유리합니다.
           </div>
         </div>
 
         <!-- Card 2: Exchange Reserve Balance -->
-        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
-          <div class="flex justify-between items-start">
-            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 거래소 총 보유 잔고
-            </span>
-            <span id="onchain-reserve-change" class="text-emerald-400 text-xs font-mono font-bold">-1.28%</span>
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 거래소 총 보유 잔고
+              </span>
+              <span id="onchain-reserve-change" class="text-emerald-400 text-xs font-mono font-bold">-1.28%</span>
+            </div>
+            <div id="onchain-reserve-balance" class="text-2xl font-black font-mono text-white mt-3">2,184,200 BTC</div>
+            <div class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
           </div>
-          <div id="onchain-reserve-balance" class="text-2xl font-black font-mono text-white mt-3">2,184,200 BTC</div>
-          <div class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
+          <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+            💡 <span class="text-indigo-400 font-semibold">실전 해석:</span> 거래소 보유량이 줄면 시장에서 즉각 던질 수 있는 코인이 마르는 <strong class="text-slate-200">공급 쇼크</strong> 상태를 의미합니다.
+          </div>
         </div>
 
         <!-- Card 3: Whale Large Transactions (>$1M) -->
-        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
-          <div class="flex justify-between items-start">
-            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 고래 이체액
-            </span>
-            <span id="onchain-whale-count" class="text-amber-300 text-xs font-mono font-bold">142건 감지</span>
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 고래 이체액
+              </span>
+              <span id="onchain-whale-count" class="text-amber-300 text-xs font-mono font-bold">142건 감지</span>
+            </div>
+            <div id="onchain-whale-volume" class="text-2xl font-black font-mono text-amber-300 mt-3">$4.82B</div>
+            <div class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
           </div>
-          <div id="onchain-whale-volume" class="text-2xl font-black font-mono text-amber-300 mt-3">$4.82B</div>
-          <div class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
+          <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+            💡 <span class="text-amber-400 font-semibold">실전 해석:</span> $100만(약 14억원) 이상 거액 트랜잭션의 80% 이상이 거래소 외부 매집성 이체로 분류됩니다.
+          </div>
         </div>
 
         <!-- Card 4: Active Addresses & MVRV Valuation -->
-        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl">
-          <div class="flex justify-between items-start">
-            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 활성 지갑 & MVRV
-            </span>
-            <span id="onchain-mvrv-status" class="text-cyan-400 text-xs font-mono font-bold">저평가/매수구간</span>
+        <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 활성 지갑 & MVRV
+              </span>
+              <span id="onchain-mvrv-status" class="text-cyan-400 text-xs font-mono font-bold">저평가/매수구간</span>
+            </div>
+            <div id="onchain-active-wallets" class="text-2xl font-black font-mono text-white mt-3">984,200 주소</div>
+            <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
+              <span>MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
+              <span>NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
+            </div>
           </div>
-          <div id="onchain-active-wallets" class="text-2xl font-black font-mono text-white mt-3">984,200 주소</div>
-          <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
-            <span>MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
-            <span>NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
+          <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+            💡 <span class="text-purple-400 font-semibold">실전 해석:</span> MVRV 1.0 이하는 역사적 바닥, 3.5 이상은 과열 고점입니다. 현재는 상승장 중기의 건강한 밸류에이션입니다.
           </div>
         </div>
       </div>
@@ -3565,6 +3619,9 @@
               <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
                 온체인 상에서 이동한 코인의 매수 단가 대비 실현 손익비. <strong class="text-slate-300">1.0 이상</strong>은 이익 매도, <strong class="text-slate-300">1.0 미만</strong>은 손절 투매 구간을 의미합니다.
               </p>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-cyan-400 font-semibold">실전 해석:</span> 1.0보다 높으면 수익 매도, 낮으면 손절입니다. 상승장에서는 <strong class="text-slate-200">1.0 선이 강력한 반등 지지선</strong>이 됩니다.
+              </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
               <span class="text-slate-400">ETH SOPR: <strong id="onchain-sopr-eth" class="text-slate-200">1.0092</strong></span>
@@ -3588,6 +3645,9 @@
               <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
                 블록체인 장부상에서 24시간 동안 실현된 순이익($)과 순손실($)의 종합 합산치입니다.
               </p>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-emerald-400 font-semibold">실전 해석:</span> 24시간 동안 실현된 순손익 합산치로, 패닉셀(손절) 없는 양호한 차익 실현 장세임을 나타냅니다.
+              </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex items-center justify-between text-[11px] font-mono">
               <span class="text-emerald-400">실현 이익: +$684M</span>
@@ -3613,6 +3673,9 @@
                 <div id="onchain-lth-bar" class="h-full bg-indigo-500" style="width: 74.2%;"></div>
                 <div id="onchain-sth-bar" class="h-full bg-amber-500" style="width: 25.8%;"></div>
               </div>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-indigo-400 font-semibold">실전 해석:</span> 155일 이상 장기 홀더가 전체 유통량의 3/4을 잠그고 있어 급락 시 가격 방어력이 매우 뛰어납니다.
+              </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px]">
               <span class="text-slate-400">다이아몬드 핸즈: <strong class="text-indigo-400 font-mono">74.2%</strong></span>
@@ -3636,6 +3699,9 @@
               <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
                 시장 대기 자금 총알 규모. USDT + USDC 공급이 늘어날수록 가상자산 매수 잠재력이 확대됩니다.
               </p>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-teal-400 font-semibold">실전 해석:</span> 코인을 살 수 있는 <strong class="text-slate-200">'현금 총알'</strong>의 규모입니다. 공급이 늘어날수록 시장 매수 잠재력이 커집니다.
+              </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono">
               <span class="text-slate-400">USDT: <strong id="onchain-usdt-supply" class="text-teal-300">$118.4B</strong></span>
@@ -3660,6 +3726,9 @@
               <!-- Meter Bar -->
               <div class="w-full h-2 rounded-full bg-navy-900 mt-2 overflow-hidden flex">
                 <div id="onchain-whale-score-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400" style="width: 78%;"></div>
+              </div>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-amber-400 font-semibold">실전 해석:</span> 60점 이상이면 스마트머니가 분배(매도)를 멈추고 지갑에 물량을 쓸어 담는 축적 단계입니다.
               </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
@@ -3689,6 +3758,9 @@
                 <div class="h-full bg-yellow-500" style="width: 20%;" title="Optimism"></div>
                 <div class="h-full bg-emerald-500" style="width: 20%;" title="Belief"></div>
                 <div class="h-full bg-cyan-400" style="width: 20%;" title="Euphoria"></div>
+              </div>
+              <div class="mt-2.5 p-2 rounded-xl bg-navy-900/90 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
+                💡 <span class="text-purple-400 font-semibold">실전 해석:</span> 5단계(투매-희망-낙관-신념-열광) 중 4단계로, <strong class="text-slate-200">역사적 대세 상승기 본격 궤도 진입 구간</strong>입니다.
               </div>
             </div>
             <div class="mt-4 pt-3 border-t border-navy-800/80 flex justify-between text-[11px] font-mono text-slate-400">
@@ -4449,7 +4521,7 @@
 
   <script src="js/admin.js?v=20260904_23"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/preview-app-v2.js?v=20260907_03"></script>
+  <script src="js/preview-app-v2.js?v=20260907_04"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
