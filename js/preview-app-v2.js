@@ -1182,11 +1182,148 @@ function handleDeleteCafePost(postId) {
 }
 window.handleDeleteCafePost = handleDeleteCafePost;
 
+let currentDefaultImageAlign = 'center';
+let selectedEditorImg = null;
+
+function selectCafeEditorImage(imgEl) {
+  if (selectedEditorImg) selectedEditorImg.classList.remove('selected-editor-img');
+  selectedEditorImg = imgEl;
+  if (selectedEditorImg) {
+    selectedEditorImg.classList.add('selected-editor-img');
+    const container = imgEl.closest('.post-img-container') || imgEl.parentElement;
+    if (container) {
+      if (container.classList.contains('text-left')) updateImageAlignmentButtons('left');
+      else if (container.classList.contains('text-right')) updateImageAlignmentButtons('right');
+      else updateImageAlignmentButtons('center');
+    }
+  }
+}
+window.selectCafeEditorImage = selectCafeEditorImage;
+
+function setEditorSelectedImageAlign(align) {
+  currentDefaultImageAlign = align;
+  updateImageAlignmentButtons(align);
+
+  if (selectedEditorImg) {
+    let container = selectedEditorImg.closest('.post-img-container');
+    if (!container) {
+      container = selectedEditorImg.parentElement;
+    }
+    if (container) {
+      container.classList.remove('text-left', 'text-center', 'text-right');
+      container.classList.add('text-' + align);
+    }
+  }
+}
+window.setEditorSelectedImageAlign = setEditorSelectedImageAlign;
+
+function setEditorSelectedImageWidth(w) {
+  if (selectedEditorImg) {
+    selectedEditorImg.style.width = w;
+    selectedEditorImg.style.maxWidth = '100%';
+  }
+}
+window.setEditorSelectedImageWidth = setEditorSelectedImageWidth;
+
+function updateImageAlignmentButtons(align) {
+  const btnL = document.getElementById('btn-img-align-left');
+  const btnC = document.getElementById('btn-img-align-center');
+  const btnR = document.getElementById('btn-img-align-right');
+  if (!btnL || !btnC || !btnR) return;
+
+  btnL.className = 'px-1.5 py-0.5 rounded text-xs font-bold ' + (align === 'left' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20');
+  btnC.className = 'px-1.5 py-0.5 rounded text-xs font-bold ' + (align === 'center' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20');
+  btnR.className = 'px-1.5 py-0.5 rounded text-xs font-bold ' + (align === 'right' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20');
+}
+window.updateImageAlignmentButtons = updateImageAlignmentButtons;
+
+function execEditorCommand(cmd, value = null) {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand(cmd, false, value);
+}
+window.execEditorCommand = execEditorCommand;
+
+function formatEditorBlock(tag) {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  if (tag === 'blockquote') {
+    document.execCommand('formatBlock', false, '<blockquote>');
+  } else {
+    document.execCommand('formatBlock', false, '<' + tag + '>');
+  }
+}
+window.formatEditorBlock = formatEditorBlock;
+
+function formatEditorFontFamily(font) {
+  if (!font) return;
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand('fontName', false, font);
+}
+window.formatEditorFontFamily = formatEditorFontFamily;
+
+function toggleEditorColorPalette(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const pal = document.getElementById('editor-color-palette');
+  if (pal) pal.classList.toggle('hidden');
+}
+window.toggleEditorColorPalette = toggleEditorColorPalette;
+
+function formatEditorColor(colorHex) {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('foreColor', false, colorHex);
+  const ind = document.getElementById('editor-color-indicator');
+  if (ind) ind.style.backgroundColor = colorHex;
+  const pal = document.getElementById('editor-color-palette');
+  if (pal) pal.classList.add('hidden');
+}
+window.formatEditorColor = formatEditorColor;
+
+function formatEditorAlign(align) {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  if (selectedEditorImg) {
+    setEditorSelectedImageAlign(align);
+    return;
+  }
+  if (align === 'left') document.execCommand('justifyLeft', false, null);
+  else if (align === 'center') document.execCommand('justifyCenter', false, null);
+  else if (align === 'right') document.execCommand('justifyRight', false, null);
+}
+window.formatEditorAlign = formatEditorAlign;
+
+// Global listener to close color palette and select images in editor
+document.addEventListener('click', function(e) {
+  const pal = document.getElementById('editor-color-palette');
+  const wrapper = document.getElementById('editor-color-menu-wrapper');
+  if (pal && !pal.classList.contains('hidden')) {
+    if (wrapper && !wrapper.contains(e.target)) {
+      pal.classList.add('hidden');
+    }
+  }
+
+  if (e.target && e.target.tagName === 'IMG' && e.target.closest('#cafe-write-content')) {
+    selectCafeEditorImage(e.target);
+  } else if (selectedEditorImg && !e.target.closest('.cafe-editor-toolbar')) {
+    selectedEditorImg.classList.remove('selected-editor-img');
+    selectedEditorImg = null;
+  }
+});
+
 function insertInlineImageIntoEditor(base64Data) {
   const editor = document.getElementById('cafe-write-content');
   if (!editor) return;
 
-  const imgHtml = `<div class="my-4 text-center"><img src="${base64Data}" class="max-h-[500px] w-auto max-w-full rounded-2xl border border-navy-700 shadow-2xl inline-block object-contain" alt="첨부 이미지"></div><p><br></p>`;
+  const alignClass = 'text-' + (currentDefaultImageAlign || 'center');
+  const imgHtml = `<div class="my-4 post-img-container ${alignClass}"><img src="${base64Data}" class="max-h-[500px] w-auto max-w-full rounded-2xl border border-navy-700 shadow-2xl inline-block object-contain cursor-pointer transition hover:border-cyan-500" alt="첨부 이미지" onclick="selectCafeEditorImage(this)"></div><p><br></p>`;
 
   editor.focus();
   const sel = window.getSelection();
@@ -1210,6 +1347,7 @@ function insertInlineImageIntoEditor(base64Data) {
   } else {
     editor.innerHTML += imgHtml;
   }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 window.insertInlineImageIntoEditor = insertInlineImageIntoEditor;
 
@@ -1240,10 +1378,10 @@ function processCafeImageBlob(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 목표 용량: 약 120KB ~ 160KB (Base64 길이 약 160,000 ~ 200,000자)
-      let quality = 0.78;
+      // 목표 용량: 약 90KB ~ 120KB (FHD 가독성 보존 + 7~8장 여유 수용)
+      let quality = 0.75;
       let base64 = canvas.toDataURL('image/jpeg', quality);
-      const targetMaxChars = 150 * 1024 * 1.33; // ~150KB 바이너리 기준
+      const targetMaxChars = 100 * 1024 * 1.33; // ~100KB 바이너리 기준
 
       while (base64.length > targetMaxChars && quality > 0.35) {
         quality -= 0.08;
