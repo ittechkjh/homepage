@@ -980,6 +980,17 @@ function showForumWriteView(editPostId = null, updateHistory = true) {
     if (catSelect) catSelect.value = 'general';
   }
 
+  bindEditorToolbarEvents();
+  if (!editPostId) {
+    try {
+      if (document.queryCommandState('strikeThrough')) document.execCommand('strikeThrough', false, null);
+      if (document.queryCommandState('underline')) document.execCommand('underline', false, null);
+      if (document.queryCommandState('bold')) document.execCommand('bold', false, null);
+      if (document.queryCommandState('italic')) document.execCommand('italic', false, null);
+    } catch (e) {}
+  }
+  updateEditorToolbarState();
+
   if (updateHistory) {
     const targetHash = editPostId ? `#/forum/edit/${editPostId}` : `#/forum/write`;
     if (window.location.hash !== targetHash) {
@@ -1237,23 +1248,118 @@ function updateImageAlignmentButtons(align) {
 }
 window.updateImageAlignmentButtons = updateImageAlignmentButtons;
 
+let savedEditorRange = null;
+
+function saveEditorSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    const editor = document.getElementById('cafe-write-content');
+    if (editor && (editor === range.commonAncestorContainer || editor.contains(range.commonAncestorContainer))) {
+      savedEditorRange = range.cloneRange();
+    }
+  }
+}
+
+function restoreEditorSelection() {
+  if (savedEditorRange) {
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(savedEditorRange);
+    }
+  }
+}
+
+function updateEditorToolbarState() {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+
+  try {
+    const isBold = document.queryCommandState('bold');
+    const isItalic = document.queryCommandState('italic');
+    const isUnderline = document.queryCommandState('underline');
+    const isStrike = document.queryCommandState('strikeThrough');
+    const isLeft = document.queryCommandState('justifyLeft');
+    const isCenter = document.queryCommandState('justifyCenter');
+    const isRight = document.queryCommandState('justifyRight');
+
+    toggleBtnActive('editor-btn-bold', isBold);
+    toggleBtnActive('editor-btn-italic', isItalic);
+    toggleBtnActive('editor-btn-underline', isUnderline);
+    toggleBtnActive('editor-btn-strike', isStrike);
+    toggleBtnActive('editor-btn-align-left', isLeft);
+    toggleBtnActive('editor-btn-align-center', isCenter);
+    toggleBtnActive('editor-btn-align-right', isRight);
+  } catch (e) {}
+}
+window.updateEditorToolbarState = updateEditorToolbarState;
+
+function toggleBtnActive(btnId, isActive) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (isActive) {
+    btn.classList.add('bg-cyan-500/30', 'border-cyan-400', 'text-cyan-300', 'font-black', 'shadow-sm');
+    btn.classList.remove('text-slate-300', 'border-navy-800', 'bg-navy-900');
+  } else {
+    btn.classList.remove('bg-cyan-500/30', 'border-cyan-400', 'text-cyan-300', 'font-black', 'shadow-sm');
+    btn.classList.add('text-slate-300', 'border-navy-800', 'bg-navy-900');
+  }
+}
+
 function execEditorCommand(cmd, value = null) {
   const editor = document.getElementById('cafe-write-content');
   if (!editor) return;
   editor.focus();
+  restoreEditorSelection();
   document.execCommand(cmd, false, value);
+  saveEditorSelection();
+  updateEditorToolbarState();
 }
 window.execEditorCommand = execEditorCommand;
+
+function clearEditorFormatting() {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor) return;
+  editor.focus();
+  restoreEditorSelection();
+
+  // 1. 선택 영역 서식 제거
+  document.execCommand('removeFormat', false, null);
+
+  // 2. 혹시 활성화된 취소선(중간 선) 및 밑줄 토글 강제 해제
+  try {
+    if (document.queryCommandState('strikeThrough')) {
+      document.execCommand('strikeThrough', false, null);
+    }
+    if (document.queryCommandState('underline')) {
+      document.execCommand('underline', false, null);
+    }
+    if (document.queryCommandState('bold')) {
+      document.execCommand('bold', false, null);
+    }
+    if (document.queryCommandState('italic')) {
+      document.execCommand('italic', false, null);
+    }
+  } catch (e) {}
+
+  saveEditorSelection();
+  updateEditorToolbarState();
+}
+window.clearEditorFormatting = clearEditorFormatting;
 
 function formatEditorBlock(tag) {
   const editor = document.getElementById('cafe-write-content');
   if (!editor) return;
   editor.focus();
+  restoreEditorSelection();
   if (tag === 'blockquote') {
     document.execCommand('formatBlock', false, '<blockquote>');
   } else {
     document.execCommand('formatBlock', false, '<' + tag + '>');
   }
+  saveEditorSelection();
+  updateEditorToolbarState();
 }
 window.formatEditorBlock = formatEditorBlock;
 
@@ -1262,7 +1368,10 @@ function formatEditorFontFamily(font) {
   const editor = document.getElementById('cafe-write-content');
   if (!editor) return;
   editor.focus();
+  restoreEditorSelection();
   document.execCommand('fontName', false, font);
+  saveEditorSelection();
+  updateEditorToolbarState();
 }
 window.formatEditorFontFamily = formatEditorFontFamily;
 
@@ -1277,12 +1386,15 @@ function formatEditorColor(colorHex) {
   const editor = document.getElementById('cafe-write-content');
   if (!editor) return;
   editor.focus();
+  restoreEditorSelection();
   document.execCommand('styleWithCSS', false, true);
   document.execCommand('foreColor', false, colorHex);
   const ind = document.getElementById('editor-color-indicator');
   if (ind) ind.style.backgroundColor = colorHex;
   const pal = document.getElementById('editor-color-palette');
   if (pal) pal.classList.add('hidden');
+  saveEditorSelection();
+  updateEditorToolbarState();
 }
 window.formatEditorColor = formatEditorColor;
 
@@ -1294,11 +1406,45 @@ function formatEditorAlign(align) {
     setEditorSelectedImageAlign(align);
     return;
   }
+  restoreEditorSelection();
   if (align === 'left') document.execCommand('justifyLeft', false, null);
   else if (align === 'center') document.execCommand('justifyCenter', false, null);
   else if (align === 'right') document.execCommand('justifyRight', false, null);
+  saveEditorSelection();
+  updateEditorToolbarState();
 }
 window.formatEditorAlign = formatEditorAlign;
+
+let isEditorEventsBound = false;
+function bindEditorToolbarEvents() {
+  const editor = document.getElementById('cafe-write-content');
+  if (!editor || isEditorEventsBound) return;
+  isEditorEventsBound = true;
+
+  editor.addEventListener('keyup', () => {
+    saveEditorSelection();
+    updateEditorToolbarState();
+  });
+  editor.addEventListener('mouseup', () => {
+    saveEditorSelection();
+    updateEditorToolbarState();
+  });
+  editor.addEventListener('click', () => {
+    saveEditorSelection();
+    updateEditorToolbarState();
+  });
+  editor.addEventListener('focus', () => {
+    updateEditorToolbarState();
+  });
+  document.addEventListener('selectionchange', () => {
+    const active = document.activeElement;
+    if (active && active.id === 'cafe-write-content') {
+      saveEditorSelection();
+      updateEditorToolbarState();
+    }
+  });
+}
+window.bindEditorToolbarEvents = bindEditorToolbarEvents;
 
 // Global listener to close color palette and select images in editor
 document.addEventListener('click', function(e) {
@@ -4296,9 +4442,13 @@ window.OnChainEngine = OnChainEngine;
 
 // Auto init OnChainEngine on load
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => OnChainEngine.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    OnChainEngine.init();
+    bindEditorToolbarEvents();
+  });
 } else {
   OnChainEngine.init();
+  bindEditorToolbarEvents();
 }
 
 

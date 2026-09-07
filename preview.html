@@ -1734,7 +1734,7 @@
             <!-- Rich Text Editor Toolbar -->
             <div class="cafe-editor-toolbar bg-navy-950 border border-navy-700 border-b-0 rounded-t-2xl p-2 sm:p-2.5 flex flex-wrap items-center gap-1 sm:gap-1.5 select-none">
               <!-- Text Size / Headings -->
-              <select id="editor-format-block" class="bg-navy-900 border border-navy-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 cursor-pointer" onchange="formatEditorBlock(this.value)">
+              <select id="editor-format-block" class="bg-navy-900 border border-navy-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 cursor-pointer" onfocus="saveEditorSelection()" onmousedown="saveEditorSelection()" onchange="formatEditorBlock(this.value)">
                 <option value="p">본문 (16px)</option>
                 <option value="h1">대제목 (24px)</option>
                 <option value="h2">중제목 (20px)</option>
@@ -1743,7 +1743,7 @@
               </select>
 
               <!-- Font Family -->
-              <select id="editor-font-family" class="bg-navy-900 border border-navy-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 cursor-pointer" onchange="formatEditorFontFamily(this.value)">
+              <select id="editor-font-family" class="bg-navy-900 border border-navy-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 cursor-pointer" onfocus="saveEditorSelection()" onmousedown="saveEditorSelection()" onchange="formatEditorFontFamily(this.value)">
                 <option value="">글꼴 선택</option>
                 <option value="Pretendard, -apple-system, sans-serif">기본 산세리프</option>
                 <option value="'Malgun Gothic', 'Nanum Gothic', sans-serif">고딕체</option>
@@ -1753,50 +1753,56 @@
 
               <div class="h-5 w-px bg-navy-800 mx-0.5 hidden sm:block"></div>
 
-              <!-- Basic Formatting -->
-              <button type="button" onclick="execEditorCommand('bold')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs font-bold transition" title="굵게 (Ctrl+B)">
+              <!-- Basic Formatting with onmousedown="event.preventDefault()" and explicit IDs for active toggle -->
+              <button type="button" id="editor-btn-bold" onmousedown="event.preventDefault()" onclick="execEditorCommand('bold')" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 border border-navy-800 text-xs font-bold transition flex items-center justify-center cursor-pointer" title="굵게 (Ctrl+B)">
                 <strong>B</strong>
               </button>
-              <button type="button" onclick="execEditorCommand('italic')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs italic transition" title="기울임 (Ctrl+I)">
+              <button type="button" id="editor-btn-italic" onmousedown="event.preventDefault()" onclick="execEditorCommand('italic')" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 border border-navy-800 text-xs italic transition flex items-center justify-center cursor-pointer" title="기울임 (Ctrl+I)">
                 <em>I</em>
               </button>
-              <button type="button" onclick="execEditorCommand('underline')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs underline transition" title="밑줄 (Ctrl+U)">
+              <button type="button" id="editor-btn-underline" onmousedown="event.preventDefault()" onclick="execEditorCommand('underline')" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 border border-navy-800 text-xs underline transition flex items-center justify-center cursor-pointer" title="밑줄 (Ctrl+U)">
                 <u>U</u>
               </button>
-              <button type="button" onclick="execEditorCommand('strikeThrough')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs line-through transition" title="취소선">
+              <button type="button" id="editor-btn-strike" onmousedown="event.preventDefault()" onclick="execEditorCommand('strikeThrough')" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 border border-navy-800 text-xs line-through transition flex items-center justify-center cursor-pointer" title="취소선 (중간 선 켜기/끄기)">
                 <s>S</s>
+              </button>
+
+              <!-- Clear formatting button -->
+              <button type="button" onmousedown="event.preventDefault()" onclick="clearEditorFormatting()" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-navy-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="선택 영역 서식 및 중간선 모두 지우기">
+                <i data-lucide="remove-formatting" class="w-3.5 h-3.5"></i>
+                <span class="text-[10px]">서식 지우기</span>
               </button>
 
               <div class="h-5 w-px bg-navy-800 mx-0.5 hidden sm:block"></div>
 
               <!-- Text Colors Palette Dropdown -->
               <div class="relative inline-block" id="editor-color-menu-wrapper">
-                <button type="button" onclick="toggleEditorColorPalette(event)" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs font-bold flex items-center gap-1.5 transition" title="글자 색상">
+                <button type="button" onmousedown="event.preventDefault()" onclick="toggleEditorColorPalette(event)" class="editor-btn p-1.5 px-2.5 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer" title="글자 색상">
                   <span class="w-3.5 h-3.5 rounded-full border border-white/20 inline-block" id="editor-color-indicator" style="background-color: #06b6d4;"></span>
                   <span>색상 ▼</span>
                 </button>
                 <div id="editor-color-palette" class="hidden absolute top-full left-0 mt-1 z-30 bg-navy-900 border border-navy-700 rounded-2xl p-2.5 shadow-2xl grid grid-cols-4 gap-2 w-48">
-                  <button type="button" onclick="formatEditorColor('#f8fafc')" class="w-7 h-7 rounded-xl bg-slate-100 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="기본 화이트"></button>
-                  <button type="button" onclick="formatEditorColor('#94a3b8')" class="w-7 h-7 rounded-xl bg-slate-400 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="슬레이트"></button>
-                  <button type="button" onclick="formatEditorColor('#06b6d4')" class="w-7 h-7 rounded-xl bg-cyan-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="시안 블루"></button>
-                  <button type="button" onclick="formatEditorColor('#3b82f6')" class="w-7 h-7 rounded-xl bg-blue-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="비비드 블루"></button>
-                  <button type="button" onclick="formatEditorColor('#10b981')" class="w-7 h-7 rounded-xl bg-emerald-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="상승 / 그린"></button>
-                  <button type="button" onclick="formatEditorColor('#f43f5e')" class="w-7 h-7 rounded-xl bg-rose-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="하락 / 레드"></button>
-                  <button type="button" onclick="formatEditorColor('#eab308')" class="w-7 h-7 rounded-xl bg-yellow-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="골드 옐로우"></button>
-                  <button type="button" onclick="formatEditorColor('#a855f7')" class="w-7 h-7 rounded-xl bg-purple-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="바이올렛"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#f8fafc')" class="w-7 h-7 rounded-xl bg-slate-100 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="기본 화이트"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#94a3b8')" class="w-7 h-7 rounded-xl bg-slate-400 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="슬레이트"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#06b6d4')" class="w-7 h-7 rounded-xl bg-cyan-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="시안 블루"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#3b82f6')" class="w-7 h-7 rounded-xl bg-blue-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="비비드 블루"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#10b981')" class="w-7 h-7 rounded-xl bg-emerald-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="상승 / 그린"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#f43f5e')" class="w-7 h-7 rounded-xl bg-rose-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="하락 / 레드"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#eab308')" class="w-7 h-7 rounded-xl bg-yellow-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="골드 옐로우"></button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="formatEditorColor('#a855f7')" class="w-7 h-7 rounded-xl bg-purple-500 border border-white/40 hover:scale-110 transition shadow cursor-pointer" title="바이올렛"></button>
                 </div>
               </div>
 
               <div class="h-5 w-px bg-navy-800 mx-0.5 hidden sm:block"></div>
 
               <!-- Text Alignment -->
-              <button type="button" onclick="formatEditorAlign('left')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition" title="좌측 정렬">
+              <button type="button" id="editor-btn-align-left" onmousedown="event.preventDefault()" onclick="formatEditorAlign('left')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition cursor-pointer" title="좌측 정렬">
                 <i data-lucide="align-left" class="w-3.5 h-3.5"></i>
               </button>
-              <button type="button" onclick="formatEditorAlign('center')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition" title="가운데 정렬">
+              <button type="button" id="editor-btn-align-center" onmousedown="event.preventDefault()" onclick="formatEditorAlign('center')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition cursor-pointer" title="가운데 정렬">
                 <i data-lucide="align-center" class="w-3.5 h-3.5"></i>
               </button>
-              <button type="button" onclick="formatEditorAlign('right')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition" title="우측 정렬">
+              <button type="button" id="editor-btn-align-right" onmousedown="event.preventDefault()" onclick="formatEditorAlign('right')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition cursor-pointer" title="우측 정렬">
                 <i data-lucide="align-right" class="w-3.5 h-3.5"></i>
               </button>
 
@@ -1805,16 +1811,16 @@
               <!-- Image Alignment & Sizing -->
               <div class="flex items-center gap-1 bg-navy-900/80 px-2 py-1 rounded-xl border border-navy-800 ml-auto sm:ml-0">
                 <span class="text-[10px] text-slate-400 font-bold mr-1">🖼️ 그림:</span>
-                <button type="button" onclick="setEditorSelectedImageAlign('left')" id="btn-img-align-left" class="px-1.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20" title="선택한 그림 좌측 정렬">좌</button>
-                <button type="button" onclick="setEditorSelectedImageAlign('center')" id="btn-img-align-center" class="px-1.5 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-400" title="선택한 그림 가운데 정렬">중</button>
-                <button type="button" onclick="setEditorSelectedImageAlign('right')" id="btn-img-align-right" class="px-1.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20" title="선택한 그림 우측 정렬">우</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="setEditorSelectedImageAlign('left')" id="btn-img-align-left" class="px-1.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20" title="선택한 그림 좌측 정렬">좌</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="setEditorSelectedImageAlign('center')" id="btn-img-align-center" class="px-1.5 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-400" title="선택한 그림 가운데 정렬">중</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="setEditorSelectedImageAlign('right')" id="btn-img-align-right" class="px-1.5 py-0.5 rounded text-xs font-bold text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/20" title="선택한 그림 우측 정렬">우</button>
                 <div class="h-3 w-px bg-navy-700 mx-0.5"></div>
-                <button type="button" onclick="setEditorSelectedImageWidth('100%')" class="px-1.5 py-0.5 rounded hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 text-[10px]" title="너비 100%">100%</button>
-                <button type="button" onclick="setEditorSelectedImageWidth('60%')" class="px-1.5 py-0.5 rounded hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 text-[10px]" title="너비 60%">60%</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="setEditorSelectedImageWidth('100%')" class="px-1.5 py-0.5 rounded hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 text-[10px]" title="너비 100%">100%</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="setEditorSelectedImageWidth('60%')" class="px-1.5 py-0.5 rounded hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 text-[10px]" title="너비 60%">60%</button>
               </div>
 
               <!-- Divider line -->
-              <button type="button" onclick="execEditorCommand('insertHorizontalRule')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition ml-auto" title="구분선 삽입">
+              <button type="button" onmousedown="event.preventDefault()" onclick="execEditorCommand('insertHorizontalRule')" class="editor-btn p-1.5 px-2 rounded-lg bg-navy-900 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 border border-navy-800 text-xs transition ml-auto cursor-pointer" title="구분선 삽입">
                 <i data-lucide="minus" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -4443,7 +4449,7 @@
 
   <script src="js/admin.js?v=20260904_23"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/preview-app-v2.js?v=20260907_02"></script>
+  <script src="js/preview-app-v2.js?v=20260907_03"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
