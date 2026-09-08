@@ -676,15 +676,44 @@ const UpbitAPI = {
         }
     },
 
+    officialKrwMarkets: [
+        'KRW-GEOD', 'KRW-WAXP', 'KRW-CARV', 'KRW-LSK', 'KRW-0G', 'KRW-WIF', 'KRW-TRAC', 'KRW-BORA', 'KRW-PUNDIX', 'KRW-PROS',
+        'KRW-USD1', 'KRW-PROM', 'KRW-BAT', 'KRW-HUNT', 'KRW-PENGU', 'KRW-FIL', 'KRW-BEAM', 'KRW-META2', 'KRW-DOOD', 'KRW-WAVES',
+        'KRW-USDC', 'KRW-MOVE', 'KRW-TREE', 'KRW-USDE', 'KRW-USDG', 'KRW-WET', 'KRW-USDT', 'KRW-USDS', 'KRW-2Z', 'KRW-BOUNTY',
+        'KRW-KAITO', 'KRW-LPT', 'KRW-FOLD', 'KRW-BLAST', 'KRW-ETHFI', 'KRW-DKA', 'KRW-ANKR', 'KRW-ALGO', 'KRW-SHIB', 'KRW-QUID',
+        'KRW-UNI', 'KRW-BIO', 'KRW-WLFI', 'KRW-UP2', 'KRW-TOKAMAK', 'KRW-SKY', 'KRW-CYBER', 'KRW-SKR', 'KRW-DOGE', 'KRW-WLD',
+        'KRW-PEPE', 'KRW-HBAR', 'KRW-KMNO', 'KRW-BCH', 'KRW-NEWT', 'KRW-SEI', 'KRW-JST', 'KRW-AAVE', 'KRW-JTO', 'KRW-JUP',
+        'KRW-VVV', 'KRW-AI', 'KRW-PIEVERSE', 'KRW-ALT', 'KRW-B3', 'KRW-LAYER', 'KRW-TRX', 'KRW-POWR', 'KRW-EUL', 'KRW-ATOM',
+        'KRW-ARKM', 'KRW-CRV', 'KRW-CRO', 'KRW-NXPC', 'KRW-A', 'KRW-TRUMP', 'KRW-F', 'KRW-G', 'KRW-CELO', 'KRW-AERO',
+        'KRW-CTC', 'KRW-ANIME', 'KRW-APT', 'KRW-MOCA', 'KRW-API3', 'KRW-AHT', 'KRW-EGLD', 'KRW-BLEND', 'KRW-ERA', 'KRW-NCT',
+        'KRW-FF', 'KRW-CP', 'KRW-PLUME', 'KRW-ESP', 'KRW-CC', 'KRW-NEO', 'KRW-ETC', 'KRW-IOTA', 'KRW-IOST', 'KRW-AKT',
+        'KRW-COW', 'KRW-VIRTUAL', 'KRW-RLUSD', 'KRW-ETH', 'KRW-IQ', 'KRW-NEAR', 'KRW-RVN', 'KRW-PRL', 'KRW-AGLD', 'KRW-ID',
+        'KRW-IO', 'KRW-IN', 'KRW-MANTRA', 'KRW-WAL', 'KRW-PENDLE', 'KRW-BLUR', 'KRW-AWE', 'KRW-THETA', 'KRW-AXL', 'KRW-HP',
+        'KRW-SAND', 'KRW-WCT', 'KRW-YGG', 'KRW-AXS', 'KRW-ARDR', 'KRW-ME', 'KRW-TRUST', 'KRW-SONIC', 'KRW-ARB', 'KRW-POL',
+        'KRW-CVC', 'KRW-T', 'KRW-ARX', 'KRW-W', 'KRW-ARK', 'KRW-AVNT', 'KRW-O', 'KRW-LA', 'KRW-HYPER', 'KRW-ATH',
+        'KRW-LIT', 'KRW-TAIKO', 'KRW-RE', 'KRW-AVAX', 'KRW-XAUT', 'KRW-CPOOL', 'KRW-CAP', 'KRW-IMX', 'KRW-SC', 'KRW-INJ',
+        'KRW-MVL', 'KRW-HIVE', 'KRW-CBK', 'KRW-XLM', 'KRW-OP', 'KRW-SAFE', 'KRW-GLM', 'KRW-SUPER', 'KRW-LINEA', 'KRW-DATA',
+        'KRW-KERNEL', 'KRW-POKT', 'KRW-SENT', 'KRW-ZKC', 'KRW-KNC', 'KRW-ZKP', 'KRW-AUCTION', 'KRW-ORDER', 'KRW-FCT2', 'KRW-MTL',
+        'KRW-VET', 'KRW-TAO', 'KRW-QTUM', 'KRW-LINK', 'KRW-XRP', 'KRW-CHZ', 'KRW-ASTR', 'KRW-ZK', 'KRW-STORJ', 'KRW-ENA',
+        'KRW-MANA', 'KRW-OPEN', 'KRW-PYTH', 'KRW-ENS', 'KRW-GRT', 'KRW-PUMP', 'KRW-XTZ', 'KRW-CKB', 'KRW-KAVA', 'KRW-TOSHI',
+        'KRW-BARD', 'KRW-ZRO', 'KRW-RAY', 'KRW-ONDO', 'KRW-ZRX', 'KRW-GMT', 'KRW-TFUEL', 'KRW-CFG', 'KRW-AZTEC', 'KRW-CFX',
+        'KRW-XPL', 'KRW-ZAMA', 'KRW-MASK', 'KRW-EURC', 'KRW-COMP', 'KRW-ZETA', 'KRW-RED', 'KRW-TIA', 'KRW-ADA', 'KRW-ELF',
+        'KRW-SOON', 'KRW-STEEM', 'KRW-ELSA', 'KRW-SPK', 'KRW-SOPH', 'KRW-SPX', 'KRW-MED', 'KRW-1INCH', 'KRW-KAT', 'KRW-MEW',
+        'KRW-ORBS', 'KRW-RENDER', 'KRW-ORCA', 'KRW-BERA', 'KRW-SIGN', 'KRW-DOS', 'KRW-SLX', 'KRW-VANA', 'KRW-DOT', 'KRW-EDGE',
+        'KRW-MET2', 'KRW-MBL', 'KRW-FLUID', 'KRW-BIGTIME', 'KRW-SNT', 'KRW-SOL', 'KRW-QKC', 'KRW-DRV', 'KRW-META', 'KRW-IRYS',
+        'KRW-SAHARA', 'KRW-MLK', 'KRW-VTHO', 'KRW-KITE', 'KRW-MINA', 'KRW-MMT', 'KRW-CHIP', 'KRW-ZORA', 'KRW-XCN', 'KRW-GAS',
+        'KRW-MEGA', 'KRW-MNT', 'KRW-MOC', 'KRW-MOODENG', 'KRW-XEC', 'KRW-MON', 'KRW-MORPHO', 'KRW-ZIL', 'KRW-GAME2', 'KRW-STX',
+        'KRW-FLOCK', 'KRW-BSB', 'KRW-PROVE', 'KRW-BSV', 'KRW-SUI', 'KRW-SYRUP', 'KRW-BTC', 'KRW-BABY', 'KRW-HOLO', 'KRW-MIRA',
+        'KRW-SUN', 'KRW-ZBT', 'KRW-ONG', 'KRW-BTT', 'KRW-ENSO', 'KRW-BIRB', 'KRW-ONT', 'KRW-SOMI', 'KRW-GRVT', 'KRW-DEEP',
+        'KRW-HOME', 'KRW-STRAX', 'KRW-ICP', 'KRW-OPG', 'KRW-BREV', 'KRW-ICX', 'KRW-POLYX'
+    ],
+
     getKrwMarkets: async function () {
-        await this.initMarketInfo();
-        const keys = Object.keys(this.marketInfoMap || {});
-        const krw = keys.filter(m => m.startsWith('KRW-'));
-        if (krw.length > 0) return krw;
-        if (this.knownKoreanNames) {
-            return Object.keys(this.knownKoreanNames).map(s => 'KRW-' + s);
+        if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 50) {
+            const m = Object.keys(this.marketInfoMap).filter(x => x.startsWith('KRW-'));
+            if (m.length > 0) return m;
         }
-        return [];
+        return this.officialKrwMarkets;
     },
 
     getStandardMarketInfo: function (input) {
@@ -781,11 +810,47 @@ const UpbitAPI = {
                 await new Promise(r => setTimeout(r, 1100 - (Date.now() - this.lastMarketFetchTime)));
             }
 
-            let upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-') && m !== 'KRW-KRW');
-            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 0) {
-                upbitMarkets = upbitMarkets.filter(m => !!this.marketInfoMap[m]);
+            const validKrwSet = new Set(this.officialKrwMarkets || []);
+            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 50) {
+                Object.keys(this.marketInfoMap).forEach(m => {
+                    if (m.startsWith('KRW-')) validKrwSet.add(m);
+                });
             }
+            let upbitMarkets = krwMarkets.filter(m => validKrwSet.has(m));
+            if (upbitMarkets.length === 0) {
+                upbitMarkets = [...this.officialKrwMarkets];
+            }
+
             if (upbitMarkets.length > 0) {
+                const parseItem = (item) => {
+                    if (!item || !item.market) return;
+                    const tradeP = parseFloat(item.trade_price);
+                    const krwVolumeToday = parseFloat(item.acc_trade_price || 0);
+                    const krwVolume24h = parseFloat(item.acc_trade_price_24h || 0);
+                    const coinVolumeToday = parseFloat(item.acc_trade_volume || 0);
+                    const coinVolume24h = parseFloat(item.acc_trade_volume_24h || 0);
+                    const finalVolToday = krwVolumeToday > 0 ? krwVolumeToday : (coinVolumeToday * tradeP);
+                    const finalVol24h = krwVolume24h > 0 ? krwVolume24h : (coinVolume24h * tradeP);
+                    const entry = {
+                        tradePrice: tradeP,
+                        signedChangeRate: parseFloat(item.signed_change_rate || 0),
+                        accTradeVolume: finalVolToday,
+                        accTradePrice: finalVolToday,
+                        accTradeVolume24h: finalVol24h,
+                        accTradePrice24h: finalVol24h,
+                        highPrice: parseFloat(item.high_price || item.trade_price),
+                        lowPrice: parseFloat(item.low_price || item.trade_price),
+                        openingPrice: parseFloat(item.opening_price || item.trade_price),
+                        timestamp: item.timestamp,
+                        isUpbit: true
+                    };
+                    tickerMap[item.market] = entry;
+                    const sym = item.market.replace('KRW-', '');
+                    tickerMap[sym] = entry;
+                    tickerMap['KRW-' + sym] = entry;
+                    tickerMap['UPBIT:::' + item.market] = entry;
+                };
+
                 const joined = upbitMarkets.join(',');
                 let uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
                 if (uRes.status === 429) {
@@ -796,34 +861,22 @@ const UpbitAPI = {
                 if (uRes.ok) {
                     const uJson = await uRes.json();
                     if (Array.isArray(uJson)) {
-                        uJson.forEach(item => {
-                            if (!item || !item.market) return;
-                            const tradeP = parseFloat(item.trade_price);
-                            const krwVolumeToday = parseFloat(item.acc_trade_price || 0);
-                            const krwVolume24h = parseFloat(item.acc_trade_price_24h || 0);
-                            const coinVolumeToday = parseFloat(item.acc_trade_volume || 0);
-                            const coinVolume24h = parseFloat(item.acc_trade_volume_24h || 0);
-                            const finalVolToday = krwVolumeToday > 0 ? krwVolumeToday : (coinVolumeToday * tradeP);
-                            const finalVol24h = krwVolume24h > 0 ? krwVolume24h : (coinVolume24h * tradeP);
-                            const entry = {
-                                tradePrice: tradeP,
-                                signedChangeRate: parseFloat(item.signed_change_rate || 0),
-                                accTradeVolume: finalVolToday,
-                                accTradePrice: finalVolToday,
-                                accTradeVolume24h: finalVol24h,
-                                accTradePrice24h: finalVol24h,
-                                highPrice: parseFloat(item.high_price || item.trade_price),
-                                lowPrice: parseFloat(item.low_price || item.trade_price),
-                                openingPrice: parseFloat(item.opening_price || item.trade_price),
-                                timestamp: item.timestamp,
-                                isUpbit: true
-                            };
-                            tickerMap[item.market] = entry;
-                            const sym = item.market.replace('KRW-', '');
-                            tickerMap[sym] = entry;
-                            tickerMap['KRW-' + sym] = entry;
-                            tickerMap['UPBIT:::' + item.market] = entry;
-                        });
+                        uJson.forEach(parseItem);
+                    }
+                } else {
+                    console.warn('Upbit ticker 단일 조회 비정상 응답, 분할 청크 시도:', uRes.status);
+                    const chunks = [];
+                    for (let i = 0; i < upbitMarkets.length; i += 70) {
+                        chunks.push(upbitMarkets.slice(i, i + 70).join(','));
+                    }
+                    for (const c of chunks) {
+                        try {
+                            const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + c);
+                            if (cRes.ok) {
+                                const cJson = await cRes.json();
+                                if (Array.isArray(cJson)) cJson.forEach(parseItem);
+                            }
+                        } catch (ce) {}
                     }
                 }
             }

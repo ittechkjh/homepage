@@ -634,7 +634,7 @@ const PatternScannerEngine = {
         let coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
 
         if (this.currentExchange === 'UPBIT') {
-            coins = coins.filter(c => c.hasUpbit).map(c => ({
+            coins = coins.filter(c => c.hasUpbit || c.exchange === 'UPBIT').map(c => ({
                 ...c,
                 exchange: 'UPBIT',
                 livePrice: c.upbitPrice > 0 ? c.upbitPrice : c.livePrice,
@@ -1152,6 +1152,8 @@ const PatternScannerEngine = {
                         name: c.name,
                         code: c.code,
                         exchange: c.exchange,
+                        hasUpbit: c.hasUpbit !== undefined ? c.hasUpbit : (c.exchange === 'UPBIT'),
+                        hasBithumb: c.hasBithumb !== undefined ? c.hasBithumb : (c.exchange === 'BITHUMB'),
                         pattern: pDef.key,
                         patternName: pDef.name,
                         similarity: sim,
