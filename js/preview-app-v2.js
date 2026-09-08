@@ -2923,6 +2923,10 @@ const ROUTE_SEO_MAP = {
   onchain: {
     title: "CrytoPnL – 실시간 온체인 펀더멘털 & 고래 이동 레이더",
     desc: "비트코인·이더리움 등 주요 가상자산 고래 지갑 이동, 거래소 순유출입(Net Flow), MVRV, NVT 밸류에이션 실시간 분석"
+  },
+  patterns: {
+    title: "CrytoPnL – AI 실시간 차트패턴 분석 레이더 (업비트·빗썸)",
+    desc: "업비트 및 빗썸 주요 코인의 13가지 핵심 기술적 차트패턴(쌍바닥, 눌림목, 컵앤핸들 등)을 AI 알고리즘으로 실시간 자동 포착 및 유사도 스캐닝"
   }
 };
 
@@ -2939,7 +2943,7 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
@@ -2973,6 +2977,8 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
         } else if (t === 'onchain') {
           navBtn.classList.add('bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
+        } else if (t === 'patterns') {
+          navBtn.classList.add('bg-emerald-500/20', 'border-emerald-400/50', 'text-emerald-300');
         }
       }
       if (mNavBtn) {
@@ -2986,7 +2992,7 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300', 'bg-emerald-500/20', 'border-emerald-400/50');
       }
       if (mNavBtn) {
         mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'font-bold');
@@ -3039,6 +3045,10 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'onchain' && typeof OnChainEngine !== 'undefined') {
     OnChainEngine.init();
+  }
+
+  if (tabId === 'patterns' && typeof PatternScannerEngine !== 'undefined') {
+    PatternScannerEngine.init();
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {

@@ -1191,6 +1191,11 @@
           <span>온체인·고래</span>
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
         </button>
+        <button onclick="switchTab('patterns')" id="nav-patterns" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-400 hover:text-emerald-200">
+          <i data-lucide="scan" class="w-4 h-4 text-emerald-400"></i>
+          <span>차트패턴</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
+        </button>
         <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼
         </button>
@@ -1250,6 +1255,10 @@
     <button onclick="switchTab('onchain')" id="m-nav-onchain" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="activity" class="w-4 h-4"></i>
       <span>온체인</span>
+    </button>
+    <button onclick="switchTab('patterns')" id="m-nav-patterns" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
+      <i data-lucide="scan" class="w-4 h-4"></i>
+      <span>패턴</span>
     </button>
     <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="messages-square" class="w-4 h-4"></i>
@@ -4057,7 +4066,274 @@
 
     </section>
 
+    <!-- ==============================================
+         TAB: REAL-TIME AI CHART PATTERN SCANNER (차트패턴 포착기)
+         - 캡처 화면 1:1 UI/UX 완벽 구현
+         - 12종 핵심 반등·돌파 패턴 실시간 스캐닝 및 유사도(%) 카드
+         ============================================== -->
+    <section id="tab-patterns" class="tab-content hidden w-full space-y-6">
+      <style>
+        .pattern-nav-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.6rem 0.85rem;
+          border-radius: 0.85rem;
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: #94a3b8;
+          border: 1px solid transparent;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          white-space: nowrap;
+          cursor: pointer;
+        }
+        .pattern-nav-item:hover {
+          background: rgba(30, 41, 59, 0.7);
+          color: #f1f5f9;
+        }
+        .pattern-nav-item.active {
+          background: rgba(16, 185, 129, 0.16) !important;
+          color: #34d399 !important;
+          border-color: rgba(16, 185, 129, 0.4) !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+        }
+        .pattern-cat-tab {
+          padding: 0.45rem 1rem;
+          border-radius: 0.75rem;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #94a3b8;
+          border: 1px solid rgba(51, 65, 85, 0.5);
+          background: rgba(15, 23, 42, 0.6);
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+        .pattern-cat-tab:hover {
+          color: #f1f5f9;
+          border-color: rgba(16, 185, 129, 0.4);
+        }
+        .pattern-cat-tab.active {
+          background: rgba(16, 185, 129, 0.18) !important;
+          color: #34d399 !important;
+          border-color: rgba(16, 185, 129, 0.5) !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+        }
+        .pattern-exchange-btn, .pattern-tf-btn {
+          padding: 0.35rem 0.75rem;
+          border-radius: 0.6rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #94a3b8;
+          border: 1px solid rgba(51, 65, 85, 0.6);
+          background: rgba(15, 23, 42, 0.7);
+          transition: all 0.15s ease;
+          cursor: pointer;
+        }
+        .pattern-exchange-btn:hover, .pattern-tf-btn:hover {
+          color: #ffffff;
+          border-color: rgba(148, 163, 184, 0.5);
+        }
+        .pattern-exchange-btn.active, .pattern-tf-btn.active {
+          background: #10b981 !important;
+          color: #020617 !important;
+          border-color: #10b981 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+      </style>
 
+      <!-- Top Header & Search Bar (캡처 1:1) -->
+      <div class="space-y-4">
+        <!-- Search Input -->
+        <div class="relative w-full">
+          <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"></i>
+          <input type="text" id="pattern-search-input" placeholder="코인명/심볼 또는 패턴명 검색 (예: 리플, BTC, 쌍바닥, 눌림목)"
+                 class="w-full pl-12 pr-10 py-3.5 rounded-2xl bg-navy-900 border border-navy-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 transition shadow-inner">
+          <button onclick="PatternScannerEngine.resetFilters()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white px-2 py-1 rounded-md bg-navy-800/80 transition" title="검색어 초기화">
+            지우기
+          </button>
+        </div>
+
+        <!-- Subtabs Row (실시간포착, 호재포착, 기술지표, 차트패턴, 조건검색) -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button onclick="PatternScannerEngine.setCategoryTab('realtime')" class="pattern-cat-tab" data-cattab="realtime">
+            실시간포착
+          </button>
+          <button onclick="PatternScannerEngine.setCategoryTab('news')" class="pattern-cat-tab" data-cattab="news">
+            호재포착
+          </button>
+          <button onclick="PatternScannerEngine.setCategoryTab('indicators')" class="pattern-cat-tab" data-cattab="indicators">
+            기술지표
+          </button>
+          <button onclick="PatternScannerEngine.setCategoryTab('patterns')" class="pattern-cat-tab active" data-cattab="patterns">
+            차트패턴 <span class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-emerald-300 font-extrabold">LIVE</span>
+          </button>
+          <button onclick="PatternScannerEngine.setCategoryTab('filter')" class="pattern-cat-tab" data-cattab="filter">
+            조건검색
+          </button>
+        </div>
+
+        <!-- Meta Control Bar: Status Info + Filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-navy-900/90 border border-navy-800/90 text-xs">
+          <!-- Left: Update Time & Total Count -->
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="pattern-refresh-time" class="font-medium text-slate-300 font-mono">오늘 갱신 | 당일 캔들 기준 신호</span>
+            </div>
+            <span class="text-slate-600 hidden sm:inline">•</span>
+            <span id="pattern-total-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+              포착 계산 중...
+            </span>
+          </div>
+
+          <!-- Right: Exchange + Timeframe + Refresh -->
+          <div class="flex items-center gap-2 flex-wrap justify-end">
+            <!-- Exchange Filter -->
+            <div class="inline-flex rounded-xl bg-navy-950 p-1 border border-navy-800 gap-1">
+              <button onclick="PatternScannerEngine.selectExchange('ALL')" class="pattern-exchange-btn active" data-exchange="ALL">전체</button>
+              <button onclick="PatternScannerEngine.selectExchange('UPBIT')" class="pattern-exchange-btn" data-exchange="UPBIT">업비트</button>
+              <button onclick="PatternScannerEngine.selectExchange('BITHUMB')" class="pattern-exchange-btn" data-exchange="BITHUMB">빗썸</button>
+            </div>
+
+            <!-- Timeframe Filter -->
+            <div class="inline-flex rounded-xl bg-navy-950 p-1 border border-navy-800 gap-1">
+              <button onclick="PatternScannerEngine.selectTimeframe('1D')" class="pattern-tf-btn active" data-tf="1D">1D (일봉)</button>
+              <button onclick="PatternScannerEngine.selectTimeframe('4H')" class="pattern-tf-btn" data-tf="4H">4H (4시간)</button>
+            </div>
+
+            <!-- Refresh Button -->
+            <button onclick="PatternScannerEngine.loadSignals(true)" class="p-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white transition border border-navy-700" title="실시간 패턴 재스캔">
+              <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Layout (Left Sidebar + Right Cards Grid) -->
+      <div class="flex flex-col md:flex-row items-start gap-5">
+        <!-- Left Sidebar: 13 Pattern Navigation (캡처 1:1) -->
+        <aside class="w-full md:w-56 shrink-0 bg-navy-900/80 border border-navy-800 rounded-2xl p-2.5 space-y-1 overflow-x-auto md:overflow-x-visible no-scrollbar">
+          <div class="hidden md:flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold text-slate-400 tracking-wider">
+            <span>패턴 카테고리 (13종)</span>
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-500"></i>
+          </div>
+
+          <!-- Mobile: Horizontal pill list / Desktop: Vertical nav -->
+          <div class="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible no-scrollbar pb-1 md:pb-0">
+            <!-- 1. 전체 -->
+            <button onclick="PatternScannerEngine.selectPattern('ALL')" class="pattern-nav-item active shrink-0 md:shrink" data-pattern="ALL">
+              <span>전체</span>
+            </button>
+
+            <!-- 2. 쌍바닥 -->
+            <button onclick="PatternScannerEngine.selectPattern('double_bottom')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="double_bottom">
+              <span>쌍바닥 (W자)</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('double_bottom')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 3. 삼중바닥 -->
+            <button onclick="PatternScannerEngine.selectPattern('triple_bottom')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="triple_bottom">
+              <span>삼중바닥</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('triple_bottom')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 4. 상승채널 -->
+            <button onclick="PatternScannerEngine.selectPattern('ascending_channel')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="ascending_channel">
+              <span>상승채널</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('ascending_channel')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 5. 상승삼각형 -->
+            <button onclick="PatternScannerEngine.selectPattern('ascending_triangle')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="ascending_triangle">
+              <span>상승삼각형</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('ascending_triangle')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 6. 하락쐐기 -->
+            <button onclick="PatternScannerEngine.selectPattern('falling_wedge')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="falling_wedge">
+              <span>하락쐐기</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('falling_wedge')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 7. 눌림목 -->
+            <button onclick="PatternScannerEngine.selectPattern('pullback')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="pullback">
+              <span>눌림목</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('pullback')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 8. 컵앤핸들 -->
+            <button onclick="PatternScannerEngine.selectPattern('cup_and_handle')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="cup_and_handle">
+              <span>컵앤핸들</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('cup_and_handle')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 9. 깃발 -->
+            <button onclick="PatternScannerEngine.selectPattern('flag')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="flag">
+              <span>깃발 (Bull Flag)</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('flag')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 10. U자바닥 -->
+            <button onclick="PatternScannerEngine.selectPattern('u_bottom')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="u_bottom">
+              <span>U자바닥 (원형바닥)</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('u_bottom')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 11. 박스권 -->
+            <button onclick="PatternScannerEngine.selectPattern('rectangle')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="rectangle">
+              <span>박스권 (돌파임박)</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('rectangle')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 12. 역헤드앤숄더 -->
+            <button onclick="PatternScannerEngine.selectPattern('inv_head_shoulders')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="inv_head_shoulders">
+              <span>역헤드앤숄더</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('inv_head_shoulders')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+
+            <!-- 13. 적삼병 -->
+            <button onclick="PatternScannerEngine.selectPattern('three_white_soldiers')" class="pattern-nav-item shrink-0 md:shrink group" data-pattern="three_white_soldiers">
+              <span>적삼병 (연속양봉)</span>
+              <span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('three_white_soldiers')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Right Content: Signal Cards Grid (캡처 1:1 완벽 일치) -->
+        <main class="flex-1 w-full min-w-0">
+          <div id="pattern-cards-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- JavaScript PatternScannerEngine.renderCards() will render cards here -->
+          </div>
+        </main>
+      </div>
+
+      <!-- Pattern Educational Guide Modal -->
+      <div id="modal-pattern-guide" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-navy-950/80 backdrop-blur-sm" onclick="PatternScannerEngine.closePatternModal()"></div>
+        <div class="relative bg-navy-900 border border-navy-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+          <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/50">
+            <h3 id="modal-pattern-title" class="text-base font-bold text-white flex items-center gap-2">
+              패턴 분석 가이드
+            </h3>
+            <button onclick="PatternScannerEngine.closePatternModal()" class="text-slate-400 hover:text-white transition p-1 rounded-lg hover:bg-navy-800">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div id="modal-pattern-content" class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed max-h-[70vh]">
+            <!-- Dynamic Pattern Guide Content -->
+          </div>
+          <div class="p-4 border-t border-navy-800 bg-navy-950/40 flex justify-end">
+            <button onclick="PatternScannerEngine.closePatternModal()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-navy-950 font-bold text-xs transition">
+              확인 완료
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ==============================================
          TAB: GOVERNMENT POLICY & WELFARE BENEFITS (2026 정부 정책 & 복지 혜택 가이드)
@@ -5060,7 +5336,8 @@
 
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/preview-app-v2.js?v=20260907_04"></script>
+  <script src="js/pattern-scanner.js?v=20260908_01"></script>
+  <script src="js/preview-app-v2.js?v=20260908_01"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
