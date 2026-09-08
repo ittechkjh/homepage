@@ -784,30 +784,63 @@ const UpbitAPI = {
         'TAO': 510000, 'FET': 1350, 'GRT': 240, 'AR': 21500, 'FIL': 4800
     },
 
+    _cachedTickerMap: null,
+    _lastTickerFetchTime: 0,
+    _inFlightTickerPromise: null,
+
     fetchTickers: async function (markets) {
         if (!markets || markets.length === 0) return {};
 
-        try {
-            if (typeof this.initMarketInfo === 'function') {
-                await this.initMarketInfo();
-            }
-        } catch (e) {
-            // ignore
+        // 1. In-flight Promise 재사용 (동일 시점의 병렬 중복 호출 차단 -> 429 원천 방지)
+        if (this._inFlightTickerPromise) {
+            return this._inFlightTickerPromise;
         }
+
+        this._inFlightTickerPromise = (async () => {
+            try {
+                return await this._doFetchTickers(markets);
+            } finally {
+                this._inFlightTickerPromise = null;
+            }
+        })();
+
+        return this._inFlightTickerPromise;
+    },
+
+    _doFetchTickers: async function (markets) {
+        // 2. 메모리 캐시 (20초 이내 유효 데이터 즉시 반환)
+        if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20 && (Date.now() - this._lastTickerFetchTime < 20000)) {
+            return this._cachedTickerMap;
+        }
+
+        // 3. sessionStorage 백업 캐시 확인
+        let sessionCached = null;
+        try {
+            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V2');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 20) {
+                    sessionCached = parsed;
+                    if (!this._cachedTickerMap) {
+                        this._cachedTickerMap = parsed;
+                    }
+                }
+            }
+        } catch (e) {}
 
         const krwMarkets = markets
             .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
             .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
             .filter((v, i, a) => a.indexOf(v) === i);
 
-        if (krwMarkets.length === 0) return {};
+        if (krwMarkets.length === 0) return this._cachedTickerMap || sessionCached || {};
 
         const tickerMap = {};
 
-        // 1. Fetch Upbit Tickers (단일 쿼리로 280+ 원화 마켓 전 종목 조회 및 레이트리밋 보호)
+        // 4. Upbit 실시간 Ticker API 호출 (1200ms 레이트리밋 보호)
         try {
-            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 1100) {
-                await new Promise(r => setTimeout(r, 1100 - (Date.now() - this.lastMarketFetchTime)));
+            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 1200) {
+                await new Promise(r => setTimeout(r, 1200 - (Date.now() - this.lastMarketFetchTime)));
             }
 
             const validKrwSet = new Set(this.officialKrwMarkets || []);
@@ -852,10 +885,12 @@ const UpbitAPI = {
                 };
 
                 const joined = upbitMarkets.join(',');
+                this.lastMarketFetchTime = Date.now();
                 let uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
                 if (uRes.status === 429) {
-                    console.warn('Upbit ticker 429 감지, 1.2초 후 재시도...');
-                    await new Promise(r => setTimeout(r, 1200));
+                    console.warn('Upbit ticker 429 감지, 1.5초 후 재시도...');
+                    await new Promise(r => setTimeout(r, 1500));
+                    this.lastMarketFetchTime = Date.now();
                     uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
                 }
                 if (uRes.ok) {
@@ -864,13 +899,12 @@ const UpbitAPI = {
                         uJson.forEach(parseItem);
                     }
                 } else {
-                    console.warn('Upbit ticker 단일 조회 비정상 응답, 분할 청크 시도:', uRes.status);
-                    const chunks = [];
-                    for (let i = 0; i < upbitMarkets.length; i += 70) {
-                        chunks.push(upbitMarkets.slice(i, i + 70).join(','));
-                    }
+                    console.warn('Upbit ticker 단일 조회 비정상 응답, 2개 청크 분할 시도:', uRes.status);
+                    const half = Math.ceil(upbitMarkets.length / 2);
+                    const chunks = [upbitMarkets.slice(0, half).join(','), upbitMarkets.slice(half).join(',')];
                     for (const c of chunks) {
                         try {
+                            await new Promise(r => setTimeout(r, 1200));
                             const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + c);
                             if (cRes.ok) {
                                 const cJson = await cRes.json();
@@ -881,110 +915,25 @@ const UpbitAPI = {
                 }
             }
         } catch (err) {
-            console.warn('업비트 시세 조회 폴백:', err);
+            console.warn('업비트 시세 조회 네트워크 폴백:', err);
         }
 
-        // 2. Fetch Bithumb ALL_KRW (업비트에 없는 종목만 순수 빗썸으로 보충, 업비트 데이터 오염 방지)
-        try {
-            const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
-            if (bRes.ok) {
-                const bData = await bRes.json();
-                if (bData && bData.status === '0000' && bData.data) {
-                    krwMarkets.forEach(m => {
-                        const sym = m.replace('KRW-', '').toUpperCase();
-                        // 업비트 시세가 이미 존재하는 종목은 빗썸 데이터로 덮어쓰지 않음
-                        if (!tickerMap[sym] && bData.data[sym] && bData.data[sym].closing_price) {
-                            const closeP = parseFloat(bData.data[sym].closing_price);
-                            const changeR = parseFloat(bData.data[sym].fluctate_rate_24H || 0);
-                            if (closeP > 0) {
-                                const bTradeValueToday = parseFloat(bData.data[sym].acc_trade_value || 0);
-                                const bTradeValue24h = parseFloat(bData.data[sym].acc_trade_value_24H || 0);
-                                const entry = {
-                                    tradePrice: closeP,
-                                    signedChangeRate: changeR / 100,
-                                    accTradeVolume: bTradeValueToday > 0 ? bTradeValueToday : bTradeValue24h,
-                                    accTradePrice: bTradeValueToday > 0 ? bTradeValueToday : bTradeValue24h,
-                                    accTradeVolume24h: bTradeValue24h > 0 ? bTradeValue24h : bTradeValueToday,
-                                    accTradePrice24h: bTradeValue24h > 0 ? bTradeValue24h : bTradeValueToday,
-                                    highPrice: parseFloat(bData.data[sym].max_price || closeP),
-                                    lowPrice: parseFloat(bData.data[sym].min_price || closeP),
-                                    openingPrice: parseFloat(bData.data[sym].prev_closing_price || bData.data[sym].opening_price || closeP),
-                                    timestamp: Date.now(),
-                                    isUpbit: false,
-                                    isBithumb: true
-                                };
-                                tickerMap[m] = entry;
-                                tickerMap[sym] = entry;
-                                tickerMap['KRW-' + sym] = entry;
-                                tickerMap['BITHUMB:::' + m] = entry;
-                            }
-                        }
-                    });
-                }
-            }
-        } catch (bErr) {
-            console.warn('빗썸 시세 조회 폴백:', bErr);
-        }
-
-        // 3. Fallback to site marketCoins if available
-        if (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
-            marketCoins.forEach(mc => {
-                const sym = (mc.symbol || '').toUpperCase();
-                if (!tickerMap[sym] && mc.current_price) {
-                    const usdRate = 1380;
-                    const krwPrice = mc.current_price < 10 ? Math.round(mc.current_price * usdRate * 100) / 100 : Math.round(mc.current_price * usdRate);
-                    const entry = {
-                        tradePrice: krwPrice,
-                        signedChangeRate: (mc.price_change_percentage_24h || 0) / 100,
-                        accTradeVolume24h: mc.total_volume || 0,
-                        timestamp: Date.now()
-                    };
-                    tickerMap['KRW-' + sym] = entry;
-                    tickerMap[sym] = entry;
-                    tickerMap['UPBIT:::KRW-' + sym] = entry;
-                    tickerMap['BITHUMB:::KRW-' + sym] = entry;
-                }
-            });
-        }
-
-        // 4. Binance API Fallback for any coin not found
-        const missingMarkets = krwMarkets.filter(m => !tickerMap[m] && !tickerMap[m.replace('KRW-', '')]);
-        if (missingMarkets.length > 0) {
+        // 5. 신규 데이터 수신 성공 시 캐시 갱신
+        if (Object.keys(tickerMap).length > 20) {
+            this._cachedTickerMap = tickerMap;
+            this._lastTickerFetchTime = Date.now();
             try {
-                const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price');
-                if (binanceRes.ok) {
-                    const binanceData = await binanceRes.json();
-                    if (Array.isArray(binanceData)) {
-                        const usdRate = 1380;
-                        const binanceMap = {};
-                        binanceData.forEach(b => {
-                            if (b.symbol && b.symbol.endsWith('USDT')) {
-                                const sym = b.symbol.replace('USDT', '');
-                                binanceMap[sym] = parseFloat(b.price) * usdRate;
-                            }
-                        });
+                sessionStorage.setItem('UPBIT_TICKER_CACHE_V2', JSON.stringify(tickerMap));
+            } catch (e) {}
+            return tickerMap;
+        }
 
-                        krwMarkets.forEach(m => {
-                            const sym = m.replace('KRW-', '').toUpperCase();
-                            if (!tickerMap[m] && binanceMap[sym]) {
-                                const entry = {
-                                    tradePrice: binanceMap[sym],
-                                    signedChangeRate: 0.01,
-                                    accTradeVolume24h: 100000000,
-                                    timestamp: Date.now()
-                                };
-                                tickerMap[m] = entry;
-                                tickerMap[sym] = entry;
-                                tickerMap['KRW-' + sym] = entry;
-                                tickerMap['UPBIT:::' + m] = entry;
-                                tickerMap['BITHUMB:::' + m] = entry;
-                            }
-                        });
-                    }
-                }
-            } catch (binanceErr) {
-                console.warn('바이낸스 시세 폴백 실패:', binanceErr);
-            }
+        // 6. 만약 429나 네트워크 단절로 수신 실패한 경우, 이전 캐시 데이터 반환 (유령 빈화면 방지)
+        if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20) {
+            return this._cachedTickerMap;
+        }
+        if (sessionCached && Object.keys(sessionCached).length > 20) {
+            return sessionCached;
         }
 
         return tickerMap;

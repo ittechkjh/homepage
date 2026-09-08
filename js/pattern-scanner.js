@@ -192,7 +192,12 @@ const PatternScannerEngine = {
 
         // 카테고리에 맞춰 좌측 사이드바 버튼 목록 동적 변경
         this.renderSidebar();
-        this.loadSignals();
+        if (this.allMarketCoins && this.allMarketCoins.length > 0) {
+            this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
+            this.renderCards();
+        } else {
+            this.loadSignals();
+        }
     },
 
     // 좌측 사이드바 렌더러
@@ -462,15 +467,20 @@ const PatternScannerEngine = {
             symSet.forEach(sym => {
                 const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
                 const b = bMap[sym];
+                // 업비트 공식 상장 마켓 여부 확인 (공식 287개 원화 마켓 기준)
+                const isOfficialUpbit = typeof UpbitAPI !== 'undefined' && UpbitAPI.officialKrwMarkets && UpbitAPI.officialKrwMarkets.includes('KRW-' + sym);
 
-                // 엄격한 업비트 데이터 검증 (isUpbit가 명시적 true이고 실시간 체결가가 있는 경우만 인정)
+                // 엄격한 실시간 체결 데이터 검증
                 const hasUpbitTicker = !!(u && u.isUpbit && u.tradePrice > 0);
                 const hasBithumbTicker = !!(b && b.closing_price && parseFloat(b.closing_price) > 0);
 
                 // 실시간 거래소 티커가 없는 미상장/상장폐지 코인은 가짜 데이터 생성을 차단하기 위해 제외
                 if (!hasUpbitTicker && !hasBithumbTicker) return;
 
-                let exchange = hasUpbitTicker ? 'UPBIT' : 'BITHUMB';
+                // 업비트에 상장된 종목이거나 실시간 업비트 티커가 있으면 업비트 지원 코인으로 인정
+                const hasUpbit = hasUpbitTicker || isOfficialUpbit;
+                let exchange = hasUpbitTicker ? 'UPBIT' : (isOfficialUpbit ? 'UPBIT' : 'BITHUMB');
+
                 let finalPrice = 0;
                 let finalChange = 0;
                 let finalVol = 0;
@@ -497,7 +507,6 @@ const PatternScannerEngine = {
                     lowP = u.lowPrice || finalPrice;
                     openP = u.openingPrice || finalPrice;
                 } else if (hasBithumbTicker) {
-                    exchange = 'BITHUMB';
                     finalPrice = bPrice;
                     finalChange = bChange;
                     finalVol = bVolToday;
@@ -519,12 +528,12 @@ const PatternScannerEngine = {
                     name: kName,
                     code: '00' + (allCoins.length + 1000),
                     exchange: exchange,
-                    hasUpbit: hasUpbitTicker,
+                    hasUpbit: hasUpbit,
                     hasBithumb: hasBithumbTicker,
-                    upbitPrice: hasUpbitTicker ? uPrice : 0,
-                    upbitChange: hasUpbitTicker ? uChange : 0,
-                    upbitVolume: hasUpbitTicker ? uVolToday : 0,
-                    upbitVolume24h: hasUpbitTicker ? uVol24h : 0,
+                    upbitPrice: hasUpbitTicker ? uPrice : (isOfficialUpbit ? bPrice : 0),
+                    upbitChange: hasUpbitTicker ? uChange : (isOfficialUpbit ? bChange : 0),
+                    upbitVolume: hasUpbitTicker ? uVolToday : (isOfficialUpbit ? bVolToday : 0),
+                    upbitVolume24h: hasUpbitTicker ? uVol24h : (isOfficialUpbit ? bVol24h : 0),
                     bithumbPrice: hasBithumbTicker ? bPrice : 0,
                     bithumbChange: hasBithumbTicker ? bChange : 0,
                     bithumbVolume: hasBithumbTicker ? bVolToday : 0,
