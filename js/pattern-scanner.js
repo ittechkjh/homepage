@@ -431,17 +431,22 @@ const PatternScannerEngine = {
             let upbitTickerMap = {};
             try {
                 let upbitMarkets = [];
-                if (typeof UpbitAPI !== 'undefined' && Array.isArray(UpbitAPI.markets) && UpbitAPI.markets.length > 0) {
+                if (typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
+                    upbitMarkets = Object.keys(UpbitAPI.knownKoreanNames).map(s => 'KRW-' + s);
+                }
+                if (upbitMarkets.length === 0 && typeof UpbitAPI !== 'undefined' && Array.isArray(UpbitAPI.markets) && UpbitAPI.markets.length > 0) {
                     upbitMarkets = UpbitAPI.markets.filter(m => (m.market || m).startsWith('KRW-')).map(m => m.market || m);
                 }
                 if (upbitMarkets.length === 0) {
-                    const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-                    if (mRes.ok) {
-                        const mData = await mRes.json();
-                        if (Array.isArray(mData)) {
-                            upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
+                    try {
+                        const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+                        if (mRes.ok) {
+                            const mData = await mRes.json();
+                            if (Array.isArray(mData)) {
+                                upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
+                            }
                         }
-                    }
+                    } catch (mErr) {}
                 }
 
                 if (upbitMarkets.length > 0 && typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
@@ -465,12 +470,21 @@ const PatternScannerEngine = {
                     symSet.add(sym.toUpperCase());
                 }
             }
+            if (typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
+                for (const sym in UpbitAPI.knownKoreanNames) {
+                    symSet.add(sym.toUpperCase());
+                }
+            }
 
             symSet.forEach(sym => {
                 const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
                 const b = bMap[sym];
 
-                let exchange = u ? 'UPBIT' : 'BITHUMB';
+                const isKnownUpbit = typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames && !!UpbitAPI.knownKoreanNames[sym];
+                const hasUpbitTicker = !!(u && u.tradePrice > 0);
+                const hasBithumbTicker = !!(b && b.closing_price && parseFloat(b.closing_price) > 0);
+
+                let exchange = (hasUpbitTicker || isKnownUpbit) ? 'UPBIT' : 'BITHUMB';
                 let finalPrice = 0;
                 let finalChange = 0;
                 let finalVol = 0;
@@ -478,15 +492,15 @@ const PatternScannerEngine = {
                 let lowP = 0;
                 let openP = 0;
 
-                const uPrice = u ? u.tradePrice : 0;
-                const uChange = u ? (u.signedChangeRate || 0) * 100 : 0;
-                const uVol = u ? (u.accTradePrice24h || u.accTradeVolume24h || 0) : 0;
+                const uPrice = hasUpbitTicker ? u.tradePrice : 0;
+                const uChange = hasUpbitTicker ? (u.signedChangeRate || 0) * 100 : 0;
+                const uVol = hasUpbitTicker ? (u.accTradePrice24h || u.accTradeVolume24h || 0) : 0;
 
-                const bPrice = (b && b.closing_price) ? parseFloat(b.closing_price) : 0;
-                const bChange = (b && b.fluctate_rate_24H) ? parseFloat(b.fluctate_rate_24H) : 0;
-                const bVol = (b && b.acc_trade_value_24H) ? parseFloat(b.acc_trade_value_24H) : 0;
+                const bPrice = hasBithumbTicker ? parseFloat(b.closing_price) : 0;
+                const bChange = hasBithumbTicker ? parseFloat(b.fluctate_rate_24H || 0) : 0;
+                const bVol = hasBithumbTicker ? parseFloat(b.acc_trade_value_24H || 0) : 0;
 
-                if (u && uPrice > 0) {
+                if (hasUpbitTicker) {
                     exchange = 'UPBIT';
                     finalPrice = uPrice;
                     finalChange = uChange;
@@ -494,14 +508,21 @@ const PatternScannerEngine = {
                     highP = u.highPrice || finalPrice;
                     lowP = u.lowPrice || finalPrice;
                     openP = u.openingPrice || finalPrice;
-                } else if (b && bPrice > 0) {
-                    exchange = 'BITHUMB';
+                } else if (hasBithumbTicker) {
+                    exchange = isKnownUpbit ? 'UPBIT' : 'BITHUMB';
                     finalPrice = bPrice;
                     finalChange = bChange;
                     finalVol = bVol;
                     highP = parseFloat(b.max_price) || finalPrice;
                     lowP = parseFloat(b.min_price) || finalPrice;
                     openP = parseFloat(b.opening_price) || finalPrice;
+                } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
+                    finalPrice = UpbitAPI.fallbackPrices[sym];
+                    finalChange = 0;
+                    finalVol = 100000000;
+                    highP = finalPrice;
+                    lowP = finalPrice;
+                    openP = finalPrice;
                 }
 
                 if (finalPrice <= 0) return;
@@ -517,11 +538,11 @@ const PatternScannerEngine = {
                     name: kName,
                     code: '00' + (allCoins.length + 1000),
                     exchange: exchange,
-                    hasUpbit: !!(u && uPrice > 0),
-                    hasBithumb: !!(b && bPrice > 0),
-                    upbitPrice: uPrice,
-                    upbitChange: uChange,
-                    upbitVolume24h: uVol,
+                    hasUpbit: hasUpbitTicker || isKnownUpbit,
+                    hasBithumb: hasBithumbTicker,
+                    upbitPrice: uPrice || (isKnownUpbit ? finalPrice : 0),
+                    upbitChange: hasUpbitTicker ? uChange : (isKnownUpbit ? finalChange : 0),
+                    upbitVolume24h: uVol || (isKnownUpbit ? finalVol : 0),
                     bithumbPrice: bPrice,
                     bithumbChange: bChange,
                     bithumbVolume24h: bVol,
@@ -598,17 +619,17 @@ const PatternScannerEngine = {
             coins = coins.filter(c => c.hasUpbit).map(c => ({
                 ...c,
                 exchange: 'UPBIT',
-                livePrice: c.upbitPrice || c.livePrice,
-                liveChange: c.upbitChange !== null ? c.upbitChange : c.liveChange,
-                liveVolume24h: c.upbitVolume24h || c.liveVolume24h
+                livePrice: c.upbitPrice > 0 ? c.upbitPrice : c.livePrice,
+                liveChange: c.upbitPrice > 0 && c.upbitChange !== null ? c.upbitChange : c.liveChange,
+                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : c.liveVolume24h
             }));
         } else if (this.currentExchange === 'BITHUMB') {
             coins = coins.filter(c => c.hasBithumb).map(c => ({
                 ...c,
                 exchange: 'BITHUMB',
-                livePrice: c.bithumbPrice || c.livePrice,
-                liveChange: c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
-                liveVolume24h: c.bithumbVolume24h || c.liveVolume24h
+                livePrice: c.bithumbPrice > 0 ? c.bithumbPrice : c.livePrice,
+                liveChange: c.bithumbPrice > 0 && c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
+                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : c.liveVolume24h
             }));
         }
 
@@ -953,9 +974,12 @@ const PatternScannerEngine = {
         if (this.selectedCategoryTab === 'patterns') {
             const patternList = [];
             // 거래대금 상위 및 대표 코인들을 대상으로 패턴 적합도 정밀 연산
-            const pool = [...coins]
+            let pool = [...coins]
                 .filter(c => c.livePrice > 0 && (c.liveVolume24h >= 500000000 || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'SUI', 'ADA', 'AVAX', 'NEAR', 'LINK', 'PEPE', 'SEI', 'STX', 'WLD', 'IOST', 'BCH', 'APT', 'ETC'].includes(c.symbol)))
                 .sort((a, b) => b.liveVolume24h - a.liveVolume24h);
+            if (pool.length < 15) {
+                pool = [...coins].filter(c => c.livePrice > 0).sort((a, b) => b.liveVolume24h - a.liveVolume24h);
+            }
 
             // 12종 패턴별 정의 및 매칭 조건
             const patternDefinitions = [
@@ -1146,8 +1170,10 @@ const PatternScannerEngine = {
             }
 
             // 거래소 필터링
-            if (this.currentExchange !== 'ALL' && item.exchange !== this.currentExchange) {
-                return false;
+            if (this.currentExchange === 'UPBIT') {
+                if (item.exchange !== 'UPBIT' && !item.hasUpbit) return false;
+            } else if (this.currentExchange === 'BITHUMB') {
+                if (item.exchange !== 'BITHUMB' && !item.hasBithumb) return false;
             }
 
             // 검색어 필터링
