@@ -816,7 +816,7 @@ const UpbitAPI = {
         // 3. sessionStorage 백업 캐시 확인
         let sessionCached = null;
         try {
-            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V2');
+            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V3');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 20) {
@@ -923,7 +923,7 @@ const UpbitAPI = {
             this._cachedTickerMap = tickerMap;
             this._lastTickerFetchTime = Date.now();
             try {
-                sessionStorage.setItem('UPBIT_TICKER_CACHE_V2', JSON.stringify(tickerMap));
+                sessionStorage.setItem('UPBIT_TICKER_CACHE_V3', JSON.stringify(tickerMap));
             } catch (e) {}
             return tickerMap;
         }
