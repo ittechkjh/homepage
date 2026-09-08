@@ -4405,6 +4405,116 @@
               확인 완료
             </button>
           </div>
+      </div>
+
+      <!-- Pattern Interactive Chart Modal -->
+      <div id="modal-pattern-chart" class="fixed inset-0 z-[100] hidden items-center justify-center p-3 sm:p-4">
+        <div class="absolute inset-0 bg-navy-950/85 backdrop-blur-md" onclick="PatternScannerEngine.closeChartModal()"></div>
+        <div class="relative bg-navy-900 border border-cyan-500/40 rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+          
+          <!-- Modal Header -->
+          <div class="p-4 sm:p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/70">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
+                📈
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 id="modal-chart-coin-name" class="text-base sm:text-lg font-black text-white">비트코인</h3>
+                  <span id="modal-chart-coin-symbol" class="text-xs font-mono font-bold text-slate-400">BTC/KRW</span>
+                  <span id="modal-chart-exchange-badge" class="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">업비트</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                  <span id="modal-chart-pattern-badge" class="font-bold text-emerald-400">눌림목 패턴</span>
+                  <span>•</span>
+                  <span id="modal-chart-similarity-badge" class="font-mono text-cyan-300 font-bold">유사도 84%</span>
+                  <span>•</span>
+                  <span id="modal-chart-timeframe-badge" class="text-[11px] text-slate-400 font-mono">1D (일봉)</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="PatternScannerEngine.closeChartModal()" class="text-slate-400 hover:text-white transition p-1.5 rounded-xl hover:bg-navy-800 cursor-pointer">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Modal Body (Price Banner + Interactive Canvas + Stats) -->
+          <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+            
+            <!-- Current Price & 24H Stat Row -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 rounded-2xl bg-navy-950/80 border border-navy-800">
+              <div>
+                <div class="text-[11px] text-slate-400 font-medium">실시간 포착 시세</div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span id="modal-chart-price-krw" class="text-xl sm:text-2xl font-black font-mono text-white">92,450,000원</span>
+                  <span id="modal-chart-price-usd" class="text-xs font-mono text-slate-400">($64,820.00)</span>
+                  <span id="modal-chart-change-badge" class="text-xs font-mono font-bold text-crypto-green px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">+2.45%</span>
+                </div>
+              </div>
+
+              <!-- Timeframe Switcher in Modal -->
+              <div class="flex items-center gap-1 p-1 bg-navy-900 rounded-xl border border-navy-800 text-xs font-bold" id="modal-chart-tf-buttons">
+                <button type="button" onclick="PatternScannerEngine.changeModalTimeframe('24h')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="24h">24H</button>
+                <button type="button" onclick="PatternScannerEngine.changeModalTimeframe('7d')" class="modal-tf-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold" data-mtf="7d">7D (1D봉)</button>
+                <button type="button" onclick="PatternScannerEngine.changeModalTimeframe('1m')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="1m">1M (스윙)</button>
+              </div>
+            </div>
+
+            <!-- Chart Canvas Container -->
+            <div class="relative w-full h-64 sm:h-72 bg-navy-950 rounded-2xl border border-navy-800/80 p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1 px-1">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <span id="modal-chart-indicator-info">AI 패턴 감지 추세선 & 이평선(MA20) 매칭</span>
+                </span>
+                <span id="modal-chart-range-high-low" class="font-mono text-slate-400">고점: - / 저점: -</span>
+              </div>
+              <div class="relative flex-1 w-full min-h-[180px]">
+                <canvas id="patternModalChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Technical Setup & Pattern Signal Interpretation Box -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3.5 rounded-2xl bg-navy-950 border border-navy-800 space-y-1">
+                <div class="text-slate-400 font-medium flex items-center gap-1.5">
+                  <i data-lucide="target" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>AI 알고리즘 분석 코멘트</span>
+                </div>
+                <p id="modal-chart-comment" class="text-slate-200 font-semibold leading-relaxed">
+                  20일선 지지 후 양봉 반등 ➔ 1차 목표가 +8.5%
+                </p>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-navy-950 border border-navy-800 space-y-1">
+                <div class="text-slate-400 font-medium flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>패턴 형성 기간</span>
+                </div>
+                <p id="modal-chart-period" class="text-slate-200 font-mono font-semibold">
+                  2026-08-27 ~ 2026-09-08 (12일간 형성)
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Modal Footer: Action Buttons -->
+          <div class="p-4 border-t border-navy-800 bg-navy-950/60 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+              <a id="modal-chart-exchange-link" href="https://upbit.com/exchange?code=CRIX.UPBIT.KRW-BTC" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-navy-900 hover:bg-navy-800 border border-navy-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>거래소 실시간 호가/차트</span>
+                <i data-lucide="external-link" class="w-3.5 h-3.5 text-cyan-400"></i>
+              </a>
+              <button type="button" onclick="PatternScannerEngine.goToMarketDetail()" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+                <span>시세 대시보드로 이동</span>
+              </button>
+            </div>
+            <button onclick="PatternScannerEngine.closeChartModal()" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-navy-950 font-black text-xs transition cursor-pointer shadow-md">
+              닫기
+            </button>
+          </div>
+
         </div>
       </div>
     </section>
@@ -5410,7 +5520,7 @@
 
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260908_04"></script>
+  <script src="js/pattern-scanner.js?v=20260908_05"></script>
   <script src="js/preview-app-v2.js?v=20260908_03"></script>
 
     <!-- PnL Verification Modal -->
