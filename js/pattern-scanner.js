@@ -502,14 +502,15 @@ const PatternScannerEngine = {
                     exchange = 'UPBIT';
                     finalPrice = uPrice;
                     finalChange = uChange;
-                    finalVol = uVolToday;
+                    // 업비트 공식 거래소 화면(24H 거래대금)과 100% 일치하도록 24H 누적 거래대금 우선 적용
+                    finalVol = uVol24h > 0 ? uVol24h : uVolToday;
                     highP = u.highPrice || finalPrice;
                     lowP = u.lowPrice || finalPrice;
                     openP = u.openingPrice || finalPrice;
                 } else if (hasBithumbTicker) {
                     finalPrice = bPrice;
                     finalChange = bChange;
-                    finalVol = bVolToday;
+                    finalVol = bVol24h > 0 ? bVol24h : bVolToday;
                     highP = parseFloat(b.max_price) || finalPrice;
                     lowP = parseFloat(b.min_price) || finalPrice;
                     openP = parseFloat(b.opening_price) || finalPrice;
@@ -532,16 +533,19 @@ const PatternScannerEngine = {
                     hasBithumb: hasBithumbTicker,
                     upbitPrice: hasUpbitTicker ? uPrice : (isOfficialUpbit ? bPrice : 0),
                     upbitChange: hasUpbitTicker ? uChange : (isOfficialUpbit ? bChange : 0),
-                    upbitVolume: hasUpbitTicker ? uVolToday : (isOfficialUpbit ? bVolToday : 0),
+                    upbitVolume: hasUpbitTicker ? (uVol24h > 0 ? uVol24h : uVolToday) : (isOfficialUpbit ? (bVol24h > 0 ? bVol24h : bVolToday) : 0),
                     upbitVolume24h: hasUpbitTicker ? uVol24h : (isOfficialUpbit ? bVol24h : 0),
+                    upbitVolumeToday: hasUpbitTicker ? uVolToday : (isOfficialUpbit ? bVolToday : 0),
                     bithumbPrice: hasBithumbTicker ? bPrice : 0,
                     bithumbChange: hasBithumbTicker ? bChange : 0,
-                    bithumbVolume: hasBithumbTicker ? bVolToday : 0,
+                    bithumbVolume: hasBithumbTicker ? (bVol24h > 0 ? bVol24h : bVolToday) : 0,
                     bithumbVolume24h: hasBithumbTicker ? bVol24h : 0,
+                    bithumbVolumeToday: hasBithumbTicker ? bVolToday : 0,
                     livePrice: finalPrice,
                     liveChange: finalChange,
                     liveVolume: finalVol,
-                    liveVolume24h: hasUpbitTicker ? uVol24h : (hasBithumbTicker ? bVol24h : finalVol),
+                    liveVolume24h: finalVol,
+                    liveVolumeToday: hasUpbitTicker ? uVolToday : (hasBithumbTicker ? bVolToday : finalVol),
                     high24h: highP,
                     low24h: lowP,
                     open24h: openP
@@ -638,8 +642,9 @@ const PatternScannerEngine = {
                 exchange: 'UPBIT',
                 livePrice: c.upbitPrice > 0 ? c.upbitPrice : c.livePrice,
                 liveChange: c.upbitPrice > 0 && c.upbitChange !== null ? c.upbitChange : c.liveChange,
-                liveVolume: c.upbitVolume > 0 ? c.upbitVolume : (c.liveVolume || c.liveVolume24h),
-                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.liveVolume24h || c.liveVolume)
+                liveVolume: c.upbitVolume > 0 ? c.upbitVolume : (c.liveVolume24h || c.liveVolume),
+                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.liveVolume24h || c.liveVolume),
+                liveVolumeToday: c.upbitVolumeToday > 0 ? c.upbitVolumeToday : (c.liveVolumeToday || 0)
             }));
         } else if (this.currentExchange === 'BITHUMB') {
             coins = coins.filter(c => c.hasBithumb).map(c => ({
@@ -647,8 +652,9 @@ const PatternScannerEngine = {
                 exchange: 'BITHUMB',
                 livePrice: c.bithumbPrice > 0 ? c.bithumbPrice : c.livePrice,
                 liveChange: c.bithumbPrice > 0 && c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
-                liveVolume: c.bithumbVolume > 0 ? c.bithumbVolume : (c.liveVolume || c.liveVolume24h),
-                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.liveVolume24h || c.liveVolume)
+                liveVolume: c.bithumbVolume > 0 ? c.bithumbVolume : (c.liveVolume24h || c.liveVolume),
+                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.liveVolume24h || c.liveVolume),
+                liveVolumeToday: c.bithumbVolumeToday > 0 ? c.bithumbVolumeToday : (c.liveVolumeToday || 0)
             }));
         }
 
@@ -661,25 +667,26 @@ const PatternScannerEngine = {
             if (t && t.tradePrice > 0) {
                 item.livePrice = t.tradePrice;
                 item.liveChange = (t.signedChangeRate || 0) * 100;
-                item.liveVolume = t.accTradePrice || t.accTradePrice24h || 0;
+                item.liveVolume = t.accTradePrice24h || t.accTradePrice || 0;
                 item.liveVolume24h = t.accTradePrice24h || t.accTradePrice || 0;
+                item.liveVolumeToday = t.accTradePrice || 0;
             }
             return item;
         };
 
-        // 1) 실시간 수급 포착 탭 (실제 거래대금 순위 & 실제 상승률 순위 연산)
+        // 1) 실시간 수급 포착 탭 (거래소 24H 거래대금 순위 & 실제 상승률 순위 연산)
         if (this.selectedCategoryTab === 'realtime') {
             const realtimeList = [];
 
             if (coins.length > 0) {
-                // 1-1. 거래량 폭증 (Volume Surge): 업비트/빗썸 실시간 거래대금 정렬 (1위~10위, 거래소 화면 100% 일치)
-                const byVol = [...coins].sort((a, b) => (b.liveVolume || b.liveVolume24h) - (a.liveVolume || a.liveVolume24h)).slice(0, 10);
+                // 1-1. 거래량 폭증 (Volume Surge): 업비트/빗썸 실시간 24H 거래대금 정렬 (거래소 화면 100% 일치)
+                const byVol = [...coins].sort((a, b) => (b.liveVolume24h || b.liveVolume) - (a.liveVolume24h || a.liveVolume)).slice(0, 10);
                 byVol.forEach((c, idx) => {
                     const rank = idx + 1;
                     const badgeClr = rank === 1 ? 'bg-amber-400 text-navy-950 font-black' : (rank <= 3 ? 'bg-emerald-500 text-navy-950 font-black' : 'bg-cyan-400 text-navy-950 font-bold');
                     const exLabel = c.exchange === 'UPBIT' ? '업비트' : (c.exchange === 'BITHUMB' ? '빗썸' : '원화');
-                    const volTodayStr = formatMoney(c.liveVolume || c.liveVolume24h);
                     const vol24hStr = formatMoney(c.liveVolume24h || c.liveVolume);
+                    const volTodayStr = c.liveVolumeToday ? formatMoney(c.liveVolumeToday) : vol24hStr;
                     realtimeList.push({
                         symbol: c.symbol,
                         name: c.name,
@@ -688,15 +695,16 @@ const PatternScannerEngine = {
                         hasUpbit: c.hasUpbit,
                         hasBithumb: c.hasBithumb,
                         subFilter: 'volume_surge',
-                        badgeText: `거래대금 ${rank}위 (${volTodayStr})`,
+                        badgeText: `거래대금 ${rank}위 (${vol24hStr})`,
                         badgeColor: badgeClr,
-                        title: `${exLabel} 거래대금 ${rank}위 기록`,
-                        comment: `당일 거래대금 ${volTodayStr} (24H: ${vol24hStr}) 돌파하며 ${exLabel} 거래량 집중`,
-                        periodStr: `거래대금: 당일 ${volTodayStr} · 24H ${vol24hStr}`,
+                        title: `${exLabel} 24H 거래대금 ${rank}위 기록`,
+                        comment: `최근 24시간 거래대금 ${vol24hStr} (당일 09시~: ${volTodayStr}) 돌파하며 ${exLabel} 거래량 집중`,
+                        periodStr: `거래대금(24H): ${vol24hStr} · 당일: ${volTodayStr}`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
-                        liveVolume: c.liveVolume || c.liveVolume24h,
-                        liveVolume24h: c.liveVolume24h || c.liveVolume
+                        liveVolume: c.liveVolume24h || c.liveVolume,
+                        liveVolume24h: c.liveVolume24h || c.liveVolume,
+                        liveVolumeToday: c.liveVolumeToday
                     });
                 });
 
@@ -1268,10 +1276,13 @@ const PatternScannerEngine = {
             const changeDisplay = item.liveChange !== undefined
                 ? `<span class="font-mono text-xs font-bold ${item.liveChange >= 0 ? 'text-crypto-green' : 'text-crypto-red'}">${item.liveChange >= 0 ? '+' : ''}${item.liveChange.toFixed(2)}%</span>`
                 : '';
-            const curVol = item.liveVolume || item.liveVolume24h;
             const curVol24h = item.liveVolume24h || item.liveVolume;
-            const volumeDisplay = curVol
-                ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="당일: ${formatMoney(curVol)} / 24H: ${formatMoney(curVol24h)}">거래대금 <strong class="text-emerald-400 font-bold">${formatMoney(curVol)}</strong></span>`
+            const curVolToday = item.liveVolumeToday;
+            const volTooltip = curVolToday
+                ? `24H: ${formatMoney(curVol24h)} / 당일(09시~): ${formatMoney(curVolToday)}`
+                : `거래대금: ${formatMoney(curVol24h)}`;
+            const volumeDisplay = curVol24h
+                ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="${volTooltip}">거래대금 <strong class="text-emerald-400 font-bold">${formatMoney(curVol24h)}</strong></span>`
                 : '';
 
             return `
