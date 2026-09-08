@@ -346,7 +346,7 @@ const PatternScannerEngine = {
                 <div class="space-y-4 text-xs leading-relaxed">
                     <div class="flex items-center justify-between p-3 rounded-xl bg-navy-950 border border-navy-800">
                         <span class="text-slate-400">패턴 유형: <strong class="text-white">${info.type}</strong></span>
-                        <span class="text-emerald-400 font-bold font-mono">신뢰도 승률: ${info.winRate}</span>
+                        <span class="text-emerald-400 font-bold font-mono">통계적 신뢰도: ${info.winRate}</span>
                     </div>
 
                     <div class="p-4 rounded-xl bg-navy-950/80 border border-navy-800 space-y-2">
@@ -374,6 +374,11 @@ const PatternScannerEngine = {
 
                     <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300">
                         💡 <strong>실전 매매 팁:</strong> ${info.tips}
+                    </div>
+
+                    <!-- Legal Disclaimer Notice -->
+                    <div class="p-3 rounded-xl bg-navy-950 border border-navy-800 text-[10.5px] text-slate-400 leading-relaxed">
+                        ⚖️ <strong>법적 고지:</strong> 본 가이드의 통계 및 기술 분석 정보는 과거 캔들 데이터 기반의 학술·통계적 연구 자료일 뿐이며, 특정 자산의 가치 상승을 보증하거나 매수·매도를 권유하는 리딩/투자자문 행위가 아닙니다.
                     </div>
                 </div>
             `;
