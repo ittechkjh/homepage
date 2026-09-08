@@ -523,7 +523,7 @@ function renderCoinTable(coins) {
         <td class="py-3.5 px-3 text-right font-bold ${changeClass}">${sign}${(coin.price_change_percentage_24h || 0).toFixed(2)}%</td>
         <td class="py-3.5 px-3 text-right text-slate-400 hidden sm:table-cell text-xs">$${formatCompact(coin.total_volume)}</td>
         <td class="py-3.5 px-3 text-center">
-          <button class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 group-hover:border-cyan-500 text-cyan-400 text-xs font-sans font-medium transition">
+          <button onclick="event.stopPropagation(); if (window.openChartModal) { window.openChartModal('${coin.symbol.toUpperCase()}'); } else { selectCoinForChart('${coin.id}', '${coin.name}', '${coin.symbol.toUpperCase()}'); const el = document.getElementById('selected-chart-title') || document.getElementById('priceChart'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }" class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 hover:border-cyan-500 hover:bg-cyan-500/10 text-cyan-400 text-xs font-sans font-medium transition cursor-pointer">
             차트 보기
           </button>
         </td>

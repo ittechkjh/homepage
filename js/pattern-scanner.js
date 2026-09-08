@@ -655,7 +655,7 @@ const PatternScannerEngine = {
                             <span class="text-slate-500">${item.patternName ? '패턴 기간' : '정보'}</span>
                             <strong class="text-slate-300 font-normal">${item.periodStr}</strong>
                         </div>
-                        <button onclick="PatternScannerEngine.openChartModal('${item.symbol}')" class="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 self-end sm:self-auto font-semibold cursor-pointer">
+                        <button onclick="window.PatternScannerEngine ? window.PatternScannerEngine.openChartModal('${item.symbol}') : (window.openChartModal && window.openChartModal('${item.symbol}'))" class="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 self-end sm:self-auto font-semibold cursor-pointer">
                             차트 보기 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
@@ -768,6 +768,7 @@ const PatternScannerEngine = {
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        modal.style.display = 'flex';
 
         document.querySelectorAll('.modal-tf-btn').forEach(b => {
             const isActive = b.dataset.mtf === '7d';
@@ -848,64 +849,68 @@ const PatternScannerEngine = {
             this.modalChartInstance.destroy();
         }
 
-        const isLight = document.documentElement.classList.contains('theme-light');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 240);
-        gradient.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.25)' : 'rgba(6, 182, 212, 0.35)');
-        gradient.addColorStop(1, isLight ? 'rgba(5, 150, 105, 0.0)' : 'rgba(6, 182, 212, 0.0)');
+        try {
+            const isLight = document.documentElement.classList.contains('theme-light');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+            gradient.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.25)' : 'rgba(6, 182, 212, 0.35)');
+            gradient.addColorStop(1, isLight ? 'rgba(5, 150, 105, 0.0)' : 'rgba(6, 182, 212, 0.0)');
 
-        this.modalChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: `${this.currentModalItem ? this.currentModalItem.name : '코인'} 시세`,
-                    data: data,
-                    borderColor: isLight ? '#059669' : '#06b6d4',
-                    borderWidth: 2.5,
-                    backgroundColor: gradient,
-                    fill: true,
-                    tension: 0.35,
-                    pointRadius: 2,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: isLight ? '#059669' : '#06b6d4',
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function (c) {
-                                return ` ${c.parsed.y.toLocaleString()}원`;
+            this.modalChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${this.currentModalItem ? this.currentModalItem.name : '코인'} 시세`,
+                        data: data,
+                        borderColor: isLight ? '#059669' : '#06b6d4',
+                        borderWidth: 2.5,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: isLight ? '#059669' : '#06b6d4',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (c) {
+                                    return ` ${c.parsed.y.toLocaleString()}원`;
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            color: isLight ? '#475569' : '#94a3b8',
-                            font: { size: 10, family: 'JetBrains Mono' }
-                        }
                     },
-                    y: {
-                        grid: {
-                            color: isLight ? 'rgba(203, 213, 225, 0.5)' : 'rgba(30, 41, 75, 0.5)'
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: isLight ? '#475569' : '#94a3b8',
+                                font: { size: 10, family: 'JetBrains Mono' }
+                            }
                         },
-                        ticks: {
-                            color: isLight ? '#475569' : '#94a3b8',
-                            font: { size: 10, family: 'JetBrains Mono' },
-                            callback: function(v) {
-                                return v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v;
+                        y: {
+                            grid: {
+                                color: isLight ? 'rgba(203, 213, 225, 0.5)' : 'rgba(30, 41, 75, 0.5)'
+                            },
+                            ticks: {
+                                color: isLight ? '#475569' : '#94a3b8',
+                                font: { size: 10, family: 'JetBrains Mono' },
+                                callback: function(v) {
+                                    return v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (chartErr) {
+            console.warn('Pattern modal chart error:', chartErr);
+        }
     },
 
     closeChartModal: function () {
@@ -913,9 +918,10 @@ const PatternScannerEngine = {
         if (modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            modal.style.display = 'none';
         }
         if (this.modalChartInstance) {
-            this.modalChartInstance.destroy();
+            try { this.modalChartInstance.destroy(); } catch (e) {}
             this.modalChartInstance = null;
         }
     },
@@ -962,4 +968,10 @@ const PatternScannerEngine = {
 
 if (typeof window !== 'undefined') {
     window.PatternScannerEngine = PatternScannerEngine;
+    window.openChartModal = function (symbol) {
+        PatternScannerEngine.openChartModal(symbol);
+    };
+    window.viewChart = function (symbol) {
+        PatternScannerEngine.openChartModal(symbol);
+    };
 }
