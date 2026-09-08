@@ -778,35 +778,38 @@ const UpbitAPI = {
         try {
             const upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-'));
             if (upbitMarkets.length > 0) {
-                const upbitUrl = 'https://api.upbit.com/v1/ticker?markets=' + upbitMarkets.join(',');
-                const res = await fetch(upbitUrl);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        data.forEach(item => {
-                            const krwVolume = parseFloat(item.acc_trade_price_24h || 0);
-                            const coinVolume = parseFloat(item.acc_trade_volume_24h || 0);
-                            const tradeP = parseFloat(item.trade_price);
-                            const finalVol = krwVolume > 0 ? krwVolume : (coinVolume * tradeP);
-                            const entry = {
-                                tradePrice: tradeP,
-                                signedChangeRate: parseFloat(item.signed_change_rate || 0),
-                                accTradeVolume24h: finalVol,
-                                accTradePrice24h: finalVol,
-                                highPrice: parseFloat(item.high_price || item.trade_price),
-                                lowPrice: parseFloat(item.low_price || item.trade_price),
-                                openingPrice: parseFloat(item.opening_price || item.trade_price),
-                                timestamp: item.timestamp
-                            };
-                            tickerMap[item.market] = entry;
-                            const sym = item.market.replace('KRW-', '');
-                            tickerMap[sym] = entry;
-                            tickerMap['KRW-' + sym] = entry;
-                            tickerMap['UPBIT:::' + item.market] = entry;
-                            tickerMap['BITHUMB:::' + item.market] = entry;
-                        });
-                    }
+                const chunks = [];
+                for (let i = 0; i < upbitMarkets.length; i += 100) {
+                    chunks.push(upbitMarkets.slice(i, i + 100).join(','));
                 }
+                const responses = await Promise.all(chunks.map(c => 
+                    fetch('https://api.upbit.com/v1/ticker?markets=' + c)
+                        .then(r => r.ok ? r.json() : [])
+                        .catch(() => [])
+                ));
+                responses.flat().forEach(item => {
+                    if (!item || !item.market) return;
+                    const krwVolume = parseFloat(item.acc_trade_price_24h || 0);
+                    const coinVolume = parseFloat(item.acc_trade_volume_24h || 0);
+                    const tradeP = parseFloat(item.trade_price);
+                    const finalVol = krwVolume > 0 ? krwVolume : (coinVolume * tradeP);
+                    const entry = {
+                        tradePrice: tradeP,
+                        signedChangeRate: parseFloat(item.signed_change_rate || 0),
+                        accTradeVolume24h: finalVol,
+                        accTradePrice24h: finalVol,
+                        highPrice: parseFloat(item.high_price || item.trade_price),
+                        lowPrice: parseFloat(item.low_price || item.trade_price),
+                        openingPrice: parseFloat(item.opening_price || item.trade_price),
+                        timestamp: item.timestamp
+                    };
+                    tickerMap[item.market] = entry;
+                    const sym = item.market.replace('KRW-', '');
+                    tickerMap[sym] = entry;
+                    tickerMap['KRW-' + sym] = entry;
+                    tickerMap['UPBIT:::' + item.market] = entry;
+                    tickerMap['BITHUMB:::' + item.market] = entry;
+                });
             }
         } catch (err) {
             console.warn('업비트 시세 조회 폴백:', err);

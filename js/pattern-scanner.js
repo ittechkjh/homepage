@@ -319,6 +319,9 @@ const PatternScannerEngine = {
         document.querySelectorAll('.pattern-exchange-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.exchange === exchange);
         });
+        if (this.allMarketCoins && this.allMarketCoins.length > 0) {
+            this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
+        }
         this.renderCards();
     },
 
@@ -424,55 +427,84 @@ const PatternScannerEngine = {
                 console.warn('빗썸 전체 Ticker 조회 오류:', bErr);
             }
 
-            // 2. 업비트 실시간 호가/시세 Ticker API 호출
+            // 2. 업비트 전체 원화(KRW) 마켓 실시간 Ticker API 호출 (280+ 전 종목 실시간 거래대금/등락률/고가/저가/시가)
             let upbitTickerMap = {};
-            if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
-                const targetMarkets = [
-                    'KRW-BTC', 'KRW-ETH', 'KRW-SOL', 'KRW-XRP', 'KRW-DOGE', 'KRW-SUI', 
-                    'KRW-ADA', 'KRW-AVAX', 'KRW-NEAR', 'KRW-LINK', 'KRW-SHIB', 'KRW-PEPE', 
-                    'KRW-BCH', 'KRW-SEI', 'KRW-APT', 'KRW-ETC', 'KRW-STX', 'KRW-ALGO', 'KRW-WLD', 'KRW-IOST',
-                    'KRW-SAND', 'KRW-FLOW', 'KRW-MANA', 'KRW-AXS', 'KRW-DOT', 'KRW-ATOM',
-                    'KRW-HBAR', 'KRW-VET', 'KRW-THETA', 'KRW-CHZ', 'KRW-CRO', 'KRW-AAVE', 'KRW-UNI',
-                    'KRW-T', 'KRW-MASK', 'KRW-IMX', 'KRW-BLUR', 'KRW-MINA', 'KRW-ZRO'
-                ];
-                try {
-                    upbitTickerMap = await UpbitAPI.fetchTickers(targetMarkets);
-                } catch (tErr) {
-                    console.warn('업비트 시세 조회 실패, 폴백 사용:', tErr);
+            try {
+                let upbitMarkets = [];
+                if (typeof UpbitAPI !== 'undefined' && Array.isArray(UpbitAPI.markets) && UpbitAPI.markets.length > 0) {
+                    upbitMarkets = UpbitAPI.markets.filter(m => (m.market || m).startsWith('KRW-')).map(m => m.market || m);
                 }
-            }
-
-            // 3. 전 종목 실시간 마켓 데이터셋(allMarketCoins) 정밀 빌드
-            const allCoins = [];
-            const symSeen = new Set();
-
-            for (const sym in bMap) {
-                if (sym === 'date' || !bMap[sym] || !bMap[sym].closing_price) continue;
-                const bCoin = bMap[sym];
-                const closeP = parseFloat(bCoin.closing_price) || 0;
-                if (closeP <= 0) continue;
-                const vol24h = parseFloat(bCoin.acc_trade_value_24H) || 0;
-                const changeRate = parseFloat(bCoin.fluctate_rate_24H) || 0;
-
-                const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
-                const exchange = u ? 'UPBIT' : 'BITHUMB';
-                const finalPrice = u && u.tradePrice > 0 ? u.tradePrice : closeP;
-                const finalChange = u && u.signedChangeRate !== undefined ? u.signedChangeRate * 100 : changeRate;
-                
-                let finalVol = vol24h;
-                if (u) {
-                    if (u.accTradePrice24h && u.accTradePrice24h > 0) {
-                        finalVol = u.accTradePrice24h;
-                    } else if (u.accTradeVolume24h > 1000000) {
-                        finalVol = u.accTradeVolume24h;
-                    } else if (u.accTradeVolume24h > 0) {
-                        finalVol = u.tradePrice * u.accTradeVolume24h;
+                if (upbitMarkets.length === 0) {
+                    const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+                    if (mRes.ok) {
+                        const mData = await mRes.json();
+                        if (Array.isArray(mData)) {
+                            upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
+                        }
                     }
                 }
 
-                const highP = u && u.highPrice > 0 ? u.highPrice : (parseFloat(bCoin.max_price) || closeP);
-                const lowP = u && u.lowPrice > 0 ? u.lowPrice : (parseFloat(bCoin.min_price) || closeP);
-                const openP = u && u.openingPrice > 0 ? u.openingPrice : (parseFloat(bCoin.opening_price) || closeP);
+                if (upbitMarkets.length > 0 && typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
+                    upbitTickerMap = await UpbitAPI.fetchTickers(upbitMarkets);
+                }
+            } catch (tErr) {
+                console.warn('업비트 전체 시세 조회 폴백:', tErr);
+            }
+
+            // 3. 업비트 & 빗썸 전 종목 실시간 마켓 데이터셋(allMarketCoins) 통합 정밀 빌드
+            const allCoins = [];
+            const symSet = new Set();
+
+            for (const key in upbitTickerMap) {
+                if (key.startsWith('KRW-')) {
+                    symSet.add(key.replace('KRW-', '').toUpperCase());
+                }
+            }
+            for (const sym in bMap) {
+                if (sym !== 'date' && bMap[sym] && bMap[sym].closing_price) {
+                    symSet.add(sym.toUpperCase());
+                }
+            }
+
+            symSet.forEach(sym => {
+                const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
+                const b = bMap[sym];
+
+                let exchange = u ? 'UPBIT' : 'BITHUMB';
+                let finalPrice = 0;
+                let finalChange = 0;
+                let finalVol = 0;
+                let highP = 0;
+                let lowP = 0;
+                let openP = 0;
+
+                const uPrice = u ? u.tradePrice : 0;
+                const uChange = u ? (u.signedChangeRate || 0) * 100 : 0;
+                const uVol = u ? (u.accTradePrice24h || u.accTradeVolume24h || 0) : 0;
+
+                const bPrice = (b && b.closing_price) ? parseFloat(b.closing_price) : 0;
+                const bChange = (b && b.fluctate_rate_24H) ? parseFloat(b.fluctate_rate_24H) : 0;
+                const bVol = (b && b.acc_trade_value_24H) ? parseFloat(b.acc_trade_value_24H) : 0;
+
+                if (u && uPrice > 0) {
+                    exchange = 'UPBIT';
+                    finalPrice = uPrice;
+                    finalChange = uChange;
+                    finalVol = uVol;
+                    highP = u.highPrice || finalPrice;
+                    lowP = u.lowPrice || finalPrice;
+                    openP = u.openingPrice || finalPrice;
+                } else if (b && bPrice > 0) {
+                    exchange = 'BITHUMB';
+                    finalPrice = bPrice;
+                    finalChange = bChange;
+                    finalVol = bVol;
+                    highP = parseFloat(b.max_price) || finalPrice;
+                    lowP = parseFloat(b.min_price) || finalPrice;
+                    openP = parseFloat(b.opening_price) || finalPrice;
+                }
+
+                if (finalPrice <= 0) return;
 
                 let kName = sym;
                 if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.getKoreanName === 'function') {
@@ -485,6 +517,14 @@ const PatternScannerEngine = {
                     name: kName,
                     code: '00' + (allCoins.length + 1000),
                     exchange: exchange,
+                    hasUpbit: !!(u && uPrice > 0),
+                    hasBithumb: !!(b && bPrice > 0),
+                    upbitPrice: uPrice,
+                    upbitChange: uChange,
+                    upbitVolume24h: uVol,
+                    bithumbPrice: bPrice,
+                    bithumbChange: bChange,
+                    bithumbVolume24h: bVol,
                     livePrice: finalPrice,
                     liveChange: finalChange,
                     liveVolume24h: finalVol,
@@ -492,8 +532,7 @@ const PatternScannerEngine = {
                     low24h: lowP,
                     open24h: openP
                 });
-                symSeen.add(sym);
-            }
+            });
 
             this.allMarketCoins = allCoins;
             this.liveTickerMap = { ...upbitTickerMap };
@@ -553,7 +592,25 @@ const PatternScannerEngine = {
             return p >= 100 ? p.toLocaleString() : p;
         };
 
-        const coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
+        let coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
+
+        if (this.currentExchange === 'UPBIT') {
+            coins = coins.filter(c => c.hasUpbit).map(c => ({
+                ...c,
+                exchange: 'UPBIT',
+                livePrice: c.upbitPrice || c.livePrice,
+                liveChange: c.upbitChange !== null ? c.upbitChange : c.liveChange,
+                liveVolume24h: c.upbitVolume24h || c.liveVolume24h
+            }));
+        } else if (this.currentExchange === 'BITHUMB') {
+            coins = coins.filter(c => c.hasBithumb).map(c => ({
+                ...c,
+                exchange: 'BITHUMB',
+                livePrice: c.bithumbPrice || c.livePrice,
+                liveChange: c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
+                liveVolume24h: c.bithumbVolume24h || c.liveVolume24h
+            }));
+        }
 
         const enrich = (item) => {
             const sym = (item.symbol || '').toUpperCase();
@@ -576,16 +633,19 @@ const PatternScannerEngine = {
                 byVol.forEach((c, idx) => {
                     const rank = idx + 1;
                     const badgeClr = rank === 1 ? 'bg-amber-400 text-navy-950 font-black' : (rank <= 3 ? 'bg-emerald-500 text-navy-950 font-black' : 'bg-cyan-400 text-navy-950 font-bold');
+                    const exLabel = c.exchange === 'UPBIT' ? '업비트' : (c.exchange === 'BITHUMB' ? '빗썸' : '원화');
                     realtimeList.push({
                         symbol: c.symbol,
                         name: c.name,
                         code: c.code,
                         exchange: c.exchange,
+                        hasUpbit: c.hasUpbit,
+                        hasBithumb: c.hasBithumb,
                         subFilter: 'volume_surge',
                         badgeText: `거래대금 ${rank}위 (${formatMoney(c.liveVolume24h)})`,
                         badgeColor: badgeClr,
-                        title: `원화 마켓 24H 거래대금 ${rank}위 기록`,
-                        comment: `24시간 거래대금 ${formatMoney(c.liveVolume24h)} 돌파하며 국내 최다 유동성 집중`,
+                        title: `${exLabel} 24H 거래대금 ${rank}위 기록`,
+                        comment: `24시간 거래대금 ${formatMoney(c.liveVolume24h)} 돌파하며 ${exLabel} 최다 유동성 집중`,
                         periodStr: `실시간 거래대금: ${rank}위 (${formatMoney(c.liveVolume24h)})`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
