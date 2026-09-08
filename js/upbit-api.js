@@ -808,9 +808,19 @@ const UpbitAPI = {
     },
 
     _doFetchTickers: async function (markets) {
-        // 2. 메모리 캐시 (20초 이내 유효 데이터 즉시 반환)
-        if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20 && (Date.now() - this._lastTickerFetchTime < 20000)) {
-            return this._cachedTickerMap;
+        const krwMarkets = (markets || [])
+            .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
+            .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
+            .filter((v, i, a) => a.indexOf(v) === i);
+
+        if (krwMarkets.length === 0) return this._cachedTickerMap || {};
+
+        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 20초 이내일 때만 즉시 반환
+        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 20000)) {
+            const cachedCount = krwMarkets.filter(m => this._cachedTickerMap[m] || this._cachedTickerMap[m.replace('KRW-', '')]).length;
+            if (cachedCount >= Math.min(krwMarkets.length * 0.8, 150)) {
+                return this._cachedTickerMap;
+            }
         }
 
         // 3. sessionStorage 백업 캐시 확인
@@ -828,19 +838,12 @@ const UpbitAPI = {
             }
         } catch (e) {}
 
-        const krwMarkets = markets
-            .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
-            .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
-            .filter((v, i, a) => a.indexOf(v) === i);
-
-        if (krwMarkets.length === 0) return this._cachedTickerMap || sessionCached || {};
-
         const tickerMap = {};
 
-        // 4. Upbit 실시간 Ticker API 호출 (1200ms 레이트리밋 보호)
+        // 4. Upbit 실시간 Ticker API 호출 (75개 단위 안전 청크 분할로 URL 길이 및 100개 제한 완벽 준수)
         try {
-            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 1200) {
-                await new Promise(r => setTimeout(r, 1200 - (Date.now() - this.lastMarketFetchTime)));
+            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 500) {
+                await new Promise(r => setTimeout(r, 500 - (Date.now() - this.lastMarketFetchTime)));
             }
 
             const validKrwSet = new Set(this.officialKrwMarkets || []);
@@ -884,33 +887,27 @@ const UpbitAPI = {
                     tickerMap['UPBIT:::' + item.market] = entry;
                 };
 
-                const joined = upbitMarkets.join(',');
-                this.lastMarketFetchTime = Date.now();
-                let uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
-                if (uRes.status === 429) {
-                    console.warn('Upbit ticker 429 감지, 1.5초 후 재시도...');
-                    await new Promise(r => setTimeout(r, 1500));
-                    this.lastMarketFetchTime = Date.now();
-                    uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
+                // 75개씩 청크 분할 호출 (실패 격리 및 안정적인 100% 수신)
+                const chunkSize = 75;
+                const chunks = [];
+                for (let i = 0; i < upbitMarkets.length; i += chunkSize) {
+                    chunks.push(upbitMarkets.slice(i, i + chunkSize));
                 }
-                if (uRes.ok) {
-                    const uJson = await uRes.json();
-                    if (Array.isArray(uJson)) {
-                        uJson.forEach(parseItem);
-                    }
-                } else {
-                    console.warn('Upbit ticker 단일 조회 비정상 응답, 2개 청크 분할 시도:', uRes.status);
-                    const half = Math.ceil(upbitMarkets.length / 2);
-                    const chunks = [upbitMarkets.slice(0, half).join(','), upbitMarkets.slice(half).join(',')];
-                    for (const c of chunks) {
-                        try {
-                            await new Promise(r => setTimeout(r, 1200));
-                            const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + c);
-                            if (cRes.ok) {
-                                const cJson = await cRes.json();
-                                if (Array.isArray(cJson)) cJson.forEach(parseItem);
-                            }
-                        } catch (ce) {}
+
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunkJoined = chunks[i].join(',');
+                    try {
+                        if (i > 0) {
+                            await new Promise(r => setTimeout(r, 150));
+                        }
+                        this.lastMarketFetchTime = Date.now();
+                        const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + chunkJoined);
+                        if (cRes.ok) {
+                            const cJson = await cRes.json();
+                            if (Array.isArray(cJson)) cJson.forEach(parseItem);
+                        }
+                    } catch (ce) {
+                        console.warn(`Upbit ticker 청크 ${i + 1}/${chunks.length} 페치 오류:`, ce);
                     }
                 }
             }
@@ -918,22 +915,23 @@ const UpbitAPI = {
             console.warn('업비트 시세 조회 네트워크 폴백:', err);
         }
 
-        // 5. 신규 데이터 수신 성공 시 캐시 갱신
-        if (Object.keys(tickerMap).length > 20) {
-            this._cachedTickerMap = tickerMap;
+        // 5. 신규 데이터 수신 시 기존 캐시와 누적 병합(Cumulative merge) 갱신
+        if (Object.keys(tickerMap).length > 0) {
+            this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...tickerMap };
             this._lastTickerFetchTime = Date.now();
             try {
-                sessionStorage.setItem('UPBIT_TICKER_CACHE_V3', JSON.stringify(tickerMap));
+                sessionStorage.setItem('UPBIT_TICKER_CACHE_V3', JSON.stringify(this._cachedTickerMap));
             } catch (e) {}
-            return tickerMap;
+            return this._cachedTickerMap;
         }
 
-        // 6. 만약 429나 네트워크 단절로 수신 실패한 경우, 이전 캐시 데이터 반환 (유령 빈화면 방지)
+        // 6. 만약 수신 실패한 경우, 이전 유효 캐시 데이터 반환 (화면 백화 방지)
         if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20) {
             return this._cachedTickerMap;
         }
         if (sessionCached && Object.keys(sessionCached).length > 20) {
-            return sessionCached;
+            this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...sessionCached };
+            return this._cachedTickerMap;
         }
 
         return tickerMap;
