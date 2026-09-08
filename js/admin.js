@@ -1088,6 +1088,8 @@ const AdminApp = {
             this.renderModeration();
         } else if (tabId === 'system') {
             this.renderSystemHealth();
+        } else if (tabId === 'resources') {
+            this.renderCloudResources();
         }
     },
 
@@ -1096,6 +1098,7 @@ const AdminApp = {
         this.renderUsers();
         this.renderModeration();
         this.renderSystemHealth();
+        this.renderCloudResources();
     },
 
     renderAnalytics: async function () {
@@ -1361,6 +1364,33 @@ const AdminApp = {
                 <span class="text-cyan-400 font-bold">${item.sizeKB} KB</span>
               </div>
             `).join('');
+        }
+    },
+
+    renderCloudResources: async function (forceRefresh = false) {
+        try {
+            const pushEl = document.getElementById('admin-gh-last-pushed');
+            const sizeEl = document.getElementById('admin-gh-repo-size');
+            if (pushEl && forceRefresh) pushEl.innerText = '실시간 조회 중...';
+
+            const repoRes = await fetch('https://api.github.com/repos/ittechkjh/homepage');
+            if (repoRes.ok) {
+                const repoData = await repoRes.json();
+                if (repoData) {
+                    if (sizeEl && repoData.size) {
+                        sizeEl.innerText = repoData.size.toLocaleString() + ' KB';
+                    }
+                    if (pushEl && repoData.pushed_at) {
+                        pushEl.innerText = new Date(repoData.pushed_at).toLocaleString('ko-KR');
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('GitHub public API fetch note:', e);
+        }
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            lucide.createIcons();
         }
     },
 

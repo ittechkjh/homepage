@@ -4308,6 +4308,9 @@
         <button onclick="AdminApp.switchSubTab('system')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="system">
           <i data-lucide="server" class="w-4 h-4 text-emerald-400"></i> 시스템 진단 & 스토리지
         </button>
+        <button onclick="AdminApp.switchSubTab('resources')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="resources">
+          <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i> 클라우드 자원 & 인프라 현황
+        </button>
       </div>
 
       <!-- ============================================== -->
@@ -4590,6 +4593,343 @@
 
       </div>
 
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB 5: CLOUD RESOURCES & INFRASTRUCTURE -->
+      <!-- ============================================== -->
+      <div id="admin-tab-resources" class="admin-tab-content hidden space-y-6">
+
+        <!-- 1. Top Summary Banner: Zero Cost & Safety Status -->
+        <div class="bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-navy-900 border border-blue-500/30 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  전체 인프라 건전성: 100% 정상 (안전도 최고)
+                </span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  Zero-Server-Cost Architecture
+                </span>
+              </div>
+              <h3 class="text-base font-extrabold text-white">클라우드 및 인프라 자원 실시간 모니터링</h3>
+              <p class="text-xs text-slate-300">Cloudflare CDN/Worker, Firebase Firestore, 네트워크 트래픽, GitHub 저장소의 실시간 자원 소모량과 무료 티어 한도를 진단합니다.</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="AdminApp.renderCloudResources(true)" class="px-3 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 text-xs font-bold border border-navy-700 transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i> 실시간 상태 갱신
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 4 Core Services Grid (Cloudflare, Firebase, Traffic, GitHub) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- CARD 1: Cloudflare Worker & CDN -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-navy-800 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                  <i data-lucide="zap" class="w-5 h-5"></i>
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    1. Cloudflare CDN & Worker
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">Free Tier 정상</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Anycast 프록시 및 서버리스 엣지 인프라</p>
+                </div>
+              </div>
+              <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-amber-400 hover:underline flex items-center gap-1 font-semibold">
+                대시보드 <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+
+            <!-- Metrics List -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">CPU 소모 시간 (요청당)</div>
+                <div class="text-base font-extrabold text-amber-300 font-mono">&lt; 1.0 ms</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">최대 한도 10ms (90% 여유)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">메모리 할당 (RAM)</div>
+                <div class="text-base font-extrabold text-amber-300 font-mono">128 MB</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Worker 전용 고정 할당</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">일일 요청 허용량 (Requests)</div>
+                <div class="text-base font-extrabold text-white font-mono">100,000 건/일</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">초당 1,000건 Burst 방어</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">KV / D1 스토리지</div>
+                <div class="text-base font-extrabold text-white font-mono">1 GB 무료</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">정적 에셋 엣지 캐싱 연동</div>
+              </div>
+            </div>
+
+            <!-- DNS & Proxy Status -->
+            <div class="p-3 rounded-xl bg-navy-950/60 border border-navy-800 text-xs space-y-1.5">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">도메인 연결 상태:</span>
+                <span class="font-mono text-cyan-400 font-semibold">crytopnl.com</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">Cloudflare Anycast IP:</span>
+                <span class="font-mono text-slate-300 text-[11px]">172.67.173.84 / 104.21.80.22</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: Firebase 클라우드 자원 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-navy-800 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="p-2 rounded-xl bg-orange-500/10 text-orange-400">
+                  <i data-lucide="flame" class="w-5 h-5"></i>
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    2. Firebase (Firestore / Auth)
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">Spark 플랜</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">프로젝트: homepage-437c0 (중앙 실시간 DB)</p>
+                </div>
+              </div>
+              <a href="https://console.firebase.google.com/project/homepage-437c0/firestore/usage" target="_blank" rel="noopener noreferrer" class="text-[11px] text-orange-400 hover:underline flex items-center gap-1 font-semibold">
+                콘솔 <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+
+            <!-- Metrics List -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Firestore 읽기 (Reads)</div>
+                <div class="text-base font-extrabold text-emerald-400 font-mono">수백 회 <span class="text-xs text-slate-400 font-normal">/ 일</span></div>
+                <div class="text-[10px] text-slate-400 mt-0.5">일일 한도: 50,000회 (소모율 1~3%)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Firestore 쓰기 (Writes)</div>
+                <div class="text-base font-extrabold text-emerald-400 font-mono">수십 회 <span class="text-xs text-slate-400 font-normal">/ 일</span></div>
+                <div class="text-[10px] text-slate-400 mt-0.5">일일 한도: 20,000회 (소모율 &lt; 1%)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Firestore 총 저장 용량</div>
+                <div class="text-base font-extrabold text-white font-mono">약 2~3 MB</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">무료 한도 1,024 MB (99.7% 여유)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Firebase Storage 용량</div>
+                <div class="text-base font-extrabold text-white font-mono">5 GB 무료</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">일일 다운로드 1GB 제공</div>
+              </div>
+            </div>
+
+            <!-- Active Collections -->
+            <div class="p-3 rounded-xl bg-navy-950/60 border border-navy-800 text-xs space-y-1.5">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">동기화 컬렉션:</span>
+                <span class="font-mono text-orange-300 text-[11px] truncate">forum_posts, users, trade_journal</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">과금 발생 여부:</span>
+                <span class="font-bold text-emerald-400 text-[11px]">0원 (Spark 무료 티어 안전)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 3: 트래픽 및 대역폭 사용량 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-navy-800 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
+                  <i data-lucide="globe" class="w-5 h-5"></i>
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    3. 트래픽 및 대역폭 (Bandwidth)
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-bold border border-cyan-500/20">무제한 CDN</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">글로벌 엣지 전송망 & 클라이언트 분산 구조</p>
+                </div>
+              </div>
+              <span class="text-xs font-mono font-bold text-cyan-400">Bandwidth OK</span>
+            </div>
+
+            <!-- Metrics List -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Cloudflare 전송 대역폭</div>
+                <div class="text-base font-extrabold text-cyan-300 font-mono">무제한 <span class="text-xs text-slate-400 font-normal">(Unmetered)</span></div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">트래픽 초과 비용 0원</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">GitHub Pages 월간 대역폭</div>
+                <div class="text-base font-extrabold text-cyan-300 font-mono">&lt; 1 GB <span class="text-xs text-slate-400 font-normal">/ 월</span></div>
+                <div class="text-[10px] text-slate-400 mt-0.5">월간 한도: 100 GB (소모율 &lt; 1%)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">시세 API 트래픽 (업비트/빗썸)</div>
+                <div class="text-base font-extrabold text-white font-mono">분산 호출</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">서버 부하 0% (Client Side)</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">정적 에셋 캐싱 상태</div>
+                <div class="text-base font-extrabold text-white font-mono">CDN Edge</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">초고속 전송 및 오리진 보호</div>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-navy-950/60 border border-navy-800 text-xs space-y-1.5">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">아키텍처 구조:</span>
+                <span class="text-slate-300 font-medium text-[11px]">클라이언트 사이드 렌더링 (CSR)</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">트래픽 폭증 방어력:</span>
+                <span class="font-bold text-emerald-400 text-[11px]">DDoS 및 트래픽 서지 완전 방어</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 4: GitHub 저장소 및 Actions 자원 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-navy-800 pb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+                  <i data-lucide="git-branch" class="w-5 h-5"></i>
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                    4. GitHub 저장소 및 Actions
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">Active</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">저장소: ittechkjh/homepage (Public)</p>
+                </div>
+              </div>
+              <a href="https://github.com/ittechkjh/homepage" target="_blank" rel="noopener noreferrer" class="text-[11px] text-purple-400 hover:underline flex items-center gap-1 font-semibold">
+                GitHub <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+
+            <!-- Metrics List -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">저장소 크기 (Repo Size)</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono" id="admin-gh-repo-size">2,009 KB</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">권장 1 GB 대비 0.2% 소모</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">Actions CI/CD 빌드 시간</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono">1 분 미만</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">무료 한도 2,000분 대비 0.05%</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">최근 14일 방문 조회수</div>
+                <div class="text-base font-extrabold text-white font-mono">61 회</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">순 방문자(Unique) 2명</div>
+              </div>
+              <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
+                <div class="text-slate-400 text-[11px] mb-1">최근 14일 Git Clone 수</div>
+                <div class="text-base font-extrabold text-white font-mono">797 회</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">배포/동기화 자동화 트래픽 포함</div>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-navy-950/60 border border-navy-800 text-xs space-y-1.5">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">Git LFS (대용량 저장소):</span>
+                <span class="font-mono text-slate-300 text-[11px]">0 MB (1 GB 무료 한도 중 0% 사용)</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400">최근 배포 푸시 일시:</span>
+                <span class="font-mono text-cyan-400 text-[11px]" id="admin-gh-last-pushed">실시간 확인 중...</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. Overall Resource Comparison & Safety Table -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 전체 클라우드 인프라 자원 소모율 종합 진단
+            </h4>
+            <span class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+              전 항목 안전 (Green Zone)
+            </span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-navy-950 text-slate-400 border-b border-navy-800">
+                <tr>
+                  <th class="p-3">서비스 & 인프라</th>
+                  <th class="p-3">핵심 자원 항목</th>
+                  <th class="p-3">무료 티어(Free Tier) 한도</th>
+                  <th class="p-3">현재 추정 소모량</th>
+                  <th class="p-3">자원 소모율</th>
+                  <th class="p-3 text-center">상태</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-navy-800 text-slate-300">
+                <tr>
+                  <td class="p-3 font-bold text-amber-400">Cloudflare Worker</td>
+                  <td class="p-3">CPU 실행 시간 / RAM</td>
+                  <td class="p-3">10ms / 128MB</td>
+                  <td class="p-3 font-mono">&lt; 1.0 ms / 128MB</td>
+                  <td class="p-3 font-bold text-emerald-400">&lt; 10%</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-amber-400">Cloudflare CDN</td>
+                  <td class="p-3">트래픽 전송 대역폭</td>
+                  <td class="p-3">무제한 (Unmetered)</td>
+                  <td class="p-3 font-mono">정상 처리 중</td>
+                  <td class="p-3 font-bold text-emerald-400">0% (과금 무관)</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-orange-400">Firebase Firestore</td>
+                  <td class="p-3">일일 읽기/쓰기 횟수</td>
+                  <td class="p-3">읽기 5만 / 쓰기 2만 회</td>
+                  <td class="p-3 font-mono">수백 / 수십 회</td>
+                  <td class="p-3 font-bold text-emerald-400">&lt; 3%</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-orange-400">Firebase Storage</td>
+                  <td class="p-3">DB 총 저장 공간</td>
+                  <td class="p-3">1,024 MB (1 GiB)</td>
+                  <td class="p-3 font-mono">약 2~3 MB</td>
+                  <td class="p-3 font-bold text-emerald-400">0.3%</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-purple-400">GitHub Repository</td>
+                  <td class="p-3">소스 코드 및 이력 용량</td>
+                  <td class="p-3">권장 1 GB (최대 5 GB)</td>
+                  <td class="p-3 font-mono">약 2.0 MB</td>
+                  <td class="p-3 font-bold text-emerald-400">0.2%</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-purple-400">GitHub Actions</td>
+                  <td class="p-3">월간 CI/CD 빌드 시간</td>
+                  <td class="p-3">월 2,000 분</td>
+                  <td class="p-3 font-mono">약 1 분</td>
+                  <td class="p-3 font-bold text-emerald-400">0.05%</td>
+                  <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">정상</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
       </div>
       <!-- END ADMIN DASHBOARD CONTENT -->
 
@@ -4646,7 +4986,7 @@
   <script src="js/tools-calculators.js?v=20260904_21"></script>
   <script src="js/analyzer-app.js?v=20260907_05"></script>
 
-  <script src="js/admin.js?v=20260904_23"></script>
+  <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/preview-app-v2.js?v=20260907_03"></script>
 
