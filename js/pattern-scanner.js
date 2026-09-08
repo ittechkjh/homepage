@@ -531,7 +531,7 @@ const PatternScannerEngine = {
                 const bVol24h = hasBithumbTicker ? parseFloat(b.acc_trade_value_24H || b.acc_trade_value || 0) : 0;
 
                 if (hasUpbitTicker) {
-                    exchange = 'UPBIT';
+                    exchange = hasBithumbTicker ? 'BOTH' : 'UPBIT';
                     finalPrice = uPrice;
                     finalChange = uChange;
                     // 업비트 공식 거래소 화면(24H 거래대금)과 100% 일치하도록 24H 누적 거래대금 우선 적용
@@ -665,7 +665,8 @@ const PatternScannerEngine = {
         const formatMoney = this.formatMoney;
         const formatPrice = this.formatPrice;
 
-        let coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
+        // 원본 allMarketCoins를 보호하기 위해 깊은 복사 수행 (enrich 함수가 직접 수정하므로 원본 오염 방지)
+        let coins = (marketCoins && marketCoins.length > 0) ? JSON.parse(JSON.stringify(marketCoins)) : JSON.parse(JSON.stringify(this.allMarketCoins || []));
 
         if (this.currentExchange === 'UPBIT') {
             coins = coins.filter(c => c.hasUpbit).map(c => ({
@@ -737,8 +738,9 @@ const PatternScannerEngine = {
             return list.map(item => {
                 const sym = item.symbol;
                 const c = coinMap[sym] || {};
-                const uVol = (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0) || (c.upbitVolume24h > 0 ? c.upbitVolume24h : 0);
-                const bVol = (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0) || (c.bithumbVolume24h > 0 ? c.bithumbVolume24h : 0);
+                // 거래대금: 원본 allMarketCoins(c)를 최우선으로 참조하여 enrich 오염 방지
+                const uVol = (c.upbitVolume24h > 0 ? c.upbitVolume24h : 0) || (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
+                const bVol = (c.bithumbVolume24h > 0 ? c.bithumbVolume24h : 0) || (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
                 const uPrice = (item.upbitPrice > 0 ? item.upbitPrice : 0) || (c.upbitPrice > 0 ? c.upbitPrice : 0);
                 const bPrice = (item.bithumbPrice > 0 ? item.bithumbPrice : 0) || (c.bithumbPrice > 0 ? c.bithumbPrice : 0);
                 const uChange = item.upbitChange !== undefined ? item.upbitChange : (c.upbitChange !== undefined ? c.upbitChange : 0);
