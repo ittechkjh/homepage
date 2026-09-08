@@ -134,7 +134,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260904_22">
+  <link rel="stylesheet" href="styles.css?v=20260908_01">
   <link rel="stylesheet" href="css/analyzer.css?v=20260907_02">
 
   <style>
@@ -4143,6 +4143,69 @@
           font-weight: 800 !important;
           box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }
+
+        /* Light Theme High-Contrast Overrides */
+        html.theme-light .pattern-cat-tab {
+          background: #ffffff !important;
+          color: #334155 !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        html.theme-light .pattern-cat-tab:hover {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+          border-color: #94a3b8 !important;
+        }
+        html.theme-light .pattern-cat-tab.active {
+          background: #ecfdf5 !important;
+          color: #065f46 !important;
+          border-color: #059669 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
+        }
+        html.theme-light .pattern-cat-tab.active span {
+          background: #059669 !important;
+          color: #ffffff !important;
+        }
+        html.theme-light .pattern-nav-item {
+          color: #334155 !important;
+          background: transparent !important;
+          border-color: transparent !important;
+        }
+        html.theme-light .pattern-nav-item:hover {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+        }
+        html.theme-light .pattern-nav-item.active {
+          background: #ecfdf5 !important;
+          color: #065f46 !important;
+          border-color: #059669 !important;
+          font-weight: 800 !important;
+        }
+        html.theme-light .pattern-nav-item.active span {
+          color: #065f46 !important;
+        }
+        html.theme-light .pattern-exchange-btn,
+        html.theme-light .pattern-tf-btn {
+          background: #ffffff !important;
+          color: #334155 !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        html.theme-light .pattern-exchange-btn:hover,
+        html.theme-light .pattern-tf-btn:hover {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+          border-color: #94a3b8 !important;
+        }
+        html.theme-light .pattern-exchange-btn.active,
+        html.theme-light .pattern-tf-btn.active {
+          background: #059669 !important;
+          color: #ffffff !important;
+          border-color: #047857 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25) !important;
+        }
       </style>
 
       <!-- Top Header & Search Bar (캡처 1:1) -->
@@ -5347,7 +5410,7 @@
 
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260908_03"></script>
+  <script src="js/pattern-scanner.js?v=20260908_04"></script>
   <script src="js/preview-app-v2.js?v=20260908_03"></script>
 
     <!-- PnL Verification Modal -->

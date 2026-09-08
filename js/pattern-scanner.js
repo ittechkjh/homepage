@@ -224,7 +224,7 @@ const PatternScannerEngine = {
                         class="pattern-nav-item ${this.currentPattern === p.key ? 'active' : ''} shrink-0 md:shrink group" 
                         data-pattern="${p.key}">
                     <span>${p.name}</span>
-                    ${p.hasGuide ? `<span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('${p.key}')" class="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>` : ''}
+                    ${p.hasGuide ? `<span onclick="event.stopPropagation(); PatternScannerEngine.openPatternModal('${p.key}')" class="pattern-guide-qmark w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-500 hover:text-navy-950 text-slate-400 flex items-center justify-center text-[10px] font-bold transition ml-2 shrink-0" title="패턴 가이드">?</span>` : ''}
                 </button>
             `).join('');
 

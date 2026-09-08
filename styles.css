@@ -580,4 +580,190 @@ html.theme-light #admin-feat-community-bar {
   background: linear-gradient(to right, #10b981, #14b8a6) !important;
 }
 
+/* 16. Pattern Scanner & AI Radar High-Contrast Light Theme */
+html.theme-light .pattern-cat-tab {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  font-weight: 700 !important;
+}
+html.theme-light .pattern-cat-tab:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+html.theme-light .pattern-cat-tab.active {
+  background: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1.5px solid #059669 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
+}
+html.theme-light .pattern-cat-tab.active span {
+  background: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+html.theme-light .pattern-nav-item {
+  color: #334155 !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+}
+html.theme-light .pattern-nav-item:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+html.theme-light .pattern-nav-item.active {
+  background: #ecfdf5 !important;
+  color: #065f46 !important;
+  border-color: #059669 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.12) !important;
+}
+html.theme-light .pattern-nav-item.active span {
+  color: #065f46 !important;
+  font-weight: 800 !important;
+}
+html.theme-light #pattern-sidebar-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light .pattern-guide-qmark,
+html.theme-light .pattern-nav-item [title="패턴 가이드"] {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html.theme-light .pattern-guide-qmark:hover,
+html.theme-light .pattern-nav-item [title="패턴 가이드"]:hover {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+}
+
+html.theme-light .pattern-exchange-btn,
+html.theme-light .pattern-tf-btn {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light .pattern-exchange-btn:hover,
+html.theme-light .pattern-tf-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+html.theme-light .pattern-exchange-btn.active,
+html.theme-light .pattern-tf-btn.active {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border-color: #047857 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25) !important;
+}
+
+html.theme-light .pattern-signal-card {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+html.theme-light .pattern-signal-card:hover {
+  border-color: #059669 !important;
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.1) !important;
+}
+html.theme-light .pattern-signal-card h4 {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+html.theme-light .pattern-signal-card .text-slate-400,
+html.theme-light .pattern-signal-card .text-slate-500 {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+html.theme-light .pattern-signal-card .text-slate-300 {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+html.theme-light .pattern-signal-card .text-slate-200 {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light .pattern-signal-card .text-emerald-400 {
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
+html.theme-light .pattern-signal-card button {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+html.theme-light .pattern-signal-card button:hover {
+  color: #0369a1 !important;
+}
+html.theme-light .pattern-similarity-pill {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] {
+  background-color: #fffbeb !important;
+  border: 1.5px solid #fde68a !important;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.08) !important;
+}
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] span.text-amber-300,
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] span.font-bold,
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] [data-lucide="shield-alert"] {
+  color: #b45309 !important;
+  font-weight: 800 !important;
+}
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] p,
+html.theme-light #tab-patterns [class*="bg-amber-500/10"] p.text-slate-300 {
+  color: #78350f !important;
+  font-weight: 500 !important;
+}
+html.theme-light #pattern-refresh-time {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+html.theme-light #pattern-total-count-badge {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+  font-weight: 800 !important;
+}
+
+/* 17. Community Sub-Navigation Bar in Light Mode */
+html.theme-light .community-subnav-bar {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light .community-subtab-forum.font-extrabold,
+html.theme-light .community-subtab-chat.font-extrabold,
+html.theme-light .community-subtab-guides.font-extrabold {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1px solid #0284c7 !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+}
+html.theme-light .community-subtab-forum.font-medium,
+html.theme-light .community-subtab-chat.font-medium,
+html.theme-light .community-subtab-guides.font-medium {
+  color: #475569 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+}
+html.theme-light .community-subtab-forum.font-medium:hover,
+html.theme-light .community-subtab-chat.font-medium:hover,
+html.theme-light .community-subtab-guides.font-medium:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+
 
