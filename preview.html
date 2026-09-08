@@ -4218,12 +4218,12 @@
         <!-- Left Sidebar: 13 Pattern Navigation (캡처 1:1) -->
         <aside class="w-full md:w-56 shrink-0 bg-navy-900/80 border border-navy-800 rounded-2xl p-2.5 space-y-1 overflow-x-auto md:overflow-x-visible no-scrollbar">
           <div class="hidden md:flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold text-slate-400 tracking-wider">
-            <span>패턴 카테고리 (13종)</span>
+            <span id="pattern-sidebar-title">패턴 카테고리 (13종)</span>
             <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-500"></i>
           </div>
 
           <!-- Mobile: Horizontal pill list / Desktop: Vertical nav -->
-          <div class="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible no-scrollbar pb-1 md:pb-0">
+          <div id="pattern-sidebar-items" class="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible no-scrollbar pb-1 md:pb-0">
             <!-- 1. 전체 -->
             <button onclick="PatternScannerEngine.selectPattern('ALL')" class="pattern-nav-item active shrink-0 md:shrink" data-pattern="ALL">
               <span>전체</span>
@@ -5336,8 +5336,8 @@
 
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260908_01"></script>
-  <script src="js/preview-app-v2.js?v=20260908_01"></script>
+  <script src="js/pattern-scanner.js?v=20260908_02"></script>
+  <script src="js/preview-app-v2.js?v=20260908_02"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
