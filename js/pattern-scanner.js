@@ -608,6 +608,21 @@ const PatternScannerEngine = {
                 }
             }
 
+            // [DEBUG] 거래대금 분리 검증 로그
+            try {
+                var _dc = ['BTC','ETH','XRP','SOL','DOGE'];
+                console.group('[PatternScanner] 거래대금 분리 검증');
+                _dc.forEach(function(sym) {
+                    var c = (this.allMarketCoins || []).find(function(x) { return x.symbol === sym; });
+                    if (c) {
+                        var fmt = function(v) { return v ? (v >= 1e8 ? (v/1e8).toFixed(1) + '억' : (v/1e4).toFixed(0) + '만') : '0'; };
+                        var same = c.upbitVolume24h > 0 && c.bithumbVolume24h > 0 && Math.abs(c.upbitVolume24h - c.bithumbVolume24h) < 10000;
+                        console.log(sym + ': 업비트=' + fmt(c.upbitVolume24h) + ' (' + c.upbitVolume24h + ') | 빗썸=' + fmt(c.bithumbVolume24h) + ' (' + c.bithumbVolume24h + ') | exchange=' + c.exchange + ' | ' + (same ? '⚠️ 동일!' : '✅ 다름'));
+                    }
+                }.bind(this));
+                console.groupEnd();
+            } catch(dbgErr) {}
+
             this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
 
             const timeEl = document.getElementById('pattern-refresh-time');
@@ -1421,6 +1436,11 @@ const PatternScannerEngine = {
             // 거래대금 포맷: 각 거래소 고유 실시간 24H 거래대금 엄격 바인딩 (타 거래소 누수 완전 차단)
             const uVol = (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
             const bVol = (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
+            // [DEBUG] 렌더링 시점 거래대금 값 확인
+            if (['BTC','ETH','XRP'].includes(item.symbol)) {
+                var _fmt = function(v) { return v ? (v >= 1e8 ? (v/1e8).toFixed(1) + '억' : (v/1e4).toFixed(0) + '만') : '0'; };
+                console.log('[renderCard] ' + item.symbol + ': uVol=' + _fmt(uVol) + '(' + uVol + ') bVol=' + _fmt(bVol) + '(' + bVol + ') same=' + (uVol > 0 && bVol > 0 && Math.abs(uVol-bVol) < 10000));
+            }
             const uPrice = (item.upbitPrice > 0 ? item.upbitPrice : 0);
             const bPrice = (item.bithumbPrice > 0 ? item.bithumbPrice : 0);
             const hasBothReal = uVol > 0 && bVol > 0 && Math.abs(uVol - bVol) > 1000;
