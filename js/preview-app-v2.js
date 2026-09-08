@@ -3063,6 +3063,60 @@ function switchTab(tabId, updateHash = true) {
 }
 window.switchTab = switchTab;
 
+// ----------------------------------------------------
+// All Services Sitemap Modal Functions
+// ----------------------------------------------------
+function openAllMenuModal() {
+  const modal = document.getElementById('modal-all-menu');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    const input = document.getElementById('all-menu-search-input');
+    if (input) {
+      input.value = '';
+      filterAllMenuCards('');
+      setTimeout(() => input.focus(), 100);
+    }
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
+  }
+}
+window.openAllMenuModal = openAllMenuModal;
+
+function closeAllMenuModal() {
+  const modal = document.getElementById('modal-all-menu');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+window.closeAllMenuModal = closeAllMenuModal;
+
+function filterAllMenuCards(query) {
+  const q = (query || '').trim().toLowerCase();
+  const cards = document.querySelectorAll('.all-menu-card');
+  const categories = document.querySelectorAll('.all-menu-category');
+
+  cards.forEach(card => {
+    const searchData = (card.dataset.search || '').toLowerCase();
+    const textContent = card.innerText.toLowerCase();
+    const isMatch = !q || searchData.includes(q) || textContent.includes(q);
+    card.style.display = isMatch ? 'flex' : 'none';
+  });
+
+  categories.forEach(cat => {
+    const visibleCards = cat.querySelectorAll('.all-menu-card:not([style*="display: none"])');
+    cat.style.display = visibleCards.length > 0 ? 'block' : 'none';
+  });
+}
+window.filterAllMenuCards = filterAllMenuCards;
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeAllMenuModal();
+  }
+});
 
 // ----------------------------------------------------
 // Section 9: Utilities & Event Listeners
