@@ -987,23 +987,6 @@ const UpbitAPI = {
             }
         }
 
-        // 5. Fallback to Baseline prices for any remaining missing coins
-        krwMarkets.forEach(m => {
-            const sym = m.replace('KRW-', '').toUpperCase();
-            if (!tickerMap[m] && this.fallbackPrices[sym]) {
-                const entry = {
-                    tradePrice: this.fallbackPrices[sym],
-                    signedChangeRate: 0.0,
-                    accTradeVolume24h: 100000000,
-                    timestamp: Date.now()
-                };
-                tickerMap[m] = entry;
-                tickerMap[sym] = entry;
-                tickerMap['UPBIT:::' + m] = entry;
-                tickerMap['BITHUMB:::' + m] = entry;
-            }
-        });
-
         return tickerMap;
     },
 

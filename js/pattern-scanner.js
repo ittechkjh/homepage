@@ -458,22 +458,19 @@ const PatternScannerEngine = {
                     symSet.add(sym.toUpperCase());
                 }
             }
-            if (typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
-                for (const sym in UpbitAPI.knownKoreanNames) {
-                    symSet.add(sym.toUpperCase());
-                }
-            }
 
             symSet.forEach(sym => {
                 const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
                 const b = bMap[sym];
 
-                const isKnownUpbit = typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames && !!UpbitAPI.knownKoreanNames[sym];
-                // 엄격한 업비트 데이터 검증 (isUpbit가 명시적 true인 경우만 업비트 시세로 인정)
+                // 엄격한 업비트 데이터 검증 (isUpbit가 명시적 true이고 실시간 체결가가 있는 경우만 인정)
                 const hasUpbitTicker = !!(u && u.isUpbit && u.tradePrice > 0);
                 const hasBithumbTicker = !!(b && b.closing_price && parseFloat(b.closing_price) > 0);
 
-                let exchange = hasUpbitTicker ? 'UPBIT' : (hasBithumbTicker ? 'BITHUMB' : (isKnownUpbit ? 'UPBIT' : 'BITHUMB'));
+                // 실시간 거래소 티커가 없는 미상장/상장폐지 코인은 가짜 데이터 생성을 차단하기 위해 제외
+                if (!hasUpbitTicker && !hasBithumbTicker) return;
+
+                let exchange = hasUpbitTicker ? 'UPBIT' : 'BITHUMB';
                 let finalPrice = 0;
                 let finalChange = 0;
                 let finalVol = 0;
@@ -507,13 +504,6 @@ const PatternScannerEngine = {
                     highP = parseFloat(b.max_price) || finalPrice;
                     lowP = parseFloat(b.min_price) || finalPrice;
                     openP = parseFloat(b.opening_price) || finalPrice;
-                } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fallbackPrices && UpbitAPI.fallbackPrices[sym]) {
-                    finalPrice = UpbitAPI.fallbackPrices[sym];
-                    finalChange = 0;
-                    finalVol = 100000000;
-                    highP = finalPrice;
-                    lowP = finalPrice;
-                    openP = finalPrice;
                 }
 
                 if (finalPrice <= 0) return;
