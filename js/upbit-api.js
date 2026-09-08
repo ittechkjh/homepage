@@ -755,12 +755,15 @@ const UpbitAPI = {
                             const closeP = parseFloat(bData.data[sym].closing_price);
                             const changeR = parseFloat(bData.data[sym].fluctate_rate_24H || 0);
                             if (closeP > 0) {
-                                const bTradeValue = parseFloat(bData.data[sym].acc_trade_value_24H || 0);
+                                const bTradeValueToday = parseFloat(bData.data[sym].acc_trade_value || 0);
+                                const bTradeValue24h = parseFloat(bData.data[sym].acc_trade_value_24H || 0);
                                 const entry = {
                                     tradePrice: closeP,
                                     signedChangeRate: changeR / 100,
-                                    accTradeVolume24h: bTradeValue,
-                                    accTradePrice24h: bTradeValue,
+                                    accTradeVolume: bTradeValueToday > 0 ? bTradeValueToday : bTradeValue24h,
+                                    accTradePrice: bTradeValueToday > 0 ? bTradeValueToday : bTradeValue24h,
+                                    accTradeVolume24h: bTradeValue24h > 0 ? bTradeValue24h : bTradeValueToday,
+                                    accTradePrice24h: bTradeValue24h > 0 ? bTradeValue24h : bTradeValueToday,
                                     highPrice: parseFloat(bData.data[sym].max_price || closeP),
                                     lowPrice: parseFloat(bData.data[sym].min_price || closeP),
                                     openingPrice: parseFloat(bData.data[sym].prev_closing_price || bData.data[sym].opening_price || closeP),
@@ -795,15 +798,20 @@ const UpbitAPI = {
                             if (Array.isArray(uJson)) {
                                 uJson.forEach(item => {
                                     if (!item || !item.market) return;
-                                    const krwVolume = parseFloat(item.acc_trade_price_24h || 0);
-                                    const coinVolume = parseFloat(item.acc_trade_volume_24h || 0);
                                     const tradeP = parseFloat(item.trade_price);
-                                    const finalVol = krwVolume > 0 ? krwVolume : (coinVolume * tradeP);
+                                    const krwVolumeToday = parseFloat(item.acc_trade_price || 0);
+                                    const krwVolume24h = parseFloat(item.acc_trade_price_24h || 0);
+                                    const coinVolumeToday = parseFloat(item.acc_trade_volume || 0);
+                                    const coinVolume24h = parseFloat(item.acc_trade_volume_24h || 0);
+                                    const finalVolToday = krwVolumeToday > 0 ? krwVolumeToday : (coinVolumeToday * tradeP);
+                                    const finalVol24h = krwVolume24h > 0 ? krwVolume24h : (coinVolume24h * tradeP);
                                     const entry = {
                                         tradePrice: tradeP,
                                         signedChangeRate: parseFloat(item.signed_change_rate || 0),
-                                        accTradeVolume24h: finalVol,
-                                        accTradePrice24h: finalVol,
+                                        accTradeVolume: finalVolToday,
+                                        accTradePrice: finalVolToday,
+                                        accTradeVolume24h: finalVol24h,
+                                        accTradePrice24h: finalVol24h,
                                         highPrice: parseFloat(item.high_price || item.trade_price),
                                         lowPrice: parseFloat(item.low_price || item.trade_price),
                                         openingPrice: parseFloat(item.opening_price || item.trade_price),

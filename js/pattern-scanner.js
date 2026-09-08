@@ -494,17 +494,19 @@ const PatternScannerEngine = {
 
                 const uPrice = hasUpbitTicker ? u.tradePrice : 0;
                 const uChange = hasUpbitTicker ? (u.signedChangeRate || 0) * 100 : 0;
-                const uVol = hasUpbitTicker ? (u.accTradePrice24h || u.accTradeVolume24h || 0) : 0;
+                const uVolToday = hasUpbitTicker ? (u.accTradePrice || u.accTradePrice24h || 0) : 0;
+                const uVol24h = hasUpbitTicker ? (u.accTradePrice24h || u.accTradePrice || 0) : 0;
 
                 const bPrice = hasBithumbTicker ? parseFloat(b.closing_price) : 0;
                 const bChange = hasBithumbTicker ? parseFloat(b.fluctate_rate_24H || 0) : 0;
-                const bVol = hasBithumbTicker ? parseFloat(b.acc_trade_value_24H || 0) : 0;
+                const bVolToday = hasBithumbTicker ? parseFloat(b.acc_trade_value || b.acc_trade_value_24H || 0) : 0;
+                const bVol24h = hasBithumbTicker ? parseFloat(b.acc_trade_value_24H || b.acc_trade_value || 0) : 0;
 
                 if (hasUpbitTicker) {
                     exchange = 'UPBIT';
                     finalPrice = uPrice;
                     finalChange = uChange;
-                    finalVol = uVol;
+                    finalVol = uVolToday;
                     highP = u.highPrice || finalPrice;
                     lowP = u.lowPrice || finalPrice;
                     openP = u.openingPrice || finalPrice;
@@ -512,7 +514,7 @@ const PatternScannerEngine = {
                     exchange = isKnownUpbit ? 'UPBIT' : 'BITHUMB';
                     finalPrice = bPrice;
                     finalChange = bChange;
-                    finalVol = bVol;
+                    finalVol = bVolToday;
                     highP = parseFloat(b.max_price) || finalPrice;
                     lowP = parseFloat(b.min_price) || finalPrice;
                     openP = parseFloat(b.opening_price) || finalPrice;
@@ -542,13 +544,16 @@ const PatternScannerEngine = {
                     hasBithumb: hasBithumbTicker,
                     upbitPrice: uPrice || (isKnownUpbit ? finalPrice : 0),
                     upbitChange: hasUpbitTicker ? uChange : (isKnownUpbit ? finalChange : 0),
-                    upbitVolume24h: uVol || (isKnownUpbit ? finalVol : 0),
+                    upbitVolume: uVolToday || (isKnownUpbit ? finalVol : 0),
+                    upbitVolume24h: uVol24h || (isKnownUpbit ? finalVol : 0),
                     bithumbPrice: bPrice,
                     bithumbChange: bChange,
-                    bithumbVolume24h: bVol,
+                    bithumbVolume: bVolToday,
+                    bithumbVolume24h: bVol24h,
                     livePrice: finalPrice,
                     liveChange: finalChange,
-                    liveVolume24h: finalVol,
+                    liveVolume: finalVol,
+                    liveVolume24h: hasUpbitTicker ? uVol24h : (hasBithumbTicker ? bVol24h : finalVol),
                     high24h: highP,
                     low24h: lowP,
                     open24h: openP
@@ -596,22 +601,24 @@ const PatternScannerEngine = {
         }
     },
 
+    formatMoney: function (v) {
+        if (!v || v <= 0) return '-';
+        if (v >= 1000000000000) return (v / 1000000000000).toFixed(1) + '조';
+        if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
+        if (v >= 10000) return (v / 10000).toFixed(0) + '만';
+        return Math.round(v).toLocaleString();
+    },
+
+    formatPrice: function (p) {
+        if (!p || p <= 0) return '-';
+        return p >= 100 ? p.toLocaleString() : p;
+    },
+
     // 현재 탭 & 타임프레임에 맞춘 정밀 신호 데이터 생성기 (순수 실시간 마켓 데이터 기반 연산)
     generateSignalsForCurrentState: function (tickerMap = {}, marketCoins = []) {
         const is4H = this.currentTimeframe === '4H';
-
-        const formatMoney = (v) => {
-            if (!v || v <= 0) return '-';
-            if (v >= 1000000000000) return (v / 1000000000000).toFixed(1) + '조';
-            if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
-            if (v >= 10000) return (v / 10000).toFixed(0) + '만';
-            return Math.round(v).toLocaleString();
-        };
-
-        const formatPrice = (p) => {
-            if (!p || p <= 0) return '-';
-            return p >= 100 ? p.toLocaleString() : p;
-        };
+        const formatMoney = this.formatMoney;
+        const formatPrice = this.formatPrice;
 
         let coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
 
@@ -621,7 +628,8 @@ const PatternScannerEngine = {
                 exchange: 'UPBIT',
                 livePrice: c.upbitPrice > 0 ? c.upbitPrice : c.livePrice,
                 liveChange: c.upbitPrice > 0 && c.upbitChange !== null ? c.upbitChange : c.liveChange,
-                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : c.liveVolume24h
+                liveVolume: c.upbitVolume > 0 ? c.upbitVolume : (c.liveVolume || c.liveVolume24h),
+                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.liveVolume24h || c.liveVolume)
             }));
         } else if (this.currentExchange === 'BITHUMB') {
             coins = coins.filter(c => c.hasBithumb).map(c => ({
@@ -629,7 +637,8 @@ const PatternScannerEngine = {
                 exchange: 'BITHUMB',
                 livePrice: c.bithumbPrice > 0 ? c.bithumbPrice : c.livePrice,
                 liveChange: c.bithumbPrice > 0 && c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
-                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : c.liveVolume24h
+                liveVolume: c.bithumbVolume > 0 ? c.bithumbVolume : (c.liveVolume || c.liveVolume24h),
+                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.liveVolume24h || c.liveVolume)
             }));
         }
 
@@ -639,7 +648,8 @@ const PatternScannerEngine = {
             if (t && t.tradePrice > 0) {
                 item.livePrice = t.tradePrice;
                 item.liveChange = (t.signedChangeRate || 0) * 100;
-                item.liveVolume24h = t.accTradePrice24h || (t.accTradeVolume24h > 1000000 ? t.accTradeVolume24h : (t.tradePrice * (t.accTradeVolume24h || 0)));
+                item.liveVolume = t.accTradePrice || t.accTradePrice24h || 0;
+                item.liveVolume24h = t.accTradePrice24h || t.accTradePrice || 0;
             }
             return item;
         };
@@ -649,12 +659,14 @@ const PatternScannerEngine = {
             const realtimeList = [];
 
             if (coins.length > 0) {
-                // 1-1. 거래량 폭증 (Volume Surge): 실제 24H 거래대금 내림차순 정렬 (1위~10위)
-                const byVol = [...coins].sort((a, b) => b.liveVolume24h - a.liveVolume24h).slice(0, 10);
+                // 1-1. 거래량 폭증 (Volume Surge): 업비트/빗썸 실시간 거래대금 정렬 (1위~10위, 거래소 화면 100% 일치)
+                const byVol = [...coins].sort((a, b) => (b.liveVolume || b.liveVolume24h) - (a.liveVolume || a.liveVolume24h)).slice(0, 10);
                 byVol.forEach((c, idx) => {
                     const rank = idx + 1;
                     const badgeClr = rank === 1 ? 'bg-amber-400 text-navy-950 font-black' : (rank <= 3 ? 'bg-emerald-500 text-navy-950 font-black' : 'bg-cyan-400 text-navy-950 font-bold');
                     const exLabel = c.exchange === 'UPBIT' ? '업비트' : (c.exchange === 'BITHUMB' ? '빗썸' : '원화');
+                    const volTodayStr = formatMoney(c.liveVolume || c.liveVolume24h);
+                    const vol24hStr = formatMoney(c.liveVolume24h || c.liveVolume);
                     realtimeList.push({
                         symbol: c.symbol,
                         name: c.name,
@@ -663,14 +675,15 @@ const PatternScannerEngine = {
                         hasUpbit: c.hasUpbit,
                         hasBithumb: c.hasBithumb,
                         subFilter: 'volume_surge',
-                        badgeText: `거래대금 ${rank}위 (${formatMoney(c.liveVolume24h)})`,
+                        badgeText: `거래대금 ${rank}위 (${volTodayStr})`,
                         badgeColor: badgeClr,
-                        title: `${exLabel} 24H 거래대금 ${rank}위 기록`,
-                        comment: `24시간 거래대금 ${formatMoney(c.liveVolume24h)} 돌파하며 ${exLabel} 최다 유동성 집중`,
-                        periodStr: `실시간 거래대금: ${rank}위 (${formatMoney(c.liveVolume24h)})`,
+                        title: `${exLabel} 거래대금 ${rank}위 기록`,
+                        comment: `당일 거래대금 ${volTodayStr} (24H: ${vol24hStr}) 돌파하며 ${exLabel} 거래량 집중`,
+                        periodStr: `거래대금: 당일 ${volTodayStr} · 24H ${vol24hStr}`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
-                        liveVolume24h: c.liveVolume24h
+                        liveVolume: c.liveVolume || c.liveVolume24h,
+                        liveVolume24h: c.liveVolume24h || c.liveVolume
                     });
                 });
 
@@ -1207,6 +1220,8 @@ const PatternScannerEngine = {
             return;
         }
 
+        const formatMoney = this.formatMoney || ((v) => v >= 1e8 ? (v / 1e8).toFixed(1) + '억' : (v / 1e4).toFixed(0) + '만');
+
         listEl.innerHTML = filtered.map(item => {
             const exBadgeClass = item.exchange === 'UPBIT' 
                 ? 'bg-blue-500/15 text-blue-400 border-blue-500/30' 
@@ -1230,8 +1245,10 @@ const PatternScannerEngine = {
             const changeDisplay = item.liveChange !== undefined
                 ? `<span class="font-mono text-xs font-bold ${item.liveChange >= 0 ? 'text-crypto-green' : 'text-crypto-red'}">${item.liveChange >= 0 ? '+' : ''}${item.liveChange.toFixed(2)}%</span>`
                 : '';
-            const volumeDisplay = item.liveVolume24h
-                ? `<span class="text-[10px] text-slate-400 font-mono ml-auto">24H ${item.liveVolume24h >= 100000000 ? (item.liveVolume24h / 100000000).toFixed(0) + '억' : (item.liveVolume24h / 10000).toFixed(0) + '만'}</span>`
+            const curVol = item.liveVolume || item.liveVolume24h;
+            const curVol24h = item.liveVolume24h || item.liveVolume;
+            const volumeDisplay = curVol
+                ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="당일: ${formatMoney(curVol)} / 24H: ${formatMoney(curVol24h)}">거래대금 <strong class="text-emerald-400 font-bold">${formatMoney(curVol)}</strong></span>`
                 : '';
 
             return `
