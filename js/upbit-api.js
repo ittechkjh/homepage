@@ -942,16 +942,36 @@ const UpbitAPI = {
         }
 
         // 5. 신규 데이터 수신 시 기존 메모리 캐시와 누적 병합(Cumulative merge) 갱신
-        if (Object.keys(tickerMap).length > 0) {
+        if (Object.keys(tickerMap).length > 50) {
             this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...tickerMap };
             this._lastTickerFetchTime = Date.now();
+            // localStorage 영구 저장 (탭 전환/리로드 후에도 데이터 보존)
+            try {
+                localStorage.setItem('UPBIT_PERSISTENT_TICKERS', JSON.stringify({
+                    time: Date.now(),
+                    tickers: this._cachedTickerMap
+                }));
+            } catch (e) {}
             return this._cachedTickerMap;
         }
 
-        // 6. 만약 수신 실패한 경우, 이전 유효 메모리 캐시 데이터 반환 (화면 백화 방지)
+        // 6. 수신 실패 시 메모리 캐시 우선 반환
         if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20) {
             return this._cachedTickerMap;
         }
+
+        // 7. 메모리 캐시도 없으면 localStorage 영구 저장 데이터 복구 (429/네트워크 오류 완벽 대응)
+        try {
+            const stored = localStorage.getItem('UPBIT_PERSISTENT_TICKERS');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.tickers && Object.keys(parsed.tickers).length > 50) {
+                    console.warn('[UpbitAPI] 429/네트워크 오류 - localStorage 영구 캐시로 복구:', Object.keys(parsed.tickers).length, '개');
+                    this._cachedTickerMap = parsed.tickers;
+                    return this._cachedTickerMap;
+                }
+            }
+        } catch (e) {}
 
         return tickerMap;
     },

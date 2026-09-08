@@ -449,6 +449,37 @@ const PatternScannerEngine = {
                 console.warn('업비트 전체 시세 조회 폴백:', tErr);
             }
 
+            // [핵심 안전장치] upbitTickerMap이 비어있거나 20개 미만인 경우
+            // = 429 또는 네트워크 오류로 인한 빈 응답. 기존 allMarketCoins 데이터를 그대로 유지하여 화면 백화 방지
+            const upbitCount = Object.keys(upbitTickerMap).filter(k => k.startsWith('KRW-')).length;
+            if (upbitCount < 20 && this.allMarketCoins && this.allMarketCoins.length > 0) {
+                console.warn('[PatternScanner] upbitTickerMap 부족(' + upbitCount + '개) - 기존 allMarketCoins 보존하여 재사용');
+                // 빗썸 데이터만 신규로 갱신 (CORS 제한 없어 항상 성공)
+                if (Object.keys(bMap).length > 0) {
+                    this.allMarketCoins.forEach(coin => {
+                        const b = bMap[coin.symbol];
+                        if (b && b.closing_price) {
+                            coin.bithumbPrice = parseFloat(b.closing_price) || coin.bithumbPrice;
+                            coin.bithumbChange = parseFloat(b.fluctate_rate_24H || 0) || coin.bithumbChange;
+                            const bVol = parseFloat(b.acc_trade_value_24H || b.acc_trade_value || 0);
+                            if (bVol > 0) {
+                                coin.bithumbVolume = bVol;
+                                coin.bithumbVolume24h = bVol;
+                            }
+                            if (coin.exchange === 'BITHUMB' || coin.exchange === 'BOTH') {
+                                coin.livePrice = coin.bithumbPrice;
+                                coin.liveVolume = coin.bithumbVolume;
+                                coin.liveVolume24h = coin.bithumbVolume24h;
+                            }
+                        }
+                    });
+                }
+                this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
+                this.isLoading = false;
+                this.renderSignals();
+                return;
+            }
+
             // 3. 업비트 & 빗썸 전 종목 실시간 마켓 데이터셋(allMarketCoins) 통합 정밀 빌드
             const allCoins = [];
             const symSet = new Set();
