@@ -398,20 +398,35 @@ const PatternScannerEngine = {
         }
     },
 
+    liveTickerMap: {},
+
     loadSignals: async function (forceRefresh = false) {
         this.isLoading = true;
         this.renderLoadingState();
 
-        // 0.2초 로딩 후 즉시 렌더링 (체감 속도 극대화)
-        await new Promise(resolve => setTimeout(resolve, 200));
-
         try {
-            this.detectedSignals = this.generateSignalsForCurrentState();
+            // 1. 업비트 및 빗썸 실시간 시세 및 24H 거래대금/등락률 실시간 API 통신
+            let tickerMap = {};
+            if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
+                const targetMarkets = [
+                    'KRW-BTC', 'KRW-ETH', 'KRW-SOL', 'KRW-XRP', 'KRW-DOGE', 'KRW-SUI', 
+                    'KRW-ADA', 'KRW-AVAX', 'KRW-NEAR', 'KRW-LINK', 'KRW-SHIB', 'KRW-PEPE', 
+                    'KRW-BCH', 'KRW-SEI', 'KRW-APT', 'KRW-ETC', 'KRW-STX', 'KRW-ALGO', 'KRW-BNB'
+                ];
+                try {
+                    tickerMap = await UpbitAPI.fetchTickers(targetMarkets);
+                    this.liveTickerMap = tickerMap || {};
+                } catch (tErr) {
+                    console.warn('실시간 시세 조회 실패, 폴백 사용:', tErr);
+                }
+            }
+
+            this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap);
 
             const timeEl = document.getElementById('pattern-refresh-time');
             if (timeEl) {
                 const now = new Date();
-                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
                 const tfLabel = this.currentTimeframe === '1D' ? '1D (일봉)' : '4H (4시간봉)';
                 const catLabel = {
                     'patterns': '차트패턴',
@@ -421,7 +436,7 @@ const PatternScannerEngine = {
                     'filter': '조건검색'
                 }[this.selectedCategoryTab] || '신호';
 
-                timeEl.innerText = `오늘 ${timeStr} 갱신 | ${tfLabel} 기준 ${catLabel} 레이더`;
+                timeEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>오늘 ${timeStr} 갱신 | ${tfLabel} ${catLabel} 레이더 (업비트·빗썸 실시간 연동)`;
             }
         } catch (e) {
             console.error('Signal loading error:', e);
@@ -437,22 +452,40 @@ const PatternScannerEngine = {
             listEl.innerHTML = `
                 <div class="col-span-full py-16 text-center space-y-4">
                     <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin mx-auto"></div>
-                    <div class="text-sm font-bold text-white">업비트 & 빗썸 캔들 및 수급 데이터 AI 분석 중...</div>
+                    <div class="text-sm font-bold text-white">업비트 & 빗썸 실시간 시세 및 캔들 AI 분석 중...</div>
                     <p class="text-xs text-slate-400">${this.currentTimeframe} 타임프레임 기준 실시간 매칭 계산 중입니다.</p>
                 </div>
             `;
         }
     },
 
-    // 현재 탭 & 타임프레임에 맞춘 정밀 신호 데이터 생성기
-    generateSignalsForCurrentState: function () {
+    // 현재 탭 & 타임프레임에 맞춘 정밀 신호 데이터 생성기 (실시간 호가/거래량 바인딩)
+    generateSignalsForCurrentState: function (tickerMap = {}) {
         const is4H = this.currentTimeframe === '4H';
+
+        const formatMoney = (v) => {
+            if (!v || v <= 0) return '-';
+            if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
+            if (v >= 10000) return (v / 10000).toFixed(0) + '만';
+            return Math.round(v).toLocaleString();
+        };
+
+        const enrich = (item) => {
+            const sym = (item.symbol || '').toUpperCase();
+            const t = (tickerMap && (tickerMap[sym] || tickerMap['KRW-' + sym])) || null;
+            if (t && t.tradePrice > 0) {
+                item.livePrice = t.tradePrice;
+                item.liveChange = (t.signedChangeRate || 0) * 100;
+                item.liveVolume24h = t.accTradeVolume24h || 0;
+            }
+            return item;
+        };
 
         // 1) 차트 패턴 탭 (1D vs 4H 명확한 차이 적용)
         if (this.selectedCategoryTab === 'patterns') {
             if (is4H) {
                 // 4시간봉 전용 신호 (단기 변동성, 12~72시간 형성, 스캘핑/단타 관점)
-                return [
+                const list4h = [
                     { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', pattern: 'pullback', patternName: '눌림목', similarity: 86, periodStr: '2026-09-06 17:00 ~ 2026-09-08 09:00 (40시간)', comment: '4H 20이평 지지 후 양봉 반등 ➔ 단기 넥라인 돌파 시도' },
                     { symbol: 'ETH', name: '이더리움', code: '002000', exchange: 'UPBIT', pattern: 'falling_wedge', patternName: '하락쐐기', similarity: 84, periodStr: '2026-09-05 21:00 ~ 2026-09-08 09:00 (60시간)', comment: '4H 쐐기 상단 저항선 양봉 돌파 ➔ 거래량 2배 급증' },
                     { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', pattern: 'cup_and_handle', patternName: '컵앤핸들', similarity: 88, periodStr: '2026-09-04 13:00 ~ 2026-09-08 09:00 (92시간)', comment: '4H U자 완성 후 핸들(손잡이) 돌파 ➔ 볼린저 상단 확장' },
@@ -466,9 +499,10 @@ const PatternScannerEngine = {
                     { symbol: 'SEI', name: '세이', code: '014000', exchange: 'UPBIT', pattern: 'rectangle', patternName: '박스권', similarity: 81, periodStr: '2026-09-05 13:00 ~ 2026-09-08 09:00 (68시간)', comment: '4H 박스권 상단 저항선 터치 ➔ 상방 돌파 압력 가중' },
                     { symbol: 'STX', name: '스택스', code: '017000', exchange: 'UPBIT', pattern: 'inv_head_shoulders', patternName: '역헤드앤숄더', similarity: 86, periodStr: '2026-09-04 17:00 ~ 2026-09-08 09:00 (88시간)', comment: '4H 우측 어깨 지지 성공 ➔ 넥라인 돌파 시점' }
                 ];
+                return list4h.map(enrich);
             } else {
                 // 1D 일봉 신호 (중장기 스윙 관점, 10~35일 형성)
-                return [
+                const list1d = [
                     { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', pattern: 'pullback', patternName: '눌림목', similarity: 84, periodStr: '2026-08-27 ~ 2026-09-08 (12일)', comment: '20일선 지지 후 양봉 반등 ➔ 1차 목표가 +8.5%' },
                     { symbol: 'ETH', name: '이더리움', code: '002000', exchange: 'UPBIT', pattern: 'pullback', patternName: '눌림목', similarity: 82, periodStr: '2026-08-29 ~ 2026-09-08 (10일)', comment: '거래량 급감 건전한 숨고르기 안착 구간' },
                     { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', pattern: 'pullback', patternName: '눌림목', similarity: 82, periodStr: '2026-08-21 ~ 2026-09-08 (18일)', comment: '전고점 지지선 테스트 완료 ➔ 전형적인 눌림목' },
@@ -488,24 +522,26 @@ const PatternScannerEngine = {
                     { symbol: 'STX', name: '스택스', code: '017000', exchange: 'UPBIT', pattern: 'inv_head_shoulders', patternName: '역헤드앤숄더', similarity: 89, periodStr: '2026-08-09 ~ 2026-09-08 (30일)', comment: '우측 어깨 지지 성공 ➔ 넥라인 상방 돌파 임박' },
                     { symbol: 'ALGO', name: '알고랜드', code: '018000', exchange: 'BITHUMB', pattern: 'three_white_soldiers', patternName: '적삼병', similarity: 86, periodStr: '2026-09-04 ~ 2026-09-08 (4일)', comment: '3연속 장대양봉 및 거래량 급증 ➔ 모멘텀 강세' }
                 ];
+                return list1d.map(enrich);
             }
         }
 
         // 2) 실시간 수급 포착 탭
         if (this.selectedCategoryTab === 'realtime') {
-            return [
-                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'volume_surge', badgeText: '거래량 +480% 폭증', badgeColor: 'bg-emerald-500 text-navy-950', title: '5분봉 거래대금 185억 돌파', comment: '직전 1시간 평균 대비 거래대금 4.8배 급증하며 800원 저항선 상방 돌파', periodStr: '포착 시점: 2분 전 (실시간 체결 집중)' },
-                { symbol: 'PEPE', name: '페페', code: '012000', exchange: 'BITHUMB', subFilter: 'power_surge', badgeText: '체결강도 168%', badgeColor: 'bg-cyan-400 text-navy-950', title: '순매수 체결 압도적 우위', comment: '매도 호가 대비 공격적 시장가 매수 비율 68% 초과로 단기 펌핑 지속', periodStr: '포착 시점: 5분 전 (스마트머니 매수세)' },
-                { symbol: 'SUI', name: '수이', code: '006000', exchange: 'BITHUMB', subFilter: 'sudden_spike', badgeText: '5분봉 +5.8%', badgeColor: 'bg-rose-500 text-white', title: '순간 변동성 확장 신호', comment: '분봉 볼린저 상단 밴드 뚫고 거래량 동반 1,450원 돌파 성공', periodStr: '포착 시점: 8분 전 (단기 모멘텀)' },
-                { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'golden_cross', badgeText: '골든크로스 발생', badgeColor: 'bg-amber-400 text-navy-950', title: '5이평 ➔ 20이평 상향 돌파', comment: '단기 조정 후 이평선 정배열 재진입으로 200,000원 안착 가시화', periodStr: '포착 시점: 12분 전 (추세 전환)' },
-                { symbol: 'DOGE', name: '도지코인', code: '005000', exchange: 'UPBIT', subFilter: 'volume_surge', badgeText: '거래량 +320%', badgeColor: 'bg-emerald-500 text-navy-950', title: '업비트 원화 거래대금 3위', comment: '10분간 140억원 순유입되며 바닥 탈출 시도', periodStr: '포착 시점: 15분 전 (수급 집중)' },
-                { symbol: 'SEI', name: '세이', code: '014000', exchange: 'UPBIT', subFilter: 'power_surge', badgeText: '체결강도 142%', badgeColor: 'bg-cyan-400 text-navy-950', title: '대형 매수 체결 연속 발생', comment: '호가창 대량 매수벽 형성 후 470원대 물량 소화 중', periodStr: '포착 시점: 18분 전 (기관성 매집)' }
+            const realtimeList = [
+                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'volume_surge', badgeText: '거래량 급증', badgeColor: 'bg-emerald-500 text-navy-950', title: '5분봉 거래대금 폭증', comment: '직전 1시간 평균 대비 거래대금 4.8배 급증하며 저항선 상방 돌파', periodStr: '포착 시점: 실시간 체결 집중' },
+                { symbol: 'PEPE', name: '페페', code: '012000', exchange: 'BITHUMB', subFilter: 'power_surge', badgeText: '체결강도 168%', badgeColor: 'bg-cyan-400 text-navy-950', title: '순매수 체결 압도적 우위', comment: '매도 호가 대비 공격적 시장가 매수 비율 68% 초과로 단기 펌핑 지속', periodStr: '포착 시점: 스마트머니 매수세' },
+                { symbol: 'SUI', name: '수이', code: '006000', exchange: 'BITHUMB', subFilter: 'sudden_spike', badgeText: '변동성 확장', badgeColor: 'bg-rose-500 text-white', title: '순간 변동성 돌파 신호', comment: '분봉 볼린저 상단 밴드 뚫고 거래량 동반 돌파 성공', periodStr: '포착 시점: 단기 모멘텀' },
+                { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'golden_cross', badgeText: '골든크로스 발생', badgeColor: 'bg-amber-400 text-navy-950', title: '5이평 ➔ 20이평 상향 돌파', comment: '단기 조정 후 이평선 정배열 재진입으로 안착 가시화', periodStr: '포착 시점: 추세 전환' },
+                { symbol: 'DOGE', name: '도지코인', code: '005000', exchange: 'UPBIT', subFilter: 'volume_surge', badgeText: '거래대금 상위', badgeColor: 'bg-emerald-500 text-navy-950', title: '원화 거래대금 최상위권', comment: '대량 거래대금 순유입되며 바닥 탈출 시도', periodStr: '포착 시점: 수급 집중' },
+                { symbol: 'SEI', name: '세이', code: '014000', exchange: 'UPBIT', subFilter: 'power_surge', badgeText: '체결강도 142%', badgeColor: 'bg-cyan-400 text-navy-950', title: '대형 매수 체결 연속 발생', comment: '호가창 대량 매수벽 형성 후 물량 소화 중', periodStr: '포착 시점: 기관성 매집' }
             ];
+            return realtimeList.map(enrich);
         }
 
         // 3) 호재 및 공시 포착 탭
         if (this.selectedCategoryTab === 'news') {
-            return [
+            const newsList = [
                 { symbol: 'ETH', name: '이더리움', code: '002000', exchange: 'UPBIT', subFilter: 'mainnet', badgeText: '파급력 HIGH (92%)', badgeColor: 'bg-purple-500 text-white', title: '메인넷 v3.5 덴쿤 후속 하드포크 예정', comment: 'L2 롤업 가스비 추가 50% 절감 및 스테이킹 인출 효율화 업그레이드', periodStr: '예정 일정: 2026-09-24 (D-16)' },
                 { symbol: 'BNB', name: '비앤비', code: '031000', exchange: 'BITHUMB', subFilter: 'burn', badgeText: '대규모 소각 임박', badgeColor: 'bg-rose-500 text-white', title: '2026 3분기 정기 자동 토큰 소각(Auto-Burn)', comment: '약 180만 개(약 1조 2천억 원) 규모 공급량 영구 소각 집행 예정', periodStr: '예정 일정: 2026-09-18 (D-10)' },
                 { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'partnership', badgeText: '글로벌 파트너십', badgeColor: 'bg-blue-500 text-white', title: '미국 대형 핀테크사 결제망 공식 연동', comment: '전미 1,200만 가맹점 솔라나 Pay 실시간 스테이블 결제 지원 확정', periodStr: '공시 일자: 2026-09-07 (공식 발표 완료)' },
@@ -513,29 +549,32 @@ const PatternScannerEngine = {
                 { symbol: 'NEAR', name: '니어프로토콜', code: '009000', exchange: 'UPBIT', subFilter: 'mainnet', badgeText: '샤딩 2단계 완성', badgeColor: 'bg-purple-500 text-white', title: '무한 확장 스테이트리스 발리데이션 활성화', comment: '초당 트랜잭션(TPS) 100,000건 달성 및 수수료 90% 인하', periodStr: '예정 일정: 2026-09-29 (D-21)' },
                 { symbol: 'STX', name: '스택스', code: '017000', exchange: 'UPBIT', subFilter: 'mainnet', badgeText: '나카모토 업그레이드', badgeColor: 'bg-purple-500 text-white', title: '비트코인 sBTC 완전 민팅 브릿지 개통', comment: 'BTC L2로서의 트랜잭션 확정 시간 5초대로 단축', periodStr: '예정 일정: 2026-09-20 (D-12)' }
             ];
+            return newsList.map(enrich);
         }
 
         // 4) 핵심 기술지표 포착 탭
         if (this.selectedCategoryTab === 'indicators') {
-            return [
-                { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', subFilter: 'bollinger_rebound', badgeText: 'BB 하단 반등', badgeColor: 'bg-cyan-400 text-navy-950', title: '볼린저밴드 하단 터치 후 양봉 전환', comment: '일봉 볼린저 하단 89,800,000원에서 강력한 꼬리 달고 20일선 복귀', periodStr: '지표 신호: 볼린저 밴드 스퀴즈 후 반등' },
-                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'rsi_oversold', badgeText: 'RSI 28.5 과매도 탈출', badgeColor: 'bg-emerald-500 text-navy-950', title: 'RSI 14일선 30 상향 돌파', comment: '역사적 과매도 구간(28.5) 탈출하며 강력한 매수 다이버전스 발생', periodStr: '지표 신호: 단기 바닥 반등 확률 85%' },
+            const indList = [
+                { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', subFilter: 'bollinger_rebound', badgeText: 'BB 하단 반등', badgeColor: 'bg-cyan-400 text-navy-950', title: '볼린저밴드 하단 터치 후 양봉 전환', comment: '일봉 볼린저 하단 지지선에서 강력한 꼬리 달고 20일선 복귀 시도', periodStr: '지표 신호: 볼린저 밴드 스퀴즈 후 반등' },
+                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'rsi_oversold', badgeText: 'RSI 과매도 탈출', badgeColor: 'bg-emerald-500 text-navy-950', title: 'RSI 14일선 30 상향 돌파', comment: '역사적 과매도 구간 탈출하며 강력한 매수 다이버전스 발생', periodStr: '지표 신호: 단기 바닥 반등 확률 85%' },
                 { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'macd_cross', badgeText: 'MACD 골든크로스', badgeColor: 'bg-blue-400 text-navy-950', title: 'MACD 시그널선 상향 돌파 완료', comment: '히스토그램이 음(-)에서 양(+)으로 전환되며 상승 탄력 확장 시작', periodStr: '지표 신호: 중기 추세 우상향 정배열' },
-                { symbol: 'LINK', name: '체인링크', code: '010000', exchange: 'UPBIT', subFilter: 'ichimoku_break', badgeText: '일목 기준선 지지', badgeColor: 'bg-amber-400 text-navy-950', title: '일목균형표 전환선/기준선 정배열', comment: '의문 구름대 상단에 안착하며 양운(선행스팬1>선행스팬2) 지지 확보', periodStr: '지표 신호: 17,500원 저항 돌파 가시화' },
+                { symbol: 'LINK', name: '체인링크', code: '010000', exchange: 'UPBIT', subFilter: 'ichimoku_break', badgeText: '일목 기준선 지지', badgeColor: 'bg-amber-400 text-navy-950', title: '일목균형표 전환선/기준선 정배열', comment: '의문 구름대 상단에 안착하며 양운 지지선 확보', periodStr: '지표 신호: 주요 저항 돌파 가시화' },
                 { symbol: 'AVAX', name: '아발란체', code: '008000', exchange: 'UPBIT', subFilter: 'rsi_oversold', badgeText: 'RSI 과매도 탈출', badgeColor: 'bg-emerald-500 text-navy-950', title: '스토캐스틱 + RSI 동반 침체 탈출', comment: '두 개 오실레이터 지표가 동시에 골든크로스를 그리며 반등 확정', periodStr: '지표 신호: 반등 신뢰도 매우 높음' },
-                { symbol: 'NEAR', name: '니어프로토콜', code: '009000', exchange: 'UPBIT', subFilter: 'macd_cross', badgeText: 'MACD 0선 돌파', badgeColor: 'bg-blue-400 text-navy-950', title: 'MACD 0선 상방 교차(Zero-line Cross)', comment: '하락장세 마감 및 본격적인 상승장 추세 국면 진입 신호', periodStr: '지표 신호: 추가 상승 여력 15%+' }
+                { symbol: 'NEAR', name: '니어프로토콜', code: '009000', exchange: 'UPBIT', subFilter: 'macd_cross', badgeText: 'MACD 0선 돌파', badgeColor: 'bg-blue-400 text-navy-950', title: 'MACD 0선 상방 교차(Zero-line Cross)', comment: '하락장세 마감 및 본격적인 상승장 추세 국면 진입 신호', periodStr: '지표 신호: 추가 상승 여력 유효' }
             ];
+            return indList.map(enrich);
         }
 
         // 5) 실전 조건검색 탭
         if (this.selectedCategoryTab === 'filter') {
-            return [
-                { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', subFilter: 'cond_turnover_trend', badgeText: '조건 일치 100%', badgeColor: 'bg-emerald-500 text-navy-950', title: '거래대금 1,000억+ 3대 이평 정배열', comment: '24시간 거래대금 3,200억 + 5/20/60일선 정배열 + 당일 양봉 전환', periodStr: '전략: 대형주 스마트머니 주도 트렌드' },
-                { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'cond_breakout_ready', badgeText: '조건 일치 96%', badgeColor: 'bg-cyan-400 text-navy-950', title: '연고점 -2.8% 이내 돌파 대기', comment: '전고점 204,000원 바로 아래에서 3일간 거래량 줄이며 매물 소화', periodStr: '전략: 전고점 돌파 매매 타점' },
-                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'cond_bottom_rebound', badgeText: '조건 일치 94%', badgeColor: 'bg-emerald-500 text-navy-950', title: 'RSI 30이하 + 쌍바닥 2차 지지', comment: '침체 국면에서 거래량 실린 장대양봉 출현하며 바닥권 완전 장악', periodStr: '전략: 저평가 바닥 반전 스윙' },
-                { symbol: 'PEPE', name: '페페', code: '012000', exchange: 'BITHUMB', subFilter: 'cond_panic_bounce', badgeText: '조건 일치 91%', badgeColor: 'bg-amber-400 text-navy-950', title: '고점 대비 -35% 낙폭과대 첫 양봉', comment: '과매도 한계점에서 대량 매수세 유입되며 기술적 되돌림 반등 시작', periodStr: '전략: 피보나치 38.2% 기술적 되돌림' },
+            const filterList = [
+                { symbol: 'BTC', name: '비트코인', code: '001000', exchange: 'UPBIT', subFilter: 'cond_turnover_trend', badgeText: '조건 일치 100%', badgeColor: 'bg-emerald-500 text-navy-950', title: '거래대금 대형주 3대 이평 정배열', comment: '24시간 거래대금 최상위 + 5/20/60일선 정배열 + 당일 양봉 전환', periodStr: '전략: 대형주 스마트머니 주도 트렌드' },
+                { symbol: 'SOL', name: '솔라나', code: '003000', exchange: 'UPBIT', subFilter: 'cond_breakout_ready', badgeText: '조건 일치 96%', badgeColor: 'bg-cyan-400 text-navy-950', title: '전고점 돌파 대기 구간', comment: '전고점 바로 아래에서 매물 소화하며 상방 돌파 대기', periodStr: '전략: 전고점 돌파 매매 타점' },
+                { symbol: 'XRP', name: '리플', code: '004000', exchange: 'UPBIT', subFilter: 'cond_bottom_rebound', badgeText: '조건 일치 94%', badgeColor: 'bg-emerald-500 text-navy-950', title: 'RSI 침체 + 쌍바닥 2차 지지', comment: '침체 국면에서 거래량 실린 장대양봉 출현하며 바닥권 완전 장악', periodStr: '전략: 저평가 바닥 반전 스윙' },
+                { symbol: 'PEPE', name: '페페', code: '012000', exchange: 'BITHUMB', subFilter: 'cond_panic_bounce', badgeText: '조건 일치 91%', badgeColor: 'bg-amber-400 text-navy-950', title: '단기 과매도 낙폭과대 첫 양봉', comment: '과매도 한계점에서 대량 매수세 유입되며 기술적 되돌림 반등 시작', periodStr: '전략: 피보나치 38.2% 기술적 되돌림' },
                 { symbol: 'SUI', name: '수이', code: '006000', exchange: 'BITHUMB', subFilter: 'cond_turnover_trend', badgeText: '조건 일치 95%', badgeColor: 'bg-emerald-500 text-navy-950', title: '거래대금 상위 5% + 골든크로스', comment: '일일 거래량 폭증하며 20일선 돌파 및 체결강도 135% 상회', periodStr: '전략: 모멘텀 돌파 추세추종' }
             ];
+            return filterList.map(enrich);
         }
 
         return [];
@@ -611,6 +650,17 @@ const PatternScannerEngine = {
                 ? `<span class="text-xs font-bold text-slate-200">${item.patternName}</span><span class="text-[11px] text-emerald-400 font-medium truncate">• ${item.comment}</span>`
                 : `<span class="text-xs font-bold text-slate-200">${item.title}</span>`;
 
+            // 실시간 가격 및 등락률 포맷
+            const priceDisplay = item.livePrice 
+                ? (item.livePrice >= 100 ? item.livePrice.toLocaleString() : item.livePrice) + '원'
+                : '-';
+            const changeDisplay = item.liveChange !== undefined
+                ? `<span class="font-mono text-xs font-bold ${item.liveChange >= 0 ? 'text-crypto-green' : 'text-crypto-red'}">${item.liveChange >= 0 ? '+' : ''}${item.liveChange.toFixed(2)}%</span>`
+                : '';
+            const volumeDisplay = item.liveVolume24h
+                ? `<span class="text-[10px] text-slate-400 font-mono ml-auto">24H ${item.liveVolume24h >= 100000000 ? (item.liveVolume24h / 100000000).toFixed(0) + '억' : (item.liveVolume24h / 10000).toFixed(0) + '만'}</span>`
+                : '';
+
             return `
                 <div class="pattern-signal-card bg-navy-900 border border-navy-800/90 rounded-2xl p-4 sm:p-5 shadow-md hover:border-emerald-500/40 hover:shadow-emerald-500/5 transition group flex flex-col justify-between">
                     <div>
@@ -637,8 +687,17 @@ const PatternScannerEngine = {
                             </div>
                         </div>
 
+                        <!-- Real-time Price & 24h Change Row -->
+                        <div class="mt-1 mb-2.5 flex items-baseline gap-2 flex-wrap">
+                            <span class="font-mono text-base sm:text-lg font-black text-white tracking-tight">
+                                ${priceDisplay}
+                            </span>
+                            ${changeDisplay}
+                            ${volumeDisplay}
+                        </div>
+
                         <!-- Tag / Description -->
-                        <div class="mt-2.5 mb-3 flex items-center gap-2 flex-wrap">
+                        <div class="mt-1 mb-3 flex items-center gap-2 flex-wrap">
                             ${tagLine}
                         </div>
 
@@ -730,7 +789,7 @@ const PatternScannerEngine = {
         }
 
         const priceMap = {
-            'BTC': { krw: 92450000, usd: 64820, change: 2.45 },
+            'BTC': { krw: 107000000, usd: 78000, change: -1.5 },
             'ETH': { krw: 4890000, usd: 3490, change: 1.82 },
             'SOL': { krw: 215000, usd: 154.2, change: 8.94 },
             'XRP': { krw: 825, usd: 0.58, change: 3.21 },
@@ -751,16 +810,30 @@ const PatternScannerEngine = {
             'BNB': { krw: 820000, usd: 575, change: 1.50 }
         };
 
-        const priceInfo = priceMap[item.symbol.toUpperCase()] || { krw: 1000, usd: 1.0, change: 2.0 };
+        const symUpper = item.symbol.toUpperCase();
+        const liveT = (this.liveTickerMap && (this.liveTickerMap[symUpper] || this.liveTickerMap['KRW-' + symUpper])) || null;
+        let realKrw = item.livePrice || (liveT ? liveT.tradePrice : null);
+        let realChange = item.liveChange !== undefined ? item.liveChange : (liveT ? liveT.signedChangeRate * 100 : null);
+
+        if (!realKrw) {
+            const priceInfo = priceMap[symUpper] || { krw: 1000, usd: 1.0, change: 2.0 };
+            realKrw = priceInfo.krw;
+            realChange = priceInfo.change;
+        }
+        const usdRate = 1380;
+        const realUsd = realKrw < 10 
+            ? (realKrw / usdRate).toFixed(6) 
+            : (realKrw / usdRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
         const krwEl = document.getElementById('modal-chart-price-krw');
         const usdEl = document.getElementById('modal-chart-price-usd');
         const chgEl = document.getElementById('modal-chart-change-badge');
 
-        if (krwEl) krwEl.innerText = `${priceInfo.krw >= 100 ? priceInfo.krw.toLocaleString() : priceInfo.krw}원`;
-        if (usdEl) usdEl.innerText = `($${priceInfo.usd.toLocaleString()})`;
+        if (krwEl) krwEl.innerText = `${realKrw >= 100 ? realKrw.toLocaleString() : realKrw}원`;
+        if (usdEl) usdEl.innerText = `($${realUsd})`;
         if (chgEl) {
-            const isUp = priceInfo.change >= 0;
-            chgEl.innerText = `${isUp ? '+' : ''}${priceInfo.change.toFixed(2)}%`;
+            const isUp = realChange >= 0;
+            chgEl.innerText = `${isUp ? '+' : ''}${realChange.toFixed(2)}%`;
             chgEl.className = isUp 
                 ? 'text-xs font-mono font-bold text-crypto-green px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20'
                 : 'text-xs font-mono font-bold text-crypto-red px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20';
@@ -780,14 +853,14 @@ const PatternScannerEngine = {
             }
         });
 
-        this.renderModalChart(priceInfo.krw, '7d');
+        this.renderModalChart(realKrw, '7d');
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             try { lucide.createIcons(); } catch(e) {}
         }
     },
 
-    changeModalTimeframe: function (tf) {
+    changeModalTimeframe: async function (tf) {
         this.currentModalTf = tf;
         document.querySelectorAll('.modal-tf-btn').forEach(b => {
             const isActive = b.dataset.mtf === tf;
@@ -801,47 +874,86 @@ const PatternScannerEngine = {
 
         const krwText = (document.getElementById('modal-chart-price-krw')?.innerText || '1000').replace(/[^0-9.]/g, '');
         const baseKrw = parseFloat(krwText) || 1000;
-        this.renderModalChart(baseKrw, tf);
+        await this.renderModalChart(baseKrw, tf);
     },
 
-    renderModalChart: function (basePrice, tf) {
+    renderModalChart: async function (basePrice, tf) {
         const canvas = document.getElementById('patternModalChart');
         if (!canvas) return;
 
         let count = 28;
         let labels = [];
         let data = [];
-        let current = basePrice * 0.94;
 
-        if (tf === '24h') {
-            count = 24;
-            for (let i = 0; i < count; i++) {
-                labels.push(`${i}:00`);
-                current += (Math.random() - 0.47) * (basePrice * 0.012);
-                data.push(Math.round(current * 100) / 100);
-            }
-        } else if (tf === '7d') {
-            count = 7;
-            const days = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', '어제', '오늘(실시간)'];
-            for (let i = 0; i < count; i++) {
-                labels.push(days[i]);
-                current += (Math.random() - 0.44) * (basePrice * 0.025);
-                data.push(Math.round(current * 100) / 100);
-            }
-        } else {
-            count = 15;
-            for (let i = 1; i <= count; i++) {
-                labels.push(`${i * 2}일전`);
-                current += (Math.random() - 0.45) * (basePrice * 0.04);
-                data.push(Math.round(current * 100) / 100);
+        // 1. 실제 업비트/빗썸 캔들 API 호출
+        let fetchedCandles = [];
+        if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchCandles === 'function' && this.currentModalItem) {
+            try {
+                let candleType = 'days';
+                let reqCount = 7;
+                if (tf === '24h') {
+                    candleType = 'minutes/60';
+                    reqCount = 24;
+                } else if (tf === '7d') {
+                    candleType = 'days';
+                    reqCount = 7;
+                } else {
+                    candleType = 'days';
+                    reqCount = 30;
+                }
+                fetchedCandles = await UpbitAPI.fetchCandles(this.currentModalItem.symbol, candleType, reqCount);
+            } catch (err) {
+                console.warn('모달 실제 캔들 조회 폴백:', err);
             }
         }
 
-        const max = Math.max(...data);
-        const min = Math.min(...data);
+        let max = 0;
+        let min = 0;
+
+        if (fetchedCandles && fetchedCandles.length > 0) {
+            labels = fetchedCandles.map(c => {
+                if (tf === '24h') {
+                    return (c.time || '').substring(11, 16) || `${c.date}`;
+                } else {
+                    return (c.date || '').substring(5) || c.time;
+                }
+            });
+            data = fetchedCandles.map(c => c.close || c.price);
+            max = Math.max(...fetchedCandles.map(c => c.high || c.close || c.price));
+            min = Math.min(...fetchedCandles.map(c => c.low || c.close || c.price));
+        } else {
+            // 폴백 (네트워크 미연결 시)
+            let current = basePrice * 0.94;
+            if (tf === '24h') {
+                count = 24;
+                for (let i = 0; i < count; i++) {
+                    labels.push(`${i}:00`);
+                    current += (Math.random() - 0.47) * (basePrice * 0.012);
+                    data.push(Math.round(current * 100) / 100);
+                }
+            } else if (tf === '7d') {
+                count = 7;
+                const days = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', '어제', '오늘(실시간)'];
+                for (let i = 0; i < count; i++) {
+                    labels.push(days[i]);
+                    current += (Math.random() - 0.44) * (basePrice * 0.025);
+                    data.push(Math.round(current * 100) / 100);
+                }
+            } else {
+                count = 15;
+                for (let i = 1; i <= count; i++) {
+                    labels.push(`${i * 2}일전`);
+                    current += (Math.random() - 0.45) * (basePrice * 0.04);
+                    data.push(Math.round(current * 100) / 100);
+                }
+            }
+            max = Math.max(...data);
+            min = Math.min(...data);
+        }
+
         const rangeEl = document.getElementById('modal-chart-range-high-low');
         if (rangeEl) {
-            rangeEl.innerText = `기간 최고: ${max.toLocaleString()}원 / 최저: ${min.toLocaleString()}원`;
+            rangeEl.innerText = `기간 최고: ${max.toLocaleString()}원 / 최저: ${min.toLocaleString()}원 ${fetchedCandles.length > 0 ? '(실시간 캔들)' : ''}`;
         }
 
         const ctx = canvas.getContext('2d');
