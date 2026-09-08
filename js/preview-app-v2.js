@@ -2942,15 +2942,32 @@ function updatePageSEO(tabId) {
 }
 window.updatePageSEO = updatePageSEO;
 
+function updateCommunitySubNav(activeSubTab) {
+  const subTabs = ['forum', 'chat', 'guides'];
+  subTabs.forEach(sub => {
+    const btns = document.querySelectorAll(`.community-subtab-${sub}`);
+    btns.forEach(btn => {
+      if (sub === activeSubTab || (sub === 'forum' && !subTabs.includes(activeSubTab))) {
+        btn.className = `community-subtab-${sub} px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-300 border border-cyan-500/40 shadow-md shadow-cyan-500/10 shrink-0 cursor-pointer`;
+      } else {
+        btn.className = `community-subtab-${sub} px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer`;
+      }
+    });
+  });
+}
+window.updateCommunitySubNav = updateCommunitySubNav;
+
 function switchTab(tabId, updateHash = true) {
   const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     let fName = tabId;
-    if (tabId === 'forum' || tabId === 'chat') fName = 'community';
+    if (tabId === 'forum' || tabId === 'chat' || tabId === 'guides') fName = 'community';
     AdminAnalytics.recordVisit(fName);
   }
+
+  const isCommunityTab = (tabId === 'forum' || tabId === 'chat' || tabId === 'guides');
 
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -2967,6 +2984,8 @@ function switchTab(tabId, updateHash = true) {
         navBtn.classList.add('active');
         if (t === 'analyzer') {
           navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400');
+        } else if (t === 'forum') {
+          navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-300');
         } else if (t === 'guides') {
           navBtn.classList.add('bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300');
         } else if (t === 'calculators') {
@@ -2992,7 +3011,7 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300', 'bg-emerald-500/20', 'border-emerald-400/50');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'text-cyan-300', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'bg-emerald-500/20', 'border-emerald-400/50');
       }
       if (mNavBtn) {
         mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'font-bold');
@@ -3000,6 +3019,22 @@ function switchTab(tabId, updateHash = true) {
       }
     }
   });
+
+  // Keep parent forum menu active if on any community subtab (forum, chat, guides)
+  if (isCommunityTab) {
+    const forumNavBtn = document.getElementById('nav-forum');
+    const forumMNavBtn = document.getElementById('m-nav-forum');
+    if (forumNavBtn) {
+      forumNavBtn.classList.add('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-300');
+    }
+    if (forumMNavBtn) {
+      forumMNavBtn.classList.add('text-cyan-400', 'font-bold');
+      forumMNavBtn.classList.remove('text-slate-400');
+    }
+  }
+
+  // Update community subnav bar buttons
+  updateCommunitySubNav(tabId);
 
   if (tabId === 'analyzer' && typeof App !== 'undefined' && typeof App.loadSavedTrades === 'function') {
     App.loadSavedTrades();
@@ -3024,6 +3059,10 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'forum') {
     showForumListView();
+  }
+
+  if (tabId === 'chat' && typeof renderChatMessages === 'function') {
+    renderChatMessages();
   }
 
   if (tabId === 'calendar') {
@@ -3112,14 +3151,21 @@ function handleRoute() {
   const tabId = parts[0];
 
   if (tabId === 'forum') {
-    switchTab('forum', false);
-    if (parts[1] === 'post' && parts[2]) {
+    if (parts[1] === 'chat') {
+      switchTab('chat', false);
+    } else if (parts[1] === 'guides') {
+      switchTab('guides', false);
+    } else if (parts[1] === 'post' && parts[2]) {
+      switchTab('forum', false);
       openPostDetailModal(parts[2], false);
     } else if (parts[1] === 'edit' && parts[2]) {
+      switchTab('forum', false);
       showForumWriteView(parts[2], false);
     } else if (parts[1] === 'write') {
+      switchTab('forum', false);
       showForumWriteView(null, false);
     } else {
+      switchTab('forum', false);
       showForumListView(false);
     }
   } else if (tabId === 'calculators') {

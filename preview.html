@@ -1197,11 +1197,7 @@
           <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
         </button>
         <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼
-        </button>
-        <button onclick="switchTab('chat')" id="nav-chat" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="message-circle" class="w-4 h-4"></i> 채팅
-          <span class="w-1.5 h-1.5 rounded-full bg-crypto-green animate-ping"></span>
+          <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼·커뮤니티
         </button>
         <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab active px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
           <i data-lucide="calculator" class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform"></i>
@@ -1219,9 +1215,6 @@
         </button>
         <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100">
           <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i> 코인 일정
-        </button>
-        <button onclick="switchTab('guides')" id="nav-guides" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-indigo-300 hover:text-indigo-100">
-          <i data-lucide="book-open" class="w-4 h-4 text-indigo-400"></i> 지식 가이드
         </button>
         <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition items-center gap-1.5 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
           <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자
@@ -1262,11 +1255,7 @@
     </button>
     <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="messages-square" class="w-4 h-4"></i>
-      <span>포럼</span>
-    </button>
-    <button onclick="switchTab('chat')" id="m-nav-chat" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="message-circle" class="w-4 h-4"></i>
-      <span>채팅</span>
+      <span>포럼·커뮤</span>
     </button>
     <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calculator" class="w-4 h-4"></i>
@@ -1287,10 +1276,6 @@
     <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="newspaper" class="w-4 h-4"></i>
       <span>뉴스</span>
-    </button>
-    <button onclick="switchTab('guides')" id="m-nav-guides" class="flex flex-col items-center gap-0.5 text-indigo-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="book-open" class="w-4 h-4"></i>
-      <span>가이드</span>
     </button>
     <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="shield-check" class="w-4 h-4"></i>
@@ -1538,6 +1523,33 @@
          TAB 2: COMMUNITY FORUM (Full Page Cafe Style)
          ============================================== -->
     <section id="tab-forum" class="tab-content hidden w-full space-y-6">
+
+      <!-- Community Hub Sub-Navigation Bar (포럼 / 실시간 채팅 / 지식 가이드) -->
+      <div class="community-subnav-bar bg-navy-900/90 border border-cyan-500/30 backdrop-blur-md rounded-2xl p-2 shadow-xl flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span>커뮤니티</span>
+          </div>
+          <button type="button" onclick="switchTab('forum')" class="community-subtab-forum px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-300 border border-cyan-500/40 shadow-md shadow-cyan-500/10 shrink-0 cursor-pointer">
+            <i data-lucide="messages-square" class="w-4 h-4"></i>
+            <span>💬 투자 포럼</span>
+          </button>
+          <button type="button" onclick="switchTab('chat')" class="community-subtab-chat px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            <span>⚡ 실시간 채팅</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-crypto-green animate-ping"></span>
+          </button>
+          <button type="button" onclick="switchTab('guides')" class="community-subtab-guides px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>📚 지식 가이드</span>
+          </button>
+        </div>
+        <div class="hidden md:flex items-center gap-2 pr-3 text-[11px] text-slate-400 font-mono shrink-0">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span>전국 투자자 실시간 교류 광장</span>
+        </div>
+      </div>
 
       <!-- ============================================
            FORUM VIEW 1: POST LIST VIEW (목록 뷰)
@@ -1851,7 +1863,35 @@
     <!-- ==============================================
          TAB 3: REAL-TIME CHAT
          ============================================== -->
-    <section id="tab-chat" class="tab-content hidden w-full">
+    <section id="tab-chat" class="tab-content hidden w-full space-y-6">
+
+      <!-- Community Hub Sub-Navigation Bar (포럼 / 실시간 채팅 / 지식 가이드) -->
+      <div class="community-subnav-bar bg-navy-900/90 border border-cyan-500/30 backdrop-blur-md rounded-2xl p-2 shadow-xl flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span>커뮤니티</span>
+          </div>
+          <button type="button" onclick="switchTab('forum')" class="community-subtab-forum px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="messages-square" class="w-4 h-4"></i>
+            <span>💬 투자 포럼</span>
+          </button>
+          <button type="button" onclick="switchTab('chat')" class="community-subtab-chat px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-300 border border-cyan-500/40 shadow-md shadow-cyan-500/10 shrink-0 cursor-pointer">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            <span>⚡ 실시간 채팅</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-crypto-green animate-ping"></span>
+          </button>
+          <button type="button" onclick="switchTab('guides')" class="community-subtab-guides px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>📚 지식 가이드</span>
+          </button>
+        </div>
+        <div class="hidden md:flex items-center gap-2 pr-3 text-[11px] text-slate-400 font-mono shrink-0">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span>전국 투자자 실시간 교류 광장</span>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[550px] w-full">
         
         <!-- Left Sidebar: Channels & Online Users -->
@@ -2065,6 +2105,32 @@
 
     <section id="tab-guides" class="tab-content hidden space-y-8">
       
+      <!-- Community Hub Sub-Navigation Bar (포럼 / 실시간 채팅 / 지식 가이드) -->
+      <div class="community-subnav-bar bg-navy-900/90 border border-cyan-500/30 backdrop-blur-md rounded-2xl p-2 shadow-xl flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span>커뮤니티</span>
+          </div>
+          <button type="button" onclick="switchTab('forum')" class="community-subtab-forum px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="messages-square" class="w-4 h-4"></i>
+            <span>💬 투자 포럼</span>
+          </button>
+          <button type="button" onclick="switchTab('chat')" class="community-subtab-chat px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent shrink-0 cursor-pointer">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            <span>⚡ 실시간 채팅</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-crypto-green animate-ping"></span>
+          </button>
+          <button type="button" onclick="switchTab('guides')" class="community-subtab-guides px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-300 border border-cyan-500/40 shadow-md shadow-cyan-500/10 shrink-0 cursor-pointer">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>📚 지식 가이드</span>
+          </button>
+        </div>
+        <div class="hidden md:flex items-center gap-2 pr-3 text-[11px] text-slate-400 font-mono shrink-0">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span>전국 투자자 실시간 교류 광장</span>
+        </div>
+      </div>
       <!-- Guides Hero -->
       <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-indigo-950/40 to-navy-950 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -5348,7 +5414,7 @@
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260908_03"></script>
-  <script src="js/preview-app-v2.js?v=20260908_03"></script>
+  <script src="js/preview-app-v2.js?v=20260908_06"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
