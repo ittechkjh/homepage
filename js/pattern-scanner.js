@@ -450,7 +450,18 @@ const PatternScannerEngine = {
             }
 
             // [핵심 안전장치] upbitTickerMap이 비어있거나 20개 미만인 경우
-            // = 429 또는 네트워크 오류로 인한 빈 응답. 기존 allMarketCoins 데이터를 그대로 유지하여 화면 백화 방지
+            // = 429 또는 네트워크 오류로 인한 빈 응답. 메모리 또는 localStorage에서 allMarketCoins 복구
+            if (!this.allMarketCoins || this.allMarketCoins.length === 0) {
+                try {
+                    const saved = localStorage.getItem('PATTERN_ALL_MARKET_COINS');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 50) {
+                            this.allMarketCoins = parsed;
+                        }
+                    }
+                } catch (e) {}
+            }
             const upbitCount = Object.keys(upbitTickerMap).filter(k => k.startsWith('KRW-')).length;
             if (upbitCount < 20 && this.allMarketCoins && this.allMarketCoins.length > 0) {
                 console.warn('[PatternScanner] upbitTickerMap 부족(' + upbitCount + '개) - 기존 allMarketCoins 보존하여 재사용');
@@ -585,6 +596,11 @@ const PatternScannerEngine = {
             });
 
             this.allMarketCoins = allCoins;
+            try {
+                if (allCoins && allCoins.length > 50) {
+                    localStorage.setItem('PATTERN_ALL_MARKET_COINS', JSON.stringify(allCoins));
+                }
+            } catch (e) {}
             this.liveTickerMap = { ...upbitTickerMap };
 
             // 빗썸 전용 종목도 liveTickerMap에 보충 (단, isUpbit=false로 명확히 마킹)

@@ -816,19 +816,20 @@ const UpbitAPI = {
     },
 
     _doFetchTickers: async function (markets) {
-        const krwMarkets = (markets || this.officialKrwMarkets || [])
+        // 단일 배치 요청 시 항상 287개 공식 전 종목을 일괄 수신 (모듈 간 레이스 컨디션 및 7개 부분 수신 완벽 차단)
+        const targetMarkets = (this.officialKrwMarkets && this.officialKrwMarkets.length > 50)
+            ? this.officialKrwMarkets
+            : (markets || []);
+        const krwMarkets = targetMarkets
             .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
             .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
             .filter((v, i, a) => a.indexOf(v) === i);
 
         if (krwMarkets.length === 0) return this._cachedTickerMap || {};
 
-        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 20초 이내일 때 즉시 반환
-        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 20000)) {
-            const cachedCount = krwMarkets.filter(m => this._cachedTickerMap[m] || this._cachedTickerMap[m.replace('KRW-', '')]).length;
-            if (cachedCount >= Math.min(krwMarkets.length * 0.8, 150)) {
-                return this._cachedTickerMap;
-            }
+        // 2. 메모리 캐시 확인: 유효한 전 종목 캐시가 20초 이내에 있으면 즉시 반환
+        if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 50 && (Date.now() - this._lastTickerFetchTime < 20000)) {
+            return this._cachedTickerMap;
         }
 
         // 3. 탭/창 간 공유 캐시(localStorage) 확인: 최근 30초 이내 저장된 유효 티커가 있으면 네트워크 호출 생략 (분당 6회 쿼터 완벽 보호)
