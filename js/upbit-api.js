@@ -757,17 +757,49 @@ const UpbitAPI = {
         return { symbol: upper, market: 'KRW-' + upper };
     },
 
+    officialKrwMarkets: [
+        "KRW-GEOD","KRW-WAXP","KRW-CARV","KRW-LSK","KRW-0G","KRW-WIF","KRW-TRAC","KRW-BORA",
+        "KRW-PUNDIX","KRW-PROS","KRW-USD1","KRW-PROM","KRW-BAT","KRW-HUNT","KRW-PENGU","KRW-FIL",
+        "KRW-BEAM","KRW-META2","KRW-DOOD","KRW-WAVES","KRW-USDC","KRW-MOVE","KRW-TREE","KRW-USDE",
+        "KRW-USDG","KRW-WET","KRW-USDT","KRW-USDS","KRW-2Z","KRW-BOUNTY","KRW-KAITO","KRW-LPT",
+        "KRW-FOLD","KRW-BLAST","KRW-ETHFI","KRW-DKA","KRW-ANKR","KRW-ALGO","KRW-SHIB","KRW-QUID",
+        "KRW-UNI","KRW-BIO","KRW-WLFI","KRW-UP2","KRW-TOKAMAK","KRW-SKY","KRW-CYBER","KRW-SKR",
+        "KRW-DOGE","KRW-WLD","KRW-PEPE","KRW-HBAR","KRW-KMNO","KRW-BCH","KRW-NEWT","KRW-SEI",
+        "KRW-JST","KRW-AAVE","KRW-JTO","KRW-JUP","KRW-VVV","KRW-AI","KRW-PIEVERSE","KRW-ALT",
+        "KRW-B3","KRW-LAYER","KRW-TRX","KRW-POWR","KRW-EUL","KRW-ATOM","KRW-ARKM","KRW-CRV",
+        "KRW-CRO","KRW-NXPC","KRW-A","KRW-TRUMP","KRW-F","KRW-G","KRW-CELO","KRW-AERO",
+        "KRW-CTC","KRW-ANIME","KRW-APT","KRW-MOCA","KRW-API3","KRW-AHT","KRW-EGLD","KRW-BLEND",
+        "KRW-ERA","KRW-NCT","KRW-FF","KRW-CP","KRW-PLUME","KRW-ESP","KRW-CC","KRW-NEO",
+        "KRW-ETC","KRW-IOTA","KRW-IOST","KRW-AKT","KRW-COW","KRW-VIRTUAL","KRW-RLUSD","KRW-ETH",
+        "KRW-IQ","KRW-NEAR","KRW-RVN","KRW-PRL","KRW-AGLD","KRW-ID","KRW-IO","KRW-IN",
+        "KRW-MANTRA","KRW-WAL","KRW-PENDLE","KRW-BLUR","KRW-AWE","KRW-THETA","KRW-AXL","KRW-HP",
+        "KRW-SAND","KRW-WCT","KRW-YGG","KRW-AXS","KRW-ARDR","KRW-ME","KRW-TRUST","KRW-SONIC",
+        "KRW-ARB","KRW-POL","KRW-CVC","KRW-T","KRW-ARX","KRW-W","KRW-ARK","KRW-AVNT",
+        "KRW-O","KRW-LA","KRW-HYPER","KRW-ATH","KRW-LIT","KRW-TAIKO","KRW-RE","KRW-AVAX",
+        "KRW-XAUT","KRW-CPOOL","KRW-CAP","KRW-IMX","KRW-SC","KRW-INJ","KRW-MVL","KRW-HIVE",
+        "KRW-CBK","KRW-XLM","KRW-OP","KRW-SAFE","KRW-GLM","KRW-SUPER","KRW-LINEA","KRW-DATA",
+        "KRW-KERNEL","KRW-POKT","KRW-SENT","KRW-ZKC","KRW-KNC","KRW-ZKP","KRW-AUCTION","KRW-ORDER",
+        "KRW-FCT2","KRW-MTL","KRW-VET","KRW-TAO","KRW-QTUM","KRW-LINK","KRW-XRP","KRW-CHZ",
+        "KRW-ASTR","KRW-ZK","KRW-STORJ","KRW-ENA","KRW-MANA","KRW-OPEN","KRW-PYTH","KRW-ENS",
+        "KRW-GRT","KRW-PUMP","KRW-XTZ","KRW-CKB","KRW-KAVA","KRW-TOSHI","KRW-BARD","KRW-ZRO",
+        "KRW-RAY","KRW-ONDO","KRW-ZRX","KRW-GMT","KRW-TFUEL","KRW-CFG","KRW-AZTEC","KRW-CFX",
+        "KRW-XPL","KRW-ZAMA","KRW-MASK","KRW-EURC","KRW-COMP","KRW-ZETA","KRW-RED","KRW-TIA",
+        "KRW-ADA","KRW-ELF","KRW-SOON","KRW-STEEM","KRW-ELSA","KRW-SPK","KRW-SOPH","KRW-SPX",
+        "KRW-MED","KRW-1INCH","KRW-KAT","KRW-MEW","KRW-ORBS","KRW-RENDER","KRW-ORCA","KRW-BERA",
+        "KRW-SIGN","KRW-DOS","KRW-SLX","KRW-VANA","KRW-DOT","KRW-EDGE","KRW-MET2","KRW-MBL",
+        "KRW-FLUID","KRW-BIGTIME","KRW-SNT","KRW-SOL","KRW-QKC","KRW-DRV","KRW-META","KRW-IRYS",
+        "KRW-SAHARA","KRW-MLK","KRW-VTHO","KRW-KITE","KRW-MINA","KRW-MMT","KRW-CHIP","KRW-ZORA",
+        "KRW-XCN","KRW-GAS","KRW-MEGA","KRW-MNT","KRW-MOC","KRW-MOODENG","KRW-XEC","KRW-MON",
+        "KRW-MORPHO","KRW-ZIL","KRW-GAME2","KRW-STX","KRW-FLOCK","KRW-BSB","KRW-PROVE","KRW-BSV",
+        "KRW-SUI","KRW-SYRUP","KRW-BTC","KRW-BABY","KRW-HOLO","KRW-MIRA","KRW-SUN","KRW-ZBT",
+        "KRW-ONG","KRW-BTT","KRW-ENSO","KRW-BIRB","KRW-ONT","KRW-SOMI","KRW-GRVT","KRW-DEEP",
+        "KRW-HOME","KRW-STRAX","KRW-ICP","KRW-OPG","KRW-BREV","KRW-ICX","KRW-POLYX"
+    ],
+
     getKrwMarkets: async function () {
-        try {
-            const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-            if (res.ok) {
-                const list = await res.json();
-                if (Array.isArray(list)) {
-                    const krwOnly = list.filter(item => item && item.market && item.market.startsWith('KRW-')).map(item => item.market);
-                    if (krwOnly.length > 50) return krwOnly;
-                }
-            }
-        } catch (e) {}
+        if (this.officialKrwMarkets && this.officialKrwMarkets.length > 50) {
+            return this.officialKrwMarkets;
+        }
         if (this.knownKoreanNames) {
             return Object.keys(this.knownKoreanNames).map(s => 'KRW-' + s);
         }
@@ -798,7 +830,8 @@ const UpbitAPI = {
         'TFUEL': 72, 'ZIL': 20, 'KAIA': 170, 'KLAY': 170, 'MEW': 8.8,
         'BONK': 0.024, 'WIF': 2600, 'FLOKI': 0.19, 'TON': 6800, 'ONDO': 1080,
         'PENDLE': 4800, 'JUP': 1080, 'PYTH': 410, 'ENA': 620, 'STRK': 490,
-        'TAO': 510000, 'FET': 1350, 'GRT': 240, 'AR': 21500, 'FIL': 4800
+        'TAO': 510000, 'FET': 1350, 'GRT': 240, 'AR': 21500, 'FIL': 4800,
+        'SOPH': 11.4, 'QKC': 4.02, 'WAVES': 383
     },
 
     _cachedTickerMap: null,
@@ -817,25 +850,25 @@ const UpbitAPI = {
     },
 
     _doFetchTickers: async function (markets) {
-        const krwMarkets = (markets || [])
+        const krwMarkets = (markets || this.officialKrwMarkets || [])
             .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
             .filter(m => m && m !== 'KRW-KRW' && m !== 'KRW')
             .filter((v, i, a) => a.indexOf(v) === i);
 
         if (krwMarkets.length === 0) return this._cachedTickerMap || {};
 
-        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 20초 이내일 때만 즉시 반환
-        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 20000)) {
+        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 15초 이내일 때 즉시 반환
+        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 15000)) {
             const cachedCount = krwMarkets.filter(m => this._cachedTickerMap[m] || this._cachedTickerMap[m.replace('KRW-', '')]).length;
             if (cachedCount >= Math.min(krwMarkets.length * 0.8, 150)) {
                 return this._cachedTickerMap;
             }
         }
 
-        // 3. sessionStorage 백업 캐시 확인
+        // 3. sessionStorage 백업 캐시 확인 (V5)
         let sessionCached = null;
         try {
-            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V3');
+            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V5');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 20) {
@@ -849,15 +882,18 @@ const UpbitAPI = {
 
         const tickerMap = {};
 
-        // 4. Upbit 실시간 Ticker API 호출 (75개 단위 안전 청크 분할로 URL 길이 및 100개 제한 완벽 준수)
+        // 4. Upbit 실시간 Ticker API 호출 (전 종목 단일 고속 요청 -> Origin 쿼터 1회만 소비하여 429 완전 방지)
         try {
-            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 500) {
-                await new Promise(r => setTimeout(r, 500 - (Date.now() - this.lastMarketFetchTime)));
-            }
-
             let upbitMarkets = krwMarkets.filter(m => typeof m === 'string' && m.startsWith('KRW-'));
             if (upbitMarkets.length === 0) {
-                upbitMarkets = krwMarkets;
+                upbitMarkets = this.officialKrwMarkets || krwMarkets;
+            }
+
+            // Upbit 404 방지: 공식 지원 마켓 목록이 있는 경우 미상장/상폐 마켓은 단일 배치에서 제외
+            if (this.officialKrwMarkets && this.officialKrwMarkets.length > 0) {
+                const officialSet = new Set(this.officialKrwMarkets);
+                const filtered = upbitMarkets.filter(m => officialSet.has(m));
+                if (filtered.length > 0) upbitMarkets = filtered;
             }
 
             if (upbitMarkets.length > 0) {
@@ -890,27 +926,23 @@ const UpbitAPI = {
                     tickerMap['UPBIT:::' + item.market] = entry;
                 };
 
-                // 75개씩 청크 분할 호출 (실패 격리 및 안정적인 100% 수신)
-                const chunkSize = 75;
-                const chunks = [];
-                for (let i = 0; i < upbitMarkets.length; i += chunkSize) {
-                    chunks.push(upbitMarkets.slice(i, i + chunkSize));
-                }
-
-                for (let i = 0; i < chunks.length; i++) {
-                    const chunkJoined = chunks[i].join(',');
-                    try {
-                        if (i > 0) {
-                            await new Promise(r => setTimeout(r, 150));
+                // 단일 요청으로 287개 전 종목 일괄 수신 (URL 약 2.4KB, Upbit API 완벽 지원)
+                const joined = upbitMarkets.join(',');
+                const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
+                if (cRes.ok) {
+                    const cJson = await cRes.json();
+                    if (Array.isArray(cJson)) cJson.forEach(parseItem);
+                } else {
+                    console.warn(`Upbit ticker 단일 응답 상태: ${cRes.status}`);
+                    // 429나 제한 발생 시 150개 분할 2청크로 안전 폴백
+                    if (cRes.status === 429) {
+                        const mid = Math.ceil(upbitMarkets.length / 2);
+                        const p1 = upbitMarkets.slice(0, mid).join(',');
+                        const r1 = await fetch('https://api.upbit.com/v1/ticker?markets=' + p1);
+                        if (r1.ok) {
+                            const j1 = await r1.json();
+                            if (Array.isArray(j1)) j1.forEach(parseItem);
                         }
-                        this.lastMarketFetchTime = Date.now();
-                        const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + chunkJoined);
-                        if (cRes.ok) {
-                            const cJson = await cRes.json();
-                            if (Array.isArray(cJson)) cJson.forEach(parseItem);
-                        }
-                    } catch (ce) {
-                        console.warn(`Upbit ticker 청크 ${i + 1}/${chunks.length} 페치 오류:`, ce);
                     }
                 }
             }
@@ -923,7 +955,7 @@ const UpbitAPI = {
             this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...tickerMap };
             this._lastTickerFetchTime = Date.now();
             try {
-                sessionStorage.setItem('UPBIT_TICKER_CACHE_V3', JSON.stringify(this._cachedTickerMap));
+                sessionStorage.setItem('UPBIT_TICKER_CACHE_V5', JSON.stringify(this._cachedTickerMap));
             } catch (e) {}
             return this._cachedTickerMap;
         }
