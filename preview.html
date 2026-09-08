@@ -1222,6 +1222,7 @@
         </button>
         <button onclick="switchTab('guides')" id="nav-guides" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-indigo-300 hover:text-indigo-100">
           <i data-lucide="book-open" class="w-4 h-4 text-indigo-400"></i> 지식 가이드
+        </button>
         <button onclick="openAllMenuModal()" id="nav-all-menu" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-cyan-300 hover:text-white border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20">
           <i data-lucide="layout-grid" class="w-4 h-4 text-cyan-400"></i>
           <span>전체메뉴 ▦</span>
@@ -5700,6 +5701,54 @@
 
     </div>
   </div>
+
+  <script>
+    function openAllMenuModal() {
+      const modal = document.getElementById('modal-all-menu');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const input = document.getElementById('all-menu-search-input');
+        if (input) {
+          input.value = '';
+          if (typeof filterAllMenuCards === 'function') filterAllMenuCards('');
+          setTimeout(() => input.focus(), 100);
+        }
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+          try { lucide.createIcons(); } catch(e) {}
+        }
+      }
+    }
+    window.openAllMenuModal = openAllMenuModal;
+
+    function closeAllMenuModal() {
+      const modal = document.getElementById('modal-all-menu');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+    window.closeAllMenuModal = closeAllMenuModal;
+
+    function filterAllMenuCards(query) {
+      const q = (query || '').trim().toLowerCase();
+      const cards = document.querySelectorAll('.all-menu-card');
+      const categories = document.querySelectorAll('.all-menu-category');
+
+      cards.forEach(card => {
+        const searchData = (card.dataset.search || '').toLowerCase();
+        const textContent = card.innerText.toLowerCase();
+        const isMatch = !q || searchData.includes(q) || textContent.includes(q);
+        card.style.display = isMatch ? 'flex' : 'none';
+      });
+
+      categories.forEach(cat => {
+        const visibleCards = cat.querySelectorAll('.all-menu-card:not([style*="display: none"])');
+        cat.style.display = visibleCards.length > 0 ? 'block' : 'none';
+      });
+    }
+    window.filterAllMenuCards = filterAllMenuCards;
+  </script>
 
   <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
