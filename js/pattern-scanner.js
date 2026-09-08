@@ -476,7 +476,7 @@ const PatternScannerEngine = {
                 }
                 this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
                 this.isLoading = false;
-                this.renderSignals();
+                this.renderCards();
                 return;
             }
 
@@ -1432,17 +1432,17 @@ const PatternScannerEngine = {
 
         const formatMoney = this.formatMoney || ((v) => v >= 1e8 ? (v / 1e8).toFixed(1) + '억' : (v / 1e4).toFixed(0) + '만');
 
+        // 원본 allMarketCoins 맵 구성 (파이프라인 오염 우회하여 항상 API 원본 거래대금 사용)
+        const _origCoinMap = {};
+        (this.allMarketCoins || []).forEach(function(c) { if (c && c.symbol) _origCoinMap[c.symbol] = c; });
+
         listEl.innerHTML = filtered.map(item => {
-            // 거래대금 포맷: 각 거래소 고유 실시간 24H 거래대금 엄격 바인딩 (타 거래소 누수 완전 차단)
-            const uVol = (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
-            const bVol = (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
-            // [DEBUG] 렌더링 시점 거래대금 값 확인
-            if (['BTC','ETH','XRP'].includes(item.symbol)) {
-                var _fmt = function(v) { return v ? (v >= 1e8 ? (v/1e8).toFixed(1) + '억' : (v/1e4).toFixed(0) + '만') : '0'; };
-                console.log('[renderCard] ' + item.symbol + ': uVol=' + _fmt(uVol) + '(' + uVol + ') bVol=' + _fmt(bVol) + '(' + bVol + ') same=' + (uVol > 0 && bVol > 0 && Math.abs(uVol-bVol) < 10000));
-            }
-            const uPrice = (item.upbitPrice > 0 ? item.upbitPrice : 0);
-            const bPrice = (item.bithumbPrice > 0 ? item.bithumbPrice : 0);
+            // 거래대금: 파이프라인(item)이 아닌 원본 allMarketCoins에서 직접 조회 (거래소 누수 완전 차단)
+            const _orig = _origCoinMap[item.symbol] || {};
+            const uVol = (_orig.upbitVolume24h > 0 ? _orig.upbitVolume24h : 0) || (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
+            const bVol = (_orig.bithumbVolume24h > 0 ? _orig.bithumbVolume24h : 0) || (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
+            const uPrice = (_orig.upbitPrice > 0 ? _orig.upbitPrice : 0) || (item.upbitPrice > 0 ? item.upbitPrice : 0);
+            const bPrice = (_orig.bithumbPrice > 0 ? _orig.bithumbPrice : 0) || (item.bithumbPrice > 0 ? item.bithumbPrice : 0);
             const hasBothReal = uVol > 0 && bVol > 0 && Math.abs(uVol - bVol) > 1000;
 
             // 거래소 뱃지
