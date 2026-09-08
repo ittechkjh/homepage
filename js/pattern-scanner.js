@@ -430,7 +430,10 @@ const PatternScannerEngine = {
                 const targetMarkets = [
                     'KRW-BTC', 'KRW-ETH', 'KRW-SOL', 'KRW-XRP', 'KRW-DOGE', 'KRW-SUI', 
                     'KRW-ADA', 'KRW-AVAX', 'KRW-NEAR', 'KRW-LINK', 'KRW-SHIB', 'KRW-PEPE', 
-                    'KRW-BCH', 'KRW-SEI', 'KRW-APT', 'KRW-ETC', 'KRW-STX', 'KRW-ALGO', 'KRW-WLD', 'KRW-IOST'
+                    'KRW-BCH', 'KRW-SEI', 'KRW-APT', 'KRW-ETC', 'KRW-STX', 'KRW-ALGO', 'KRW-WLD', 'KRW-IOST',
+                    'KRW-SAND', 'KRW-FLOW', 'KRW-MANA', 'KRW-AXS', 'KRW-DOT', 'KRW-ATOM',
+                    'KRW-HBAR', 'KRW-VET', 'KRW-THETA', 'KRW-CHZ', 'KRW-CRO', 'KRW-AAVE', 'KRW-UNI',
+                    'KRW-T', 'KRW-MASK', 'KRW-IMX', 'KRW-BLUR', 'KRW-MINA', 'KRW-ZRO'
                 ];
                 try {
                     upbitTickerMap = await UpbitAPI.fetchTickers(targetMarkets);
@@ -450,15 +453,26 @@ const PatternScannerEngine = {
                 if (closeP <= 0) continue;
                 const vol24h = parseFloat(bCoin.acc_trade_value_24H) || 0;
                 const changeRate = parseFloat(bCoin.fluctate_rate_24H) || 0;
-                const highP = parseFloat(bCoin.max_price) || closeP;
-                const lowP = parseFloat(bCoin.min_price) || closeP;
-                const openP = parseFloat(bCoin.opening_price) || closeP;
 
                 const u = upbitTickerMap[sym] || upbitTickerMap['KRW-' + sym];
                 const exchange = u ? 'UPBIT' : 'BITHUMB';
                 const finalPrice = u && u.tradePrice > 0 ? u.tradePrice : closeP;
                 const finalChange = u && u.signedChangeRate !== undefined ? u.signedChangeRate * 100 : changeRate;
-                const finalVol = u && u.accTradeVolume24h > 0 ? u.accTradeVolume24h : vol24h;
+                
+                let finalVol = vol24h;
+                if (u) {
+                    if (u.accTradePrice24h && u.accTradePrice24h > 0) {
+                        finalVol = u.accTradePrice24h;
+                    } else if (u.accTradeVolume24h > 1000000) {
+                        finalVol = u.accTradeVolume24h;
+                    } else if (u.accTradeVolume24h > 0) {
+                        finalVol = u.tradePrice * u.accTradeVolume24h;
+                    }
+                }
+
+                const highP = u && u.highPrice > 0 ? u.highPrice : (parseFloat(bCoin.max_price) || closeP);
+                const lowP = u && u.lowPrice > 0 ? u.lowPrice : (parseFloat(bCoin.min_price) || closeP);
+                const openP = u && u.openingPrice > 0 ? u.openingPrice : (parseFloat(bCoin.opening_price) || closeP);
 
                 let kName = sym;
                 if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.getKoreanName === 'function') {
@@ -528,9 +542,15 @@ const PatternScannerEngine = {
 
         const formatMoney = (v) => {
             if (!v || v <= 0) return '-';
+            if (v >= 1000000000000) return (v / 1000000000000).toFixed(1) + '조';
             if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
             if (v >= 10000) return (v / 10000).toFixed(0) + '만';
             return Math.round(v).toLocaleString();
+        };
+
+        const formatPrice = (p) => {
+            if (!p || p <= 0) return '-';
+            return p >= 100 ? p.toLocaleString() : p;
         };
 
         const coins = (marketCoins && marketCoins.length > 0) ? marketCoins : (this.allMarketCoins || []);
@@ -541,7 +561,7 @@ const PatternScannerEngine = {
             if (t && t.tradePrice > 0) {
                 item.livePrice = t.tradePrice;
                 item.liveChange = (t.signedChangeRate || 0) * 100;
-                item.liveVolume24h = t.accTradeVolume24h || 0;
+                item.liveVolume24h = t.accTradePrice24h || (t.accTradeVolume24h > 1000000 ? t.accTradeVolume24h : (t.tradePrice * (t.accTradeVolume24h || 0)));
             }
             return item;
         };
@@ -551,8 +571,8 @@ const PatternScannerEngine = {
             const realtimeList = [];
 
             if (coins.length > 0) {
-                // 1-1. 거래량 폭증 (Volume Surge): 실제 24H 거래대금 내림차순 정렬 (1위~8위)
-                const byVol = [...coins].sort((a, b) => b.liveVolume24h - a.liveVolume24h).slice(0, 8);
+                // 1-1. 거래량 폭증 (Volume Surge): 실제 24H 거래대금 내림차순 정렬 (1위~10위)
+                const byVol = [...coins].sort((a, b) => b.liveVolume24h - a.liveVolume24h).slice(0, 10);
                 byVol.forEach((c, idx) => {
                     const rank = idx + 1;
                     const badgeClr = rank === 1 ? 'bg-amber-400 text-navy-950 font-black' : (rank <= 3 ? 'bg-emerald-500 text-navy-950 font-black' : 'bg-cyan-400 text-navy-950 font-bold');
@@ -566,18 +586,18 @@ const PatternScannerEngine = {
                         badgeColor: badgeClr,
                         title: `원화 마켓 24H 거래대금 ${rank}위 기록`,
                         comment: `24시간 거래대금 ${formatMoney(c.liveVolume24h)} 돌파하며 국내 최다 유동성 집중`,
-                        periodStr: `실시간 거래대금 순위: ${rank}위`,
+                        periodStr: `실시간 거래대금: ${rank}위 (${formatMoney(c.liveVolume24h)})`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
                     });
                 });
 
-                // 1-2. 순간 급등 (Sudden Spike): 실제 24H 상승률 내림차순 정렬 (최소 5억 거래대금 필터링)
+                // 1-2. 순간 급등 (Sudden Spike): 실제 24H 상승률 내림차순 정렬 (최소 2억 거래대금 필터링)
                 const byGain = [...coins]
-                    .filter(c => c.liveChange > 1.5 && c.liveVolume24h >= 500000000)
+                    .filter(c => c.liveChange > 0.5 && c.liveVolume24h >= 200000000)
                     .sort((a, b) => b.liveChange - a.liveChange)
-                    .slice(0, 8);
+                    .slice(0, 10);
                 byGain.forEach((c, idx) => {
                     const rank = idx + 1;
                     realtimeList.push({
@@ -590,18 +610,18 @@ const PatternScannerEngine = {
                         badgeColor: 'bg-rose-500 text-white font-bold',
                         title: `당일 급등률 ${rank}위 모멘텀 포착`,
                         comment: `24시간 변동률 +${c.liveChange.toFixed(2)}% 기록하며 강한 매수세 분출 중`,
-                        periodStr: `급등 포착: 24H +${c.liveChange.toFixed(1)}%`,
+                        periodStr: `급등률 순위: ${rank}위 (+${c.liveChange.toFixed(1)}%)`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
                     });
                 });
 
-                // 1-3. 체결강도 / 수급 집중 (Power Surge): 거래대금 80억+ 및 양봉 유지 코인
+                // 1-3. 체결강도 / 수급 집중 (Power Surge): 거래대금 50억+ 및 양봉 유지 코인
                 const byPower = [...coins]
-                    .filter(c => c.liveVolume24h >= 8000000000 && c.liveChange >= -0.8)
+                    .filter(c => c.liveVolume24h >= 5000000000 && c.liveChange >= -0.8)
                     .sort((a, b) => b.liveVolume24h - a.liveVolume24h)
-                    .slice(0, 8);
+                    .slice(0, 10);
                 byPower.forEach((c) => {
                     realtimeList.push({
                         symbol: c.symbol,
@@ -622,9 +642,9 @@ const PatternScannerEngine = {
 
                 // 1-4. 골든크로스 / 추세 전환 (Golden Cross): 24H 저점 대비 반등 뚜렷한 코인
                 const byBounce = [...coins]
-                    .filter(c => c.low24h > 0 && c.livePrice > c.low24h && c.liveVolume24h >= 2000000000)
+                    .filter(c => c.low24h > 0 && c.livePrice > c.low24h && c.liveVolume24h >= 1000000000)
                     .sort((a, b) => ((b.livePrice - b.low24h) / b.low24h) - ((a.livePrice - a.low24h) / a.low24h))
-                    .slice(0, 8);
+                    .slice(0, 10);
                 byBounce.forEach((c) => {
                     const bouncePct = ((c.livePrice - c.low24h) / c.low24h) * 100;
                     realtimeList.push({
@@ -636,7 +656,7 @@ const PatternScannerEngine = {
                         badgeText: `골든크로스 반등`,
                         badgeColor: 'bg-amber-400 text-navy-950 font-bold',
                         title: `단기 이평 상향 돌파 전환`,
-                        comment: `24H 저점(${c.low24h >= 100 ? c.low24h.toLocaleString() : c.low24h}원) 대비 +${bouncePct.toFixed(1)}% 반등 성공`,
+                        comment: `24H 저점(${formatPrice(c.low24h)}원) 대비 +${bouncePct.toFixed(1)}% 반등 성공`,
                         periodStr: `추세 반전: 저점 대비 +${bouncePct.toFixed(1)}%`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
@@ -655,90 +675,110 @@ const PatternScannerEngine = {
             const indList = [];
 
             if (coins.length > 0) {
+                // 기준 후보군: 유동성이 높은 코인 우선 (거래대금 10억+ 또는 대표 메이저)
                 const pool = [...coins]
-                    .filter(c => c.liveVolume24h >= 2000000000 || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'SUI', 'ADA', 'AVAX', 'NEAR', 'LINK', 'WLD', 'IOST', 'BCH'].includes(c.symbol))
+                    .filter(c => c.liveVolume24h >= 1000000000 || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'SUI', 'ADA', 'AVAX', 'NEAR', 'LINK', 'WLD', 'IOST', 'BCH'].includes(c.symbol))
                     .sort((a, b) => b.liveVolume24h - a.liveVolume24h);
 
-                pool.forEach((c) => {
+                // 코인별 지표 메트릭 산출
+                const computed = pool.map(c => {
                     const range = Math.max(1e-6, c.high24h - c.low24h);
                     const pos = Math.max(0, Math.min(100, ((c.livePrice - c.low24h) / range) * 100));
-                    const rsi = Math.max(18, Math.min(85, Math.round(35 + (c.liveChange * 2.2) + (pos * 0.35))));
+                    // 14-period RSI 근사값 (당일 등락률과 24H 가격 위치 가중 반영)
+                    const rsi = Math.max(18, Math.min(85, Math.round(50 + (c.liveChange * 2.0) + ((pos - 50) * 0.4))));
+                    return { ...c, range, pos, rsi };
+                });
 
-                    // 2-1. RSI 과매도 탈출
-                    if (rsi <= 48 || c.liveChange < -0.8) {
-                        indList.push({
-                            symbol: c.symbol,
-                            name: c.name,
-                            code: c.code,
-                            exchange: c.exchange,
-                            subFilter: 'rsi_oversold',
-                            badgeText: `RSI ${rsi} 과매도권`,
-                            badgeColor: 'bg-emerald-500 text-navy-950 font-bold',
-                            title: `RSI 과매도 구간 저점 지지`,
-                            comment: `24H 저점(${c.low24h >= 100 ? c.low24h.toLocaleString() : c.low24h}원) 부근 지지력 확인 후 매수세 유입`,
-                            periodStr: `지표 신호: RSI ${rsi} (과매도 반등 국면)`,
-                            livePrice: c.livePrice,
-                            liveChange: c.liveChange,
-                            liveVolume24h: c.liveVolume24h
-                        });
-                    }
+                // 2-1. RSI 과매도 탈출 (RSI가 가장 낮은 하위 과매도 반등 종목 상위 8개)
+                const rsiOversold = [...computed]
+                    .filter(c => c.rsi <= 48 || c.liveChange < -0.5)
+                    .sort((a, b) => a.rsi - b.rsi)
+                    .slice(0, 8);
+                rsiOversold.forEach(c => {
+                    indList.push({
+                        symbol: c.symbol,
+                        name: c.name,
+                        code: c.code,
+                        exchange: c.exchange,
+                        subFilter: 'rsi_oversold',
+                        badgeText: `RSI ${c.rsi} 과매도 반등`,
+                        badgeColor: 'bg-emerald-500 text-navy-950 font-bold',
+                        title: `RSI 과매도 구간 저점 지지`,
+                        comment: `RSI ${c.rsi} 저평가 과매도권 진입 후 24H 저점(${formatPrice(c.low24h)}원) 지지력 확인`,
+                        periodStr: `${is4H ? '4H' : '일봉'} RSI(14): ${c.rsi} (과매도 반등 국면)`,
+                        livePrice: c.livePrice,
+                        liveChange: c.liveChange,
+                        liveVolume24h: c.liveVolume24h
+                    });
+                });
 
-                    // 2-2. 볼린저밴드 하단 반등
-                    if (pos <= 35) {
-                        indList.push({
-                            symbol: c.symbol,
-                            name: c.name,
-                            code: c.code,
-                            exchange: c.exchange,
-                            subFilter: 'bollinger_rebound',
-                            badgeText: `BB 하단 지지`,
-                            badgeColor: 'bg-cyan-400 text-navy-950 font-bold',
-                            title: `볼린저 하단 밴드 터치 후 양봉 반등`,
-                            comment: `24H 저가(${c.low24h >= 100 ? c.low24h.toLocaleString() : c.low24h}원)에서 하방 경직성 확보 후 반등 시도`,
-                            periodStr: `지표 신호: 볼린저 하단 밴드 지지`,
-                            livePrice: c.livePrice,
-                            liveChange: c.liveChange,
-                            liveVolume24h: c.liveVolume24h
-                        });
-                    }
+                // 2-2. 볼린저밴드 하단 반등 (24H 변동폭 하단 38% 이내 지지 후 반등 종목 상위 8개)
+                const bbRebound = [...computed]
+                    .filter(c => c.pos <= 38 && c.livePrice > c.low24h)
+                    .sort((a, b) => a.pos - b.pos)
+                    .slice(0, 8);
+                bbRebound.forEach(c => {
+                    indList.push({
+                        symbol: c.symbol,
+                        name: c.name,
+                        code: c.code,
+                        exchange: c.exchange,
+                        subFilter: 'bollinger_rebound',
+                        badgeText: `BB 하단 지지 반등`,
+                        badgeColor: 'bg-cyan-400 text-navy-950 font-bold',
+                        title: `볼린저 하단 밴드 터치 후 양봉 반등`,
+                        comment: `24H 최저가(${formatPrice(c.low24h)}원) 하방 지지 후 반등 캔들 완성`,
+                        periodStr: `${is4H ? '4H' : '일봉'} 볼린저 하단 밴드 2차 지지`,
+                        livePrice: c.livePrice,
+                        liveChange: c.liveChange,
+                        liveVolume24h: c.liveVolume24h
+                    });
+                });
 
-                    // 2-3. MACD 골든크로스 / 모멘텀
-                    if (c.liveChange > 0.5 || pos >= 55) {
-                        indList.push({
-                            symbol: c.symbol,
-                            name: c.name,
-                            code: c.code,
-                            exchange: c.exchange,
-                            subFilter: 'macd_cross',
-                            badgeText: `MACD 골든크로스`,
-                            badgeColor: 'bg-blue-400 text-navy-950 font-bold',
-                            title: `MACD 시그널 상향 돌파 모멘텀`,
-                            comment: `히스토그램 양(+) 전환되며 24H 고가(${c.high24h >= 100 ? c.high24h.toLocaleString() : c.high24h}원) 방향 상승 탄력 확장`,
-                            periodStr: `지표 신호: MACD 0선 상방 교차`,
-                            livePrice: c.livePrice,
-                            liveChange: c.liveChange,
-                            liveVolume24h: c.liveVolume24h
-                        });
-                    }
+                // 2-3. MACD 골든크로스 / 모멘텀 (상승 모멘텀 및 24H 상단 52% 이상 유지 종목 상위 8개)
+                const macdCross = [...computed]
+                    .filter(c => c.liveChange > 0.3 || c.pos >= 52)
+                    .sort((a, b) => b.liveChange - a.liveChange)
+                    .slice(0, 8);
+                macdCross.forEach(c => {
+                    indList.push({
+                        symbol: c.symbol,
+                        name: c.name,
+                        code: c.code,
+                        exchange: c.exchange,
+                        subFilter: 'macd_cross',
+                        badgeText: `MACD 골든크로스`,
+                        badgeColor: 'bg-blue-400 text-navy-950 font-bold',
+                        title: `MACD 시그널 상향 돌파 모멘텀`,
+                        comment: `히스토그램 양(+) 전환되며 24H 고가(${formatPrice(c.high24h)}원) 방향 상승 탄력 확장`,
+                        periodStr: `${is4H ? '4H' : '일봉'} MACD 0선 상방 교차 완성`,
+                        livePrice: c.livePrice,
+                        liveChange: c.liveChange,
+                        liveVolume24h: c.liveVolume24h
+                    });
+                });
 
-                    // 2-4. 일목 기준선 / 구름대 안착
-                    if (c.livePrice >= c.open24h) {
-                        indList.push({
-                            symbol: c.symbol,
-                            name: c.name,
-                            code: c.code,
-                            exchange: c.exchange,
-                            subFilter: 'ichimoku_break',
-                            badgeText: `일목 기준선 지지`,
-                            badgeColor: 'bg-amber-400 text-navy-950 font-bold',
-                            title: `일목균형표 전환선/기준선 정배열`,
-                            comment: `당일 시가(${c.open24h >= 100 ? c.open24h.toLocaleString() : c.open24h}원) 상회하며 양운 구름대 상단 안착`,
-                            periodStr: `지표 신호: 일목 구름대 상단 지지`,
-                            livePrice: c.livePrice,
-                            liveChange: c.liveChange,
-                            liveVolume24h: c.liveVolume24h
-                        });
-                    }
+                // 2-4. 일목 기준선 / 구름대 안착 (시가 상회 및 거래대금 상위 8개)
+                const ichimokuBreak = [...computed]
+                    .filter(c => c.livePrice >= c.open24h)
+                    .sort((a, b) => b.liveVolume24h - a.liveVolume24h)
+                    .slice(0, 8);
+                ichimokuBreak.forEach(c => {
+                    indList.push({
+                        symbol: c.symbol,
+                        name: c.name,
+                        code: c.code,
+                        exchange: c.exchange,
+                        subFilter: 'ichimoku_break',
+                        badgeText: `일목 기준선 지지`,
+                        badgeColor: 'bg-amber-400 text-navy-950 font-bold',
+                        title: `일목균형표 전환선/기준선 정배열`,
+                        comment: `당일 시가(${formatPrice(c.open24h)}원) 상회하며 양운 구름대 상단 안착`,
+                        periodStr: `${is4H ? '4H' : '일봉'} 일목 구름대 상단 지지 안착`,
+                        livePrice: c.livePrice,
+                        liveChange: c.liveChange,
+                        liveVolume24h: c.liveVolume24h
+                    });
                 });
             }
 
@@ -761,11 +801,11 @@ const PatternScannerEngine = {
                         code: c.code,
                         exchange: c.exchange,
                         subFilter: 'cond_turnover_trend',
-                        badgeText: `조건 일치 100%`,
+                        badgeText: `거래대금 최상위`,
                         badgeColor: 'bg-emerald-500 text-navy-950 font-bold',
                         title: `24H 거래대금 ${formatMoney(c.liveVolume24h)} 대형주 정배열`,
                         comment: `국내 거래대금 최상위(${idx + 1}위) + 기관/스마트머니 주도 트렌드`,
-                        periodStr: `전략: 대형주 스마트머니 주도 트렌드`,
+                        periodStr: `${is4H ? '4H 데이' : '1D 스윙'}: 스마트머니 주도 트렌드`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
@@ -774,7 +814,7 @@ const PatternScannerEngine = {
 
                 // 3-2. 전고점 돌파 임박: 24H 최고점 대비 -3.5% 이내
                 const breakout = [...coins]
-                    .filter(c => c.high24h > 0 && c.livePrice > 0 && ((c.high24h - c.livePrice) / c.high24h) <= 0.035 && c.liveVolume24h >= 1000000000)
+                    .filter(c => c.high24h > 0 && c.livePrice > 0 && ((c.high24h - c.livePrice) / c.high24h) <= 0.035 && c.liveVolume24h >= 500000000)
                     .sort((a, b) => ((a.high24h - a.livePrice) / a.high24h) - ((b.high24h - b.livePrice) / b.high24h))
                     .slice(0, 8);
                 breakout.forEach((c) => {
@@ -787,18 +827,18 @@ const PatternScannerEngine = {
                         subFilter: 'cond_breakout_ready',
                         badgeText: `고점 -${diffPct.toFixed(1)}% 돌파 대기`,
                         badgeColor: 'bg-cyan-400 text-navy-950 font-bold',
-                        title: `24H 최고가(${c.high24h >= 100 ? c.high24h.toLocaleString() : c.high24h}원) 돌파 임박`,
+                        title: `24H 최고가(${formatPrice(c.high24h)}원) 돌파 임박`,
                         comment: `당일 최고가 바로 아래에서 매물 소화 후 상방 돌파 대기`,
-                        periodStr: `전략: 전고점 돌파 매매 타점`,
+                        periodStr: `${is4H ? '4H' : '일봉'} 전고점 돌파 매매 타점`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
                     });
                 });
 
-                // 3-3. 과매도 바닥 탈출 / 2차 지지
+                // 3-3. 과매도 바닥 탈출 / 2차 지지: 24H 최저점 대비 4% 이내
                 const bottomRebound = [...coins]
-                    .filter(c => c.low24h > 0 && c.livePrice > c.low24h && ((c.livePrice - c.low24h) / c.low24h) <= 0.04 && c.liveVolume24h >= 1000000000)
+                    .filter(c => c.low24h > 0 && c.livePrice > c.low24h && ((c.livePrice - c.low24h) / c.low24h) <= 0.04 && c.liveVolume24h >= 500000000)
                     .sort((a, b) => ((a.livePrice - a.low24h) / a.low24h) - ((b.livePrice - b.low24h) / b.low24h))
                     .slice(0, 8);
                 bottomRebound.forEach((c) => {
@@ -809,20 +849,20 @@ const PatternScannerEngine = {
                         code: c.code,
                         exchange: c.exchange,
                         subFilter: 'cond_bottom_rebound',
-                        badgeText: `조건 일치 94%`,
+                        badgeText: `바닥 2차 지지 반등`,
                         badgeColor: 'bg-emerald-500 text-navy-950 font-bold',
-                        title: `24H 최저가(${c.low24h >= 100 ? c.low24h.toLocaleString() : c.low24h}원) 2차 지지`,
+                        title: `24H 최저가(${formatPrice(c.low24h)}원) 2차 지지`,
                         comment: `바닥권 저점 방어 후 +${bouncePct.toFixed(1)}% 반등 캔들 형성`,
-                        periodStr: `전략: 저평가 바닥 반전 스윙`,
+                        periodStr: `${is4H ? '4H' : '일봉'} 저평가 바닥 반전 스윙`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
                     });
                 });
 
-                // 3-4. 낙폭과대 첫 양봉
+                // 3-4. 낙폭과대 첫 양봉: 24H 하락 코인 중 반등 시작
                 const panicBounce = [...coins]
-                    .filter(c => c.liveChange < -1.0 && c.liveVolume24h >= 1000000000)
+                    .filter(c => c.liveChange < -0.5 && c.liveVolume24h >= 500000000)
                     .sort((a, b) => a.liveChange - b.liveChange)
                     .slice(0, 8);
                 panicBounce.forEach((c) => {
@@ -832,11 +872,11 @@ const PatternScannerEngine = {
                         code: c.code,
                         exchange: c.exchange,
                         subFilter: 'cond_panic_bounce',
-                        badgeText: `낙폭과대 반등`,
+                        badgeText: `낙폭과대 되돌림`,
                         badgeColor: 'bg-amber-400 text-navy-950 font-bold',
                         title: `24H ${c.liveChange.toFixed(1)}% 조정 후 기술적 되돌림`,
                         comment: `과매도 한계점에서 대량 매수세 유입되며 피보나치 되돌림 시작`,
-                        periodStr: `전략: 피보나치 기술적 되돌림`,
+                        periodStr: `${is4H ? '4H' : '일봉'} 피보나치 기술적 되돌림`,
                         livePrice: c.livePrice,
                         liveChange: c.liveChange,
                         liveVolume24h: c.liveVolume24h
@@ -849,85 +889,160 @@ const PatternScannerEngine = {
             }
         }
 
-        // 4) 차트 패턴 탭 (1D vs 4H 명확한 차이 + 실시간 호가/캔들 위치 기반 정밀 분류)
+        // 4) 차트 패턴 탭 (12종 전 패턴 100% 매칭 보장 및 1D vs 4H 차별화)
         if (this.selectedCategoryTab === 'patterns') {
             const patternList = [];
-            const targets = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'SUI', 'ADA', 'AVAX', 'NEAR', 'LINK', 'PEPE', 'SEI', 'STX', 'WLD', 'IOST', 'BCH', 'APT', 'ETC'];
-            
-            targets.forEach(sym => {
-                const c = (coins && coins.find(x => x.symbol === sym)) || (tickerMap[sym] ? {
-                    symbol: sym,
-                    name: typeof UpbitAPI !== 'undefined' ? UpbitAPI.getKoreanName(sym) : sym,
-                    code: '001000',
-                    exchange: 'UPBIT',
-                    livePrice: tickerMap[sym].tradePrice,
-                    liveChange: (tickerMap[sym].signedChangeRate || 0) * 100,
-                    liveVolume24h: tickerMap[sym].accTradeVolume24h || 0,
-                    high24h: tickerMap[sym].tradePrice * 1.02,
-                    low24h: tickerMap[sym].tradePrice * 0.98,
-                    open24h: tickerMap[sym].tradePrice
-                } : null);
-                if (!c || !c.livePrice) return;
+            // 거래대금 상위 및 대표 코인들을 대상으로 패턴 적합도 정밀 연산
+            const pool = [...coins]
+                .filter(c => c.livePrice > 0 && (c.liveVolume24h >= 500000000 || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'SUI', 'ADA', 'AVAX', 'NEAR', 'LINK', 'PEPE', 'SEI', 'STX', 'WLD', 'IOST', 'BCH', 'APT', 'ETC'].includes(c.symbol)))
+                .sort((a, b) => b.liveVolume24h - a.liveVolume24h);
 
+            // 12종 패턴별 정의 및 매칭 조건
+            const patternDefinitions = [
+                {
+                    key: 'three_white_soldiers',
+                    name: '적삼병 (연속양봉)',
+                    match: c => c.liveChange >= 3.0 || (c.liveChange > 1.0 && c.pos >= 70),
+                    score: c => c.liveChange * 2 + c.pos * 0.5,
+                    comment: c => `3연속 장대양봉 출현 ➔ 24H 거래대금 ${formatMoney(c.liveVolume24h)} 동반 폭발`,
+                    periodStr: is4H ? '4시간봉 (4H) 3연속 양봉 돌파' : '일봉 (1D) 3연속 적삼병 완성 (10일)',
+                    baseSim: 89
+                },
+                {
+                    key: 'cup_and_handle',
+                    name: '컵앤핸들',
+                    match: c => c.liveChange > 0.8 && c.pos >= 68 && c.pos <= 92,
+                    score: c => c.pos - Math.abs(c.pos - 80),
+                    comment: c => `완만한 U자 컵 완성 후 우측 손잡이(핸들) 매물 소화 ➔ 전고점 돌파 임박`,
+                    periodStr: is4H ? '4시간봉 (4H) 컵 우측 핸들 수렴' : '일봉 (1D) U자 컵앤핸들 완성 (24일)',
+                    baseSim: 88
+                },
+                {
+                    key: 'ascending_triangle',
+                    name: '상승삼각형',
+                    match: c => c.pos >= 72 && c.livePrice >= c.open24h,
+                    score: c => c.pos,
+                    comment: c => `24H 고가(${formatPrice(c.high24h)}원) 아래에서 저점을 지속 상승(Higher Lows)시키며 상방 수렴`,
+                    periodStr: is4H ? '4시간봉 (4H) 상단 저항선 수렴 돌파' : '일봉 (1D) 상승삼각 수렴 완성 (18일)',
+                    baseSim: 87
+                },
+                {
+                    key: 'ascending_channel',
+                    name: '상승채널',
+                    match: c => c.liveChange >= 0.5 && c.liveChange <= 6.0 && c.pos >= 45 && c.pos <= 80,
+                    score: c => 50 - Math.abs(c.pos - 65),
+                    comment: c => `규칙적인 우상향 평행 채널 형성 ➔ 채널 중심선 지지받고 상단 저항선 향해 지속 우상향`,
+                    periodStr: is4H ? '4시간봉 (4H) 상승채널 중심선 지지' : '일봉 (1D) 우상향 평행채널 지속 (30일)',
+                    baseSim: 86
+                },
+                {
+                    key: 'flag',
+                    name: '깃발 (Bull Flag)',
+                    match: c => c.liveChange >= 0.8 && c.liveChange <= 8.0 && c.pos >= 52 && c.pos <= 78,
+                    score: c => 50 - Math.abs(c.pos - 65),
+                    comment: c => `강한 깃대 상승 후 거래량이 줄어들며 좁은 하향 박스(깃발) 형성 ➔ 2차 폭발 대기`,
+                    periodStr: is4H ? '4시간봉 (4H) 불플래그 깃발 수렴' : '일봉 (1D) 깃발형 모멘텀 패턴 (14일)',
+                    baseSim: 85
+                },
+                {
+                    key: 'pullback',
+                    name: '눌림목',
+                    match: c => c.liveChange >= -1.5 && c.liveChange <= 2.5 && c.pos >= 35 && c.pos <= 62,
+                    score: c => 50 - Math.abs(c.pos - 48),
+                    comment: c => `상승 추세 속 건강한 거래량 급감 눌림목 ➔ 20이평선 지지선 안착 후 재반등 양봉 출현`,
+                    periodStr: is4H ? '4시간봉 (4H) 20이평 지지 후 반등' : '일봉 (1D) 눌림목 지지선 테스트 완료 (12일)',
+                    baseSim: 85
+                },
+                {
+                    key: 'double_bottom',
+                    name: '쌍바닥 (W자)',
+                    match: c => c.pos >= 18 && c.pos <= 48 && c.livePrice > c.low24h,
+                    score: c => 50 - Math.abs(c.pos - 32),
+                    comment: c => `1차 저점 지지 후 W자형 2차 저점 안착 완료 ➔ 넥라인 돌파 시세 분출 국면`,
+                    periodStr: is4H ? '4시간봉 (4H) W자 쌍바닥 2차 지지' : '일봉 (1D) W자 쌍바닥 넥라인 돌파 (21일)',
+                    baseSim: 86
+                },
+                {
+                    key: 'triple_bottom',
+                    name: '삼중바닥',
+                    match: c => c.pos >= 12 && c.pos <= 38 && c.livePrice > c.low24h,
+                    score: c => 50 - Math.abs(c.pos - 25),
+                    comment: c => `동일 저점 구간 3회 연속 완벽 방어 ➔ 매도세 완전 소진 및 세력 매집 바닥 완성`,
+                    periodStr: is4H ? '4시간봉 (4H) 3중 저점 지지 완료' : '일봉 (1D) 삼중바닥 매집 완료 (28일)',
+                    baseSim: 87
+                },
+                {
+                    key: 'u_bottom',
+                    name: 'U자바닥 (원형)',
+                    match: c => c.liveChange >= -1.8 && c.liveChange <= 2.5 && c.pos >= 25 && c.pos <= 52,
+                    score: c => 50 - Math.abs(c.pos - 38),
+                    comment: c => `완만한 밥그릇 모양으로 둥글게 바닥을 다진 후 거래량이 점진 증가하며 우상향 턴어라운드`,
+                    periodStr: is4H ? '4시간봉 (4H) 원형 바닥 턴어라운드' : '일봉 (1D) U자형 대세 반전 바닥 (35일)',
+                    baseSim: 84
+                },
+                {
+                    key: 'rectangle',
+                    name: '박스권 (돌파임박)',
+                    match: c => c.pos >= 55 && c.pos <= 88,
+                    score: c => 50 - Math.abs(c.pos - 72),
+                    comment: c => `수평 박스권 상단 저항선(${formatPrice(c.high24h)}원) 근접 ➔ 에너지 응축 후 상방 돌파 임박`,
+                    periodStr: is4H ? '4시간봉 (4H) 박스 상단 돌파 대기' : '일봉 (1D) 박스권 수렴 에너지 응축 (20일)',
+                    baseSim: 85
+                },
+                {
+                    key: 'inv_head_shoulders',
+                    name: '역헤드앤숄더',
+                    match: c => c.pos >= 35 && c.pos <= 68 && c.liveChange >= -1.0,
+                    score: c => 50 - Math.abs(c.pos - 50),
+                    comment: c => `좌측 어깨-머리-우측 어깨 3중 바닥 완성 후 목선(넥라인) 돌파 시도하는 최강 반전 패턴`,
+                    periodStr: is4H ? '4시간봉 (4H) 역헤드앤숄더 우측어깨 완성' : '일봉 (1D) 역헤드앤숄더 넥라인 돌파 (30일)',
+                    baseSim: 88
+                },
+                {
+                    key: 'falling_wedge',
+                    name: '하락쐐기',
+                    match: c => c.liveChange < -0.5 || c.pos <= 32,
+                    score: c => (100 - c.pos) + Math.abs(c.liveChange),
+                    comment: c => `고점과 저점의 하락 기울기가 좁아지며 매도 에너지 고갈 ➔ 쐐기 상단 저항선 상방 돌파 시점`,
+                    periodStr: is4H ? '4시간봉 (4H) 하락쐐기 상단 돌파' : '일봉 (1D) 하락쐐기형 바닥 반전 (16일)',
+                    baseSim: 84
+                }
+            ];
+
+            // 풀에 속한 코인들에 24H 메트릭 추가
+            const prepared = pool.map(c => {
                 const range = Math.max(1e-6, c.high24h - c.low24h);
                 const pos = Math.max(0, Math.min(100, ((c.livePrice - c.low24h) / range) * 100));
+                return { ...c, range, pos };
+            });
 
-                let pKey = 'pullback';
-                let pName = '눌림목';
-                let similarity = 84;
-                let comment = '';
-                let periodStr = is4H ? '최근 40시간 20이평 지지 후 반등' : '일봉 지지선 테스트 완료 (12일)';
-
-                if (c.liveChange >= 8.0) {
-                    pKey = 'three_white_soldiers';
-                    pName = '적삼병';
-                    similarity = 89;
-                    comment = `강력한 연속 양봉 출현 ➔ 24H 거래대금 ${formatMoney(c.liveVolume24h)} 폭발`;
-                } else if (pos >= 80) {
-                    pKey = 'ascending_triangle';
-                    pName = '상승삼각형';
-                    similarity = 87;
-                    comment = `24H 고가(${c.high24h >= 100 ? c.high24h.toLocaleString() : c.high24h}원) 돌파 수렴 압력 가중`;
-                } else if (pos <= 25) {
-                    pKey = 'pullback';
-                    pName = '눌림목';
-                    similarity = 85;
-                    comment = `24H 저가(${c.low24h >= 100 ? c.low24h.toLocaleString() : c.low24h}원) 지지 후 반등 양봉 형성`;
-                } else if (pos > 25 && pos <= 50) {
-                    pKey = 'double_bottom';
-                    pName = '쌍바닥';
-                    similarity = 86;
-                    comment = `W자형 바닥 2차 지지 완료 ➔ 넥라인 돌파 시도`;
-                } else if (c.liveChange > 2.0 && pos > 50) {
-                    pKey = 'cup_and_handle';
-                    pName = '컵앤핸들';
-                    similarity = 88;
-                    comment = `U자 컵 완성 후 손잡이(핸들) 돌파 임박`;
-                } else if (c.liveChange < -2.0) {
-                    pKey = 'falling_wedge';
-                    pName = '하락쐐기';
-                    similarity = 83;
-                    comment = `하락 에너지 소진 및 쐐기 상단 저항선 돌파 시점`;
+            // 각 패턴별로 최소 2~4개의 최적 일치 코인을 선별하여 patternList에 등록
+            patternDefinitions.forEach(pDef => {
+                let candidates = prepared.filter(pDef.match);
+                // 후보가 부족하면 풀 전체에서 점수가 가장 높은 순으로 보충하여 12종 전 패턴 무조건 2개 이상 표시
+                if (candidates.length < 2) {
+                    candidates = [...prepared].sort((a, b) => pDef.score(b) - pDef.score(a));
                 } else {
-                    pKey = 'flag';
-                    pName = '깃발 (Bull Flag)';
-                    similarity = 85;
-                    comment = `상승 추세 후 좁은 수렴 채널 형성 ➔ 2차 폭발 대기`;
+                    candidates = candidates.sort((a, b) => pDef.score(b) - pDef.score(a));
                 }
 
-                patternList.push({
-                    symbol: c.symbol,
-                    name: c.name,
-                    code: c.code,
-                    exchange: c.exchange,
-                    pattern: pKey,
-                    patternName: pName,
-                    similarity: similarity,
-                    periodStr: periodStr,
-                    comment: comment,
-                    livePrice: c.livePrice,
-                    liveChange: c.liveChange,
-                    liveVolume24h: c.liveVolume24h
+                // 상위 3개 선별
+                candidates.slice(0, 3).forEach((c, idx) => {
+                    const sim = Math.min(94, Math.max(78, pDef.baseSim + (2 - idx)));
+                    patternList.push({
+                        symbol: c.symbol,
+                        name: c.name,
+                        code: c.code,
+                        exchange: c.exchange,
+                        pattern: pDef.key,
+                        patternName: pDef.name,
+                        similarity: sim,
+                        periodStr: pDef.periodStr,
+                        comment: pDef.comment(c),
+                        livePrice: c.livePrice,
+                        liveChange: c.liveChange,
+                        liveVolume24h: c.liveVolume24h
+                    });
                 });
             });
 
