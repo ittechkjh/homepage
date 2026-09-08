@@ -431,22 +431,24 @@ const PatternScannerEngine = {
             let upbitTickerMap = {};
             try {
                 let upbitMarkets = [];
-                if (typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
+                // 1) Upbit 공식 마켓 목록(market/all)을 최우선 호출하여 실제 상장된 287개 원화 마켓만 정확히 선별 (404 원천 차단)
+                try {
+                    const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+                    if (mRes.ok) {
+                        const mData = await mRes.json();
+                        if (Array.isArray(mData)) {
+                            upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
+                        }
+                    }
+                } catch (mErr) {
+                    console.warn('업비트 마켓 목록 조회 폴백:', mErr);
+                }
+
+                if (upbitMarkets.length === 0 && typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
                     upbitMarkets = Object.keys(UpbitAPI.knownKoreanNames).map(s => 'KRW-' + s);
                 }
                 if (upbitMarkets.length === 0 && typeof UpbitAPI !== 'undefined' && Array.isArray(UpbitAPI.markets) && UpbitAPI.markets.length > 0) {
                     upbitMarkets = UpbitAPI.markets.filter(m => (m.market || m).startsWith('KRW-')).map(m => m.market || m);
-                }
-                if (upbitMarkets.length === 0) {
-                    try {
-                        const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-                        if (mRes.ok) {
-                            const mData = await mRes.json();
-                            if (Array.isArray(mData)) {
-                                upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
-                            }
-                        }
-                    } catch (mErr) {}
                 }
 
                 if (upbitMarkets.length > 0 && typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
@@ -484,7 +486,7 @@ const PatternScannerEngine = {
                 const hasUpbitTicker = !!(u && u.tradePrice > 0);
                 const hasBithumbTicker = !!(b && b.closing_price && parseFloat(b.closing_price) > 0);
 
-                let exchange = (hasUpbitTicker || isKnownUpbit) ? 'UPBIT' : 'BITHUMB';
+                let exchange = hasUpbitTicker ? 'UPBIT' : (hasBithumbTicker ? 'BITHUMB' : (isKnownUpbit ? 'UPBIT' : 'BITHUMB'));
                 let finalPrice = 0;
                 let finalChange = 0;
                 let finalVol = 0;
@@ -511,7 +513,7 @@ const PatternScannerEngine = {
                     lowP = u.lowPrice || finalPrice;
                     openP = u.openingPrice || finalPrice;
                 } else if (hasBithumbTicker) {
-                    exchange = isKnownUpbit ? 'UPBIT' : 'BITHUMB';
+                    exchange = 'BITHUMB';
                     finalPrice = bPrice;
                     finalChange = bChange;
                     finalVol = bVolToday;

@@ -784,11 +784,14 @@ const UpbitAPI = {
 
         // 2. Fetch Upbit Tickers (순차 청크 조회로 429 레이트리밋 방지)
         try {
-            const upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-'));
+            let upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-') && m !== 'KRW-KRW');
+            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 0) {
+                upbitMarkets = upbitMarkets.filter(m => !!this.marketInfoMap[m]);
+            }
             if (upbitMarkets.length > 0) {
                 const chunks = [];
-                for (let i = 0; i < upbitMarkets.length; i += 120) {
-                    chunks.push(upbitMarkets.slice(i, i + 120).join(','));
+                for (let i = 0; i < upbitMarkets.length; i += 100) {
+                    chunks.push(upbitMarkets.slice(i, i + 100).join(','));
                 }
                 for (const c of chunks) {
                     try {
