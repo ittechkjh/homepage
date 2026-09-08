@@ -865,19 +865,10 @@ const UpbitAPI = {
             }
         }
 
-        // 3. sessionStorage 백업 캐시 확인 (V5)
-        let sessionCached = null;
+        // 3. 브라우저 세션에 남아있는 구버전/오염된 캐시 완전 소거
         try {
-            const raw = sessionStorage.getItem('UPBIT_TICKER_CACHE_V5');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 20) {
-                    sessionCached = parsed;
-                    if (!this._cachedTickerMap) {
-                        this._cachedTickerMap = parsed;
-                    }
-                }
-            }
+            for (let i = 1; i <= 10; i++) sessionStorage.removeItem('UPBIT_TICKER_CACHE_V' + i);
+            sessionStorage.removeItem('UPBIT_MARKET_INFO_MAP');
         } catch (e) {}
 
         const tickerMap = {};
@@ -950,22 +941,15 @@ const UpbitAPI = {
             console.warn('업비트 시세 조회 네트워크 폴백:', err);
         }
 
-        // 5. 신규 데이터 수신 시 기존 캐시와 누적 병합(Cumulative merge) 갱신
+        // 5. 신규 데이터 수신 시 기존 메모리 캐시와 누적 병합(Cumulative merge) 갱신
         if (Object.keys(tickerMap).length > 0) {
             this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...tickerMap };
             this._lastTickerFetchTime = Date.now();
-            try {
-                sessionStorage.setItem('UPBIT_TICKER_CACHE_V5', JSON.stringify(this._cachedTickerMap));
-            } catch (e) {}
             return this._cachedTickerMap;
         }
 
-        // 6. 만약 수신 실패한 경우, 이전 유효 캐시 데이터 반환 (화면 백화 방지)
+        // 6. 만약 수신 실패한 경우, 이전 유효 메모리 캐시 데이터 반환 (화면 백화 방지)
         if (this._cachedTickerMap && Object.keys(this._cachedTickerMap).length > 20) {
-            return this._cachedTickerMap;
-        }
-        if (sessionCached && Object.keys(sessionCached).length > 20) {
-            this._cachedTickerMap = { ...(this._cachedTickerMap || {}), ...sessionCached };
             return this._cachedTickerMap;
         }
 

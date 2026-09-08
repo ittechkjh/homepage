@@ -7,6 +7,12 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <script>
+    try {
+      for (var i = 1; i <= 10; i++) sessionStorage.removeItem('UPBIT_TICKER_CACHE_V' + i);
+      sessionStorage.removeItem('UPBIT_MARKET_INFO_MAP');
+    } catch (e) {}
+  </script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwNmI2ZDQiLz48c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzNiODJmNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ2IiBmaWxsPSIjMDcwOTBlIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOCIvPjxwYXRoIGQ9Ik00MiAzMCBDMzAgMzAsIDI0IDM4LCAyNCA1MCBDMjQgNjIsIDMwIDcwLCA0MiA3MCBDNTAgNzAsIDU2IDY1LCA2MCA1OCBMNTAgNTIgQzQ4IDU2LCA0NSA1OCwgNDEgNTggQzM1IDU4LCAzMiA1NCwgMzIgNTAgQzMyIDQ2LCAzNSA0MiwgNDEgNDIgQzQ1IDQyLCA0OCA0NCwgNTAgNDggTDYwIDQyIEM1NiAzNSwgNTAgMzAsIDQyIDMwIFoiIGZpbGw9InVybCgjZykiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjM1IiByPSI3IiBmaWxsPSIjMTBiOTgxIi8+PC9zdmc+">
   <title>CrytoPnL – 업비트·빗썸 엑셀 손익계산기 & 평단가</title>
   <meta name="description" content="업비트·빗썸 엑셀로 선입선출(FIFO) 실현손익, 평단가, 수수료를 1초 만에 계산합니다. 서버 전송 0% 무료 로컬 분석기.">
@@ -5465,7 +5471,7 @@
     }
   </script>
   <!-- Analyzer Core Modules -->
-  <script src="js/upbit-api.js?v=20260908_28"></script>
+  <script src="js/upbit-api.js?v=20260908_30"></script>
   <script src="js/parser.js?v=20260904_06"></script>
   <script src="js/calculator.js?v=20260907_01"></script>
   <script src="js/charts.js?v=20260904_06"></script>
@@ -5476,7 +5482,7 @@
 
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260908_28"></script>
+  <script src="js/pattern-scanner.js?v=20260908_30"></script>
   <script src="js/preview-app-v2.js?v=20260908_07"></script>
 
     <!-- PnL Verification Modal -->
