@@ -757,12 +757,29 @@ const UpbitAPI = {
         return { symbol: upper, market: 'KRW-' + upper };
     },
 
+    getKrwMarkets: async function () {
+        try {
+            const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+            if (res.ok) {
+                const list = await res.json();
+                if (Array.isArray(list)) {
+                    const krwOnly = list.filter(item => item && item.market && item.market.startsWith('KRW-')).map(item => item.market);
+                    if (krwOnly.length > 50) return krwOnly;
+                }
+            }
+        } catch (e) {}
+        if (this.knownKoreanNames) {
+            return Object.keys(this.knownKoreanNames).map(s => 'KRW-' + s);
+        }
+        return [];
+    },
+
     getKoreanName: function (marketOrSymbol) {
         if (!marketOrSymbol) return '';
         const { symbol, market } = this.getStandardMarketInfo(marketOrSymbol);
         if (symbol === 'KRW') return '대한민국 원';
-        if (this.marketInfoMap[market]) return this.marketInfoMap[market].koreanName;
-        if (this.knownKoreanNames[symbol]) return this.knownKoreanNames[symbol];
+        if (this.marketInfoMap && this.marketInfoMap[market]) return this.marketInfoMap[market].koreanName;
+        if (this.knownKoreanNames && this.knownKoreanNames[symbol]) return this.knownKoreanNames[symbol];
         return symbol;
     },
 
@@ -789,21 +806,13 @@ const UpbitAPI = {
     _inFlightTickerPromise: null,
 
     fetchTickers: async function (markets) {
-        if (!markets || markets.length === 0) return {};
-
-        // 1. In-flight Promise 재사용 (동일 시점의 병렬 중복 호출 차단 -> 429 원천 방지)
         if (this._inFlightTickerPromise) {
             return this._inFlightTickerPromise;
         }
-
-        this._inFlightTickerPromise = (async () => {
-            try {
-                return await this._doFetchTickers(markets);
-            } finally {
+        this._inFlightTickerPromise = this._doFetchTickers(markets)
+            .finally(() => {
                 this._inFlightTickerPromise = null;
-            }
-        })();
-
+            });
         return this._inFlightTickerPromise;
     },
 
@@ -846,15 +855,9 @@ const UpbitAPI = {
                 await new Promise(r => setTimeout(r, 500 - (Date.now() - this.lastMarketFetchTime)));
             }
 
-            const validKrwSet = new Set(this.officialKrwMarkets || []);
-            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 50) {
-                Object.keys(this.marketInfoMap).forEach(m => {
-                    if (m.startsWith('KRW-')) validKrwSet.add(m);
-                });
-            }
-            let upbitMarkets = krwMarkets.filter(m => validKrwSet.has(m));
+            let upbitMarkets = krwMarkets.filter(m => typeof m === 'string' && m.startsWith('KRW-'));
             if (upbitMarkets.length === 0) {
-                upbitMarkets = [...this.officialKrwMarkets];
+                upbitMarkets = krwMarkets;
             }
 
             if (upbitMarkets.length > 0) {

@@ -573,7 +573,6 @@ const PatternScannerEngine = {
                             isBithumb: true
                         };
                         this.liveTickerMap[sym] = bEntry;
-                        this.liveTickerMap['KRW-' + sym] = bEntry;
                     }
                 }
             }
@@ -641,30 +640,28 @@ const PatternScannerEngine = {
             coins = coins.filter(c => c.hasUpbit).map(c => ({
                 ...c,
                 exchange: 'UPBIT',
-                livePrice: c.upbitPrice > 0 ? c.upbitPrice : c.livePrice,
-                liveChange: c.upbitPrice > 0 && c.upbitChange !== null ? c.upbitChange : c.liveChange,
-                liveVolume: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.upbitVolume > 0 ? c.upbitVolume : (c.liveVolume24h || c.liveVolume || 0)),
-                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.upbitVolume > 0 ? c.upbitVolume : (c.liveVolume24h || c.liveVolume || 0)),
+                livePrice: c.upbitPrice > 0 ? c.upbitPrice : 0,
+                liveChange: c.upbitPrice > 0 && c.upbitChange !== null ? c.upbitChange : 0,
+                liveVolume: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.upbitVolume > 0 ? c.upbitVolume : 0),
+                liveVolume24h: c.upbitVolume24h > 0 ? c.upbitVolume24h : (c.upbitVolume > 0 ? c.upbitVolume : 0),
                 liveVolumeToday: c.upbitVolumeToday > 0 ? c.upbitVolumeToday : 0
             }));
         } else if (this.currentExchange === 'BITHUMB') {
             coins = coins.filter(c => c.hasBithumb).map(c => ({
                 ...c,
                 exchange: 'BITHUMB',
-                livePrice: c.bithumbPrice > 0 ? c.bithumbPrice : c.livePrice,
-                liveChange: c.bithumbPrice > 0 && c.bithumbChange !== null ? c.bithumbChange : c.liveChange,
-                liveVolume: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.bithumbVolume > 0 ? c.bithumbVolume : (c.liveVolume24h || c.liveVolume || 0)),
-                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.bithumbVolume > 0 ? c.bithumbVolume : (c.liveVolume24h || c.liveVolume || 0)),
+                livePrice: c.bithumbPrice > 0 ? c.bithumbPrice : 0,
+                liveChange: c.bithumbPrice > 0 && c.bithumbChange !== null ? c.bithumbChange : 0,
+                liveVolume: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.bithumbVolume > 0 ? c.bithumbVolume : 0),
+                liveVolume24h: c.bithumbVolume24h > 0 ? c.bithumbVolume24h : (c.bithumbVolume > 0 ? c.bithumbVolume : 0),
                 liveVolumeToday: c.bithumbVolumeToday > 0 ? c.bithumbVolumeToday : 0
             }));
         }
 
         const enrich = (item) => {
-            if (item && item.livePrice > 0 && item.liveVolume > 0) {
-                return item;
-            }
             const sym = (item.symbol || '').toUpperCase();
-            if (item.exchange === 'BITHUMB') {
+            if (this.currentExchange === 'BITHUMB' || item.exchange === 'BITHUMB') {
+                if (item.livePrice > 0 && item.liveVolume > 0) return item;
                 const coin = (this.allMarketCoins || []).find(c => c.symbol === sym);
                 if (coin && coin.bithumbPrice > 0) {
                     item.livePrice = coin.bithumbPrice;
@@ -674,8 +671,9 @@ const PatternScannerEngine = {
                     item.liveVolumeToday = coin.bithumbVolumeToday || 0;
                     item.bithumbVolume24h = item.liveVolume;
                 }
-            } else {
-                const t = (tickerMap && (tickerMap[sym] || tickerMap['KRW-' + sym])) || null;
+            } else if (this.currentExchange === 'UPBIT' || item.exchange === 'UPBIT') {
+                if (item.livePrice > 0 && item.liveVolume > 0) return item;
+                const t = (tickerMap && (tickerMap['KRW-' + sym] || (tickerMap[sym] && !tickerMap[sym].isBithumb ? tickerMap[sym] : null))) || null;
                 if (t && t.tradePrice > 0) {
                     item.livePrice = t.tradePrice;
                     item.liveChange = (t.signedChangeRate || 0) * 100;
@@ -683,6 +681,18 @@ const PatternScannerEngine = {
                     item.liveVolume24h = t.accTradePrice24h || t.accTradePrice || 0;
                     item.liveVolumeToday = t.accTradePrice || 0;
                     item.upbitVolume24h = item.liveVolume;
+                }
+            } else {
+                if (item && item.livePrice > 0 && item.liveVolume > 0) return item;
+                const t = (tickerMap && (tickerMap['KRW-' + sym] || tickerMap[sym])) || null;
+                if (t && t.tradePrice > 0) {
+                    item.livePrice = t.tradePrice;
+                    item.liveChange = (t.signedChangeRate || 0) * 100;
+                    item.liveVolume = t.accTradePrice24h || t.accTradePrice || 0;
+                    item.liveVolume24h = t.accTradePrice24h || t.accTradePrice || 0;
+                    item.liveVolumeToday = t.accTradePrice || 0;
+                    if (t.isUpbit) item.upbitVolume24h = item.liveVolume;
+                    else if (t.isBithumb) item.bithumbVolume24h = item.liveVolume;
                 }
             }
             return item;
@@ -713,15 +723,15 @@ const PatternScannerEngine = {
 
                 if (this.currentExchange === 'UPBIT') {
                     finalExchange = 'UPBIT';
-                    finalPrice = uPrice > 0 ? uPrice : item.livePrice;
-                    finalChange = uChange !== undefined ? uChange : item.liveChange;
-                    finalVol = uVol > 0 ? uVol : (item.liveVolume24h || item.liveVolume);
+                    finalPrice = uPrice > 0 ? uPrice : 0;
+                    finalChange = uPrice > 0 && uChange !== undefined ? uChange : 0;
+                    finalVol = uVol > 0 ? uVol : 0;
                     finalVolToday = c.upbitVolumeToday || 0;
                 } else if (this.currentExchange === 'BITHUMB') {
                     finalExchange = 'BITHUMB';
-                    finalPrice = bPrice > 0 ? bPrice : item.livePrice;
-                    finalChange = bChange !== undefined ? bChange : item.liveChange;
-                    finalVol = bVol > 0 ? bVol : (item.liveVolume24h || item.liveVolume);
+                    finalPrice = bPrice > 0 ? bPrice : 0;
+                    finalChange = bPrice > 0 && bChange !== undefined ? bChange : 0;
+                    finalVol = bVol > 0 ? bVol : 0;
                     finalVolToday = c.bithumbVolumeToday || 0;
                 } else {
                     finalExchange = (hasU && hasB) ? 'BOTH' : (hasU ? 'UPBIT' : 'BITHUMB');
@@ -1378,6 +1388,8 @@ const PatternScannerEngine = {
             // 거래대금 포맷: 각 거래소 고유 실시간 24H 거래대금 엄격 바인딩 (타 거래소 누수 완전 차단)
             const uVol = (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
             const bVol = (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
+            const uPrice = (item.upbitPrice > 0 ? item.upbitPrice : 0);
+            const bPrice = (item.bithumbPrice > 0 ? item.bithumbPrice : 0);
             const hasBothReal = uVol > 0 && bVol > 0 && Math.abs(uVol - bVol) > 1000;
 
             // 거래소 뱃지
@@ -1409,21 +1421,31 @@ const PatternScannerEngine = {
                 ? `<span class="text-xs font-bold text-slate-200">${item.patternName}</span><span class="text-[11px] text-emerald-400 font-medium truncate">• ${item.comment}</span>`
                 : `<span class="text-xs font-bold text-slate-200">${item.title}</span>`;
 
-            // 실시간 가격 및 등락률 포맷
-            const priceDisplay = item.livePrice 
-                ? (item.livePrice >= 100 ? item.livePrice.toLocaleString() : item.livePrice) + '원'
+            // 실시간 가격 및 등락률 포맷 (선택된 거래소 데이터만 엄격하게 매핑)
+            let displayPrice = item.livePrice;
+            let displayChange = item.liveChange;
+            if (this.currentExchange === 'UPBIT') {
+                displayPrice = uPrice > 0 ? uPrice : (item.upbitPrice > 0 ? item.upbitPrice : 0);
+                displayChange = displayPrice > 0 && item.upbitChange !== undefined ? item.upbitChange : null;
+            } else if (this.currentExchange === 'BITHUMB') {
+                displayPrice = bPrice > 0 ? bPrice : (item.bithumbPrice > 0 ? item.bithumbPrice : 0);
+                displayChange = displayPrice > 0 && item.bithumbChange !== undefined ? item.bithumbChange : null;
+            }
+
+            const priceDisplay = displayPrice > 0 
+                ? (displayPrice >= 100 ? displayPrice.toLocaleString() : displayPrice) + '원'
                 : '-';
-            const changeDisplay = item.liveChange !== undefined
-                ? `<span class="font-mono text-xs font-bold ${item.liveChange >= 0 ? 'text-crypto-green' : 'text-crypto-red'}">${item.liveChange >= 0 ? '+' : ''}${item.liveChange.toFixed(2)}%</span>`
+            const changeDisplay = (displayChange !== undefined && displayChange !== null)
+                ? `<span class="font-mono text-xs font-bold ${displayChange >= 0 ? 'text-crypto-green' : 'text-crypto-red'}">${displayChange >= 0 ? '+' : ''}${displayChange.toFixed(2)}%</span>`
                 : '';
 
             let volumeDisplay = '';
             if (this.currentExchange === 'UPBIT') {
-                const vol = uVol > 0 ? uVol : (item.liveVolume24h || item.liveVolume);
-                volumeDisplay = vol > 0 ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="업비트 24H 거래대금">거래대금 <strong class="text-blue-400 font-bold">${formatMoney(vol)}</strong></span>` : '';
+                const vol = uVol > 0 ? uVol : (item.upbitVolume24h > 0 ? item.upbitVolume24h : 0);
+                volumeDisplay = vol > 0 ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="업비트 24H 거래대금">거래대금 <strong class="text-blue-400 font-bold">${formatMoney(vol)}</strong></span>` : `<span class="text-[11px] text-slate-400 font-mono ml-auto" title="업비트 거래대금 집계중">거래대금 <strong class="text-slate-400 font-bold">-</strong></span>`;
             } else if (this.currentExchange === 'BITHUMB') {
-                const vol = bVol > 0 ? bVol : (item.liveVolume24h || item.liveVolume);
-                volumeDisplay = vol > 0 ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="빗썸 24H 거래대금">거래대금 <strong class="text-amber-400 font-bold">${formatMoney(vol)}</strong></span>` : '';
+                const vol = bVol > 0 ? bVol : (item.bithumbVolume24h > 0 ? item.bithumbVolume24h : 0);
+                volumeDisplay = vol > 0 ? `<span class="text-[11px] text-slate-300 font-mono ml-auto" title="빗썸 24H 거래대금">거래대금 <strong class="text-amber-400 font-bold">${formatMoney(vol)}</strong></span>` : `<span class="text-[11px] text-slate-400 font-mono ml-auto" title="빗썸 거래대금 집계중">거래대금 <strong class="text-slate-400 font-bold">-</strong></span>`;
             } else {
                 // 전체(ALL) 모드: 두 거래소 실데이터가 모두 존재하고 금액이 서로 다를 때만 분리 병기!
                 if (hasBothReal) {
