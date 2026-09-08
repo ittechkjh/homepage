@@ -431,24 +431,10 @@ const PatternScannerEngine = {
             let upbitTickerMap = {};
             try {
                 let upbitMarkets = [];
-                // 1) Upbit 공식 마켓 목록(market/all)을 최우선 호출하여 실제 상장된 287개 원화 마켓만 정확히 선별 (404 원천 차단)
-                try {
-                    const mRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-                    if (mRes.ok) {
-                        const mData = await mRes.json();
-                        if (Array.isArray(mData)) {
-                            upbitMarkets = mData.filter(x => x.market && x.market.startsWith('KRW-')).map(x => x.market);
-                        }
-                    }
-                } catch (mErr) {
-                    console.warn('업비트 마켓 목록 조회 폴백:', mErr);
-                }
-
-                if (upbitMarkets.length === 0 && typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
+                if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.getKrwMarkets === 'function') {
+                    upbitMarkets = await UpbitAPI.getKrwMarkets();
+                } else if (typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames) {
                     upbitMarkets = Object.keys(UpbitAPI.knownKoreanNames).map(s => 'KRW-' + s);
-                }
-                if (upbitMarkets.length === 0 && typeof UpbitAPI !== 'undefined' && Array.isArray(UpbitAPI.markets) && UpbitAPI.markets.length > 0) {
-                    upbitMarkets = UpbitAPI.markets.filter(m => (m.market || m).startsWith('KRW-')).map(m => m.market || m);
                 }
 
                 if (upbitMarkets.length > 0 && typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
@@ -483,7 +469,8 @@ const PatternScannerEngine = {
                 const b = bMap[sym];
 
                 const isKnownUpbit = typeof UpbitAPI !== 'undefined' && UpbitAPI.knownKoreanNames && !!UpbitAPI.knownKoreanNames[sym];
-                const hasUpbitTicker = !!(u && u.tradePrice > 0);
+                // 엄격한 업비트 데이터 검증 (isUpbit가 명시적 true인 경우만 업비트 시세로 인정)
+                const hasUpbitTicker = !!(u && u.isUpbit && u.tradePrice > 0);
                 const hasBithumbTicker = !!(b && b.closing_price && parseFloat(b.closing_price) > 0);
 
                 let exchange = hasUpbitTicker ? 'UPBIT' : (hasBithumbTicker ? 'BITHUMB' : (isKnownUpbit ? 'UPBIT' : 'BITHUMB'));
@@ -496,7 +483,7 @@ const PatternScannerEngine = {
 
                 const uPrice = hasUpbitTicker ? u.tradePrice : 0;
                 const uChange = hasUpbitTicker ? (u.signedChangeRate || 0) * 100 : 0;
-                const uVolToday = hasUpbitTicker ? (u.accTradePrice || u.accTradePrice24h || 0) : 0;
+                const uVolToday = hasUpbitTicker ? (u.accTradePrice || 0) : 0;
                 const uVol24h = hasUpbitTicker ? (u.accTradePrice24h || u.accTradePrice || 0) : 0;
 
                 const bPrice = hasBithumbTicker ? parseFloat(b.closing_price) : 0;
@@ -542,16 +529,16 @@ const PatternScannerEngine = {
                     name: kName,
                     code: '00' + (allCoins.length + 1000),
                     exchange: exchange,
-                    hasUpbit: hasUpbitTicker || isKnownUpbit,
+                    hasUpbit: hasUpbitTicker,
                     hasBithumb: hasBithumbTicker,
-                    upbitPrice: uPrice || (isKnownUpbit ? finalPrice : 0),
-                    upbitChange: hasUpbitTicker ? uChange : (isKnownUpbit ? finalChange : 0),
-                    upbitVolume: uVolToday || (isKnownUpbit ? finalVol : 0),
-                    upbitVolume24h: uVol24h || (isKnownUpbit ? finalVol : 0),
-                    bithumbPrice: bPrice,
-                    bithumbChange: bChange,
-                    bithumbVolume: bVolToday,
-                    bithumbVolume24h: bVol24h,
+                    upbitPrice: hasUpbitTicker ? uPrice : 0,
+                    upbitChange: hasUpbitTicker ? uChange : 0,
+                    upbitVolume: hasUpbitTicker ? uVolToday : 0,
+                    upbitVolume24h: hasUpbitTicker ? uVol24h : 0,
+                    bithumbPrice: hasBithumbTicker ? bPrice : 0,
+                    bithumbChange: hasBithumbTicker ? bChange : 0,
+                    bithumbVolume: hasBithumbTicker ? bVolToday : 0,
+                    bithumbVolume24h: hasBithumbTicker ? bVol24h : 0,
                     livePrice: finalPrice,
                     liveChange: finalChange,
                     liveVolume: finalVol,
@@ -564,6 +551,28 @@ const PatternScannerEngine = {
 
             this.allMarketCoins = allCoins;
             this.liveTickerMap = { ...upbitTickerMap };
+
+            // 빗썸 전용 종목도 liveTickerMap에 보충 (단, isUpbit=false로 명확히 마킹)
+            for (const sym in bMap) {
+                if (sym !== 'date' && bMap[sym] && bMap[sym].closing_price) {
+                    if (!this.liveTickerMap[sym] && !this.liveTickerMap['KRW-' + sym]) {
+                        const bItem = bMap[sym];
+                        const cP = parseFloat(bItem.closing_price);
+                        const chg = parseFloat(bItem.fluctate_rate_24H || 0) / 100;
+                        const vol = parseFloat(bItem.acc_trade_value || bItem.acc_trade_value_24H || 0);
+                        const bEntry = {
+                            tradePrice: cP,
+                            signedChangeRate: chg,
+                            accTradePrice: vol,
+                            accTradeVolume: vol,
+                            isUpbit: false,
+                            isBithumb: true
+                        };
+                        this.liveTickerMap[sym] = bEntry;
+                        this.liveTickerMap['KRW-' + sym] = bEntry;
+                    }
+                }
+            }
 
             this.detectedSignals = this.generateSignalsForCurrentState(this.liveTickerMap, this.allMarketCoins);
 
@@ -645,6 +654,9 @@ const PatternScannerEngine = {
         }
 
         const enrich = (item) => {
+            if (item && item.livePrice > 0 && item.liveVolume > 0) {
+                return item;
+            }
             const sym = (item.symbol || '').toUpperCase();
             const t = (tickerMap && (tickerMap[sym] || tickerMap['KRW-' + sym])) || null;
             if (t && t.tradePrice > 0) {

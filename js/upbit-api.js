@@ -330,6 +330,7 @@ const UpbitAPI = {
     "원화": "KRW"
 },
     knownKoreanNames: {
+    "SOPH": "소폰",
     "GEOD": "지오드넷",
     "WAXP": "왁스",
     "CARV": "카브",
@@ -630,9 +631,26 @@ const UpbitAPI = {
     marketInfoMap: {},
     isMarketInfoLoaded: false,
 
+    lastMarketFetchTime: 0,
+
     initMarketInfo: async function () {
         if (this.isMarketInfoLoaded) return;
+
+        // Try session cache first
         try {
+            const cached = sessionStorage.getItem('UPBIT_MARKET_INFO_MAP');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed && Object.keys(parsed).length > 50) {
+                    this.marketInfoMap = parsed;
+                    this.isMarketInfoLoaded = true;
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        try {
+            this.lastMarketFetchTime = Date.now();
             const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
             if (res.ok) {
                 const data = await res.json();
@@ -649,10 +667,24 @@ const UpbitAPI = {
                     }
                 });
                 this.isMarketInfoLoaded = true;
+                try {
+                    sessionStorage.setItem('UPBIT_MARKET_INFO_MAP', JSON.stringify(this.marketInfoMap));
+                } catch (e) {}
             }
         } catch (err) {
             console.warn('업비트 마켓 정보 원격 로드 실패 (내장 사전 사용)');
         }
+    },
+
+    getKrwMarkets: async function () {
+        await this.initMarketInfo();
+        const keys = Object.keys(this.marketInfoMap || {});
+        const krw = keys.filter(m => m.startsWith('KRW-'));
+        if (krw.length > 0) return krw;
+        if (this.knownKoreanNames) {
+            return Object.keys(this.knownKoreanNames).map(s => 'KRW-' + s);
+        }
+        return [];
     },
 
     getStandardMarketInfo: function (input) {
@@ -743,7 +775,63 @@ const UpbitAPI = {
 
         const tickerMap = {};
 
-        // 1. Fetch Bithumb ALL_KRW (CORS Free, Real-time Korean Market prices)
+        // 1. Fetch Upbit Tickers (단일 쿼리로 280+ 원화 마켓 전 종목 조회 및 레이트리밋 보호)
+        try {
+            if (this.lastMarketFetchTime && Date.now() - this.lastMarketFetchTime < 1100) {
+                await new Promise(r => setTimeout(r, 1100 - (Date.now() - this.lastMarketFetchTime)));
+            }
+
+            let upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-') && m !== 'KRW-KRW');
+            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 0) {
+                upbitMarkets = upbitMarkets.filter(m => !!this.marketInfoMap[m]);
+            }
+            if (upbitMarkets.length > 0) {
+                const joined = upbitMarkets.join(',');
+                let uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
+                if (uRes.status === 429) {
+                    console.warn('Upbit ticker 429 감지, 1.2초 후 재시도...');
+                    await new Promise(r => setTimeout(r, 1200));
+                    uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
+                }
+                if (uRes.ok) {
+                    const uJson = await uRes.json();
+                    if (Array.isArray(uJson)) {
+                        uJson.forEach(item => {
+                            if (!item || !item.market) return;
+                            const tradeP = parseFloat(item.trade_price);
+                            const krwVolumeToday = parseFloat(item.acc_trade_price || 0);
+                            const krwVolume24h = parseFloat(item.acc_trade_price_24h || 0);
+                            const coinVolumeToday = parseFloat(item.acc_trade_volume || 0);
+                            const coinVolume24h = parseFloat(item.acc_trade_volume_24h || 0);
+                            const finalVolToday = krwVolumeToday > 0 ? krwVolumeToday : (coinVolumeToday * tradeP);
+                            const finalVol24h = krwVolume24h > 0 ? krwVolume24h : (coinVolume24h * tradeP);
+                            const entry = {
+                                tradePrice: tradeP,
+                                signedChangeRate: parseFloat(item.signed_change_rate || 0),
+                                accTradeVolume: finalVolToday,
+                                accTradePrice: finalVolToday,
+                                accTradeVolume24h: finalVol24h,
+                                accTradePrice24h: finalVol24h,
+                                highPrice: parseFloat(item.high_price || item.trade_price),
+                                lowPrice: parseFloat(item.low_price || item.trade_price),
+                                openingPrice: parseFloat(item.opening_price || item.trade_price),
+                                timestamp: item.timestamp,
+                                isUpbit: true
+                            };
+                            tickerMap[item.market] = entry;
+                            const sym = item.market.replace('KRW-', '');
+                            tickerMap[sym] = entry;
+                            tickerMap['KRW-' + sym] = entry;
+                            tickerMap['UPBIT:::' + item.market] = entry;
+                        });
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('업비트 시세 조회 폴백:', err);
+        }
+
+        // 2. Fetch Bithumb ALL_KRW (업비트에 없는 종목만 순수 빗썸으로 보충, 업비트 데이터 오염 방지)
         try {
             const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
             if (bRes.ok) {
@@ -751,7 +839,8 @@ const UpbitAPI = {
                 if (bData && bData.status === '0000' && bData.data) {
                     krwMarkets.forEach(m => {
                         const sym = m.replace('KRW-', '').toUpperCase();
-                        if (bData.data[sym] && bData.data[sym].closing_price) {
+                        // 업비트 시세가 이미 존재하는 종목은 빗썸 데이터로 덮어쓰지 않음
+                        if (!tickerMap[sym] && bData.data[sym] && bData.data[sym].closing_price) {
                             const closeP = parseFloat(bData.data[sym].closing_price);
                             const changeR = parseFloat(bData.data[sym].fluctate_rate_24H || 0);
                             if (closeP > 0) {
@@ -767,7 +856,9 @@ const UpbitAPI = {
                                     highPrice: parseFloat(bData.data[sym].max_price || closeP),
                                     lowPrice: parseFloat(bData.data[sym].min_price || closeP),
                                     openingPrice: parseFloat(bData.data[sym].prev_closing_price || bData.data[sym].opening_price || closeP),
-                                    timestamp: Date.now()
+                                    timestamp: Date.now(),
+                                    isUpbit: false,
+                                    isBithumb: true
                                 };
                                 tickerMap[m] = entry;
                                 tickerMap[sym] = entry;
@@ -780,62 +871,6 @@ const UpbitAPI = {
             }
         } catch (bErr) {
             console.warn('빗썸 시세 조회 폴백:', bErr);
-        }
-
-        // 2. Fetch Upbit Tickers (순차 청크 조회로 429 레이트리밋 방지)
-        try {
-            let upbitMarkets = krwMarkets.filter(m => m.startsWith('KRW-') && m !== 'KRW-KRW');
-            if (this.marketInfoMap && Object.keys(this.marketInfoMap).length > 0) {
-                upbitMarkets = upbitMarkets.filter(m => !!this.marketInfoMap[m]);
-            }
-            if (upbitMarkets.length > 0) {
-                const chunks = [];
-                for (let i = 0; i < upbitMarkets.length; i += 100) {
-                    chunks.push(upbitMarkets.slice(i, i + 100).join(','));
-                }
-                for (const c of chunks) {
-                    try {
-                        const uRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + c);
-                        if (uRes.ok) {
-                            const uJson = await uRes.json();
-                            if (Array.isArray(uJson)) {
-                                uJson.forEach(item => {
-                                    if (!item || !item.market) return;
-                                    const tradeP = parseFloat(item.trade_price);
-                                    const krwVolumeToday = parseFloat(item.acc_trade_price || 0);
-                                    const krwVolume24h = parseFloat(item.acc_trade_price_24h || 0);
-                                    const coinVolumeToday = parseFloat(item.acc_trade_volume || 0);
-                                    const coinVolume24h = parseFloat(item.acc_trade_volume_24h || 0);
-                                    const finalVolToday = krwVolumeToday > 0 ? krwVolumeToday : (coinVolumeToday * tradeP);
-                                    const finalVol24h = krwVolume24h > 0 ? krwVolume24h : (coinVolume24h * tradeP);
-                                    const entry = {
-                                        tradePrice: tradeP,
-                                        signedChangeRate: parseFloat(item.signed_change_rate || 0),
-                                        accTradeVolume: finalVolToday,
-                                        accTradePrice: finalVolToday,
-                                        accTradeVolume24h: finalVol24h,
-                                        accTradePrice24h: finalVol24h,
-                                        highPrice: parseFloat(item.high_price || item.trade_price),
-                                        lowPrice: parseFloat(item.low_price || item.trade_price),
-                                        openingPrice: parseFloat(item.opening_price || item.trade_price),
-                                        timestamp: item.timestamp,
-                                        isUpbit: true
-                                    };
-                                    tickerMap[item.market] = entry;
-                                    const sym = item.market.replace('KRW-', '');
-                                    tickerMap[sym] = entry;
-                                    tickerMap['KRW-' + sym] = entry;
-                                    tickerMap['UPBIT:::' + item.market] = entry;
-                                });
-                            }
-                        }
-                    } catch (cErr) {
-                        console.warn('업비트 청크 조회 예외:', cErr);
-                    }
-                }
-            }
-        } catch (err) {
-            console.warn('업비트 시세 조회 폴백:', err);
         }
 
         // 3. Fallback to site marketCoins if available
