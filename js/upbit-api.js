@@ -635,44 +635,10 @@ const UpbitAPI = {
 
     initMarketInfo: async function () {
         if (this.isMarketInfoLoaded) return;
-
-        // Try session cache first
-        try {
-            const cached = sessionStorage.getItem('UPBIT_MARKET_INFO_MAP');
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (parsed && Object.keys(parsed).length > 50) {
-                    this.marketInfoMap = parsed;
-                    this.isMarketInfoLoaded = true;
-                    return;
-                }
-            }
-        } catch (e) {}
-
-        try {
-            this.lastMarketFetchTime = Date.now();
-            const res = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
-            if (res.ok) {
-                const data = await res.json();
-                data.forEach(item => {
-                    this.marketInfoMap[item.market] = {
-                        koreanName: item.korean_name,
-                        englishName: item.english_name,
-                        market: item.market
-                    };
-                    const symbol = item.market.split('-')[1];
-                    if (symbol) {
-                        this.koreanToSymbolMap[item.korean_name] = symbol;
-                        this.knownKoreanNames[symbol] = item.korean_name;
-                    }
-                });
-                this.isMarketInfoLoaded = true;
-                try {
-                    sessionStorage.setItem('UPBIT_MARKET_INFO_MAP', JSON.stringify(this.marketInfoMap));
-                } catch (e) {}
-            }
-        } catch (err) {
-            console.warn('업비트 마켓 정보 원격 로드 실패 (내장 사전 사용)');
+        // 내장 287개 공식 원화 마켓 및 300+ 한글 사전이 이미 탑재되어 있으므로 원격 호출 생략 (쿼터 절약)
+        if (this.officialKrwMarkets && this.officialKrwMarkets.length > 50) {
+            this.isMarketInfoLoaded = true;
+            return;
         }
     },
 
@@ -857,30 +823,40 @@ const UpbitAPI = {
 
         if (krwMarkets.length === 0) return this._cachedTickerMap || {};
 
-        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 15초 이내일 때 즉시 반환
-        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 15000)) {
+        // 2. 메모리 캐시 확인: 요청한 마켓 대부분(80% 이상)이 캐시에 있고 20초 이내일 때 즉시 반환
+        if (this._cachedTickerMap && (Date.now() - this._lastTickerFetchTime < 20000)) {
             const cachedCount = krwMarkets.filter(m => this._cachedTickerMap[m] || this._cachedTickerMap[m.replace('KRW-', '')]).length;
             if (cachedCount >= Math.min(krwMarkets.length * 0.8, 150)) {
                 return this._cachedTickerMap;
             }
         }
 
-        // 3. 브라우저 세션에 남아있는 구버전/오염된 캐시 완전 소거
+        // 3. 탭/창 간 공유 캐시(localStorage) 확인: 최근 30초 이내 저장된 유효 티커가 있으면 네트워크 호출 생략 (분당 6회 쿼터 완벽 보호)
         try {
-            for (let i = 1; i <= 10; i++) sessionStorage.removeItem('UPBIT_TICKER_CACHE_V' + i);
-            sessionStorage.removeItem('UPBIT_MARKET_INFO_MAP');
+            const stored = localStorage.getItem('UPBIT_PERSISTENT_TICKERS');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.tickers && Object.keys(parsed.tickers).length > 50) {
+                    const age = Date.now() - (parsed.time || 0);
+                    if (age < 30000) {
+                        this._cachedTickerMap = parsed.tickers;
+                        this._lastTickerFetchTime = parsed.time;
+                        return this._cachedTickerMap;
+                    }
+                }
+            }
         } catch (e) {}
 
         const tickerMap = {};
 
-        // 4. Upbit 실시간 Ticker API 호출 (전 종목 단일 고속 요청 -> Origin 쿼터 1회만 소비하여 429 완전 방지)
+        // 4. Upbit 실시간 Ticker API 호출 (전 종목 단일 고속 요청 -> Origin 쿼터 1회만 소비)
         try {
             let upbitMarkets = krwMarkets.filter(m => typeof m === 'string' && m.startsWith('KRW-'));
             if (upbitMarkets.length === 0) {
                 upbitMarkets = this.officialKrwMarkets || krwMarkets;
             }
 
-            // Upbit 404 방지: 공식 지원 마켓 목록이 있는 경우 미상장/상폐 마켓은 단일 배치에서 제외
+            // Upbit 404 방지: 공식 지원 마켓 목록 기준 필터링
             if (this.officialKrwMarkets && this.officialKrwMarkets.length > 0) {
                 const officialSet = new Set(this.officialKrwMarkets);
                 const filtered = upbitMarkets.filter(m => officialSet.has(m));
@@ -917,7 +893,7 @@ const UpbitAPI = {
                     tickerMap['UPBIT:::' + item.market] = entry;
                 };
 
-                // 단일 요청으로 287개 전 종목 일괄 수신 (URL 약 2.4KB, Upbit API 완벽 지원)
+                // 단일 요청으로 287개 전 종목 일괄 수신
                 const joined = upbitMarkets.join(',');
                 const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
                 if (cRes.ok) {
@@ -925,16 +901,6 @@ const UpbitAPI = {
                     if (Array.isArray(cJson)) cJson.forEach(parseItem);
                 } else {
                     console.warn(`Upbit ticker 단일 응답 상태: ${cRes.status}`);
-                    // 429나 제한 발생 시 150개 분할 2청크로 안전 폴백
-                    if (cRes.status === 429) {
-                        const mid = Math.ceil(upbitMarkets.length / 2);
-                        const p1 = upbitMarkets.slice(0, mid).join(',');
-                        const r1 = await fetch('https://api.upbit.com/v1/ticker?markets=' + p1);
-                        if (r1.ok) {
-                            const j1 = await r1.json();
-                            if (Array.isArray(j1)) j1.forEach(parseItem);
-                        }
-                    }
                 }
             }
         } catch (err) {

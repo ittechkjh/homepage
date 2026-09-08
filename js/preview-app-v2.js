@@ -385,18 +385,32 @@ async function fetchMarketData() {
   // 2. Secondary: Upbit / Bithumb fallback
   if (!updated) {
     try {
-      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
-      const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
-      if (upbitRes.ok) {
-        const upbitData = await upbitRes.json();
+      const upbitList = ['KRW-BTC', 'KRW-ETH', 'KRW-SOL', 'KRW-XRP', 'KRW-DOGE', 'KRW-ADA'];
+      let upbitMap = {};
+      if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
+        upbitMap = await UpbitAPI.fetchTickers(upbitList);
+      } else {
+        const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitList.join(','));
+        if (upbitRes.ok) {
+          const j = await upbitRes.json();
+          j.forEach(item => { upbitMap[item.market] = item; });
+        }
+      }
+      if (Object.keys(upbitMap).length > 0) {
         const usdRate = 1420;
-        upbitData.forEach(item => {
-          const symbol = item.market.replace('KRW-', '').toLowerCase();
-          const coin = marketCoins.find(c => c.symbol.toLowerCase() === symbol);
-          if (coin) {
-            coin.current_price = item.trade_price / usdRate;
-            coin.price_change_percentage_24h = item.signed_change_rate * 100;
-            coin.total_volume = item.acc_trade_price_24h / usdRate;
+        upbitList.forEach(m => {
+          const item = upbitMap[m] || upbitMap[m.replace('KRW-', '')];
+          if (item) {
+            const sym = m.replace('KRW-', '').toLowerCase();
+            const coin = marketCoins.find(c => c.symbol.toLowerCase() === sym);
+            if (coin) {
+              const tp = item.tradePrice || item.trade_price;
+              const sc = item.signedChangeRate !== undefined ? item.signedChangeRate : item.signed_change_rate;
+              const av = item.accTradePrice24h || item.acc_trade_price_24h;
+              if (tp) coin.current_price = tp / usdRate;
+              if (sc !== undefined) coin.price_change_percentage_24h = sc * 100;
+              if (av) coin.total_volume = av / usdRate;
+            }
           }
         });
         updated = true;

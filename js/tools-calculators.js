@@ -528,9 +528,27 @@ const CoinCalculators = {
         if (!kimpBody) return;
 
         try {
-            const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE,KRW-TRX,KRW-USDT');
-            if (!upbitRes.ok) throw new Error('업비트 API 응답 실패');
-            const upbitData = await upbitRes.json();
+            let upbitData = [];
+            const kimpMarkets = ['KRW-BTC', 'KRW-ETH', 'KRW-XRP', 'KRW-SOL', 'KRW-DOGE', 'KRW-TRX', 'KRW-USDT'];
+            if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
+                const map = await UpbitAPI.fetchTickers(kimpMarkets);
+                kimpMarkets.forEach(m => {
+                    const t = map[m] || map[m.replace('KRW-', '')];
+                    if (t && t.tradePrice > 0) {
+                        upbitData.push({
+                            market: m,
+                            trade_price: t.tradePrice,
+                            signed_change_rate: t.signedChangeRate,
+                            acc_trade_price_24h: t.accTradePrice24h
+                        });
+                    }
+                });
+            }
+            if (upbitData.length === 0) {
+                const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE,KRW-TRX,KRW-USDT');
+                if (upbitRes.ok) upbitData = await upbitRes.json();
+            }
+            if (upbitData.length === 0) throw new Error('업비트 API 응답 대기');
 
             const usdtItem = upbitData.find(d => d.market === 'KRW-USDT');
             const liveUsdRate = (usdtItem && usdtItem.trade_price > 1000) ? usdtItem.trade_price : (this.exchangeRateUsdKrw || 1380);
