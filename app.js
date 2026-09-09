@@ -521,8 +521,523 @@ function renderMarketUI() {
 
   renderAltcoinIndex(marketCoins);
   renderCoinTable(getFilteredMarketCoins());
+  renderMarketAnalysisAndIndicators();
 }
 window.renderMarketUI = renderMarketUI;
+
+// ----------------------------------------------------
+// Section 2.5: 25 Market Indicators & Integrated Analysis Engine
+// ----------------------------------------------------
+const defaultMarketAnalysisState = {
+  upbit: { total: 287, up: 114, down: 150, ratio: 40 },
+  bithumb: { total: 481, up: 172, down: 287, ratio: 36 },
+  btckrw: { price: 106541000, change: -1.09 },
+  ethkrw: { price: 3372000, change: -0.53 },
+  usdkrw: { rate: 1340.5 },
+  kimp: { rate: 1.20 },
+  fng: { score: 69, text: '탐욕' },
+  btcDom: { value: 58.34 },
+  globalMcap: { value: '$2.70조' },
+  us10y: { value: 4.806 },
+  nasdaqFut: { value: 29533.25, change: -0.02 },
+  fundingRate: { value: 0.0038, text: '중립' },
+  longShortRatio: { ratio: 1.297, longPct: 56.5, shortPct: 43.5 },
+  openInterest: { value: '$8.36B' },
+  usdtDom: { value: 6.78 },
+  nasdaqSpot: { value: 26421.41, change: -0.32 },
+  spFut: { value: 7680.5, change: 0.00 },
+  dowFut: { value: 52826, change: -0.01 },
+  vix: { value: 15.72, text: '안정' },
+  goldFut: { value: 4396.9, change: -0.95 },
+  dxy: { value: 98.84, change: 0.05 },
+  kospi: { value: 6954.52, change: -0.58 },
+  nikkei: { value: 65269, change: -1.70 },
+  hangseng: { value: 25317, change: -1.30 },
+  wti: { value: 94.12, change: 1.84 },
+  brent: { value: 99.05, change: 1.62 },
+  copper: { value: 6.78, change: 0.00 }
+};
+
+let marketAnalysisState = JSON.parse(JSON.stringify(defaultMarketAnalysisState));
+
+async function fetchMarketAnalysisData() {
+  try {
+    // 1. Upbit KRW tickers for BTC & ETH
+    const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH');
+    if (upbitRes.ok) {
+      const uData = await upbitRes.json();
+      const uBtc = uData.find(d => d.market === 'KRW-BTC');
+      const uEth = uData.find(d => d.market === 'KRW-ETH');
+      if (uBtc) {
+        marketAnalysisState.btckrw.price = uBtc.trade_price;
+        marketAnalysisState.btckrw.change = (uBtc.signed_change_rate || 0) * 100;
+      }
+      if (uEth) {
+        marketAnalysisState.ethkrw.price = uEth.trade_price;
+        marketAnalysisState.ethkrw.change = (uEth.signed_change_rate || 0) * 100;
+      }
+    }
+  } catch (e) {}
+
+  try {
+    // 2. Bithumb tickers count for advancing/declining
+    const bitRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
+    if (bitRes.ok) {
+      const bitJson = await bitRes.json();
+      if (bitJson && bitJson.status === '0000' && bitJson.data) {
+        let upCount = 0, downCount = 0, totalCount = 0;
+        Object.keys(bitJson.data).forEach(k => {
+          if (k === 'date') return;
+          const rate = parseFloat(bitJson.data[k].fluctate_rate_24H || 0);
+          totalCount++;
+          if (rate > 0) upCount++;
+          else if (rate < 0) downCount++;
+        });
+        if (totalCount > 50) {
+          marketAnalysisState.bithumb.total = totalCount;
+          marketAnalysisState.bithumb.up = upCount;
+          marketAnalysisState.bithumb.down = downCount;
+          marketAnalysisState.bithumb.ratio = Math.round((upCount / totalCount) * 100);
+        }
+      }
+    }
+  } catch (e) {}
+
+  try {
+    // 3. Binance Futures: Funding Rate
+    const fundRes = await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');
+    if (fundRes.ok) {
+      const fundData = await fundRes.json();
+      if (fundData && fundData.lastFundingRate !== undefined) {
+        const ratePct = parseFloat(fundData.lastFundingRate) * 100;
+        marketAnalysisState.fundingRate.value = ratePct;
+        marketAnalysisState.fundingRate.text = ratePct > 0.03 ? '롱 과열' : (ratePct < -0.01 ? '숏 과열' : '중립');
+      }
+    }
+  } catch (e) {}
+
+  try {
+    // 4. Binance Futures: Long/Short Ratio
+    const lsRes = await fetch('https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1');
+    if (lsRes.ok) {
+      const lsData = await lsRes.json();
+      if (Array.isArray(lsData) && lsData.length > 0) {
+        const item = lsData[0];
+        const ratio = parseFloat(item.longShortRatio);
+        const longPct = parseFloat(item.longAccount) * 100;
+        const shortPct = parseFloat(item.shortAccount) * 100;
+        if (!isNaN(ratio)) {
+          marketAnalysisState.longShortRatio.ratio = ratio;
+          marketAnalysisState.longShortRatio.longPct = Math.round(longPct * 10) / 10;
+          marketAnalysisState.longShortRatio.shortPct = Math.round(shortPct * 10) / 10;
+        }
+      }
+    }
+  } catch (e) {}
+
+  try {
+    // 5. Binance Futures: Open Interest
+    const oiRes = await fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT');
+    if (oiRes.ok) {
+      const oiData = await oiRes.json();
+      if (oiData && oiData.openInterest) {
+        const btcPrice = marketCoins.find(c => c.symbol === 'btc')?.current_price || 77000;
+        const oiVal = parseFloat(oiData.openInterest) * btcPrice;
+        if (oiVal > 1e8) {
+          marketAnalysisState.openInterest.value = `$${(oiVal / 1e9).toFixed(2)}B`;
+        }
+      }
+    }
+  } catch (e) {}
+
+  try {
+    // 6. Alternative.me Fear & Greed Index
+    const fngRes = await fetch('https://api.alternative.me/fng/?limit=1');
+    if (fngRes.ok) {
+      const fData = await fngRes.json();
+      if (fData && fData.data && fData.data[0]) {
+        const score = parseInt(fData.data[0].value, 10);
+        let text = '중립';
+        if (score >= 76) text = '극도 탐욕';
+        else if (score >= 56) text = '탐욕';
+        else if (score <= 24) text = '극도 공포';
+        else if (score <= 44) text = '공포';
+        marketAnalysisState.fng.score = score;
+        marketAnalysisState.fng.text = text;
+      }
+    }
+  } catch (e) {}
+
+  // 7. Kimchi Premium Calculation
+  const btcUsd = marketCoins.find(c => c.symbol === 'btc')?.current_price;
+  if (btcUsd && marketAnalysisState.btckrw.price && marketAnalysisState.usdkrw.rate) {
+    const parityKrw = btcUsd * marketAnalysisState.usdkrw.rate;
+    const kimpRate = ((marketAnalysisState.btckrw.price / parityKrw) - 1) * 100;
+    marketAnalysisState.kimp.rate = Math.round(kimpRate * 100) / 100;
+  }
+
+  renderMarketAnalysisAndIndicators();
+}
+window.fetchMarketAnalysisData = fetchMarketAnalysisData;
+
+function refreshMarketAnalysis() {
+  const icon = document.getElementById('analysis-refresh-icon');
+  if (icon) icon.classList.add('animate-spin');
+  fetchMarketAnalysisData().finally(() => {
+    if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
+  });
+}
+window.refreshMarketAnalysis = refreshMarketAnalysis;
+
+function renderMarketAnalysisAndIndicators() {
+  const s = marketAnalysisState;
+
+  // 1. Calculate Comprehensive Market Sentiment Score
+  let score = 0;
+  if (s.btckrw.change > 1) score += 4;
+  else if (s.btckrw.change > 0) score += 2;
+  else if (s.btckrw.change < -1) score -= 3;
+  else score -= 1;
+
+  if (s.upbit.ratio >= 60) score += 4;
+  else if (s.upbit.ratio <= 40) score -= 3;
+
+  if (s.bithumb.ratio >= 60) score += 4;
+  else if (s.bithumb.ratio <= 40) score -= 3;
+
+  if (s.fng.score >= 70) score += 4;
+  else if (s.fng.score >= 55) score += 2;
+  else if (s.fng.score <= 35) score -= 4;
+
+  if (s.vix.value <= 16) score += 3;
+  else if (s.vix.value >= 25) score -= 4;
+
+  if (s.dxy.value <= 100) score += 2;
+  else score -= 3;
+
+  if (s.wti.value >= 90 || s.brent.value >= 95) score -= 4;
+
+  if (s.us10y.value >= 4.5) score -= 3;
+
+  if (s.nasdaqFut.change > 0.5) score += 3;
+  else if (s.nasdaqFut.change < -0.5) score -= 3;
+
+  if (s.kospi.change < 0 && s.nikkei.change < 0) score -= 3;
+
+  if (s.longShortRatio.ratio > 1.2) score += 2;
+  else if (s.longShortRatio.ratio < 0.8) score -= 2;
+
+  let sentimentEmoji = '😐';
+  let sentimentTitle = '중립·혼조';
+  let sentimentColorClass = 'text-amber-400';
+
+  if (score >= 15) {
+    sentimentEmoji = '🚀';
+    sentimentTitle = '탐욕·상승';
+    sentimentColorClass = 'text-emerald-400';
+  } else if (score >= 6) {
+    sentimentEmoji = '📈';
+    sentimentTitle = '소폭 상승';
+    sentimentColorClass = 'text-emerald-300';
+  } else if (score <= -15) {
+    sentimentEmoji = '❄️';
+    sentimentTitle = '공포·위축';
+    sentimentColorClass = 'text-rose-400';
+  } else if (score <= -6) {
+    sentimentEmoji = '⚠️';
+    sentimentTitle = '조정·약세';
+    sentimentColorClass = 'text-rose-300';
+  } else {
+    sentimentEmoji = '😐';
+    sentimentTitle = '중립·혼조';
+    sentimentColorClass = 'text-amber-400';
+  }
+
+  // Update Headline
+  const emojiEl = document.getElementById('market-sentiment-emoji');
+  const titleEl = document.getElementById('market-sentiment-title');
+  const scoreEl = document.getElementById('market-sentiment-score');
+  if (emojiEl) emojiEl.innerText = sentimentEmoji;
+  if (titleEl) {
+    titleEl.innerText = sentimentTitle;
+    titleEl.className = `text-2xl sm:text-3xl font-black ${sentimentColorClass} tracking-tight`;
+  }
+  if (scoreEl) {
+    const sign = score > 0 ? '+' : '';
+    scoreEl.innerText = `종합점수 ${sign}${score}점 (25개 지표)`;
+  }
+
+  // Update Signal Checklist
+  const sigListEl = document.getElementById('market-signals-list');
+  if (sigListEl) {
+    const signals = [
+      { ok: s.fng.score >= 50, text: `공포탐욕 ${s.fng.score} ${s.fng.text}` },
+      { ok: s.usdtDom.value <= 7.0, text: `USDT도미 ${s.usdtDom.value}% 중립` },
+      { ok: s.vix.value <= 20, text: `VIX ${s.vix.value.toFixed(1)} ${s.vix.value <= 20 ? '안정' : '불안'}` },
+      { ok: s.dxy.value <= 100, text: `DXY ${s.dxy.value.toFixed(1)} ${s.dxy.value <= 100 ? '달러약세' : '달러강세'}` },
+      { ok: s.brent.value < 85, text: `Brent $${Math.round(s.brent.value)} ${s.brent.value >= 85 ? '고유가' : '유가안정'}` },
+      { ok: s.wti.value < 85, text: `WTI $${Math.round(s.wti.value)} ${s.wti.value >= 85 ? '고유가(인플레)' : '안정'}` },
+      { ok: s.bithumb.ratio >= 50, text: `빗썸 상승 ${s.bithumb.ratio}% ${s.bithumb.ratio >= 50 ? '상승우세' : '하락우세'}` }
+    ];
+    sigListEl.innerHTML = signals.map(sig => `
+      <li class="flex items-center gap-2 ${sig.ok ? 'text-emerald-400' : 'text-rose-400'}">
+        <span>${sig.ok ? '✅' : '❌'}</span>
+        <span>${sig.text}</span>
+      </li>
+    `).join('');
+  }
+
+  // Update Narrative lines
+  const setEl = (id, html) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  };
+
+  const fmtSign = (v, suffix = '%') => {
+    const isUp = v >= 0;
+    const color = isUp ? 'text-emerald-400' : 'text-rose-400';
+    return `<span class="${color} font-bold">${isUp ? '+' : ''}${v.toFixed(2)}${suffix}</span>`;
+  };
+
+  setEl('nar-btc-change', fmtSign(s.btckrw.change));
+  setEl('nar-eth-change', fmtSign(s.ethkrw.change));
+  setEl('nar-fng-val', `<span class="${s.fng.score >= 50 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.fng.score}(${s.fng.text})</span>`);
+  setEl('nar-kimp-val', fmtSign(s.kimp.rate));
+  setEl('nar-usdt-dom', `<span class="text-slate-200 font-bold">${s.usdtDom.value}%</span>`);
+  setEl('nar-btc-dom', `<span class="text-cyan-400 font-bold">${s.btcDom.value}%</span>`);
+  setEl('nar-nasdaq-fut', fmtSign(s.nasdaqFut.change));
+  setEl('nar-sp-fut', fmtSign(s.spFut.change));
+  setEl('nar-dow-fut', fmtSign(s.dowFut.change));
+  setEl('nar-vix-val', `<span class="${s.vix.value <= 20 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.vix.value.toFixed(1)}</span>`);
+  setEl('nar-kospi', fmtSign(s.kospi.change));
+  setEl('nar-nikkei', fmtSign(s.nikkei.change));
+  setEl('nar-hangseng', fmtSign(s.hangseng.change));
+  setEl('nar-us10y', `<span class="${s.us10y.value >= 4.5 ? 'text-amber-400' : 'text-slate-200'} font-bold">${s.us10y.value.toFixed(2)}%</span>`);
+  setEl('nar-dxy', `<span class="${s.dxy.value <= 100 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.dxy.value.toFixed(1)}</span>`);
+  setEl('nar-usdkrw', `<span class="text-slate-200 font-bold">${s.usdkrw.rate.toLocaleString()}원</span>`);
+  setEl('nar-wti', `<span class="${s.wti.value >= 85 ? 'text-rose-400' : 'text-emerald-400'} font-bold">$${Math.round(s.wti.value)}</span>`);
+  setEl('nar-brent', `<span class="${s.brent.value >= 85 ? 'text-rose-400' : 'text-emerald-400'} font-bold">$${Math.round(s.brent.value)}</span>`);
+  setEl('nar-gold', `<span class="text-slate-200 font-bold">$${Math.round(s.goldFut.value).toLocaleString()}</span>`);
+  setEl('nar-copper', `<span class="text-slate-200 font-bold">$${s.copper.value.toFixed(2)}</span>`);
+  setEl('nar-funding', `<span class="text-amber-400 font-bold">${s.fundingRate.value >= 0 ? '+' : ''}${s.fundingRate.value.toFixed(4)}%</span>`);
+  setEl('nar-ls-ratio', `<span class="${s.longShortRatio.ratio >= 1.0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.longShortRatio.ratio.toFixed(2)}</span>`);
+  setEl('nar-long-pct', `${s.longShortRatio.longPct}%`);
+  setEl('nar-short-pct', `${s.longShortRatio.shortPct}%`);
+  setEl('nar-oi', `<span class="text-cyan-400 font-bold">${s.openInterest.value}</span>`);
+
+  // Final Verdict
+  const verdictEl = document.getElementById('market-final-verdict');
+  if (verdictEl) {
+    let verdictText = '상승·하락 신호가 혼재하는 중립 국면입니다. 방향성이 확인될 때까지 관망이 유리합니다.';
+    if (score >= 15) verdictText = '글로벌 유동성과 온체인 지표가 동반 강세를 가리키는 상승 장세입니다. 분할 매수 전략이 유효합니다.';
+    else if (score <= -15) verdictText = '거시 지표 부담과 선물 매도세가 짙은 리스크 오프 국면입니다. 현금 비중 확대 및 보수적 접근을 권장합니다.';
+    verdictEl.innerHTML = `<span class="text-cyan-400 shrink-0">▶</span><span>종합: ${verdictText}</span>`;
+  }
+
+  // 2. Update 25 Key Indicator Cards
+  // Card 1: Upbit Breadth
+  const uBadge = document.getElementById('ind-upbit-badge');
+  const uVal = document.getElementById('ind-upbit-val');
+  if (uBadge) {
+    uBadge.innerText = `상승 ${s.upbit.ratio}%`;
+    uBadge.className = s.upbit.ratio >= 50 ? 'badge-green text-[11px] font-mono font-bold px-1.5 py-0.5 rounded' : 'badge-amber text-[11px] font-mono font-bold px-1.5 py-0.5 rounded';
+  }
+  if (uVal) uVal.innerText = `↑${s.upbit.up} / ↓${s.upbit.down} (${s.upbit.total}개)`;
+
+  // Card 2: Bithumb Breadth
+  const bBadge = document.getElementById('ind-bithumb-badge');
+  const bVal = document.getElementById('ind-bithumb-val');
+  if (bBadge) {
+    bBadge.innerText = `상승 ${s.bithumb.ratio}%`;
+    bBadge.className = s.bithumb.ratio >= 50 ? 'badge-green text-[11px] font-mono font-bold px-1.5 py-0.5 rounded' : 'badge-amber text-[11px] font-mono font-bold px-1.5 py-0.5 rounded';
+  }
+  if (bVal) bVal.innerText = `↑${s.bithumb.up} / ↓${s.bithumb.down} (${s.bithumb.total}개)`;
+
+  // Card 3: BTC/KRW
+  const btcRateEl = document.getElementById('ind-btckrw-rate');
+  const btcValEl = document.getElementById('ind-btckrw-val');
+  if (btcRateEl) {
+    const isUp = s.btckrw.change >= 0;
+    btcRateEl.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    btcRateEl.innerText = `${isUp ? '+' : ''}${s.btckrw.change.toFixed(2)}%`;
+  }
+  if (btcValEl) btcValEl.innerText = `${s.btckrw.price.toLocaleString()}원`;
+
+  // Card 4: ETH/KRW
+  const ethRateEl = document.getElementById('ind-ethkrw-rate');
+  const ethValEl = document.getElementById('ind-ethkrw-val');
+  if (ethRateEl) {
+    const isUp = s.ethkrw.change >= 0;
+    ethRateEl.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    ethRateEl.innerText = `${isUp ? '+' : ''}${s.ethkrw.change.toFixed(2)}%`;
+  }
+  if (ethValEl) ethValEl.innerText = `${s.ethkrw.price.toLocaleString()}원`;
+
+  // Card 5: USD/KRW
+  const usdkrwEl = document.getElementById('ind-usdkrw-val');
+  if (usdkrwEl) usdkrwEl.innerText = `${s.usdkrw.rate.toLocaleString()}원`;
+
+  // Card 6: Kimchi Premium
+  const kimpRateEl = document.getElementById('ind-kimp-rate');
+  const kimpValEl = document.getElementById('ind-kimp-val');
+  if (kimpRateEl) {
+    const isUp = s.kimp.rate >= 0;
+    kimpRateEl.className = isUp ? 'text-[11px] font-mono font-bold text-amber-400' : 'text-[11px] font-mono font-bold text-cyan-400';
+    kimpRateEl.innerText = `${isUp ? '+' : ''}${s.kimp.rate.toFixed(2)}%`;
+  }
+  if (kimpValEl) {
+    const isUp = s.kimp.rate >= 0;
+    kimpValEl.className = isUp ? 'text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight' : 'text-base sm:text-lg font-black font-mono text-cyan-400 tracking-tight';
+    kimpValEl.innerText = `${isUp ? '+' : ''}${s.kimp.rate.toFixed(2)}%`;
+  }
+
+  // Card 7: Fear & Greed
+  const fngBadge = document.getElementById('ind-fng-badge');
+  const fngVal = document.getElementById('ind-fng-val');
+  if (fngBadge) {
+    fngBadge.innerText = s.fng.text;
+    fngBadge.className = s.fng.score >= 50 ? 'text-[11px] font-mono font-bold text-emerald-400' : 'text-[11px] font-mono font-bold text-rose-400';
+  }
+  if (fngVal) {
+    fngVal.innerText = `${s.fng.score} / 100`;
+    fngVal.className = s.fng.score >= 50 ? 'text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight' : 'text-base sm:text-lg font-black font-mono text-rose-400 tracking-tight';
+  }
+
+  // Card 8: BTC Dominance
+  const btcdomVal = document.getElementById('ind-btcdom-val');
+  if (btcdomVal) btcdomVal.innerText = `${s.btcDom.value}%`;
+
+  // Card 9: Global Market Cap
+  const mcapVal = document.getElementById('ind-mcap-val');
+  if (mcapVal) mcapVal.innerText = s.globalMcap.value;
+
+  // Card 10: US 10Y Yield
+  const us10yVal = document.getElementById('ind-us10y-val');
+  if (us10yVal) us10yVal.innerText = `${s.us10y.value.toFixed(3)}%`;
+
+  // Card 11: Nasdaq Futures
+  const nqRate = document.getElementById('ind-nasdaqfut-rate');
+  const nqVal = document.getElementById('ind-nasdaqfut-val');
+  if (nqRate) {
+    const isUp = s.nasdaqFut.change >= 0;
+    nqRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    nqRate.innerText = `${isUp ? '+' : ''}${s.nasdaqFut.change.toFixed(2)}%`;
+  }
+  if (nqVal) nqVal.innerText = s.nasdaqFut.value.toLocaleString();
+
+  // Card 12: Funding Rate
+  const fundBadge = document.getElementById('ind-funding-badge');
+  const fundVal = document.getElementById('ind-funding-val');
+  if (fundBadge) fundBadge.innerText = s.fundingRate.text;
+  if (fundVal) fundVal.innerText = `${s.fundingRate.value >= 0 ? '+' : ''}${s.fundingRate.value.toFixed(4)}%`;
+
+  // Card 13: Long/Short Ratio
+  const lsVal = document.getElementById('ind-ls-val');
+  if (lsVal) lsVal.innerText = s.longShortRatio.ratio.toFixed(3);
+
+  // Card 14: BTC Open Interest
+  const oiVal = document.getElementById('ind-oi-val');
+  if (oiVal) oiVal.innerText = s.openInterest.value;
+
+  // Card 15: USDT Dominance
+  const usdtdomVal = document.getElementById('ind-usdtdom-val');
+  if (usdtdomVal) usdtdomVal.innerText = `${s.usdtDom.value}%`;
+
+  // Card 16: Nasdaq Spot
+  const nSpotRate = document.getElementById('ind-nasdaq-rate');
+  const nSpotVal = document.getElementById('ind-nasdaq-val');
+  if (nSpotRate) {
+    const isUp = s.nasdaqSpot.change >= 0;
+    nSpotRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    nSpotRate.innerText = `${isUp ? '+' : ''}${s.nasdaqSpot.change.toFixed(2)}%`;
+  }
+  if (nSpotVal) nSpotVal.innerText = s.nasdaqSpot.value.toLocaleString();
+
+  // Card 17: S&P500 Futures
+  const spRate = document.getElementById('ind-spfut-rate');
+  const spVal = document.getElementById('ind-spfut-val');
+  if (spRate) {
+    const isUp = s.spFut.change >= 0;
+    spRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    spRate.innerText = `${isUp ? '+' : ''}${s.spFut.change.toFixed(2)}%`;
+  }
+  if (spVal) spVal.innerText = s.spFut.value.toLocaleString();
+
+  // Card 18: Dow Futures
+  const dowRate = document.getElementById('ind-dowfut-rate');
+  const dowVal = document.getElementById('ind-dowfut-val');
+  if (dowRate) {
+    const isUp = s.dowFut.change >= 0;
+    dowRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    dowRate.innerText = `${isUp ? '+' : ''}${s.dowFut.change.toFixed(2)}%`;
+  }
+  if (dowVal) dowVal.innerText = s.dowFut.value.toLocaleString();
+
+  // Card 19: VIX
+  const vixVal = document.getElementById('ind-vix-val');
+  if (vixVal) vixVal.innerText = s.vix.value.toFixed(2);
+
+  // Card 20: Gold Futures
+  const goldRate = document.getElementById('ind-gold-rate');
+  const goldVal = document.getElementById('ind-gold-val');
+  if (goldRate) {
+    const isUp = s.goldFut.change >= 0;
+    goldRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    goldRate.innerText = `${isUp ? '+' : ''}${s.goldFut.change.toFixed(2)}%`;
+  }
+  if (goldVal) goldVal.innerText = `$${s.goldFut.value.toLocaleString()}`;
+
+  // Card 21: DXY
+  const dxyRate = document.getElementById('ind-dxy-rate');
+  const dxyVal = document.getElementById('ind-dxy-val');
+  if (dxyRate) {
+    const isUp = s.dxy.change >= 0;
+    dxyRate.className = isUp ? 'text-[11px] font-mono font-bold text-emerald-400' : 'text-[11px] font-mono font-bold text-crypto-red';
+    dxyRate.innerText = `${isUp ? '+' : ''}${s.dxy.change.toFixed(2)}%`;
+  }
+  if (dxyVal) dxyVal.innerText = s.dxy.value.toFixed(2);
+
+  // Card 22: KOSPI
+  const kospiRate = document.getElementById('ind-kospi-rate');
+  const kospiVal = document.getElementById('ind-kospi-val');
+  if (kospiRate) {
+    const isUp = s.kospi.change >= 0;
+    kospiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    kospiRate.innerText = `${isUp ? '+' : ''}${s.kospi.change.toFixed(2)}%`;
+  }
+  if (kospiVal) kospiVal.innerText = s.kospi.value.toLocaleString();
+
+  // Card 23: Nikkei 225
+  const nikkeiRate = document.getElementById('ind-nikkei-rate');
+  const nikkeiVal = document.getElementById('ind-nikkei-val');
+  if (nikkeiRate) {
+    const isUp = s.nikkei.change >= 0;
+    nikkeiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    nikkeiRate.innerText = `${isUp ? '+' : ''}${s.nikkei.change.toFixed(2)}%`;
+  }
+  if (nikkeiVal) nikkeiVal.innerText = s.nikkei.value.toLocaleString();
+
+  // Card 24: Hang Seng
+  const hsRate = document.getElementById('ind-hangseng-rate');
+  const hsVal = document.getElementById('ind-hangseng-val');
+  if (hsRate) {
+    const isUp = s.hangseng.change >= 0;
+    hsRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    hsRate.innerText = `${isUp ? '+' : ''}${s.hangseng.change.toFixed(2)}%`;
+  }
+  if (hsVal) hsVal.innerText = s.hangseng.value.toLocaleString();
+
+  // Card 25: WTI Crude
+  const wtiRate = document.getElementById('ind-wti-rate');
+  const wtiVal = document.getElementById('ind-wti-val');
+  if (wtiRate) {
+    const isUp = s.wti.change >= 0;
+    wtiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-red' : 'text-[11px] font-mono font-bold text-crypto-green';
+    wtiRate.innerText = `${isUp ? '+' : ''}${s.wti.change.toFixed(2)}%`;
+  }
+  if (wtiVal) wtiVal.innerText = `$${s.wti.value.toFixed(2)}`;
+}
+window.renderMarketAnalysisAndIndicators = renderMarketAnalysisAndIndicators;
 
 let currentMarketCategoryFilter = 'all';
 
