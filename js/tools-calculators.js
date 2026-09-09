@@ -24,6 +24,218 @@ const CoinCalculators = {
     ],
     nextSellTierId: 2,
 
+    // 물타기/탈출 다중 시나리오 관리 상태
+    currentScenarioId: null,
+
+    // 사용자별 고유 저장소 키 반환
+    getScenarioStorageKey: function () {
+        const user = this.getLoggedInUsername();
+        return user ? `crytopnl_dca_scenarios_${user}` : 'crytopnl_dca_scenarios_guest';
+    },
+
+    // 저장된 시나리오 목록 반환
+    getSavedScenarios: function () {
+        try {
+            const raw = localStorage.getItem(this.getScenarioStorageKey());
+            if (raw) {
+                const list = JSON.parse(raw);
+                if (Array.isArray(list)) return list;
+            }
+        } catch (e) {}
+        return [];
+    },
+
+    // 현재 폼 상태를 시나리오로 저장 (신규 or 덮어쓰기)
+    saveScenario: function (customTitle) {
+        const curPrice = parseFloat(document.getElementById('waterCurrentPrice')?.value) || 0;
+        const curQty = parseFloat(document.getElementById('waterCurrentQty')?.value) || 0;
+        const feeRate = document.getElementById('waterFeeRate')?.value || '0.05';
+
+        if (curPrice <= 0 && curQty <= 0) {
+            alert('보유 평단가와 수량을 입력해주세요.');
+            return;
+        }
+
+        const list = this.getSavedScenarios();
+        let active = list.find(s => s.id === this.currentScenarioId);
+
+        let title = customTitle;
+        if (!title) {
+            const defaultTitle = active ? active.title : `물타기 플랜 ${list.length + 1} (${new Date().toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })})`;
+            title = prompt('저장할 시나리오 이름을 입력하세요:', defaultTitle);
+            if (!title) return;
+        }
+        title = title.trim();
+        if (!title) return;
+
+        const nowStr = new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        if (active && active.title === title) {
+            // 기존 선택된 시나리오 덮어쓰기
+            active.currentPrice = curPrice;
+            active.currentQty = curQty;
+            active.feeRate = feeRate;
+            active.waterTiers = JSON.parse(JSON.stringify(this.waterTiers));
+            active.sellTiers = JSON.parse(JSON.stringify(this.sellTiers));
+            active.updatedAt = nowStr;
+        } else {
+            // 신규 저장
+            const newId = 'dca_' + Date.now();
+            const newScenario = {
+                id: newId,
+                title: title,
+                currentPrice: curPrice,
+                currentQty: curQty,
+                feeRate: feeRate,
+                waterTiers: JSON.parse(JSON.stringify(this.waterTiers)),
+                sellTiers: JSON.parse(JSON.stringify(this.sellTiers)),
+                updatedAt: nowStr
+            };
+            list.unshift(newScenario);
+            this.currentScenarioId = newId;
+        }
+
+        try {
+            localStorage.setItem(this.getScenarioStorageKey(), JSON.stringify(list));
+        } catch (e) {
+            alert('저장 실패: 브라우저 저장 공간을 확인하세요.');
+            return;
+        }
+
+        this.renderScenarioUI();
+        this.showScenarioToast(`'${title}' 계획이 저장되었습니다.`);
+    },
+
+    // 선택된 시나리오 로드
+    loadScenario: function (scenarioId) {
+        if (!scenarioId) {
+            this.resetScenario();
+            return;
+        }
+
+        const list = this.getSavedScenarios();
+        const target = list.find(s => s.id === scenarioId);
+        if (!target) return;
+
+        this.currentScenarioId = target.id;
+
+        const priceEl = document.getElementById('waterCurrentPrice');
+        const qtyEl = document.getElementById('waterCurrentQty');
+        const feeEl = document.getElementById('waterFeeRate');
+
+        if (priceEl) priceEl.value = target.currentPrice || '';
+        if (qtyEl) qtyEl.value = target.currentQty || '';
+        if (feeEl && target.feeRate) feeEl.value = target.feeRate;
+
+        this.waterTiers = target.waterTiers && target.waterTiers.length > 0
+            ? JSON.parse(JSON.stringify(target.waterTiers))
+            : [{ id: 1, mode: 'amount', price: 78000000, val: 10000000 }];
+        this.nextWaterTierId = Math.max(...this.waterTiers.map(t => t.id || 0), 0) + 1;
+
+        this.sellTiers = target.sellTiers && target.sellTiers.length > 0
+            ? JSON.parse(JSON.stringify(target.sellTiers))
+            : [{ id: 1, mode: 'pct', price: 98000000, val: 50 }];
+        this.nextSellTierId = Math.max(...this.sellTiers.map(t => t.id || 0), 0) + 1;
+
+        this.renderWaterTiers();
+        this.renderSellTiers();
+        this.calcWater();
+        this.renderScenarioUI();
+        this.showScenarioToast(`'${target.title}' 계획을 불러왔습니다.`);
+    },
+
+    // 시나리오 삭제
+    deleteScenario: function (scenarioId) {
+        const idToDelete = scenarioId || this.currentScenarioId;
+        if (!idToDelete) {
+            alert('삭제할 저장 계획이 선택되지 않았습니다.');
+            return;
+        }
+
+        const list = this.getSavedScenarios();
+        const target = list.find(s => s.id === idToDelete);
+        if (!target) return;
+
+        if (!confirm(`'${target.title}' 계획을 정말 삭제하시겠습니까?`)) return;
+
+        const filtered = list.filter(s => s.id !== idToDelete);
+        try {
+            localStorage.setItem(this.getScenarioStorageKey(), JSON.stringify(filtered));
+        } catch (e) {}
+
+        this.currentScenarioId = null;
+        this.resetScenario();
+        this.renderScenarioUI();
+        this.showScenarioToast('계획이 삭제되었습니다.');
+    },
+
+    // 새 계획 작성 (폼 초기화)
+    resetScenario: function () {
+        this.currentScenarioId = null;
+        const priceEl = document.getElementById('waterCurrentPrice');
+        const qtyEl = document.getElementById('waterCurrentQty');
+        const feeEl = document.getElementById('waterFeeRate');
+
+        if (priceEl) priceEl.value = '95000000';
+        if (qtyEl) qtyEl.value = '0.5';
+        if (feeEl) feeEl.value = '0.05';
+
+        this.waterTiers = [{ id: 1, mode: 'amount', price: 78000000, val: 10000000 }];
+        this.nextWaterTierId = 2;
+        this.sellTiers = [{ id: 1, mode: 'pct', price: 98000000, val: 50 }];
+        this.nextSellTierId = 2;
+
+        this.renderWaterTiers();
+        this.renderSellTiers();
+        this.calcWater();
+        this.renderScenarioUI();
+    },
+
+    // UI 셀렉터 및 보관함 뱃지 동기화
+    renderScenarioUI: function () {
+        const selectEl = document.getElementById('waterScenarioSelect');
+        const userBadgeEl = document.getElementById('waterScenarioUserBadge');
+        const deleteBtn = document.getElementById('waterScenarioDeleteBtn');
+
+        const user = this.getLoggedInUsername();
+        const list = this.getSavedScenarios();
+
+        if (userBadgeEl) {
+            userBadgeEl.innerText = user ? `👤 ${user} (${list.length})` : `👤 게스트 (${list.length})`;
+            userBadgeEl.title = user ? `${user} 회원 계정 보관함입니다.` : '비회원 상태에서는 브라우저 로컬 저장소에 안전하게 보관됩니다.';
+        }
+
+        if (selectEl) {
+            let optionsHtml = `<option value="">-- 새 계획 작성 (직접 입력) --</option>`;
+            list.forEach(s => {
+                const isSelected = s.id === this.currentScenarioId ? 'selected' : '';
+                optionsHtml += `<option value="${s.id}" ${isSelected}>📋 ${s.title} (${s.updatedAt || '저장됨'})</option>`;
+            });
+            selectEl.innerHTML = optionsHtml;
+        }
+
+        if (deleteBtn) {
+            deleteBtn.style.display = this.currentScenarioId ? 'inline-flex' : 'none';
+        }
+    },
+
+    showScenarioToast: function (msg) {
+        let toast = document.getElementById('waterScenarioToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'waterScenarioToast';
+            toast.className = 'fixed bottom-5 right-5 z-[999] bg-emerald-500 text-navy-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2 flex items-center gap-1.5';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<span>✓</span> <span>${msg}</span>`;
+        toast.classList.remove('opacity-0', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2200);
+    },
+
     getLoggedInUsername: function () {
         try {
             // 1. Check header auth button directly (authoritative active login state in UI)
@@ -67,6 +279,7 @@ const CoinCalculators = {
         this.bindEvents();
         this.renderWaterTiers();
         this.renderSellTiers();
+        this.renderScenarioUI();
         this.calcWater();
         this.calcTax();
         this.calcFutures();
@@ -142,6 +355,8 @@ const CoinCalculators = {
 
         if (tabId === 'kimp') {
             this.fetchKimpData();
+        } else if (tabId === 'water') {
+            this.renderScenarioUI();
         } else if (tabId === 'card') {
             const loggedUser = this.getLoggedInUsername();
             const nickEl = document.getElementById('cardNick');

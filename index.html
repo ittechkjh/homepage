@@ -3293,7 +3293,30 @@
       <div id="calc-tab-water" class="calc-subtab-content space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h3 class="font-bold text-base text-white flex items-center gap-2"><span>💧</span> 물타기·불타기 매수 & 매도 계획 입력</h3>
+            <!-- Header with Title & Scenario Controls -->
+            <div class="space-y-3 pb-3 border-b border-navy-800">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <h3 class="font-bold text-base text-white flex items-center gap-2"><span>💧</span> 물타기·탈출 계획 입력</h3>
+                <span id="waterScenarioUserBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-navy-950 text-cyan-400 border border-navy-700 font-mono font-bold" title="현재 활성 보관함">
+                  👤 로컬 보관함
+                </span>
+              </div>
+              <!-- Scenario Toolbar -->
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <select id="waterScenarioSelect" onchange="CoinCalculators.loadScenario(this.value)" class="flex-1 min-w-[150px] bg-navy-950 border border-cyan-500/40 text-cyan-300 text-xs font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 cursor-pointer">
+                  <option value="">-- 새 계획 작성 --</option>
+                </select>
+                <button type="button" onclick="CoinCalculators.saveScenario()" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-navy-950 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="현재 계획을 저장합니다">
+                  <span>💾 저장</span>
+                </button>
+                <button type="button" onclick="CoinCalculators.resetScenario()" class="px-2.5 py-1.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="새 시나리오를 작성합니다">
+                  <span>✨ 새 계획</span>
+                </button>
+                <button type="button" id="waterScenarioDeleteBtn" onclick="CoinCalculators.deleteScenario()" style="display:none;" class="px-2 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition cursor-pointer" title="현재 시나리오 삭제">
+                  <span>🗑️</span>
+                </button>
+              </div>
+            </div>
             <div class="space-y-3 text-xs">
               <!-- 1. 초기 보유 포지션 -->
               <div class="p-3.5 rounded-2xl bg-navy-950/80 border border-navy-800 space-y-2.5">
@@ -5477,7 +5500,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260909_02"></script>
+  <script src="js/tools-calculators.js?v=20260909_03"></script>
   <script src="js/analyzer-app.js?v=20260907_05"></script>
 
   <script src="js/admin.js?v=20260908_01"></script>
