@@ -526,36 +526,55 @@ function renderMarketUI() {
 window.renderMarketUI = renderMarketUI;
 
 // ----------------------------------------------------
-// Section 2.5: 25 Market Indicators & Integrated Analysis Engine
+// Section 2.5: 30 Market Indicators & Integrated Analysis Engine
 // ----------------------------------------------------
 const defaultMarketAnalysisState = {
+  // Category 1: 국내 시장 및 프리미엄
   upbit: { total: 287, up: 114, down: 150, ratio: 40 },
   bithumb: { total: 481, up: 172, down: 287, ratio: 36 },
+  kimp: { rate: 1.20 },
+  coinbasePremium: { rate: 0.08, text: '미국 매수세' },
   btckrw: { price: 106541000, change: -1.09 },
   ethkrw: { price: 3372000, change: -0.53 },
-  usdkrw: { rate: 1340.5 },
-  kimp: { rate: 1.20 },
-  fng: { score: 69, text: '탐욕' },
-  btcDom: { value: 58.34 },
-  globalMcap: { value: '$2.70조' },
-  us10y: { value: 4.806 },
-  nasdaqFut: { value: 29533.25, change: -0.02 },
+
+  // Category 2: 온체인 밸류에이션 & 건전성
+  mvrvZ: { value: 1.84, text: '상승 채널' },
+  puellMultiple: { value: 0.92, text: '수익성 안정' },
+  asopr: { value: 1.012, text: '손익분기 상회' },
+  ssr: { value: 12.4, text: '구매력 풍부' },
+  exchangeReserve: { value: 2140500, text: '유출 지속 (쇼티지)' },
+  hashrate: { value: 685, unit: 'EH/s', text: '사상 최고' },
+
+  // Category 3: 파생상품 레버리지 & 청산
   fundingRate: { value: 0.0038, text: '중립' },
-  longShortRatio: { ratio: 1.297, longPct: 56.5, shortPct: 43.5 },
-  openInterest: { value: '$8.36B' },
-  usdtDom: { value: 6.78 },
-  nasdaqSpot: { value: 26421.41, change: -0.32 },
-  spFut: { value: 7680.5, change: 0.00 },
-  dowFut: { value: 52826, change: -0.01 },
-  vix: { value: 15.72, text: '안정' },
-  goldFut: { value: 4396.9, change: -0.95 },
-  dxy: { value: 98.84, change: 0.05 },
-  kospi: { value: 6954.52, change: -0.58 },
-  nikkei: { value: 65269, change: -1.70 },
-  hangseng: { value: 25317, change: -1.30 },
-  wti: { value: 94.12, change: 1.84 },
-  brent: { value: 99.05, change: 1.62 },
-  copper: { value: 6.78, change: 0.00 }
+  openInterest: { value: '$34.80B', text: '안정적 레버리지' },
+  longShortRatio: { ratio: 1.297, longPct: 56.5, shortPct: 43.5, text: '롱 우세' },
+  liquidations24h: { value: '$148.2M', longLiq: '$92.4M', shortLiq: '$55.8M', text: '롱 우세 청산' },
+  dvol: { value: 52.4, text: '변동성 안정' },
+
+  // Category 4: 거시 경제 & 중앙은행 유동성
+  globalM2: { value: '$108.5조', change: 4.2, text: '확장 국면' },
+  fedFundsRate: { value: 4.50, text: '인하 사이클' },
+  rrp: { value: '$245B', text: '유동성 완충' },
+  realYieldTIPS: { value: 1.94, text: '긴축 유지' },
+  yieldCurveSpread: { value: 0.18, text: '정상화 진행' },
+  dxy: { value: 98.84, change: 0.05, text: '달러 약세' },
+  usdkrw: { rate: 1340.5, change: 0.15 },
+  highYieldSpread: { value: 3.25, text: '신용위험 안정' },
+
+  // Category 5: 전통 금융 & 위험자산 연동
+  nasdaqSpot: { value: 18742.5, change: 0.65 },
+  sox: { value: 5120.8, change: 0.42 },
+  vix: { value: 15.72, text: '안정권' },
+  goldFut: { value: 2685.4, change: 0.45 },
+  wti: { value: 74.20, change: -1.10 },
+
+  // Category 6: 크립토 시장 점유율 & 생태계
+  btcDom: { value: 58.34, text: '비트 우세' },
+  ethBtc: { value: 0.0384, change: -0.80, text: '바닥 다지기' },
+
+  // Auxiliary
+  fng: { score: 69, text: '탐욕' }
 };
 
 let marketAnalysisState = JSON.parse(JSON.stringify(defaultMarketAnalysisState));
@@ -630,6 +649,7 @@ async function fetchMarketAnalysisData() {
           marketAnalysisState.longShortRatio.ratio = ratio;
           marketAnalysisState.longShortRatio.longPct = Math.round(longPct * 10) / 10;
           marketAnalysisState.longShortRatio.shortPct = Math.round(shortPct * 10) / 10;
+          marketAnalysisState.longShortRatio.text = ratio >= 1.2 ? '롱 과열' : (ratio <= 0.8 ? '숏 과열' : '롱 우세');
         }
       }
     }
@@ -668,12 +688,17 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
-  // 7. Kimchi Premium Calculation
+  // 7. Kimchi Premium & ETH/BTC calculation
   const btcUsd = marketCoins.find(c => c.symbol === 'btc')?.current_price;
+  const ethUsd = marketCoins.find(c => c.symbol === 'eth')?.current_price;
   if (btcUsd && marketAnalysisState.btckrw.price && marketAnalysisState.usdkrw.rate) {
     const parityKrw = btcUsd * marketAnalysisState.usdkrw.rate;
     const kimpRate = ((marketAnalysisState.btckrw.price / parityKrw) - 1) * 100;
     marketAnalysisState.kimp.rate = Math.round(kimpRate * 100) / 100;
+  }
+  if (btcUsd && ethUsd && btcUsd > 0) {
+    const ethBtcRate = ethUsd / btcUsd;
+    marketAnalysisState.ethBtc.value = Math.round(ethBtcRate * 10000) / 10000;
   }
 
   renderMarketAnalysisAndIndicators();
@@ -692,41 +717,77 @@ window.refreshMarketAnalysis = refreshMarketAnalysis;
 function renderMarketAnalysisAndIndicators() {
   const s = marketAnalysisState;
 
-  // 1. Calculate Comprehensive Market Sentiment Score
+  // 1. Calculate Comprehensive Market Sentiment Score (Evaluating 30 indicators)
   let score = 0;
-  if (s.btckrw.change > 1) score += 4;
-  else if (s.btckrw.change > 0) score += 2;
+  
+  // Domestic & Premiums
+  if (s.btckrw.change > 1) score += 3;
+  else if (s.btckrw.change > 0) score += 1;
   else if (s.btckrw.change < -1) score -= 3;
   else score -= 1;
 
-  if (s.upbit.ratio >= 60) score += 4;
+  if (s.upbit.ratio >= 60) score += 3;
   else if (s.upbit.ratio <= 40) score -= 3;
 
-  if (s.bithumb.ratio >= 60) score += 4;
+  if (s.bithumb.ratio >= 60) score += 3;
   else if (s.bithumb.ratio <= 40) score -= 3;
 
-  if (s.fng.score >= 70) score += 4;
-  else if (s.fng.score >= 55) score += 2;
-  else if (s.fng.score <= 35) score -= 4;
+  if (s.coinbasePremium.rate > 0.05) score += 2;
+  else if (s.coinbasePremium.rate < -0.05) score -= 2;
 
-  if (s.vix.value <= 16) score += 3;
-  else if (s.vix.value >= 25) score -= 4;
+  // On-Chain Valuation
+  if (s.mvrvZ.value < 2.2) score += 3;
+  else if (s.mvrvZ.value > 4.5) score -= 4;
 
-  if (s.dxy.value <= 100) score += 2;
-  else score -= 3;
+  if (s.asopr.value >= 1.0) score += 2;
+  else score -= 2;
 
-  if (s.wti.value >= 90 || s.brent.value >= 95) score -= 4;
+  if (s.ssr.value <= 15) score += 2;
+  else if (s.ssr.value > 25) score -= 2;
 
-  if (s.us10y.value >= 4.5) score -= 3;
+  if (s.hashrate.value >= 650) score += 2;
 
-  if (s.nasdaqFut.change > 0.5) score += 3;
-  else if (s.nasdaqFut.change < -0.5) score -= 3;
-
-  if (s.kospi.change < 0 && s.nikkei.change < 0) score -= 3;
+  // Derivatives & Leverage
+  if (s.fundingRate.value > 0.03) score -= 3;
+  else if (s.fundingRate.value < -0.01) score += 3;
+  else score += 1;
 
   if (s.longShortRatio.ratio > 1.2) score += 2;
   else if (s.longShortRatio.ratio < 0.8) score -= 2;
 
+  if (s.dvol.value <= 55) score += 1;
+  else if (s.dvol.value >= 70) score -= 2;
+
+  // Macro & Central Banks
+  if (s.globalM2.change > 3) score += 3;
+  else if (s.globalM2.change < 0) score -= 3;
+
+  if (s.realYieldTIPS.value <= 1.8) score += 2;
+  else score -= 2;
+
+  if (s.yieldCurveSpread.value >= 0) score += 2;
+  else score -= 2;
+
+  if (s.dxy.value <= 100) score += 3;
+  else score -= 3;
+
+  if (s.highYieldSpread.value <= 3.5) score += 2;
+  else score -= 3;
+
+  // TradFi & Risk-On Assets
+  if (s.nasdaqSpot.change > 0) score += 2;
+  else score -= 2;
+
+  if (s.sox.change > 0) score += 2;
+  else score -= 2;
+
+  if (s.vix.value <= 18) score += 2;
+  else if (s.vix.value >= 25) score -= 3;
+
+  if (s.wti.value < 80) score += 1;
+  else if (s.wti.value >= 90) score -= 3;
+
+  // Sentiment Headline Mapping
   let sentimentEmoji = '😐';
   let sentimentTitle = '중립·혼조';
   let sentimentColorClass = 'text-amber-400';
@@ -735,7 +796,7 @@ function renderMarketAnalysisAndIndicators() {
     sentimentEmoji = '🚀';
     sentimentTitle = '탐욕·상승';
     sentimentColorClass = 'text-emerald-400';
-  } else if (score >= 6) {
+  } else if (score >= 5) {
     sentimentEmoji = '📈';
     sentimentTitle = '소폭 상승';
     sentimentColorClass = 'text-emerald-300';
@@ -743,7 +804,7 @@ function renderMarketAnalysisAndIndicators() {
     sentimentEmoji = '❄️';
     sentimentTitle = '공포·위축';
     sentimentColorClass = 'text-rose-400';
-  } else if (score <= -6) {
+  } else if (score <= -5) {
     sentimentEmoji = '⚠️';
     sentimentTitle = '조정·약세';
     sentimentColorClass = 'text-rose-300';
@@ -764,20 +825,20 @@ function renderMarketAnalysisAndIndicators() {
   }
   if (scoreEl) {
     const sign = score > 0 ? '+' : '';
-    scoreEl.innerText = `종합점수 ${sign}${score}점 (25개 지표)`;
+    scoreEl.innerText = `종합점수 ${sign}${score}점 (30개 지표)`;
   }
 
   // Update Signal Checklist
   const sigListEl = document.getElementById('market-signals-list');
   if (sigListEl) {
     const signals = [
-      { ok: s.fng.score >= 50, text: `공포탐욕 ${s.fng.score} ${s.fng.text}` },
-      { ok: s.usdtDom.value <= 7.0, text: `USDT도미 ${s.usdtDom.value}% 중립` },
-      { ok: s.vix.value <= 20, text: `VIX ${s.vix.value.toFixed(1)} ${s.vix.value <= 20 ? '안정' : '불안'}` },
-      { ok: s.dxy.value <= 100, text: `DXY ${s.dxy.value.toFixed(1)} ${s.dxy.value <= 100 ? '달러약세' : '달러강세'}` },
-      { ok: s.brent.value < 85, text: `Brent $${Math.round(s.brent.value)} ${s.brent.value >= 85 ? '고유가' : '유가안정'}` },
-      { ok: s.wti.value < 85, text: `WTI $${Math.round(s.wti.value)} ${s.wti.value >= 85 ? '고유가(인플레)' : '안정'}` },
-      { ok: s.bithumb.ratio >= 50, text: `빗썸 상승 ${s.bithumb.ratio}% ${s.bithumb.ratio >= 50 ? '상승우세' : '하락우세'}` }
+      { ok: s.mvrvZ.value <= 2.5, text: `MVRV Z-Score ${s.mvrvZ.value.toFixed(2)} (${s.mvrvZ.text})` },
+      { ok: s.globalM2.change > 0, text: `글로벌 M2 ${s.globalM2.value} (+${s.globalM2.change}%)` },
+      { ok: s.dxy.value <= 100, text: `DXY ${s.dxy.value.toFixed(1)} (${s.dxy.text})` },
+      { ok: s.fundingRate.value >= -0.01 && s.fundingRate.value <= 0.02, text: `펀딩비 ${(s.fundingRate.value >= 0 ? '+' : '')}${s.fundingRate.value.toFixed(4)}% (${s.fundingRate.text})` },
+      { ok: s.vix.value <= 20, text: `VIX ${s.vix.value.toFixed(1)} (${s.vix.text})` },
+      { ok: s.realYieldTIPS.value <= 1.8, text: `미 실질금리 TIPS ${s.realYieldTIPS.value.toFixed(2)}% (${s.realYieldTIPS.text})` },
+      { ok: s.bithumb.ratio >= 50, text: `빗썸 상승 ${s.bithumb.ratio}% (${s.bithumb.ratio >= 50 ? '상승우세' : '하락우세'})` }
     ];
     sigListEl.innerHTML = signals.map(sig => `
       <li class="flex items-center gap-2 ${sig.ok ? 'text-emerald-400' : 'text-rose-400'}">
@@ -787,7 +848,7 @@ function renderMarketAnalysisAndIndicators() {
     `).join('');
   }
 
-  // Update Narrative lines
+  // Update Narrative Spans
   const setEl = (id, html) => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
@@ -801,40 +862,33 @@ function renderMarketAnalysisAndIndicators() {
 
   setEl('nar-btc-change', fmtSign(s.btckrw.change));
   setEl('nar-eth-change', fmtSign(s.ethkrw.change));
-  setEl('nar-fng-val', `<span class="${s.fng.score >= 50 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.fng.score}(${s.fng.text})</span>`);
-  setEl('nar-kimp-val', fmtSign(s.kimp.rate));
-  setEl('nar-usdt-dom', `<span class="text-slate-200 font-bold">${s.usdtDom.value}%</span>`);
-  setEl('nar-btc-dom', `<span class="text-cyan-400 font-bold">${s.btcDom.value}%</span>`);
-  setEl('nar-nasdaq-fut', fmtSign(s.nasdaqFut.change));
-  setEl('nar-sp-fut', fmtSign(s.spFut.change));
-  setEl('nar-dow-fut', fmtSign(s.dowFut.change));
-  setEl('nar-vix-val', `<span class="${s.vix.value <= 20 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.vix.value.toFixed(1)}</span>`);
-  setEl('nar-kospi', fmtSign(s.kospi.change));
-  setEl('nar-nikkei', fmtSign(s.nikkei.change));
-  setEl('nar-hangseng', fmtSign(s.hangseng.change));
-  setEl('nar-us10y', `<span class="${s.us10y.value >= 4.5 ? 'text-amber-400' : 'text-slate-200'} font-bold">${s.us10y.value.toFixed(2)}%</span>`);
-  setEl('nar-dxy', `<span class="${s.dxy.value <= 100 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.dxy.value.toFixed(1)}</span>`);
-  setEl('nar-usdkrw', `<span class="text-slate-200 font-bold">${s.usdkrw.rate.toLocaleString()}원</span>`);
-  setEl('nar-wti', `<span class="${s.wti.value >= 85 ? 'text-rose-400' : 'text-emerald-400'} font-bold">$${Math.round(s.wti.value)}</span>`);
-  setEl('nar-brent', `<span class="${s.brent.value >= 85 ? 'text-rose-400' : 'text-emerald-400'} font-bold">$${Math.round(s.brent.value)}</span>`);
-  setEl('nar-gold', `<span class="text-slate-200 font-bold">$${Math.round(s.goldFut.value).toLocaleString()}</span>`);
-  setEl('nar-copper', `<span class="text-slate-200 font-bold">$${s.copper.value.toFixed(2)}</span>`);
-  setEl('nar-funding', `<span class="text-amber-400 font-bold">${s.fundingRate.value >= 0 ? '+' : ''}${s.fundingRate.value.toFixed(4)}%</span>`);
-  setEl('nar-ls-ratio', `<span class="${s.longShortRatio.ratio >= 1.0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${s.longShortRatio.ratio.toFixed(2)}</span>`);
+  setEl('nar-mvrv-val', s.mvrvZ.value.toFixed(2));
+  setEl('nar-puell-val', s.puellMultiple.value.toFixed(2));
+  setEl('nar-sopr-val', s.asopr.value.toFixed(3));
+  setEl('nar-ssr-val', s.ssr.value.toFixed(1));
+  setEl('nar-reserve-val', `${s.exchangeReserve.value.toLocaleString()} BTC`);
+  setEl('nar-hash-val', `${s.hashrate.value} ${s.hashrate.unit}`);
+  setEl('nar-funding', `${s.fundingRate.value >= 0 ? '+' : ''}${s.fundingRate.value.toFixed(4)}%`);
+  setEl('nar-oi', s.openInterest.value);
+  setEl('nar-ls-ratio', s.longShortRatio.ratio.toFixed(3));
   setEl('nar-long-pct', `${s.longShortRatio.longPct}%`);
   setEl('nar-short-pct', `${s.longShortRatio.shortPct}%`);
-  setEl('nar-oi', `<span class="text-cyan-400 font-bold">${s.openInterest.value}</span>`);
+  setEl('nar-m2-val', `${s.globalM2.value}(+${s.globalM2.change}%)`);
+  setEl('nar-dxy', s.dxy.value.toFixed(2));
+  setEl('nar-tips-val', `${s.realYieldTIPS.value.toFixed(2)}%`);
+  setEl('nar-btc-dom', `${s.btcDom.value}%`);
+  setEl('nar-ethbtc-val', s.ethBtc.value.toFixed(4));
 
   // Final Verdict
   const verdictEl = document.getElementById('market-final-verdict');
   if (verdictEl) {
-    let verdictText = '상승·하락 신호가 혼재하는 중립 국면입니다. 방향성이 확인될 때까지 관망이 유리합니다.';
-    if (score >= 15) verdictText = '글로벌 유동성과 온체인 지표가 동반 강세를 가리키는 상승 장세입니다. 분할 매수 전략이 유효합니다.';
-    else if (score <= -15) verdictText = '거시 지표 부담과 선물 매도세가 짙은 리스크 오프 국면입니다. 현금 비중 확대 및 보수적 접근을 권장합니다.';
+    let verdictText = '온체인 펀더멘털과 M2 유동성이 견고하게 뒷받침되는 가운데 고금리 부담이 혼재된 건강한 숨고르기 국면입니다. 과도한 레버리지 추격 매수보다는 주요 지지선 분할 매수가 유리합니다.';
+    if (score >= 15) verdictText = '글로벌 M2 유동성 확장과 온체인 축적, 선물 레버리지 안정세가 동반되는 강력한 매크로 상승 장세입니다. 적극적인 분할 매수 및 추세 추종 전략이 유효합니다.';
+    else if (score <= -15) verdictText = '거시 실질금리 부담, 달러 강세, 선물 청산 위험이 짙은 리스크 오프 국면입니다. 현금 비중을 확대하고 보수적인 리스크 관리가 필요합니다.';
     verdictEl.innerHTML = `<span class="text-cyan-400 shrink-0">▶</span><span>종합: ${verdictText}</span>`;
   }
 
-  // 2. Update 25 Key Indicator Cards
+  // 2. Update 30 Key Indicator Cards
   // Card 1: Upbit Breadth
   const uBadge = document.getElementById('ind-upbit-badge');
   const uVal = document.getElementById('ind-upbit-val');
@@ -853,31 +907,7 @@ function renderMarketAnalysisAndIndicators() {
   }
   if (bVal) bVal.innerText = `↑${s.bithumb.up} / ↓${s.bithumb.down} (${s.bithumb.total}개)`;
 
-  // Card 3: BTC/KRW
-  const btcRateEl = document.getElementById('ind-btckrw-rate');
-  const btcValEl = document.getElementById('ind-btckrw-val');
-  if (btcRateEl) {
-    const isUp = s.btckrw.change >= 0;
-    btcRateEl.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    btcRateEl.innerText = `${isUp ? '+' : ''}${s.btckrw.change.toFixed(2)}%`;
-  }
-  if (btcValEl) btcValEl.innerText = `${s.btckrw.price.toLocaleString()}원`;
-
-  // Card 4: ETH/KRW
-  const ethRateEl = document.getElementById('ind-ethkrw-rate');
-  const ethValEl = document.getElementById('ind-ethkrw-val');
-  if (ethRateEl) {
-    const isUp = s.ethkrw.change >= 0;
-    ethRateEl.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    ethRateEl.innerText = `${isUp ? '+' : ''}${s.ethkrw.change.toFixed(2)}%`;
-  }
-  if (ethValEl) ethValEl.innerText = `${s.ethkrw.price.toLocaleString()}원`;
-
-  // Card 5: USD/KRW
-  const usdkrwEl = document.getElementById('ind-usdkrw-val');
-  if (usdkrwEl) usdkrwEl.innerText = `${s.usdkrw.rate.toLocaleString()}원`;
-
-  // Card 6: Kimchi Premium
+  // Card 3: Kimchi Premium
   const kimpRateEl = document.getElementById('ind-kimp-rate');
   const kimpValEl = document.getElementById('ind-kimp-val');
   if (kimpRateEl) {
@@ -891,101 +921,111 @@ function renderMarketAnalysisAndIndicators() {
     kimpValEl.innerText = `${isUp ? '+' : ''}${s.kimp.rate.toFixed(2)}%`;
   }
 
-  // Card 7: Fear & Greed
-  const fngBadge = document.getElementById('ind-fng-badge');
-  const fngVal = document.getElementById('ind-fng-val');
-  if (fngBadge) {
-    fngBadge.innerText = s.fng.text;
-    fngBadge.className = s.fng.score >= 50 ? 'text-[11px] font-mono font-bold text-emerald-400' : 'text-[11px] font-mono font-bold text-rose-400';
-  }
-  if (fngVal) {
-    fngVal.innerText = `${s.fng.score} / 100`;
-    fngVal.className = s.fng.score >= 50 ? 'text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight' : 'text-base sm:text-lg font-black font-mono text-rose-400 tracking-tight';
+  // Card 4: Coinbase Premium
+  const cbBadge = document.getElementById('ind-coinbase-badge');
+  const cbVal = document.getElementById('ind-coinbase-val');
+  if (cbBadge) cbBadge.innerText = s.coinbasePremium.text;
+  if (cbVal) {
+    const isUp = s.coinbasePremium.rate >= 0;
+    cbVal.className = `text-base sm:text-lg font-black font-mono tracking-tight ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+    cbVal.innerText = `${isUp ? '+' : ''}${s.coinbasePremium.rate.toFixed(2)}%`;
   }
 
-  // Card 8: BTC Dominance
-  const btcdomVal = document.getElementById('ind-btcdom-val');
-  if (btcdomVal) btcdomVal.innerText = `${s.btcDom.value}%`;
+  // Card 5: MVRV Z-Score
+  const mvrvBadge = document.getElementById('ind-mvrv-badge');
+  const mvrvVal = document.getElementById('ind-mvrv-val');
+  if (mvrvBadge) mvrvBadge.innerText = s.mvrvZ.text;
+  if (mvrvVal) mvrvVal.innerText = s.mvrvZ.value.toFixed(2);
 
-  // Card 9: Global Market Cap
-  const mcapVal = document.getElementById('ind-mcap-val');
-  if (mcapVal) mcapVal.innerText = s.globalMcap.value;
+  // Card 6: Puell Multiple
+  const puellBadge = document.getElementById('ind-puell-badge');
+  const puellVal = document.getElementById('ind-puell-val');
+  if (puellBadge) puellBadge.innerText = s.puellMultiple.text;
+  if (puellVal) puellVal.innerText = s.puellMultiple.value.toFixed(2);
 
-  // Card 10: US 10Y Yield
-  const us10yVal = document.getElementById('ind-us10y-val');
-  if (us10yVal) us10yVal.innerText = `${s.us10y.value.toFixed(3)}%`;
+  // Card 7: aSOPR
+  const soprBadge = document.getElementById('ind-sopr-badge');
+  const soprVal = document.getElementById('ind-sopr-val');
+  if (soprBadge) soprBadge.innerText = s.asopr.text;
+  if (soprVal) soprVal.innerText = s.asopr.value.toFixed(3);
 
-  // Card 11: Nasdaq Futures
-  const nqRate = document.getElementById('ind-nasdaqfut-rate');
-  const nqVal = document.getElementById('ind-nasdaqfut-val');
-  if (nqRate) {
-    const isUp = s.nasdaqFut.change >= 0;
-    nqRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    nqRate.innerText = `${isUp ? '+' : ''}${s.nasdaqFut.change.toFixed(2)}%`;
-  }
-  if (nqVal) nqVal.innerText = s.nasdaqFut.value.toLocaleString();
+  // Card 8: SSR
+  const ssrBadge = document.getElementById('ind-ssr-badge');
+  const ssrVal = document.getElementById('ind-ssr-val');
+  if (ssrBadge) ssrBadge.innerText = s.ssr.text;
+  if (ssrVal) ssrVal.innerText = s.ssr.value.toFixed(1);
 
-  // Card 12: Funding Rate
+  // Card 9: Exchange BTC Reserves
+  const resBadge = document.getElementById('ind-reserve-badge');
+  const resVal = document.getElementById('ind-reserve-val');
+  if (resBadge) resBadge.innerText = s.exchangeReserve.text;
+  if (resVal) resVal.innerText = `${s.exchangeReserve.value.toLocaleString()} BTC`;
+
+  // Card 10: Hashrate
+  const hashBadge = document.getElementById('ind-hash-badge');
+  const hashVal = document.getElementById('ind-hash-val');
+  if (hashBadge) hashBadge.innerText = s.hashrate.text;
+  if (hashVal) hashVal.innerText = `${s.hashrate.value} ${s.hashrate.unit}`;
+
+  // Card 11: Funding Rate
   const fundBadge = document.getElementById('ind-funding-badge');
   const fundVal = document.getElementById('ind-funding-val');
   if (fundBadge) fundBadge.innerText = s.fundingRate.text;
   if (fundVal) fundVal.innerText = `${s.fundingRate.value >= 0 ? '+' : ''}${s.fundingRate.value.toFixed(4)}%`;
 
-  // Card 13: Long/Short Ratio
-  const lsVal = document.getElementById('ind-ls-val');
-  if (lsVal) lsVal.innerText = s.longShortRatio.ratio.toFixed(3);
-
-  // Card 14: BTC Open Interest
+  // Card 12: Open Interest
+  const oiBadge = document.getElementById('ind-oi-badge');
   const oiVal = document.getElementById('ind-oi-val');
+  if (oiBadge) oiBadge.innerText = s.openInterest.text;
   if (oiVal) oiVal.innerText = s.openInterest.value;
 
-  // Card 15: USDT Dominance
-  const usdtdomVal = document.getElementById('ind-usdtdom-val');
-  if (usdtdomVal) usdtdomVal.innerText = `${s.usdtDom.value}%`;
+  // Card 13: Long/Short Ratio
+  const lsBadge = document.getElementById('ind-ls-badge');
+  const lsVal = document.getElementById('ind-ls-val');
+  if (lsBadge) lsBadge.innerText = s.longShortRatio.text;
+  if (lsVal) lsVal.innerText = s.longShortRatio.ratio.toFixed(3);
 
-  // Card 16: Nasdaq Spot
-  const nSpotRate = document.getElementById('ind-nasdaq-rate');
-  const nSpotVal = document.getElementById('ind-nasdaq-val');
-  if (nSpotRate) {
-    const isUp = s.nasdaqSpot.change >= 0;
-    nSpotRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    nSpotRate.innerText = `${isUp ? '+' : ''}${s.nasdaqSpot.change.toFixed(2)}%`;
-  }
-  if (nSpotVal) nSpotVal.innerText = s.nasdaqSpot.value.toLocaleString();
+  // Card 14: 24h Liquidations
+  const liqBadge = document.getElementById('ind-liq-badge');
+  const liqVal = document.getElementById('ind-liq-val');
+  if (liqBadge) liqBadge.innerText = s.liquidations24h.text;
+  if (liqVal) liqVal.innerText = s.liquidations24h.value;
 
-  // Card 17: S&P500 Futures
-  const spRate = document.getElementById('ind-spfut-rate');
-  const spVal = document.getElementById('ind-spfut-val');
-  if (spRate) {
-    const isUp = s.spFut.change >= 0;
-    spRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    spRate.innerText = `${isUp ? '+' : ''}${s.spFut.change.toFixed(2)}%`;
-  }
-  if (spVal) spVal.innerText = s.spFut.value.toLocaleString();
+  // Card 15: DVOL Volatility
+  const dvolBadge = document.getElementById('ind-dvol-badge');
+  const dvolVal = document.getElementById('ind-dvol-val');
+  if (dvolBadge) dvolBadge.innerText = s.dvol.text;
+  if (dvolVal) dvolVal.innerText = s.dvol.value.toFixed(1);
 
-  // Card 18: Dow Futures
-  const dowRate = document.getElementById('ind-dowfut-rate');
-  const dowVal = document.getElementById('ind-dowfut-val');
-  if (dowRate) {
-    const isUp = s.dowFut.change >= 0;
-    dowRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    dowRate.innerText = `${isUp ? '+' : ''}${s.dowFut.change.toFixed(2)}%`;
-  }
-  if (dowVal) dowVal.innerText = s.dowFut.value.toLocaleString();
+  // Card 16: Global M2
+  const m2Badge = document.getElementById('ind-m2-badge');
+  const m2Val = document.getElementById('ind-m2-val');
+  if (m2Badge) m2Badge.innerText = s.globalM2.text;
+  if (m2Val) m2Val.innerText = `${s.globalM2.value} (+${s.globalM2.change}%)`;
 
-  // Card 19: VIX
-  const vixVal = document.getElementById('ind-vix-val');
-  if (vixVal) vixVal.innerText = s.vix.value.toFixed(2);
+  // Card 17: Fed Funds Rate
+  const fedBadge = document.getElementById('ind-fed-badge');
+  const fedVal = document.getElementById('ind-fed-val');
+  if (fedBadge) fedBadge.innerText = s.fedFundsRate.text;
+  if (fedVal) fedVal.innerText = `${s.fedFundsRate.value.toFixed(2)}%`;
 
-  // Card 20: Gold Futures
-  const goldRate = document.getElementById('ind-gold-rate');
-  const goldVal = document.getElementById('ind-gold-val');
-  if (goldRate) {
-    const isUp = s.goldFut.change >= 0;
-    goldRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    goldRate.innerText = `${isUp ? '+' : ''}${s.goldFut.change.toFixed(2)}%`;
-  }
-  if (goldVal) goldVal.innerText = `$${s.goldFut.value.toLocaleString()}`;
+  // Card 18: RRP Reverse Repo
+  const rrpBadge = document.getElementById('ind-rrp-badge');
+  const rrpVal = document.getElementById('ind-rrp-val');
+  if (rrpBadge) rrpBadge.innerText = s.rrp.text;
+  if (rrpVal) rrpVal.innerText = s.rrp.value;
+
+  // Card 19: 10Y Real Yield TIPS
+  const tipsBadge = document.getElementById('ind-tips-badge');
+  const tipsVal = document.getElementById('ind-tips-val');
+  if (tipsBadge) tipsBadge.innerText = s.realYieldTIPS.text;
+  if (tipsVal) tipsVal.innerText = `${s.realYieldTIPS.value.toFixed(2)}%`;
+
+  // Card 20: 2Y-10Y Yield Spread
+  const ycBadge = document.getElementById('ind-yieldcurve-badge');
+  const ycVal = document.getElementById('ind-yieldcurve-val');
+  if (ycBadge) ycBadge.innerText = s.yieldCurveSpread.text;
+  if (ycVal) ycVal.innerText = `+${s.yieldCurveSpread.value.toFixed(2)}%p`;
 
   // Card 21: DXY
   const dxyRate = document.getElementById('ind-dxy-rate');
@@ -997,45 +1037,75 @@ function renderMarketAnalysisAndIndicators() {
   }
   if (dxyVal) dxyVal.innerText = s.dxy.value.toFixed(2);
 
-  // Card 22: KOSPI
-  const kospiRate = document.getElementById('ind-kospi-rate');
-  const kospiVal = document.getElementById('ind-kospi-val');
-  if (kospiRate) {
-    const isUp = s.kospi.change >= 0;
-    kospiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    kospiRate.innerText = `${isUp ? '+' : ''}${s.kospi.change.toFixed(2)}%`;
-  }
-  if (kospiVal) kospiVal.innerText = s.kospi.value.toLocaleString();
+  // Card 22: USD/KRW
+  const usdkrwVal = document.getElementById('ind-usdkrw-val');
+  if (usdkrwVal) usdkrwVal.innerText = `${s.usdkrw.rate.toLocaleString()}원`;
 
-  // Card 23: Nikkei 225
-  const nikkeiRate = document.getElementById('ind-nikkei-rate');
-  const nikkeiVal = document.getElementById('ind-nikkei-val');
-  if (nikkeiRate) {
-    const isUp = s.nikkei.change >= 0;
-    nikkeiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    nikkeiRate.innerText = `${isUp ? '+' : ''}${s.nikkei.change.toFixed(2)}%`;
-  }
-  if (nikkeiVal) nikkeiVal.innerText = s.nikkei.value.toLocaleString();
+  // Card 23: High Yield Spread
+  const hyBadge = document.getElementById('ind-hy-badge');
+  const hyVal = document.getElementById('ind-hy-val');
+  if (hyBadge) hyBadge.innerText = s.highYieldSpread.text;
+  if (hyVal) hyVal.innerText = `${s.highYieldSpread.value.toFixed(2)}%p`;
 
-  // Card 24: Hang Seng
-  const hsRate = document.getElementById('ind-hangseng-rate');
-  const hsVal = document.getElementById('ind-hangseng-val');
-  if (hsRate) {
-    const isUp = s.hangseng.change >= 0;
-    hsRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
-    hsRate.innerText = `${isUp ? '+' : ''}${s.hangseng.change.toFixed(2)}%`;
+  // Card 24: Nasdaq
+  const nRate = document.getElementById('ind-nasdaq-rate');
+  const nVal = document.getElementById('ind-nasdaq-val');
+  if (nRate) {
+    const isUp = s.nasdaqSpot.change >= 0;
+    nRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    nRate.innerText = `${isUp ? '+' : ''}${s.nasdaqSpot.change.toFixed(2)}%`;
   }
-  if (hsVal) hsVal.innerText = s.hangseng.value.toLocaleString();
+  if (nVal) nVal.innerText = s.nasdaqSpot.value.toLocaleString();
 
-  // Card 25: WTI Crude
+  // Card 25: SOX Semiconductor
+  const soxRate = document.getElementById('ind-sox-rate');
+  const soxVal = document.getElementById('ind-sox-val');
+  if (soxRate) {
+    const isUp = s.sox.change >= 0;
+    soxRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    soxRate.innerText = `${isUp ? '+' : ''}${s.sox.change.toFixed(2)}%`;
+  }
+  if (soxVal) soxVal.innerText = s.sox.value.toLocaleString();
+
+  // Card 26: CBOE VIX
+  const vixVal = document.getElementById('ind-vix-val');
+  if (vixVal) vixVal.innerText = s.vix.value.toFixed(2);
+
+  // Card 27: Gold Futures
+  const goldRate = document.getElementById('ind-gold-rate');
+  const goldVal = document.getElementById('ind-gold-val');
+  if (goldRate) {
+    const isUp = s.goldFut.change >= 0;
+    goldRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    goldRate.innerText = `${isUp ? '+' : ''}${s.goldFut.change.toFixed(2)}%`;
+  }
+  if (goldVal) goldVal.innerText = `$${s.goldFut.value.toLocaleString()}`;
+
+  // Card 28: WTI Crude
   const wtiRate = document.getElementById('ind-wti-rate');
   const wtiVal = document.getElementById('ind-wti-val');
   if (wtiRate) {
     const isUp = s.wti.change >= 0;
-    wtiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-red' : 'text-[11px] font-mono font-bold text-crypto-green';
+    wtiRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
     wtiRate.innerText = `${isUp ? '+' : ''}${s.wti.change.toFixed(2)}%`;
   }
   if (wtiVal) wtiVal.innerText = `$${s.wti.value.toFixed(2)}`;
+
+  // Card 29: BTC Dominance
+  const btcdomBadge = document.getElementById('ind-btcdom-badge');
+  const btcdomVal = document.getElementById('ind-btcdom-val');
+  if (btcdomBadge) btcdomBadge.innerText = s.btcDom.text;
+  if (btcdomVal) btcdomVal.innerText = `${s.btcDom.value}%`;
+
+  // Card 30: ETH/BTC Ratio
+  const ethbtcRate = document.getElementById('ind-ethbtc-rate');
+  const ethbtcVal = document.getElementById('ind-ethbtc-val');
+  if (ethbtcRate) {
+    const isUp = s.ethBtc.change >= 0;
+    ethbtcRate.className = isUp ? 'text-[11px] font-mono font-bold text-crypto-green' : 'text-[11px] font-mono font-bold text-crypto-red';
+    ethbtcRate.innerText = `${isUp ? '+' : ''}${s.ethBtc.change.toFixed(2)}%`;
+  }
+  if (ethbtcVal) ethbtcVal.innerText = s.ethBtc.value.toFixed(4);
 }
 window.renderMarketAnalysisAndIndicators = renderMarketAnalysisAndIndicators;
 

@@ -1452,20 +1452,20 @@
                 <span id="market-sentiment-emoji" class="text-4xl">😐</span>
                 <div>
                   <div id="market-sentiment-title" class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">중립·혼조</div>
-                  <div id="market-sentiment-score" class="text-xs text-slate-400 font-semibold mt-0.5">종합점수 -5점 (25개 지표)</div>
+                  <div id="market-sentiment-score" class="text-xs text-slate-400 font-semibold mt-0.5">종합점수 -3점 (30개 지표)</div>
                 </div>
               </div>
 
               <!-- Key Signals Checklist -->
               <div class="mt-5 border-t border-navy-800/80 pt-4">
-                <div class="text-[11px] font-bold text-slate-400 mb-2.5">주요 시장 신호</div>
+                <div class="text-[11px] font-bold text-slate-400 mb-2.5">30대 핵심 지표 판정 신호</div>
                 <ul id="market-signals-list" class="space-y-1.5 text-xs font-mono">
-                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>공포탐욕 <b id="sig-fng">69</b> 탐욕</span></li>
-                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>USDT도미 <b id="sig-usdt-dom">6.8%</b> 중립</span></li>
-                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>VIX <b id="sig-vix">15.7</b> 안정</span></li>
-                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>DXY <b id="sig-dxy">98.8</b> 달러약세</span></li>
-                  <li class="flex items-center gap-2 text-rose-400"><span>❌</span> <span>Brent <b id="sig-brent">$99</b> 고유가</span></li>
-                  <li class="flex items-center gap-2 text-rose-400"><span>❌</span> <span>WTI <b id="sig-wti">$94</b> 고유가(인플레)</span></li>
+                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>M2 유동성 <b id="sig-m2">$108.5T</b> 증가추세</span></li>
+                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>MVRV <b id="sig-mvrv">1.84</b> 안정적 밸류</span></li>
+                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>해시레이트 <b id="sig-hash">685EH</b> 사상최고</span></li>
+                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>VIX <b id="sig-vix">15.7</b> 안정권 유지</span></li>
+                  <li class="flex items-center gap-2 text-emerald-400"><span>✅</span> <span>DXY <b id="sig-dxy">98.8</b> 달러 약세</span></li>
+                  <li class="flex items-center gap-2 text-rose-400"><span>❌</span> <span>미 실질금리 <b id="sig-tips">1.94%</b> 고금리 지속</span></li>
                   <li class="flex items-center gap-2 text-rose-400"><span>❌</span> <span>빗썸 상승 <b id="sig-bithumb-up">36%</b> 하락우세</span></li>
                 </ul>
               </div>
@@ -1482,38 +1482,33 @@
           <!-- Right: Comprehensive Analysis Narrative Report -->
           <div class="lg:col-span-8 bg-navy-950/40 border border-navy-800/60 rounded-2xl p-5 flex flex-col justify-between">
             <div class="space-y-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed font-sans" id="market-narrative-content">
-              <p>현재 비트코인 <span id="nar-btc-change" class="text-rose-400 font-bold">-1.09%</span>, 이더리움 <span id="nar-eth-change" class="text-rose-400 font-bold">-0.53%</span> 하락하며, 소폭 하락하며 매도세가 우세합니다.</p>
-              <p>공포탐욕지수는 <span id="nar-fng-val" class="text-emerald-400 font-bold">69(탐욕)</span>로, 탐욕 구간으로 과열 조짐이 있으나 상승 모멘텀이 유지됩니다.</p>
-              <p>김치프리미엄은 <span id="nar-kimp-val" class="text-amber-400 font-bold">+1.20%</span>로 정상 범위입니다.</p>
-              <p>USDT 도미넌스는 <span id="nar-usdt-dom" class="text-slate-200 font-bold">6.8%</span>로 중립 수준입니다. BTC 도미넌스는 <span id="nar-btc-dom" class="text-cyan-400 font-bold">58.3%</span>로 비트코인 중심 장세입니다.</p>
-              <p>미국 증시는 나스닥 선물 <span id="nar-nasdaq-fut" class="text-rose-400 font-bold">-0.02%</span>, S&P500 선물 <span id="nar-sp-fut" class="text-slate-200 font-bold">+0.00%</span>, 다우 선물 <span id="nar-dow-fut" class="text-rose-400 font-bold">-0.01%</span>으로 보합권에서 방향성을 탐색 중입니다.</p>
-              <p>VIX 공포지수는 <span id="nar-vix-val" class="text-emerald-400 font-bold">15.7</span>로 안정권으로, 시장 변동성이 낮아 코인에 우호적 환경입니다.</p>
-              <p>아시아 증시가 전반적으로 약세로, 글로벌 투자심리가 위축됩니다(코스피 <span id="nar-kospi" class="text-rose-400 font-bold">-0.58%</span> / 니케이 <span id="nar-nikkei" class="text-rose-400 font-bold">-1.70%</span> / 항셍 <span id="nar-hangseng" class="text-rose-400 font-bold">-1.30%</span>).</p>
-              <p>미국 10년물 국채 금리는 <span id="nar-us10y" class="text-amber-400 font-bold">4.81%</span>로 높은 수준 ㅡ 코인 및 성장주에 부담스러운 환경입니다.</p>
-              <p>달러 인덱스(DXY)가 <span id="nar-dxy" class="text-emerald-400 font-bold">98.8</span>로 달러 약세 ㅡ 코인·원자재에 우호적, 원달러 환율은 <span id="nar-usdkrw" class="text-slate-200 font-bold">1,340.5원</span>으로 안정 수준입니다.</p>
-              <p>유가는 WTI <span id="nar-wti" class="text-rose-400 font-bold">$94</span> / Brent <span id="nar-brent" class="text-rose-400 font-bold">$99</span>로 고유가 ㅡ 인플레이션 재점화 우려로 금리인상 가능성을 높입니다. 금은 <span id="nar-gold" class="text-slate-200 font-bold">$4,397</span>로 보합 ㅡ 안전자산 수요를 나타냅니다. 구리는 <span id="nar-copper" class="text-slate-200 font-bold">$6.78</span>로 보합.</p>
-              <p>BTC 선물 펀딩비는 <span id="nar-funding" class="text-amber-400 font-bold">+0.0038%</span>로 중립 ㅡ 선물 시장 레버리지 쏠림이 없는 안정 상태입니다.</p>
-              <p>롱/숏 비율 <span id="nar-ls-ratio" class="text-emerald-400 font-bold">1.30</span>로 롱 우세(롱 <span id="nar-long-pct">56.5%</span> / 숏 <span id="nar-short-pct">43.5%</span>), 상승 기대가 더 높습니다.</p>
-              <p>BTC 미결제약정은 <span id="nar-oi" class="text-cyan-400 font-bold">$8.36B</span>로, 선물 시장에 신규 자금이 유입돼 있는 상태입니다.</p>
+              <p>현재 비트코인 <span id="nar-btc-change" class="text-rose-400 font-bold">-1.09%</span>, 이더리움 <span id="nar-eth-change" class="text-rose-400 font-bold">-0.53%</span>로 소폭 숨고르기 양상을 보이며 단기 매도세가 소폭 우세합니다.</p>
+              <p>온체인 밸류에이션 상 <b class="text-white">MVRV Z-Score는 <span id="nar-mvrv-val" class="text-emerald-400 font-bold">1.84</span></b>로 역사적 고점(6.0+) 대비 과열되지 않은 건강한 상승 채널 내에 위치하며, <b class="text-white">Puell Multiple은 <span id="nar-puell-val" class="text-slate-200 font-bold">0.92</span></b>로 반감기 이후 채굴자 수익성이 안정권에 진입했습니다.</p>
+              <p>단기 보유자 실현손익비(<b class="text-white">aSOPR</b>)는 <span id="nar-sopr-val" class="text-emerald-400 font-bold">1.012</span>로 1.0 기준선 위에서 지지를 형성하고 있으며, <b class="text-white">스테이블 공급비율(SSR)은 <span id="nar-ssr-val" class="text-cyan-400 font-bold">12.4</span></b>로 시장 내 현금 대기 자금력이 풍부합니다.</p>
+              <p>거래소 비트코인 잔고는 <span id="nar-reserve-val" class="text-cyan-400 font-bold">2,140,500 BTC</span>로 장기 홀더들의 콜드월렛 축적이 이어지며 유통 공급량 쇼티지가 지속되고 있습니다. 네트워크 <b class="text-white">해시레이트는 <span id="nar-hash-val" class="text-emerald-400 font-bold">685 EH/s</span></b>로 사상 최고치를 경신하여 탄탄한 네트워크 보안 펀더멘털을 입증하고 있습니다.</p>
+              <p>파생상품 시장의 <b class="text-white">BTC 펀딩비는 <span id="nar-funding" class="text-amber-400 font-bold">+0.0038%</span></b>로 중립 수준이며, <b class="text-white">선물 미결제약정(OI)은 <span id="nar-oi" class="text-cyan-400 font-bold">$34.80B</span></b>로 포지션 레버리지가 안정적으로 유지되고 있습니다. <b class="text-white">롱/숏 비율은 <span id="nar-ls-ratio" class="text-emerald-400 font-bold">1.297</span>(롱 <span id="nar-long-pct">56.5%</span> / 숏 <span id="nar-short-pct">43.5%</span>)</b>로 상방 기대감이 높습니다.</p>
+              <p>거시 유동성 측면에서 <b class="text-white">글로벌 M2 통화량은 <span id="nar-m2-val" class="text-emerald-400 font-bold">$108.5조(+4.2%)</span></b>로 완만한 확장세에 접어들어 중장기 강세장의 핵심 연료를 공급하고 있으며, <b class="text-white">달러 인덱스(DXY)는 <span id="nar-dxy" class="text-emerald-400 font-bold">98.84</span></b>로 100 이하의 달러 약세 국면을 유지해 위험자산과 암호화폐에 강력한 우호적 환경을 제공합니다.</p>
+              <p>단, <b class="text-white">미국 10년물 실질금리(TIPS)가 <span id="nar-tips-val" class="text-amber-400 font-bold">1.94%</span></b>로 여전히 높은 수준을 유지하고 있어 고금리 장기화에 따른 단기 유동성 제약 요인이 상존합니다.</p>
+              <p><b class="text-white">BTC 도미넌스는 <span id="nar-btc-dom" class="text-cyan-400 font-bold">58.34%</span></b>로 비트코인 주도의 장세가 이어지고 있으며, <b class="text-white">ETH/BTC 비율은 <span id="nar-ethbtc-val" class="text-slate-300 font-bold">0.0384</span></b>로 바닥 다지기 단계로 아직 전면적인 알트코인 대순환매보다는 메이저 우위 장세입니다.</p>
             </div>
 
             <!-- Conclusion Final Verdict Callout -->
             <div class="mt-4 pt-3 border-t border-navy-800/80 bg-navy-950/80 rounded-xl p-3 text-xs sm:text-sm font-bold text-slate-100 flex items-start gap-2" id="market-final-verdict">
               <span class="text-cyan-400 shrink-0">▶</span>
-              <span>종합: 상승·하락 신호가 혼재하는 중립 국면입니다. 방향성이 확인될 때까지 관망이 유리합니다.</span>
+              <span>종합: 온체인 펀더멘털과 M2 유동성이 견고하게 뒷받침되는 가운데 고금리 부담이 혼재된 건강한 숨고르기 국면입니다. 과도한 레버리지 추격 매수보다는 주요 지지선 분할 매수가 유리합니다.</span>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Section 2: 24/25 Macro & Crypto Key Indicator Cards Grid -->
+      <!-- Section 2: 30 Macro, On-Chain & Crypto Key Indicator Cards Grid -->
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i> 암호화폐 & 거시경제 시장 연관 지표 (25개)
+            <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i> 암호화폐 특화 30대 핵심 시장·경제 지표
           </h3>
-          <span class="text-xs text-slate-400">글로벌 금융 시장 & 온체인 파생 지표 실시간 종합</span>
+          <span class="text-xs text-slate-400">온체인 밸류에이션 · 글로벌 M2 유동성 · 파생 레버리지 종합</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5" id="market-indicators-grid">
@@ -1526,7 +1521,7 @@
             <div class="my-2.5">
               <div id="ind-upbit-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">↑114 / ↓150 (287개)</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전체 KRW 종목 · ↑상승 / ↓하락 · 상승 비율 높을수록 불장</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전체 KRW 종목 · ↑상승 / ↓하락 · 국내 개인 투자 심리</div>
           </div>
 
           <!-- Card 2: 빗썸 종목현황 -->
@@ -1538,46 +1533,10 @@
             <div class="my-2.5">
               <div id="ind-bithumb-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">↑172 / ↓287 (481개)</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전체 KRW 종목 · ↑상승 / ↓하락 · 상승 비율 높을수록 불장</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전체 KRW 종목 · ↑상승 / ↓하락 · 국내 순환매 장세 강도</div>
           </div>
 
-          <!-- Card 3: BTC/KRW -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">BTC/KRW</span>
-              <span id="ind-btckrw-rate" class="text-[11px] font-mono font-bold text-crypto-red">-1.09%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-btckrw-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">106,541,000원</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">업비트 기준 실시간 원화 가격</div>
-          </div>
-
-          <!-- Card 4: ETH/KRW -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-indigo-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">ETH/KRW</span>
-              <span id="ind-ethkrw-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.53%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-ethkrw-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">3,372,000원</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">이더리움 원화 가격 · BTC와 함께 시장 방향 확인</div>
-          </div>
-
-          <!-- Card 5: USD/KRW -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">USD/KRW</span>
-              <span class="text-[11px] font-mono font-bold text-slate-400">환율</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-usdkrw-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">1,340.5원</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">원달러 환율 · 달러 강세 시 코인 하락 압력</div>
-          </div>
-
-          <!-- Card 6: 김치 프리미엄 -->
+          <!-- Card 3: 김치 프리미엄 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-amber-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-semibold truncate">김치 프리미엄</span>
@@ -1586,235 +1545,331 @@
             <div class="my-2.5">
               <div id="ind-kimp-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">+1.20%</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">양수 = 한국 과열 · 음수 = 역프리미엄(저평가)</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">국내외 가격 괴리 · 양수 = 과열 · 음수 = 역프(저평가)</div>
           </div>
 
-          <!-- Card 7: 공포탐욕지수 -->
+          <!-- Card 4: 코인베이스 프리미엄 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">공포탐욕지수</span>
-              <span id="ind-fng-badge" class="text-[11px] font-mono font-bold text-emerald-400">탐욕</span>
+              <span class="text-slate-400 font-semibold truncate">코인베이스 프리미엄</span>
+              <span id="ind-coinbase-badge" class="text-[11px] font-mono font-bold text-emerald-400">기관 매수</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-fng-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">69 / 100</div>
+              <div id="ind-coinbase-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">+0.08%</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">0-24 극도공포 · 25-44 공포 · 45-55 중립 · 56-75 탐욕 · 76+ 극도탐욕</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">Coinbase vs Binance 괴리 · 미국 기관/ETF 수급 지표</div>
           </div>
 
-          <!-- Card 8: BTC 도미넌스 -->
+          <!-- Card 5: MVRV Z-Score -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">MVRV Z-Score</span>
+              <span id="ind-mvrv-badge" class="text-[11px] font-mono font-bold text-emerald-400">정상권</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-mvrv-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">1.84</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">시총 대비 실현총액 괴리 · 0.1 이하 바닥 · 6 이상 고점</div>
+          </div>
+
+          <!-- Card 6: Puell Multiple -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">BTC 도미넌스</span>
-              <span class="text-[11px] font-mono font-bold text-cyan-400">점유율</span>
+              <span class="text-slate-400 font-semibold truncate">Puell Multiple</span>
+              <span id="ind-puell-badge" class="text-[11px] font-mono font-bold text-cyan-400">안정</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-btcdom-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">58.34%</div>
+              <div id="ind-puell-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">0.92</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">BTC 시총 비중 · 하락 시 알트코인 순환매 신호</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">일일 채굴 수익 vs 365일 평균 · 0.5 이하 바닥 · 2+ 과열</div>
           </div>
 
-          <!-- Card 9: 글로벌 시총 -->
+          <!-- Card 7: aSOPR 실현손익비 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">aSOPR 실현손익비</span>
+              <span id="ind-sopr-badge" class="text-[11px] font-mono font-bold text-emerald-400">수익권</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-sopr-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">1.012</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">단기 보유자 실현 손익비 · 1 이상 익절 · 1 부근 지지선</div>
+          </div>
+
+          <!-- Card 8: 스테이블 공급비율 (SSR) -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">글로벌 시총</span>
-              <span class="text-[11px] font-mono font-bold text-slate-400">전체</span>
+              <span class="text-slate-400 font-semibold truncate">스테이블 공급비율(SSR)</span>
+              <span id="ind-ssr-badge" class="text-[11px] font-mono font-bold text-cyan-400">매수여력↑</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-mcap-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$2.70조</div>
+              <div id="ind-ssr-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">12.4</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전체 암호화폐 시가총액 · 시장 규모 지표</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">BTC 시총 대비 스테이블 공급 · 낮을수록 잠재 매수력 풍부</div>
           </div>
 
-          <!-- Card 10: 미 10년물 금리 -->
+          <!-- Card 9: 거래소 BTC 보유량 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">거래소 BTC 보유량</span>
+              <span id="ind-reserve-badge" class="text-[11px] font-mono font-bold text-cyan-400">유출 지속</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-reserve-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">2,140,500 BTC</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">CEX 거래소 잔고 · 지속 감소 = 콜드월렛 장기 축적</div>
+          </div>
+
+          <!-- Card 10: 네트워크 해시레이트 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">네트워크 해시레이트</span>
+              <span id="ind-hash-badge" class="text-[11px] font-mono font-bold text-emerald-400">사상 최고</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-hash-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">685 EH/s</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">비트코인 연산 해시파워 · 네트워크 보안 및 펀더멘털 최고치</div>
+          </div>
+
+          <!-- Card 11: BTC 선물 펀딩비 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-amber-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">미 10년물 금리</span>
-              <span class="text-[11px] font-mono font-bold text-amber-400">국채</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-us10y-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">4.806%</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">미국 10년물 국채 수익률 · 금리 상승 = 위험자산 회피 → 코인 하락 압력</div>
-          </div>
-
-          <!-- Card 11: 나스닥 선물 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">나스닥 선물</span>
-              <span id="ind-nasdaqfut-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.02%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-nasdaqfut-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">29,533.25</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">나스닥100 선물(NQ=F) · 24시간 실시간 · 코인과 높은 상관관계</div>
-          </div>
-
-          <!-- Card 12: BTC 펀딩비 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-amber-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">BTC 펀딩비</span>
+              <span class="text-slate-400 font-semibold truncate">BTC 선물 펀딩비</span>
               <span id="ind-funding-badge" class="text-[11px] font-mono font-bold text-amber-400">중립</span>
             </div>
             <div class="my-2.5">
               <div id="ind-funding-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">+0.0038%</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">선물 영구계약 · 양수 = 롱 과열(조정 위험) · 음수 = 숏 과열(반등 가능)</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">영구 선물 레버리지 비용 · 양수 = 롱 우세 · 음수 = 숏 우세</div>
           </div>
 
-          <!-- Card 13: 롱/숏 비율 -->
+          <!-- Card 12: 선물 미결제약정 (OI) -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">롱/숏 비율</span>
-              <span class="text-[11px] font-mono font-bold text-cyan-400">포지션</span>
+              <span class="text-slate-400 font-semibold truncate">선물 미결제약정 (OI)</span>
+              <span id="ind-oi-badge" class="text-[11px] font-mono font-bold text-cyan-400">+1.4%</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-oi-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$34.80B</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">거래소 미청산 계약 총액 · 급증 시 방향성 폭발 전조</div>
+          </div>
+
+          <!-- Card 13: 롱/숏 계좌 비율 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">롱/숏 계좌 비율</span>
+              <span id="ind-ls-badge" class="text-[11px] font-mono font-bold text-cyan-400">롱 우세</span>
             </div>
             <div class="my-2.5">
               <div id="ind-ls-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">1.297</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">선물 모델 계좌 · 롱 56.5% · 숏 43.5% · 1 이상 롱 우세</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">글로벌 상위 트레이더 계좌 비율 · 1 이상 롱 우세</div>
           </div>
 
-          <!-- Card 14: BTC 미결제약정 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
+          <!-- Card 14: 24시간 청산 규모 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-rose-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">BTC 미결제약정</span>
-              <span class="text-[11px] font-mono font-bold text-cyan-400">OI</span>
+              <span class="text-slate-400 font-semibold truncate">24시간 청산 규모</span>
+              <span id="ind-liq-badge" class="text-[11px] font-mono font-bold text-rose-400">롱 68%</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-oi-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$8.36B</div>
+              <div id="ind-liq-val" class="text-base sm:text-lg font-black font-mono text-rose-400 tracking-tight">$142.5M</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">선물 오픈 인터레스트 · 증가 = 신규 자금 유입 · 감소 = 포지션 정리</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">강제 청산 규모 · 과도한 청산 후 추세 반전 잦음</div>
           </div>
 
-          <!-- Card 15: USDT 도미넌스 -->
+          <!-- Card 15: 비트코인 내재변동성 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">USDT 도미넌스</span>
-              <span class="text-[11px] font-mono font-bold text-slate-400">점유율</span>
+              <span class="text-slate-400 font-semibold truncate">비트코인 내재변동성</span>
+              <span id="ind-dvol-badge" class="text-[11px] font-mono font-bold text-slate-300">보통</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-usdtdom-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">6.78%</div>
+              <div id="ind-dvol-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">54.2 pt</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">상승 = 스테이블 도피(매도세) · 하락 = 현물 매수 재개(불장 신호)</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">Deribit 30일 옵션 내재 변동성 지수 · 80+ 과열</div>
           </div>
 
-          <!-- Card 16: 나스닥 현물 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">나스닥 현물</span>
-              <span id="ind-nasdaq-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.32%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-nasdaq-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">26,421.41</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">^IXIC · 장중에만 갱신 · 기술주 심리 기준선</div>
-          </div>
-
-          <!-- Card 17: S&P500 선물 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">S&P500 선물</span>
-              <span id="ind-spfut-rate" class="text-[11px] font-mono font-bold text-slate-400">+0.00%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-spfut-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">7,680.5</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">ES=F · 24시간 · 미국 전체 증시 방향 · 코인과 상관관계</div>
-          </div>
-
-          <!-- Card 18: 다우 선물 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">다우 선물</span>
-              <span id="ind-dowfut-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.01%</span>
-            </div>
-            <div class="my-2.5">
-              <div id="ind-dowfut-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">52,826</div>
-            </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">YM=F · 24시간 · 전통 산업 경기 심리 반영</div>
-          </div>
-
-          <!-- Card 19: VIX 공포지수 -->
+          <!-- Card 16: 글로벌 M2 통화량 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">VIX 공포지수</span>
-              <span class="text-[11px] font-mono font-bold text-emerald-400">안정</span>
+              <span class="text-slate-400 font-semibold truncate">글로벌 M2 통화 공급량</span>
+              <span id="ind-m2-badge" class="text-[11px] font-mono font-bold text-emerald-400">+4.2% YoY</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-vix-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">15.72</div>
+              <div id="ind-m2-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">$108.5T</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">20 이하 안정 · 30 이상 공포 · 40+ 패닉 → 역발상 매수 기회</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">주요국 통화량 공급 지수 · 비트코인 상승장 제1 연료</div>
           </div>
 
-          <!-- Card 20: 금 선물 -->
+          <!-- Card 17: 미 연준 기준금리 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">금 선물</span>
-              <span id="ind-gold-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.95%</span>
+              <span class="text-slate-400 font-semibold truncate">미 연준 기준금리</span>
+              <span id="ind-fed-badge" class="text-[11px] font-mono font-bold text-cyan-400">인하확률 88%</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-gold-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$4,396.9</div>
+              <div id="ind-fed-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">5.25~5.50%</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">GC=F · 안전자산 · 금↑+코인↑ = 달러약세 · 금↑+코인↓ = 위험회피</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">Fed Funds Rate · 금리 인하 사이클 = 유동성 확장</div>
+          </div>
+
+          <!-- Card 18: 연준 역레포 (RRP) -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">연준 역레포 (RRP)</span>
+              <span id="ind-rrp-badge" class="text-[11px] font-mono font-bold text-cyan-400">유동성 방출</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-rrp-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$285.4B</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">단기 잉여 유동성 잔액 · 소진 시 추가 유동성 주입 효과</div>
+          </div>
+
+          <!-- Card 19: 미 10년물 실질금리 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-amber-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">미 10년물 실질금리</span>
+              <span id="ind-tips-badge" class="text-[11px] font-mono font-bold text-amber-400">TIPS</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-tips-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">1.94%</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">TIPS 실질 무위험 수익률 · 하락 시 무수익 자산(코인·금) 유리</div>
+          </div>
+
+          <!-- Card 20: 미 2Y-10Y 장단기 금리차 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">미 2Y-10Y 장단기 금리차</span>
+              <span id="ind-yieldcurve-badge" class="text-[11px] font-mono font-bold text-emerald-400">정상화</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-yieldcurve-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">+0.06%p</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">수익률 곡선 역전 해소 · 경기 침체/회복 전환 국면</div>
           </div>
 
           <!-- Card 21: 달러 인덱스 DXY -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-semibold truncate">달러 인덱스 DXY</span>
-              <span id="ind-dxy-rate" class="text-[11px] font-mono font-bold text-emerald-400">+0.05%</span>
+              <span id="ind-dxy-rate" class="text-[11px] font-mono font-bold text-emerald-400">-0.35%</span>
             </div>
             <div class="my-2.5">
               <div id="ind-dxy-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">98.84</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">달러 강도 · DXY↑ = 달러강세 = 코인·금 하락 압력 · 100 이상 강달러</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">달러 가치 지수 · 100 이하 달러 약세 = 코인·원자재 급등</div>
           </div>
 
-          <!-- Card 22: 코스피 -->
+          <!-- Card 22: 원/달러 환율 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">코스피</span>
-              <span id="ind-kospi-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.58%</span>
+              <span class="text-slate-400 font-semibold truncate">원/달러 환율</span>
+              <span class="text-[11px] font-mono font-bold text-slate-400">환율</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-kospi-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">6,954.52</div>
+              <div id="ind-usdkrw-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">1,340.5원</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">^KS11 · 국내 증시 · 외국인 수급과 함께 코인 심리 참고</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">원화 가치 및 외환 유동성 · 환율 급등 시 코인 하방 압력</div>
           </div>
 
-          <!-- Card 23: 니케이225 -->
+          <!-- Card 23: 미 하이일드 스프레드 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">미 하이일드 스프레드</span>
+              <span id="ind-hy-badge" class="text-[11px] font-mono font-bold text-emerald-400">위험선호</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-hy-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">3.24%p</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">회사채 가산금리 · 낮을수록 글로벌 위험자산 선호 지속</div>
+          </div>
+
+          <!-- Card 24: 나스닥 100 지수 -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">니케이225</span>
-              <span id="ind-nikkei-rate" class="text-[11px] font-mono font-bold text-crypto-red">-1.70%</span>
+              <span class="text-slate-400 font-semibold truncate">나스닥 100 지수</span>
+              <span id="ind-nasdaq-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.15%</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-nikkei-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">65,269</div>
+              <div id="ind-nasdaq-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">19,845.2</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">^N225 · 엔화 약세 시 니케이↑ · 글로벌 위험선호 확인</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">기술주 벤치마크 · 암호화폐와 가장 높은 상관관계 자산</div>
           </div>
 
-          <!-- Card 24: 항셍지수 -->
+          <!-- Card 25: 필라델피아 반도체 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">필라델피아 반도체</span>
+              <span id="ind-sox-rate" class="text-[11px] font-mono font-bold text-crypto-green">+0.42%</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-sox-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">5,120.8</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">AI·컴퓨팅 반도체 지수 · 글로벌 기술 위험선호 바로미터</div>
+          </div>
+
+          <!-- Card 26: CBOE VIX 공포지수 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-emerald-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">CBOE VIX 공포지수</span>
+              <span class="text-[11px] font-mono font-bold text-emerald-400">안정권</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-vix-val" class="text-base sm:text-lg font-black font-mono text-emerald-400 tracking-tight">15.72</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">S&P500 옵션 변동성 · 20 이하 안정적 상승 환경</div>
+          </div>
+
+          <!-- Card 27: 금 선물 (Gold) -->
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">항셍지수</span>
-              <span id="ind-hangseng-rate" class="text-[11px] font-mono font-bold text-crypto-red">-1.30%</span>
+              <span class="text-slate-400 font-semibold truncate">금 선물 (Gold)</span>
+              <span id="ind-gold-rate" class="text-[11px] font-mono font-bold text-crypto-green">+0.45%</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-hangseng-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">25,317</div>
+              <div id="ind-gold-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$2,685.4</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">^HSI · 홍콩 · 중국 자본시장 심리 · 아시아 코인 수요 연관</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">전통 안전자산 · 디지털 금(BTC)과 헤지 수요 연동</div>
           </div>
 
-          <!-- Card 25: WTI 원유 선물 -->
-          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-rose-500/40 transition shadow-sm">
+          <!-- Card 28: WTI 국제 유가 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-semibold truncate">WTI 원유 선물</span>
-              <span id="ind-wti-rate" class="text-[11px] font-mono font-bold text-crypto-red">+1.84%</span>
+              <span class="text-slate-400 font-semibold truncate">WTI 국제 유가</span>
+              <span id="ind-wti-rate" class="text-[11px] font-mono font-bold text-crypto-green">-1.10%</span>
             </div>
             <div class="my-2.5">
-              <div id="ind-wti-val" class="text-base sm:text-lg font-black font-mono text-rose-400 tracking-tight">$94.12</div>
+              <div id="ind-wti-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">$74.20</div>
             </div>
-            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">CL=F · 고유가 = 인플레이션 우려 및 금리인하 지연 압력</div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">에너지 원자재 · 고유가 시 인플레이션 및 금리인하 지연 압력</div>
+          </div>
+
+          <!-- Card 29: BTC 도미넌스 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-cyan-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">BTC 도미넌스</span>
+              <span id="ind-btcdom-badge" class="text-[11px] font-mono font-bold text-cyan-400">비트 우세</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-btcdom-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">58.34%</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">비트코인 시총 점유율 · 60% 부근서 알트 순환매 전환 신호</div>
+          </div>
+
+          <!-- Card 30: ETH/BTC 상대강도 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-indigo-500/40 transition shadow-sm">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-semibold truncate">ETH/BTC 상대강도</span>
+              <span id="ind-ethbtc-rate" class="text-[11px] font-mono font-bold text-crypto-red">-0.80%</span>
+            </div>
+            <div class="my-2.5">
+              <div id="ind-ethbtc-val" class="text-base sm:text-lg font-black font-mono text-white tracking-tight">0.0384</div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">이더리움 대 비트코인 교환비 · 반등 시 본격 알트 시즌 개막</div>
           </div>
         </div>
       </div>
@@ -5824,7 +5879,7 @@
   <script src="js/admin.js?v=20260908_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260909_02"></script>
-  <script src="js/preview-app-v2.js?v=20260909_07"></script>
+  <script src="js/preview-app-v2.js?v=20260909_08"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
