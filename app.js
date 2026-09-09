@@ -333,15 +333,31 @@ window.updateAuthUI = updateAuthUI;
 // ----------------------------------------------------
 // Section 2: Market Real-Time Ticker & Charts
 // ----------------------------------------------------
+const MAJOR_SYMBOLS = ['btc', 'eth', 'sol', 'xrp'];
+
 const DEFAULT_COINS = [
+  // Major 4
   { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 77060.00, price_change_percentage_24h: 0.15, total_volume: 38400000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', korean_name: '비트코인' },
   { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 2381.50, price_change_percentage_24h: -1.25, total_volume: 18200000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', korean_name: '이더리움' },
   { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 99.75, price_change_percentage_24h: -0.10, total_volume: 5800000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', korean_name: '솔라나' },
   { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 1.346, price_change_percentage_24h: 0.08, total_volume: 2400000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', korean_name: '리플' },
+  // Altcoins (Non-major)
   { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.0814, price_change_percentage_24h: -0.45, total_volume: 950000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', korean_name: '도지코인' },
   { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.201, price_change_percentage_24h: -0.82, total_volume: 510000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', korean_name: '에이다' },
   { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 25.80, price_change_percentage_24h: 1.20, total_volume: 420000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', korean_name: '아발란체' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 13.90, price_change_percentage_24h: 0.65, total_volume: 340000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' }
+  { id: 'chainlink', name: 'Chainlink', symbol: 'link', current_price: 13.90, price_change_percentage_24h: 0.65, total_volume: 340000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', korean_name: '체인링크' },
+  { id: 'sui', name: 'Sui', symbol: 'sui', current_price: 2.15, price_change_percentage_24h: 3.40, total_volume: 820000000, image: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png', korean_name: '수이' },
+  { id: 'aptos', name: 'Aptos', symbol: 'apt', current_price: 7.85, price_change_percentage_24h: 1.85, total_volume: 290000000, image: 'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png', korean_name: '앱토스' },
+  { id: 'near', name: 'NEAR Protocol', symbol: 'near', current_price: 4.35, price_change_percentage_24h: 2.10, total_volume: 310000000, image: 'https://assets.coingecko.com/coins/images/10365/small/near.png', korean_name: '니어프로토콜' },
+  { id: 'pepe', name: 'Pepe', symbol: 'pepe', current_price: 0.0000095, price_change_percentage_24h: 4.20, total_volume: 670000000, image: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png', korean_name: '페페' },
+  { id: 'shiba-inu', name: 'Shiba Inu', symbol: 'shib', current_price: 0.0000145, price_change_percentage_24h: 1.15, total_volume: 250000000, image: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', korean_name: '시바이누' },
+  { id: 'sei-network', name: 'Sei', symbol: 'sei', current_price: 0.38, price_change_percentage_24h: 2.75, total_volume: 180000000, image: 'https://assets.coingecko.com/coins/images/28205/small/Sei_Logo_-_Transparent.png', korean_name: '세이' },
+  { id: 'polkadot', name: 'Polkadot', symbol: 'dot', current_price: 4.85, price_change_percentage_24h: 0.45, total_volume: 210000000, image: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png', korean_name: '폴카닷' },
+  { id: 'polygon-ecosystem-token', name: 'Polygon', symbol: 'pol', current_price: 0.39, price_change_percentage_24h: 0.90, total_volume: 140000000, image: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png', korean_name: '폴리곤' },
+  { id: 'arbitrum', name: 'Arbitrum', symbol: 'arb', current_price: 0.58, price_change_percentage_24h: 1.50, total_volume: 160000000, image: 'https://assets.coingecko.com/coins/images/16547/small/arbitrum_logo.png', korean_name: '아비트럼' },
+  { id: 'optimism', name: 'Optimism', symbol: 'op', current_price: 1.48, price_change_percentage_24h: 1.70, total_volume: 130000000, image: 'https://assets.coingecko.com/coins/images/25244/small/Optimism.png', korean_name: '옵티미즘' },
+  { id: 'ethereum-classic', name: 'Ethereum Classic', symbol: 'etc', current_price: 19.80, price_change_percentage_24h: 0.35, total_volume: 110000000, image: 'https://assets.coingecko.com/coins/images/453/small/ethereum-classic-logo.png', korean_name: '이더리움클래식' },
+  { id: 'blockstack', name: 'Stacks', symbol: 'stx', current_price: 1.82, price_change_percentage_24h: 2.25, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/2069/small/Stacks_Logo_png.png', korean_name: '스택스' }
 ];
 
 let marketCoins = [...DEFAULT_COINS];
@@ -361,7 +377,13 @@ async function fetchMarketData() {
 
   // 1. Primary: Binance 24hr Ticker (100% reliable CORS for live USD prices)
   try {
-    const binanceSymbols = JSON.stringify(['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'LINKUSDT']);
+    const binanceSymbols = JSON.stringify([
+      'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 
+      'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'LINKUSDT',
+      'SUIUSDT', 'APTUSDT', 'NEARUSDT', 'PEPEUSDT',
+      'SHIBUSDT', 'SEIUSDT', 'DOTUSDT', 'POLUSDT',
+      'ARBUSDT', 'OPUSDT', 'ETCUSDT', 'STXUSDT'
+    ]);
     const binRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=' + encodeURIComponent(binanceSymbols));
     if (binRes.ok) {
       const binData = await binRes.json();
@@ -385,7 +407,7 @@ async function fetchMarketData() {
   // 2. Secondary: Upbit / Bithumb fallback
   if (!updated) {
     try {
-      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA';
+      const upbitMarkets = 'KRW-BTC,KRW-ETH,KRW-SOL,KRW-XRP,KRW-DOGE,KRW-ADA,KRW-AVAX,KRW-LINK,KRW-SUI,KRW-APT,KRW-NEAR,KRW-SHIB,KRW-SEI,KRW-DOT,KRW-ETC,KRW-STX,KRW-ARB';
       const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + upbitMarkets);
       if (upbitRes.ok) {
         const upbitData = await upbitRes.json();
@@ -519,10 +541,10 @@ window.setMarketCategoryFilter = setMarketCategoryFilter;
 function getFilteredMarketCoins() {
   if (!marketCoins || marketCoins.length === 0) return [];
   if (currentMarketCategoryFilter === 'major') {
-    return marketCoins.filter(c => ['btc', 'eth', 'sol', 'xrp'].includes(c.symbol.toLowerCase()));
+    return marketCoins.filter(c => MAJOR_SYMBOLS.includes(c.symbol.toLowerCase()));
   }
   if (currentMarketCategoryFilter === 'alt') {
-    return marketCoins.filter(c => c.symbol.toLowerCase() !== 'btc');
+    return marketCoins.filter(c => !MAJOR_SYMBOLS.includes(c.symbol.toLowerCase()));
   }
   return marketCoins;
 }
