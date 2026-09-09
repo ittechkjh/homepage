@@ -494,9 +494,118 @@ function renderMarketUI() {
     }
   }
 
-  renderCoinTable(marketCoins);
+  renderAltcoinIndex(marketCoins);
+  renderCoinTable(getFilteredMarketCoins());
 }
 window.renderMarketUI = renderMarketUI;
+
+let currentMarketCategoryFilter = 'all';
+
+function setMarketCategoryFilter(type) {
+  currentMarketCategoryFilter = type || 'all';
+  document.querySelectorAll('.market-filter-btn').forEach(btn => {
+    const isActive = btn.dataset.mfilter === currentMarketCategoryFilter;
+    btn.classList.toggle('active', isActive);
+    if (isActive) {
+      btn.className = 'market-filter-btn active px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 transition text-xs font-bold';
+    } else {
+      btn.className = 'market-filter-btn px-3 py-1 rounded-lg text-slate-400 hover:text-white transition text-xs font-medium';
+    }
+  });
+  renderCoinTable(getFilteredMarketCoins());
+}
+window.setMarketCategoryFilter = setMarketCategoryFilter;
+
+function getFilteredMarketCoins() {
+  if (!marketCoins || marketCoins.length === 0) return [];
+  if (currentMarketCategoryFilter === 'major') {
+    return marketCoins.filter(c => ['btc', 'eth', 'sol', 'xrp'].includes(c.symbol.toLowerCase()));
+  }
+  if (currentMarketCategoryFilter === 'alt') {
+    return marketCoins.filter(c => c.symbol.toLowerCase() !== 'btc');
+  }
+  return marketCoins;
+}
+window.getFilteredMarketCoins = getFilteredMarketCoins;
+
+function renderAltcoinIndex(coins) {
+  if (!coins || coins.length === 0) return;
+  const btc = coins.find(c => c.symbol.toLowerCase() === 'btc');
+  const alts = coins.filter(c => c.symbol.toLowerCase() !== 'btc');
+  if (alts.length === 0) return;
+
+  const btcChange = btc ? (btc.price_change_percentage_24h || 0) : 0;
+  const avgAltChange = alts.reduce((sum, c) => sum + (c.price_change_percentage_24h || 0), 0) / alts.length;
+  const outperformCount = alts.filter(c => (c.price_change_percentage_24h || 0) > btcChange).length;
+  const outperformRatio = outperformCount / alts.length;
+  const relDiff = avgAltChange - btcChange;
+
+  // 0~100 Altcoin Season Index Score calculation
+  let seasonScore = Math.round(50 + (outperformRatio - 0.5) * 50 + relDiff * 4);
+  seasonScore = Math.max(5, Math.min(95, seasonScore));
+
+  // Upbit UBAI style point calculation: base 5,240 pt
+  const basePoints = 5240;
+  const compositePts = Math.round(basePoints * (1 + avgAltChange / 100));
+
+  const scoreEl = document.getElementById('alt-index-score');
+  const ptsEl = document.getElementById('alt-index-pts');
+  const changeEl = document.getElementById('alt-index-change');
+  const statusEl = document.getElementById('alt-index-status');
+  const badgeEl = document.getElementById('alt-index-badge');
+  const vsBtcEl = document.getElementById('alt-vs-btc');
+  const barEl = document.getElementById('alt-index-bar');
+
+  if (scoreEl) scoreEl.innerText = seasonScore;
+  if (ptsEl) ptsEl.innerText = compositePts.toLocaleString() + ' pt';
+  if (changeEl) {
+    const isUp = avgAltChange >= 0;
+    changeEl.className = isUp ? 'text-xs font-mono font-bold text-crypto-green' : 'text-xs font-mono font-bold text-crypto-red';
+    changeEl.innerText = `${isUp ? '+' : ''}${avgAltChange.toFixed(2)}%`;
+  }
+
+  const vsUp = relDiff >= 0;
+  if (vsBtcEl) {
+    vsBtcEl.className = vsUp ? 'font-mono text-cyan-400 font-bold' : 'font-mono text-rose-400 font-bold';
+    vsBtcEl.innerText = `${vsUp ? '+' : ''}${relDiff.toFixed(2)}%`;
+  }
+
+  if (barEl) {
+    barEl.style.width = seasonScore + '%';
+  }
+
+  let statusText = '알트 순환매';
+  let badgeText = '순환매';
+  let badgeClass = 'text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30';
+  let statusColor = 'text-purple-300';
+
+  if (seasonScore >= 75) {
+    statusText = '🚀 알트코인 시즌';
+    badgeText = '알트 강세';
+    badgeClass = 'text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+    statusColor = 'text-emerald-400';
+  } else if (seasonScore <= 35) {
+    statusText = '₿ 비트코인 독주';
+    badgeText = '비트 우세';
+    badgeClass = 'text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30';
+    statusColor = 'text-amber-400';
+  } else {
+    statusText = '⚖️ 알트 순환매';
+    badgeText = '순환매';
+    badgeClass = 'text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30';
+    statusColor = 'text-purple-300';
+  }
+
+  if (statusEl) {
+    statusEl.className = `text-xs font-bold ${statusColor}`;
+    statusEl.innerText = statusText;
+  }
+  if (badgeEl) {
+    badgeEl.className = badgeText ? badgeClass : '';
+    badgeEl.innerText = badgeText;
+  }
+}
+window.renderAltcoinIndex = renderAltcoinIndex;
 
 function renderCoinTable(coins) {
   const tbody = document.getElementById('crypto-table-body');
