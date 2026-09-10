@@ -506,22 +506,30 @@ function renderMarketUI() {
   if (btc) {
     const el = document.getElementById('btc-price');
     const badge = document.getElementById('btc-badge');
+    const btcKrwEl = document.getElementById('btc-krw-price');
     if (el) el.innerText = `$${formatNumber(btc.current_price)}`;
     if (badge) {
       const isUp = (btc.price_change_percentage_24h || 0) >= 0;
       badge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
       badge.innerText = `${isUp ? '+' : ''}${(btc.price_change_percentage_24h || 0).toFixed(2)}%`;
     }
+    if (btcKrwEl && marketAnalysisState.btckrw && marketAnalysisState.btckrw.price) {
+      btcKrwEl.innerText = `≈ ${Math.round(marketAnalysisState.btckrw.price).toLocaleString()}원`;
+    }
   }
 
   if (eth) {
     const el = document.getElementById('eth-price');
     const badge = document.getElementById('eth-badge');
+    const ethKrwEl = document.getElementById('eth-krw-price');
     if (el) el.innerText = `$${formatNumber(eth.current_price)}`;
     if (badge) {
       const isUp = (eth.price_change_percentage_24h || 0) >= 0;
       badge.className = isUp ? 'badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full' : 'badge-red text-xs font-mono font-bold px-2 py-0.5 rounded-full';
       badge.innerText = `${isUp ? '+' : ''}${(eth.price_change_percentage_24h || 0).toFixed(2)}%`;
+    }
+    if (ethKrwEl && marketAnalysisState.ethkrw && marketAnalysisState.ethkrw.price) {
+      ethKrwEl.innerText = `≈ ${Math.round(marketAnalysisState.ethkrw.price).toLocaleString()}원`;
     }
   }
 
@@ -553,8 +561,8 @@ const defaultMarketAnalysisState = {
   bithumb: { total: 481, up: 172, down: 287, ratio: 36 },
   kimp: { rate: 1.20 },
   coinbasePremium: { rate: 0.08, text: '미국 매수세' },
-  btckrw: { price: 106541000, change: -1.09 },
-  ethkrw: { price: 3372000, change: -0.53 },
+  btckrw: { price: 106128000, change: -0.26 },
+  ethkrw: { price: 3354000, change: 0.03 },
 
   // Category 2: 온체인 밸류에이션 & 건전성
   mvrvZ: { value: 1.84, text: '상승 채널' },
@@ -642,6 +650,25 @@ async function fetchMarketAnalysisData() {
         if (e) { marketAnalysisState.ethkrw.price = e.trade_price; marketAnalysisState.ethkrw.change = (e.signed_change_rate || 0) * 100; }
       }
     } catch(err) {}
+  }
+
+  // 1.1 UpbitAPI helper fallback if still on initial default or needing verification
+  if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchTickers === 'function') {
+    try {
+      const uMap = await UpbitAPI.fetchTickers(['KRW-BTC', 'KRW-ETH']);
+      if (uMap) {
+        const b = uMap['KRW-BTC'] || uMap['BTC'];
+        const e = uMap['KRW-ETH'] || uMap['ETH'];
+        if (b && b.tradePrice) {
+          marketAnalysisState.btckrw.price = b.tradePrice;
+          if (b.signedChangeRate !== undefined) marketAnalysisState.btckrw.change = b.signedChangeRate * 100;
+        }
+        if (e && e.tradePrice) {
+          marketAnalysisState.ethkrw.price = e.tradePrice;
+          if (e.signedChangeRate !== undefined) marketAnalysisState.ethkrw.change = e.signedChangeRate * 100;
+        }
+      }
+    } catch(apiErr) {}
   }
 
   // 2. Bithumb tickers count for advancing/declining
@@ -862,6 +889,14 @@ function refreshMarketAnalysis() {
 }
 window.refreshMarketAnalysis = refreshMarketAnalysis;
 
+// Start market analysis background polling interval (every 15s)
+if (!window._marketAnalysisInterval) {
+  fetchMarketAnalysisData();
+  window._marketAnalysisInterval = setInterval(() => {
+    fetchMarketAnalysisData();
+  }, 15000);
+}
+
 function renderMarketAnalysisAndIndicators() {
   const s = marketAnalysisState;
 
@@ -1008,8 +1043,19 @@ function renderMarketAnalysisAndIndicators() {
     return `<span class="${color} font-bold">${isUp ? '+' : ''}${v.toFixed(2)}${suffix}</span>`;
   };
 
+  setEl('nar-btc-price', `${Math.round(s.btckrw.price || 0).toLocaleString()}원`);
+  setEl('nar-eth-price', `${Math.round(s.ethkrw.price || 0).toLocaleString()}원`);
   setEl('nar-btc-change', fmtSign(s.btckrw.change));
   setEl('nar-eth-change', fmtSign(s.ethkrw.change));
+
+  const btcKrwEl = document.getElementById('btc-krw-price');
+  if (btcKrwEl && s.btckrw && s.btckrw.price) {
+    btcKrwEl.innerText = `≈ ${Math.round(s.btckrw.price).toLocaleString()}원`;
+  }
+  const ethKrwEl = document.getElementById('eth-krw-price');
+  if (ethKrwEl && s.ethkrw && s.ethkrw.price) {
+    ethKrwEl.innerText = `≈ ${Math.round(s.ethkrw.price).toLocaleString()}원`;
+  }
   setEl('nar-mvrv-val', s.mvrvZ.value.toFixed(2));
   setEl('nar-puell-val', s.puellMultiple.value.toFixed(2));
   setEl('nar-sopr-val', s.asopr.value.toFixed(3));
@@ -5167,6 +5213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderMarketUI();
   fetchMarketData();
+  fetchMarketAnalysisData();
   initChart();
 
   renderForumPosts();

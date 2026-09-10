@@ -894,7 +894,10 @@
             <span id="btc-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+2.45%</span>
           </div>
           <div class="mt-4">
-            <div id="btc-price" class="text-2xl font-black font-mono text-white">$64,820.00</div>
+            <div class="flex items-baseline justify-between">
+              <div id="btc-price" class="text-2xl font-black font-mono text-white">$64,820.00</div>
+              <div id="btc-krw-price" class="text-xs font-mono text-cyan-400 font-bold"></div>
+            </div>
             <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$28.4B</span></div>
           </div>
           <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition"></div>
@@ -913,7 +916,10 @@
             <span id="eth-badge" class="badge-green text-xs font-mono font-bold px-2 py-0.5 rounded-full">+1.82%</span>
           </div>
           <div class="mt-4">
-            <div id="eth-price" class="text-2xl font-black font-mono text-white">$3,490.50</div>
+            <div class="flex items-baseline justify-between">
+              <div id="eth-price" class="text-2xl font-black font-mono text-white">$3,490.50</div>
+              <div id="eth-krw-price" class="text-xs font-mono text-indigo-400 font-bold"></div>
+            </div>
             <div class="text-xs text-slate-400 mt-1">24h 거래대금: <span class="font-mono text-slate-300">$15.2B</span></div>
           </div>
           <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
@@ -3507,7 +3513,7 @@
   <script src="js/analyzer-app.js?v=20260903_20"></script>
 
   <script src="js/admin.js?v=20260904_23"></script>
-  <script src="js/preview-app-v2.js?v=20260910_16"></script>
+  <script src="js/preview-app-v2.js?v=20260910_18"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
