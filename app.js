@@ -2728,7 +2728,7 @@ window.initNewsPeriodicUpdater = initNewsPeriodicUpdater;
 // ----------------------------------------------------
 // Section 6: Comprehensive 2026 Crypto Events Calendar Engine
 // ----------------------------------------------------
-const CRYPTO_EVENTS = [
+let CRYPTO_EVENTS = [
   {
     id: 1,
     date: '2026-09-04',
@@ -2983,9 +2983,33 @@ function getEventDDay(dateStr) {
   }
 }
 
+let _isCryptoEventsLoaded = false;
+async function fetchCryptoEvents() {
+  if (_isCryptoEventsLoaded) return;
+  try {
+    const res = await fetch('data/crypto-events.json?v=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.events) && data.events.length > 0) {
+        CRYPTO_EVENTS = data.events;
+        _isCryptoEventsLoaded = true;
+        renderCalendarEvents();
+        renderMonthCalendar();
+      }
+    }
+  } catch (err) {
+    console.warn('[Calendar] Using embedded fallback events:', err);
+  }
+}
+window.fetchCryptoEvents = fetchCryptoEvents;
+
 function renderCalendarEvents() {
   const container = document.getElementById('calendar-events-list');
   if (!container) return;
+
+  if (!_isCryptoEventsLoaded) {
+    fetchCryptoEvents();
+  }
 
   let events = CRYPTO_EVENTS;
   if (activeCalendarFilter !== 'all') {
