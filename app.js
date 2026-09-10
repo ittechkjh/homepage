@@ -2331,7 +2331,6 @@ function convertPostSvgImagesToPng(container) {
       }
 
       const tempImg = new Image();
-      tempImg.crossOrigin = 'anonymous';
       tempImg.onload = () => {
         try {
           const canvas = document.createElement('canvas');
@@ -2377,6 +2376,91 @@ function convertPostSvgImagesToPng(container) {
 window.convertPostSvgImagesToPng = convertPostSvgImagesToPng;
 
 /**
+ * Safely converts a base64 or Data URI to a Blob
+ */
+function dataURItoBlob(dataURI) {
+  try {
+    const splitIndex = dataURI.indexOf(',');
+    if (splitIndex === -1) return null;
+    const header = dataURI.substring(0, splitIndex);
+    const data = dataURI.substring(splitIndex + 1);
+    const mimeMatch = header.match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+    const binaryStr = atob(data);
+    const len = binaryStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+  } catch (err) {
+    console.warn('dataURItoBlob error:', err);
+    return null;
+  }
+}
+
+/**
+ * Gets high-resolution PNG blob from an img element without corrupting data
+ */
+async function getPngBlobFromImg(imgEl) {
+  let src = imgEl.getAttribute('src') || imgEl.src || '';
+  if (src.startsWith('data:image/png')) {
+    const b = dataURItoBlob(src);
+    if (b) return b;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1600;
+  canvas.height = 560;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+  }
+
+  // If already rendered in DOM
+  if (imgEl.complete && imgEl.naturalWidth > 0 && ctx) {
+    try {
+      ctx.drawImage(imgEl, 0, 0, 1600, 560);
+      const b = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      if (b) return b;
+    } catch (e) {
+      console.warn('Direct draw failed, fallback to SVG parser:', e);
+    }
+  }
+
+  if (src.startsWith('data:image/svg+xml')) {
+    let decodedSvg = '';
+    try {
+      if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+      else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
+    } catch (e) {}
+
+    if (decodedSvg) {
+      decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+      if (!decodedSvg.includes('width="800"')) {
+        decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+      }
+      src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+    }
+  }
+
+  const tempImg = new Image();
+  await new Promise((resolve, reject) => {
+    tempImg.onload = () => {
+      try {
+        if (ctx) ctx.drawImage(tempImg, 0, 0, 1600, 560);
+        resolve();
+      } catch (e) { reject(e); }
+    };
+    tempImg.onerror = reject;
+    tempImg.src = src;
+  });
+
+  return await new Promise(r => canvas.toBlob(r, 'image/png'));
+}
+
+/**
  * Copies a single image directly as an image/png blob to OS clipboard.
  * When user presses Ctrl+V in Naver SmartEditor ONE, Naver treats it as an uploaded photo!
  */
@@ -2386,56 +2470,20 @@ async function copySingleImageToClipboard(btn) {
   const imgEl = container.querySelector('img');
   if (!imgEl) return;
 
-  const origHtml = btn.innerHTML;
-  btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 사진 변환 중...';
+  const origHtml = btn.dataset.origHtml || btn.innerHTML;
+  btn.dataset.origHtml = origHtml;
+  btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 사진 복사 중...';
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
   try {
-    let src = imgEl.getAttribute('src') || imgEl.src || '';
-    const canvas = document.createElement('canvas');
-    canvas.width = 1600;
-    canvas.height = 560;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    if (src.startsWith('data:image/svg+xml')) {
-      let decodedSvg = '';
-      try {
-        if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
-        else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
-      } catch (e) {}
-      if (decodedSvg) {
-        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
-        if (!decodedSvg.includes('width="800"')) {
-          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
-        }
-        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
-      }
-    }
-
-    const tempImg = new Image();
-    tempImg.crossOrigin = 'anonymous';
-
-    await new Promise((resolve, reject) => {
-      tempImg.onload = () => {
-        try {
-          ctx.drawImage(tempImg, 0, 0, 1600, 560);
-          resolve();
-        } catch (e) { reject(e); }
-      };
-      tempImg.onerror = reject;
-      tempImg.src = src;
-    });
-
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) throw new Error('Blob generation failed');
+    const blob = await getPngBlobFromImg(imgEl);
+    if (!blob) throw new Error('Blob creation failed');
 
     if (navigator.clipboard && window.ClipboardItem) {
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob })
       ]);
-      btn.innerHTML = '✅ 사진 복사됨! (Ctrl+V로 붙여넣기)';
+      btn.innerHTML = '✅ 사진 복사됨! (네이버에 Ctrl+V)';
       btn.classList.remove('from-emerald-600', 'to-teal-600');
       btn.classList.add('bg-emerald-600');
       setTimeout(() => {
@@ -2444,7 +2492,7 @@ async function copySingleImageToClipboard(btn) {
         btn.classList.add('from-emerald-600', 'to-teal-600');
         if (typeof lucide !== 'undefined') lucide.createIcons();
       }, 3500);
-      alert('✅ [사진 복사 완료!]\n\n고해상도 PNG 이미지가 클립보드에 복사되었습니다.\n네이버 블로그/카페 글쓰기 에디터에서 [Ctrl + V]를 누르면 네이버 정식 사진으로 즉시 첨부됩니다.');
+      alert('✅ [사진 복사 완료!]\n\n고화질 인포그래픽 이미지가 클립보드에 복사되었습니다.\n네이버 블로그/카페 글쓰기 화면에서 [Ctrl + V]를 누르면 네이버 정식 사진으로 즉시 첨부됩니다.');
     } else {
       throw new Error('ClipboardItem not supported');
     }
@@ -2454,7 +2502,7 @@ async function copySingleImageToClipboard(btn) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     // Fallback: trigger download
     downloadSingleImage(btn);
-    alert('⚠️ 클립보드 직접 복사가 지원되지 않는 브라우저 환경이므로 이미지가 PNG 파일로 다운로드되었습니다.\n다운로드된 이미지를 네이버 글쓰기 화면에 끌어다 놓으시면(드래그 앤 드롭) 바로 첨부됩니다.');
+    alert('⚠️ 브라우저 보안 또는 권한 설정으로 인해 이미지가 PNG 파일로 다운로드되었습니다.\n\n다운로드된 이미지를 네이버 글쓰기 화면에 끌어다 놓으시면(드래그 앤 드롭) 바로 첨부됩니다.');
   }
 }
 window.copySingleImageToClipboard = copySingleImageToClipboard;
@@ -2468,43 +2516,30 @@ function downloadSingleImage(btn) {
   const imgEl = container.querySelector('img');
   if (!imgEl) return;
 
+  const alt = (imgEl.getAttribute('alt') || 'market-infographic').replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
   let src = imgEl.getAttribute('src') || imgEl.src || '';
-  const canvas = document.createElement('canvas');
-  canvas.width = 1600;
-  canvas.height = 560;
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
 
-  if (src.startsWith('data:image/svg+xml')) {
-    let decodedSvg = '';
-    try {
-      if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
-      else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
-    } catch (e) {}
-    if (decodedSvg) {
-      decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
-      if (!decodedSvg.includes('width="800"')) {
-        decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
-      }
-      src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
-    }
-  }
-
-  const tempImg = new Image();
-  tempImg.crossOrigin = 'anonymous';
-  tempImg.onload = () => {
-    ctx.drawImage(tempImg, 0, 0, 1600, 560);
-    const pngUrl = canvas.toDataURL('image/png');
+  if (src.startsWith('data:image/png')) {
     const a = document.createElement('a');
-    const alt = (imgEl.getAttribute('alt') || 'market-infographic').replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
     a.download = `crytopnl_${alt}.png`;
-    a.href = pngUrl;
+    a.href = src;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  };
-  tempImg.src = src;
+    return;
+  }
+
+  getPngBlobFromImg(imgEl).then(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.download = `crytopnl_${alt}.png`;
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }).catch(e => console.warn('downloadSingleImage failed:', e));
 }
 window.downloadSingleImage = downloadSingleImage;
 
@@ -2522,55 +2557,36 @@ async function downloadAllPostImages(triggerBtn = null) {
 
   const origHtml = triggerBtn ? triggerBtn.innerHTML : '';
   if (triggerBtn) {
-    triggerBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 사진 변환 중...';
+    triggerBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 사진 준비 중...';
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   try {
     for (let i = 0; i < imgs.length; i++) {
       const imgEl = imgs[i];
+      const alt = (imgEl.getAttribute('alt') || `infographic_${i+1}`).replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
       let src = imgEl.getAttribute('src') || imgEl.src || '';
-      let decodedSvg = '';
-      try {
-        if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
-        else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
-      } catch (e) {}
 
-      if (decodedSvg) {
-        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
-        if (!decodedSvg.includes('width="800"')) {
-          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+      if (src.startsWith('data:image/png')) {
+        const a = document.createElement('a');
+        a.download = `${String(i + 1).padStart(2, '0')}_${alt}.png`;
+        a.href = src;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        const blob = await getPngBlobFromImg(imgEl);
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.download = `${String(i + 1).padStart(2, '0')}_${alt}.png`;
+          a.href = url;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
         }
-        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
       }
-
-      const tempImg = new Image();
-      tempImg.crossOrigin = 'anonymous';
-
-      await new Promise((resolve) => {
-        tempImg.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1600;
-            canvas.height = 560;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(tempImg, 0, 0, 1600, 560);
-            const pngUrl = canvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            const alt = (imgEl.getAttribute('alt') || `infographic_${i+1}`).replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
-            a.download = `${String(i + 1).padStart(2, '0')}_${alt}.png`;
-            a.href = pngUrl;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          } catch (e) {}
-          resolve();
-        };
-        tempImg.onerror = resolve;
-        tempImg.src = src;
-      });
 
       await new Promise((r) => setTimeout(r, 250));
     }
