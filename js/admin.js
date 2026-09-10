@@ -233,14 +233,30 @@ const AdminAnalytics = {
                 }
             });
 
-            // Merge local storage features as fallback only
-            // devices/browsers: Firestore aggregated data only (multi-user accurate)
+            // Merge LocalStorage data for supplemental accuracy
             try {
                 const localData = this.getAnalyticsData();
-                if (localData && localData.features) {
-                    Object.keys(localData.features).forEach(f => {
-                        aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
-                    });
+                if (localData) {
+                    // features: always merge LocalStorage (current user tab activity)
+                    if (localData.features) {
+                        Object.keys(localData.features).forEach(f => {
+                            aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
+                        });
+                    }
+                    // devices/browsers: Firestore is the multi-user source of truth.
+                    // However, Firestore write is async and may not yet reflect the current session
+                    // (race condition on page load). So we supplement ONLY when Firestore total is 0.
+                    // This ensures the current visitor's device is counted while respecting aggregated data.
+                    if (aggMobile + aggDesktop === 0 && localData.devices) {
+                        aggMobile = Number(localData.devices.mobile || 0);
+                        aggDesktop = Number(localData.devices.desktop || 0);
+                    }
+                    const curBTotal = Object.values(aggBrowsers).reduce((a, b) => a + Number(b || 0), 0);
+                    if (curBTotal === 0 && localData.browsers) {
+                        Object.keys(localData.browsers).forEach(b => {
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(localData.browsers[b] || 0);
+                        });
+                    }
                 }
             } catch (e) {}
 
@@ -1341,6 +1357,12 @@ const AdminApp = {
         })();
         if (cached) {
             renderStatsUI(cached);
+        }
+
+        // Ensure current visitor is recorded in LocalStorage before fetching stats
+        // This prevents race condition where fetchCloudStats reads before recordVisit writes
+        if (typeof AdminAnalytics.recordVisit === 'function') {
+            AdminAnalytics.recordVisit();
         }
 
         const stats = await AdminAnalytics.fetchCloudStats();
