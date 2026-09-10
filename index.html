@@ -5286,9 +5286,9 @@
               <span class="font-semibold">오늘 하루 방문자 수 (DAU)</span>
               <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400"><i data-lucide="user-check" class="w-4 h-4"></i></span>
             </div>
-            <div class="text-2xl font-extrabold text-white" id="admin-today-visitors">1,780명</div>
-            <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center gap-1" id="admin-today-growth">
-              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +5.4% vs 어제
+            <div class="text-2xl font-extrabold text-white" id="admin-today-visitors">--명</div>
+            <div class="text-[11px] text-slate-400 font-semibold mt-1 flex items-center gap-1" id="admin-today-growth">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 실측 동기화 중...
             </div>
           </div>
 
@@ -5298,7 +5298,7 @@
               <span class="font-semibold">실시간 현재 동시접속자</span>
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
             </div>
-            <div class="text-2xl font-extrabold text-emerald-400" id="admin-live-users">47명</div>
+            <div class="text-2xl font-extrabold text-emerald-400" id="admin-live-users">1명</div>
             <div class="text-[11px] text-slate-400 mt-1">라이브 세션 활성 모니터링 중</div>
           </div>
 
@@ -5308,8 +5308,8 @@
               <span class="font-semibold">이번 주 누적 방문자 (WAU)</span>
               <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="calendar" class="w-4 h-4"></i></span>
             </div>
-            <div class="text-2xl font-extrabold text-purple-300" id="admin-weekly-visitors">11,840명</div>
-            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 합계</div>
+            <div class="text-2xl font-extrabold text-purple-300" id="admin-weekly-visitors">--명</div>
+            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 실측 합계</div>
           </div>
 
           <!-- Card 4: Total Pageviews -->
@@ -5318,8 +5318,8 @@
               <span class="font-semibold">누적 총 페이지뷰 (PV)</span>
               <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="eye" class="w-4 h-4"></i></span>
             </div>
-            <div class="text-2xl font-extrabold text-amber-300" id="admin-total-pageviews">186,450 PV</div>
-            <div class="text-[11px] text-slate-400 mt-1">사용자당 평균 3.8회 탭 탐색</div>
+            <div class="text-2xl font-extrabold text-amber-300" id="admin-total-pageviews">-- PV</div>
+            <div class="text-[11px] text-slate-400 mt-1">전체 누적 페이지 탐색 실측치</div>
           </div>
         </div>
 
@@ -5822,23 +5822,23 @@
             <div class="grid grid-cols-2 gap-3 text-xs">
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
                 <div class="text-slate-400 text-[11px] mb-1">저장소 크기 (Repo Size)</div>
-                <div class="text-base font-extrabold text-purple-300 font-mono" id="admin-gh-repo-size">2,009 KB</div>
-                <div class="text-[10px] text-emerald-400 mt-0.5">권장 1 GB 대비 0.2% 소모</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono" id="admin-gh-repo-size">조회 중...</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">GitHub API 실시간 실측치</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
                 <div class="text-slate-400 text-[11px] mb-1">Actions CI/CD 빌드 시간</div>
-                <div class="text-base font-extrabold text-purple-300 font-mono">1 분 미만</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono">&lt; 1 분</div>
                 <div class="text-[10px] text-emerald-400 mt-0.5">무료 한도 2,000분 대비 0.05%</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
-                <div class="text-slate-400 text-[11px] mb-1">최근 14일 방문 조회수</div>
-                <div class="text-base font-extrabold text-white font-mono">61 회</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">순 방문자(Unique) 2명</div>
+                <div class="text-slate-400 text-[11px] mb-1">GitHub 저장소 Star / 관심도</div>
+                <div class="text-base font-extrabold text-amber-300 font-mono" id="admin-gh-stars">0 Stars</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">GitHub API 실시간 실측치</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
-                <div class="text-slate-400 text-[11px] mb-1">최근 14일 Git Clone 수</div>
-                <div class="text-base font-extrabold text-white font-mono">797 회</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">배포/동기화 자동화 트래픽 포함</div>
+                <div class="text-slate-400 text-[11px] mb-1">기본 브랜치 및 이슈 상태</div>
+                <div class="text-base font-extrabold text-cyan-300 font-mono" id="admin-gh-branch">main (Active)</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5" id="admin-gh-issues">Open Issues: 0건</div>
               </div>
             </div>
 
@@ -5860,10 +5860,10 @@
         <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
-              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 전체 클라우드 인프라 자원 소모율 종합 진단
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 전체 클라우드 인프라 자원 소모율 종합 진단 (무료 티어 공식 쿼터 및 스펙 기준)
             </h4>
             <span class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-              전 항목 안전 (Green Zone)
+              공식 아키텍처 스펙 기준
             </span>
           </div>
 

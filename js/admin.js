@@ -255,22 +255,12 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
-            const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
-            const scale = Math.max(0.6, Math.min(2.0, (cloudTotalVisitors || 35) / 50));
-
-            // Natural progression for today based on current KST hour
-            const kstHour = new Date(Date.now() + 9 * 3600000).getUTCHours();
-            const dayProgress = Math.max(0.2, Math.min(1.0, (kstHour + 1) / 24));
-            const baselineExpected = Math.round((baselineWeights[12] || 25) * scale * dayProgress);
-
+            // Real progression for today (pure actual data, no fake baseline)
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
-            const rawTodayVisitors = Number(todayEntry.visitors || 0);
-            const rawTodayPageviews = Number(todayEntry.pageviews || 0);
+            const todayVisitors = Number(todayEntry.visitors || 0);
+            const todayPageviews = Number(todayEntry.pageviews || 0);
 
-            const todayVisitors = Math.max(rawTodayVisitors, baselineExpected, 1);
-            const todayPageviews = Math.max(rawTodayPageviews, Math.round(todayVisitors * 3.6), 1);
-
-            // Historical baseline pattern for empty past days (smooth natural activity curve)
+            // Pure 14-day history array from Firestore (0 if no visits)
             const history14 = dateKeys.map((k, idx) => {
                 const entry = dayMap[k];
                 let v = entry ? Number(entry.visitors || 0) : 0;
@@ -279,10 +269,6 @@ const AdminAnalytics = {
                 if (idx === dateKeys.length - 1) {
                     v = todayVisitors;
                     pv = todayPageviews;
-                } else if (v === 0) {
-                    const baseWeight = baselineWeights[idx] || 18;
-                    v = Math.round(baseWeight * scale);
-                    pv = Math.round(v * 3.8);
                 }
 
                 return {
@@ -293,40 +279,21 @@ const AdminAnalytics = {
             });
 
             const yesterdayVisitors = history14[history14.length - 2].visitors;
-            let growthRate = '+5.2%';
+            let growthRate = '0.0%';
             if (yesterdayVisitors > 0) {
                 const pct = (((todayVisitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
                 growthRate = (pct >= 0 ? '+' : '') + pct + '%';
+            } else if (todayVisitors > 0) {
+                growthRate = '+100%';
             }
 
             const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0);
             const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
 
-            // Ensure features are proportionally distributed if aggregated count is 0
-            let fTotal = Object.values(aggFeatures).reduce((sum, v) => sum + (Number(v) || 0), 0);
-            if (fTotal === 0) {
-                const basePv = Math.max(cloudTotalPV, todayPageviews, 199);
-                aggFeatures.analyzer = Math.round(basePv * 0.28);
-                aggFeatures.market = Math.round(basePv * 0.18);
-                aggFeatures.onchain = Math.round(basePv * 0.14);
-                aggFeatures.patterns = Math.round(basePv * 0.12);
-                aggFeatures.calculators = Math.round(basePv * 0.08);
-                aggFeatures.news = Math.round(basePv * 0.07);
-                aggFeatures.policy = Math.round(basePv * 0.05);
-                aggFeatures.community = Math.round(basePv * 0.05);
-                aggFeatures.calendar = Math.max(1, basePv - aggFeatures.analyzer - aggFeatures.market - aggFeatures.onchain - aggFeatures.patterns - aggFeatures.calculators - aggFeatures.news - aggFeatures.policy - aggFeatures.community);
-            }
-
-            // Ensure device breakdown is valid
+            // Real device breakdown (0% if total is 0)
             let totalDev = aggMobile + aggDesktop;
-            if (totalDev === 0) {
-                const baseDev = Math.max(todayPageviews, 20);
-                aggMobile = Math.round(baseDev * 0.64);
-                aggDesktop = Math.max(1, baseDev - aggMobile);
-                totalDev = aggMobile + aggDesktop;
-            }
-            const mobilePct = Math.round((aggMobile / totalDev) * 100);
-            const desktopPct = 100 - mobilePct;
+            const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 0;
+            const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
 
             // Ensure browser breakdown is valid
             let bTotal = Object.values(aggBrowsers).reduce((a, b) => a + Number(b || 0), 0);
@@ -402,19 +369,10 @@ const AdminAnalytics = {
         const data = this.getAnalyticsData();
         const todayStr = this.getKstDateStr();
         const today = data.history.find(h => h.date === todayStr) || { visitors: 0, pageviews: 0 };
-        const rawTodayVisitors = Number(today.visitors || 0);
-        const rawTodayPageviews = Number(today.pageviews || 0);
-
-        const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
-        const scale = Math.max(0.6, Math.min(2.0, (data.totalVisitorsAllTime || 35) / 50));
-        const kstHour = new Date(Date.now() + 9 * 3600000).getUTCHours();
-        const dayProgress = Math.max(0.2, Math.min(1.0, (kstHour + 1) / 24));
-        const baselineExpected = Math.round((baselineWeights[12] || 25) * scale * dayProgress);
-
-        const todayVisitors = Math.max(rawTodayVisitors, baselineExpected, 1);
-        const todayPageviews = Math.max(rawTodayPageviews, Math.round(todayVisitors * 3.6), 1);
+        const todayVisitors = Number(today.visitors || 0);
+        const todayPageviews = Number(today.pageviews || 0);
         
-        // Build 14-day history array with real dates
+        // Build 14-day history array with real dates (0 if no visits)
         const history14 = [];
         const now = new Date();
         for (let i = 13; i >= 0; i--) {
@@ -428,10 +386,6 @@ const AdminAnalytics = {
             if (i === 0) {
                 v = todayVisitors;
                 pv = todayPageviews;
-            } else if (v === 0) {
-                const baseWeight = baselineWeights[13 - i] || 18;
-                v = Math.round(baseWeight * scale);
-                pv = Math.round(v * 3.8);
             }
 
             history14.push({
@@ -442,10 +396,12 @@ const AdminAnalytics = {
         }
 
         const yesterdayVisitors = history14[history14.length - 2].visitors;
-        let growthRate = '+5.2%';
+        let growthRate = '0.0%';
         if (yesterdayVisitors > 0) {
             const pct = (((todayVisitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
             growthRate = (pct >= 0 ? '+' : '') + pct + '%';
+        } else if (todayVisitors > 0) {
+            growthRate = '+100%';
         }
 
         const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0);
@@ -454,19 +410,10 @@ const AdminAnalytics = {
         let mCount = data.devices?.mobile || 0;
         let dCount = data.devices?.desktop || 0;
         let totalDev = mCount + dCount;
-        if (totalDev === 0) {
-            mCount = 64;
-            dCount = 36;
-            totalDev = 100;
-        }
-        const mobilePct = Math.round((mCount / totalDev) * 100);
-        const desktopPct = 100 - mobilePct;
+        const mobilePct = totalDev > 0 ? Math.round((mCount / totalDev) * 100) : 0;
+        const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
 
-        let f = data.features || { analyzer: 0, market: 0, news: 0, community: 0 };
-        let fTotal = (f.analyzer || 0) + (f.market || 0) + (f.news || 0) + (f.community || 0);
-        if (fTotal === 0) {
-            f = { analyzer: 44, market: 27, news: 18, community: 11 };
-        }
+        let f = data.features || {};
 
         let realLiveCount = 1;
         const activeListEl = document.getElementById('chat-active-users-list');
@@ -1290,7 +1237,15 @@ const AdminApp = {
             // 1. Real KPI Cards
             const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
             setVal('admin-today-visitors', (stats.todayVisitors || 0).toLocaleString() + '명');
-            setVal('admin-today-growth', (stats.growthRate || '+0%') + ' vs 어제 (' + (stats.yesterdayVisitors || 0).toLocaleString() + '명)');
+            const growthText = (stats.growthRate || '0.0%') + ' vs 어제 (' + (stats.yesterdayVisitors || 0).toLocaleString() + '명)';
+            setVal('admin-today-growth', growthText);
+            const growthEl = document.getElementById('admin-today-growth');
+            if (growthEl) {
+                const gr = stats.growthRate || '0.0%';
+                const grNum = parseFloat(gr.replace('%', '').replace('+', ''));
+                growthEl.className = 'text-[11px] font-semibold mt-1 flex items-center gap-1 ' +
+                    (grNum > 0 ? 'text-emerald-400' : grNum < 0 ? 'text-rose-400' : 'text-slate-400');
+            }
             setVal('admin-live-users', (stats.liveUsers || 1) + '명 (실제 접속자)');
             setVal('admin-weekly-visitors', (stats.weeklyVisitors || 0).toLocaleString() + '명');
             setVal('admin-total-pageviews', (stats.totalPageviewsAllTime || 0).toLocaleString() + ' PV');
@@ -1332,8 +1287,7 @@ const AdminApp = {
             let f = stats.features || {};
             let totalF = featKeys.reduce((sum, item) => sum + (Number(f[item.key]) || 0), 0);
             if (totalF === 0) {
-                f = { analyzer: 28, market: 18, onchain: 14, patterns: 12, calculators: 8, news: 7, policy: 5, community: 5, calendar: 3 };
-                totalF = 100;
+                totalF = 1; // 0 나누기 방지용. 실측 데이터 없으면 모든 항목 0%
             }
             const getPct = (val) => Math.round(((Number(val) || 0) / totalF) * 100);
             const setFeat = (id, pct) => {
@@ -1580,6 +1534,9 @@ const AdminApp = {
         try {
             const pushEl = document.getElementById('admin-gh-last-pushed');
             const sizeEl = document.getElementById('admin-gh-repo-size');
+            const starEl = document.getElementById('admin-gh-stars');
+            const branchEl = document.getElementById('admin-gh-branch');
+            const issuesEl = document.getElementById('admin-gh-issues');
             if (pushEl && forceRefresh) pushEl.innerText = '실시간 조회 중...';
 
             const repoRes = await fetch('https://api.github.com/repos/ittechkjh/homepage');
@@ -1591,6 +1548,15 @@ const AdminApp = {
                     }
                     if (pushEl && repoData.pushed_at) {
                         pushEl.innerText = new Date(repoData.pushed_at).toLocaleString('ko-KR');
+                    }
+                    if (starEl) {
+                        starEl.innerText = (repoData.stargazers_count || 0).toLocaleString() + ' Stars';
+                    }
+                    if (branchEl) {
+                        branchEl.innerText = (repoData.default_branch || 'main') + ' (Active)';
+                    }
+                    if (issuesEl) {
+                        issuesEl.innerText = 'Open Issues: ' + (repoData.open_issues_count || 0) + '건';
                     }
                 }
             }
