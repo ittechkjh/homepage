@@ -155,7 +155,7 @@ async function fetchLiveMarketData(dateStr) {
 
 // 2. High-Definition Branded Infographic Generators (crytopnl.com)
 function generateReportImage1(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
   <defs>
     <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#070a12"/>
@@ -198,7 +198,7 @@ function generateReportImage1(dStr, m) {
 }
 
 function generateReportImage2(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
   <defs>
     <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#091824"/><stop offset="100%" stop-color="#07090e"/>
@@ -241,7 +241,7 @@ function generateReportImage2(dStr, m) {
 }
 
 function generateReportImage3(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
   <defs>
     <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#181326"/><stop offset="100%" stop-color="#07090e"/>
@@ -288,7 +288,7 @@ function generateReportImage4(dStr, m) {
   const ev2 = (m.nextEvents && m.nextEvents[0]) || { title: '미국 8월 소비자물가(CPI) 발표', time: '내일 21:30', desc: '인플레이션 둔화 여부' };
   const ev3 = (m.nextEvents && m.nextEvents[1]) || { title: '앱토스(APT) 락업 해제', time: '9월 12일', desc: '1,131만 APT 공급' };
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
   <defs>
     <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#19151c"/><stop offset="100%" stop-color="#07090e"/>
@@ -603,22 +603,7 @@ async function buildDailyMarketReport(targetDate = null) {
     isNotice: false,
     image: true,
     content: contentHtml,
-    comments: [
-      {
-        id: 1,
-        author: '크립토고래',
-        authorRank: 'PRO',
-        time: `${dateStr} 08:24`,
-        content: '온체인 지표와 오늘 밤 경제 일정을 한눈에 정리해주셔서 매매 전략 수립에 큰 도움 되었습니다.'
-      },
-      {
-        id: 2,
-        author: '비트홀더',
-        authorRank: 'MEMBER',
-        time: `${dateStr} 08:42`,
-        content: '장기홀더 락업이랑 스테이블코인 공급 수치 보니까 하방 지지가 확실히 든든하네요.'
-      }
-    ]
+    comments: []
   };
 }
 

@@ -1887,22 +1887,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     isNotice: false,
     image: true,
     content: contentHtml,
-    comments: [
-      {
-        id: 1,
-        author: '크립토고래',
-        authorRank: 'PRO',
-        time: `${dateStr} 08:24`,
-        content: '온체인 지표와 오늘 밤 PPI 발표 일정을 한눈에 정리해주셔서 매매 전략 수립에 큰 도움 되었습니다.'
-      },
-      {
-        id: 2,
-        author: '비트홀더',
-        authorRank: 'MEMBER',
-        time: `${dateStr} 08:42`,
-        content: 'LTH 74.2% 락업이랑 스테이블코인 172B 공급 수치 보니까 하방 지지가 확실히 든든하네요.'
-      }
-    ]
+    comments: []
   };
 }
 
@@ -1926,12 +1911,16 @@ function ensureDailyMarketReportPost(posts) {
   }
 
   if (Array.isArray(cachedReports) && cachedReports.length > 0) {
-    // Inject all cached market reports if not deleted and not already in posts
     cachedReports.forEach(rep => {
       if (rep && rep.id && !deletedIds.includes(String(rep.id))) {
         const existingIdx = posts.findIndex(p => String(p.id) === String(rep.id));
         if (existingIdx === -1) {
           posts.push(rep);
+        } else {
+          const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
+          posts[existingIdx].comments = (posts[existingIdx].comments || []).filter(c => c && !mockAuthors.includes(c.author));
+          posts[existingIdx].content = rep.content;
+          posts[existingIdx].title = rep.title;
         }
       }
     });
@@ -1985,6 +1974,13 @@ async function loadDailyMarketReports(force = false) {
           localStorage.setItem('crytopnl_daily_market_reports_cache', JSON.stringify(reports));
         } catch(e) {}
         const currentPosts = getStoredPosts();
+        reports.forEach(rep => {
+          const p = currentPosts.find(x => String(x.id) === String(rep.id));
+          if (p) {
+            const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
+            p.comments = (p.comments || []).filter(c => c && !mockAuthors.includes(c.author));
+          }
+        });
         saveStoredPosts(currentPosts);
         if (typeof renderForumPosts === 'function') {
           renderForumPosts();
@@ -2147,7 +2143,10 @@ function renderForumPosts() {
           <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(plainText)}</p>
         </div>
 
-        <div class="flex items-center gap-3 self-end sm:self-center shrink-0 text-xs">
+        <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0 text-xs flex-wrap justify-end">
+          <button type="button" onclick="event.stopPropagation(); copyPostForNaverBlog('${post.id}', this)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-950/30 transition flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer" title="네이버 블로그/카페 스마트에디터에 바로 붙여넣을 수 있도록 고해상도 PNG 이미지와 함께 복사합니다.">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 네이버 복사
+          </button>
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 font-mono" title="조회수">
             <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
             <span>조회 ${post.views || 1}</span>
@@ -2262,6 +2261,10 @@ function openPostDetailModal(postId, updateHistory = true) {
   const posts = getStoredPosts();
   const post = posts.find(p => String(p.id) === String(postId));
   if (!post) return;
+  if (post && String(post.id).startsWith('report-')) {
+    const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
+    post.comments = (post.comments || []).filter(c => c && !mockAuthors.includes(c.author));
+  }
 
   currentCafePostId = post.id;
   currentViewingPostId = post.id;
@@ -2297,7 +2300,10 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
   if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
   if (viewsEl) viewsEl.innerText = post.views;
-  if (contentEl) contentEl.innerHTML = post.content;
+  if (contentEl) {
+    contentEl.innerHTML = post.content;
+    convertPostSvgImagesToPng(contentEl);
+  }
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
 
   const controlsEl = document.getElementById('cafe-post-author-controls');
@@ -2334,6 +2340,278 @@ function openPostDetailModal(postId, updateHistory = true) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 window.openPostDetailModal = openPostDetailModal;
+
+/**
+ * Converts SVG data URIs inside post content to PNG Data URLs via HTML5 Canvas.
+ * Solves Naver Blog / Cafe SmartEditor rejecting SVG images on paste.
+ */
+function convertPostSvgImagesToPng(container) {
+  if (!container) return;
+  const imgs = container.querySelectorAll('img');
+  imgs.forEach((imgEl) => {
+    let src = imgEl.getAttribute('src') || '';
+    if (!src.startsWith('data:image/svg+xml')) return;
+
+    let decodedSvg = '';
+    try {
+      if (src.includes(';utf8,')) {
+        decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+      } else if (src.includes(';base64,')) {
+        decodedSvg = atob(src.split(';base64,')[1]);
+      }
+    } catch (e) {}
+
+    if (decodedSvg) {
+      decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+      if (!decodedSvg.includes('width="800"')) {
+        decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+      }
+      src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+    }
+
+    const tempImg = new Image();
+    tempImg.crossOrigin = 'anonymous';
+    tempImg.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const dpr = 2; // 2x high-resolution for crystal clear paste
+        const w = (tempImg.naturalWidth || 800) * dpr;
+        const h = (tempImg.naturalHeight || 280) * dpr;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(tempImg, 0, 0, w, h);
+          imgEl.src = canvas.toDataURL('image/png');
+          imgEl.setAttribute('data-converted-png', 'true');
+        }
+      } catch (err) {
+        console.warn('Canvas conversion error:', err);
+      }
+    };
+    tempImg.src = src;
+  });
+}
+window.convertPostSvgImagesToPng = convertPostSvgImagesToPng;
+
+/**
+ * One-click copy for Naver Blog / Cafe SmartEditor ONE.
+ * Converts all images to PNG and formats content for seamless pasting.
+ * Supports calling from post detail view or directly from post list card via targetPostId.
+ */
+async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
+  let contentHtml = '';
+  let postTitle = '시장 분석 보고서';
+  let tempDiv = null;
+
+  if (targetPostId) {
+    const posts = getStoredPosts();
+    const post = posts.find(p => String(p.id) === String(targetPostId));
+    if (post) {
+      postTitle = post.title || postTitle;
+      contentHtml = post.content || '';
+      tempDiv = document.createElement('div');
+      tempDiv.innerHTML = contentHtml;
+    }
+  }
+
+  if (!tempDiv) {
+    const contentEl = document.getElementById('cafe-post-content');
+    const titleEl = document.getElementById('cafe-post-title');
+    if (!contentEl) {
+      alert('복사할 게시글 본문을 찾을 수 없습니다.');
+      return;
+    }
+    postTitle = titleEl ? titleEl.innerText : postTitle;
+    tempDiv = contentEl.cloneNode(true);
+  }
+
+  const btns = triggerBtn ? [triggerBtn] : document.querySelectorAll('.cafe-naver-copy-btn');
+  btns.forEach(b => {
+    b.dataset.orig = b.innerHTML;
+    b.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> PNG 변환 중...';
+  });
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  const imgs = tempDiv.querySelectorAll('img');
+  const conversionPromises = Array.from(imgs).map(imgEl => {
+    return new Promise((resolve) => {
+      let src = imgEl.getAttribute('src') || imgEl.src || '';
+      if (!src.startsWith('data:image/svg+xml')) {
+        return resolve();
+      }
+      let decodedSvg = '';
+      try {
+        if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+        else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
+      } catch (e) {}
+      if (decodedSvg) {
+        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+        if (!decodedSvg.includes('width="800"')) {
+          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+        }
+        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+      }
+      const tempImg = new Image();
+      tempImg.crossOrigin = 'anonymous';
+      tempImg.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1600;
+          canvas.height = 560;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(tempImg, 0, 0, 1600, 560);
+          imgEl.src = canvas.toDataURL('image/png');
+        } catch (e) {}
+        resolve();
+      };
+      tempImg.onerror = () => resolve();
+      tempImg.src = src;
+    });
+  });
+
+  await Promise.all(conversionPromises);
+
+  const clone = tempDiv.cloneNode(true);
+  clone.querySelectorAll('p').forEach(p => {
+    p.style.color = '#1e293b';
+    p.style.fontSize = '16px';
+    p.style.lineHeight = '1.8';
+    p.style.marginBottom = '16px';
+  });
+  clone.querySelectorAll('h3').forEach(h => {
+    h.style.color = '#0284c7';
+    h.style.fontSize = '20px';
+    h.style.fontWeight = 'bold';
+    h.style.marginBottom = '14px';
+  });
+  clone.querySelectorAll('h4').forEach(h => {
+    h.style.color = '#0f172a';
+    h.style.fontSize = '17px';
+    h.style.fontWeight = 'bold';
+    h.style.marginTop = '24px';
+    h.style.marginBottom = '10px';
+  });
+  clone.querySelectorAll('img').forEach(img => {
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+    img.style.display = 'block';
+    img.style.margin = '20px auto';
+    img.style.borderRadius = '10px';
+  });
+
+  const fullHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; color: #1e293b;">
+      <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;">
+        ${escapeHtml(postTitle)}
+      </h1>
+      ${clone.innerHTML}
+      <div style="margin-top: 30px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">
+        📊 실시간 크립토 온체인 & 거시 분석 리서치: <a href="https://crytopnl.com/#/forum" target="_blank" style="color: #0284c7; font-weight: bold; text-decoration: none;">crytopnl.com</a>
+      </div>
+    </div>
+  `;
+
+  const plainText = `${postTitle}\n\n${clone.innerText}\n\n출처: crytopnl.com`;
+
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      const htmlBlob = new Blob([fullHtml], { type: 'text/html' });
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob
+        })
+      ]);
+    } else {
+      await navigator.clipboard.writeText(plainText);
+    }
+    alert('✅ [네이버 블로그/카페용 복사 완료!]\n\n고해상도 PNG 이미지와 서식이 클립보드에 복사되었습니다.\n네이버 스마트에디터 글쓰기 화면에서 [Ctrl + V]로 붙여넣으시면 이미지가 정상적으로 첨부됩니다.');
+  } catch (err) {
+    console.warn('Clipboard write error:', err);
+    alert('클립보드에 복사되었습니다. 네이버 에디터에서 [Ctrl + V]로 붙여넣어 보세요.');
+  } finally {
+    btns.forEach(b => {
+      b.innerHTML = b.dataset.orig || '<i data-lucide="copy" class="w-4 h-4"></i> 네이버 블로그/카페 복사';
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+window.copyPostForNaverBlog = copyPostForNaverBlog;
+
+/**
+ * Copies the main dashboard "오늘의 시장 분위기" narrative report & 30 key signals for Naver Blog/Cafe.
+ */
+async function copyMarketDashboardForNaver(triggerBtn = null) {
+  const sentTitle = document.getElementById('market-sentiment-title')?.innerText || '시장 분위기 분석';
+  const sentScore = document.getElementById('market-sentiment-score')?.innerText || '';
+  const narrativeEl = document.getElementById('market-narrative-content');
+  const verdictEl = document.getElementById('market-final-verdict');
+  const signalsListEl = document.getElementById('market-signals-list');
+
+  const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  const titleText = `[시장 긴급 진단] ${todayStr} 실시간 암호화폐 시장 분위기 & 온체인·거시 종합 리서치`;
+
+  const btns = triggerBtn ? [triggerBtn] : [];
+  btns.forEach(b => {
+    b.dataset.orig = b.innerHTML;
+    b.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 복사 중...';
+  });
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  let narrativeHtml = narrativeEl ? narrativeEl.innerHTML : '';
+  let verdictText = verdictEl ? verdictEl.innerText : '';
+  let signalsText = '';
+  if (signalsListEl) {
+    signalsText = Array.from(signalsListEl.querySelectorAll('li')).map(li => `• ${li.innerText}`).join('\n');
+  }
+
+  const fullHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; color: #1e293b; line-height: 1.8;">
+      <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;">
+        ${titleText}
+      </h1>
+      <div style="background-color: #f1f5f9; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 15px; font-weight: bold; color: #0f172a;">
+        📊 현재 시장 심리: <span style="color: #d97706;">${sentTitle}</span> (${sentScore})
+      </div>
+      <div style="margin-bottom: 24px; font-size: 15px; color: #334155;">
+        ${narrativeHtml}
+      </div>
+      ${verdictText ? `<div style="background-color: #e0f2fe; border-left: 4px solid #0284c7; padding: 12px 16px; border-radius: 4px; font-weight: bold; color: #0369a1; margin-bottom: 24px; font-size: 14px;">${verdictText}</div>` : ''}
+      <div style="margin-top: 30px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">
+        ⚡ 실시간 암호화폐 30대 시장 지표 & 온체인 분석 센터: <a href="https://crytopnl.com" target="_blank" style="color: #0284c7; font-weight: bold; text-decoration: none;">crytopnl.com</a>
+      </div>
+    </div>
+  `;
+
+  const plainText = `${titleText}\n\n[시장 분위기: ${sentTitle} (${sentScore})]\n\n${narrativeEl ? narrativeEl.innerText : ''}\n\n${verdictText}\n\n출처: crytopnl.com`;
+
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      const htmlBlob = new Blob([fullHtml], { type: 'text/html' });
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })
+      ]);
+    } else {
+      await navigator.clipboard.writeText(plainText);
+    }
+    alert('✅ [네이버 블로그/카페용 시장 분위기 복사 완료!]\n\n실시간 분석 리포트 서식이 클립보드에 복사되었습니다.\n네이버 스마트에디터에서 [Ctrl + V]로 붙여넣어 보세요.');
+  } catch(e) {
+    alert('클립보드 복사 완료!');
+  } finally {
+    btns.forEach(b => {
+      b.innerHTML = b.dataset.orig || '<i data-lucide="copy" class="w-3.5 h-3.5"></i> 네이버 복사';
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+window.copyMarketDashboardForNaver = copyMarketDashboardForNaver;
 
 function renderCafeComments(comments = []) {
   const container = document.getElementById('cafe-comments-list');

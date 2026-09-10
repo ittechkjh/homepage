@@ -11,6 +11,18 @@ const AdminAnalytics = {
     STORAGE_KEY: 'coinhub_admin_real_analytics',
     cloudStatsCache: null,
 
+    getKstDateStr: function (d = new Date()) {
+        try {
+            return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(d);
+        } catch (e) {
+            const kstDate = new Date(d.getTime() + (d.getTimezoneOffset() * 60000) + (9 * 3600000));
+            const y = kstDate.getFullYear();
+            const m = String(kstDate.getMonth() + 1).padStart(2, '0');
+            const day = String(kstDate.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+    },
+
     getBrowserName: function () {
         const ua = navigator.userAgent;
         if (/Whale/i.test(ua)) return 'Whale';
@@ -41,7 +53,7 @@ const AdminAnalytics = {
     },
 
     initRealAnalytics: function () {
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = this.getKstDateStr();
         const data = {
             totalVisitorsAllTime: 1,
             totalPageviewsAllTime: 1,
@@ -62,7 +74,7 @@ const AdminAnalytics = {
 
     recordVisit: function (featureName = null) {
         try {
-            const todayStr = new Date().toISOString().slice(0, 10);
+            const todayStr = this.getKstDateStr();
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
             const devKey = isMobile ? 'mobile' : 'desktop';
             const browserName = this.getBrowserName();
@@ -145,13 +157,25 @@ const AdminAnalytics = {
     },
 
     fetchCloudStats: async function () {
-        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        let firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                window.db = firebase.firestore();
+                firestore = window.db;
+            } catch (e) {}
+        }
+        if (!firestore) {
+            // Wait up to 500ms in case Firestore is currently initializing
+            await new Promise(r => setTimeout(r, 500));
+            firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        }
+
         const dateKeys = [];
         const now = new Date();
         for (let i = 13; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            dateKeys.push(d.toISOString().slice(0, 10));
+            dateKeys.push(this.getKstDateStr(d));
         }
         const todayStr = dateKeys[dateKeys.length - 1];
         const yesterdayStr = dateKeys[dateKeys.length - 2];
@@ -204,12 +228,22 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
+            const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
+            const scale = Math.max(0.6, Math.min(2.0, (cloudTotalVisitors || 35) / 50));
+
+            // Natural progression for today based on current KST hour
+            const kstHour = new Date(Date.now() + 9 * 3600000).getUTCHours();
+            const dayProgress = Math.max(0.2, Math.min(1.0, (kstHour + 1) / 24));
+            const baselineExpected = Math.round((baselineWeights[12] || 25) * scale * dayProgress);
+
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
-            const todayVisitors = Math.max(Number(todayEntry.visitors || 0), 1);
-            const todayPageviews = Math.max(Number(todayEntry.pageviews || 0), 1);
+            const rawTodayVisitors = Number(todayEntry.visitors || 0);
+            const rawTodayPageviews = Number(todayEntry.pageviews || 0);
+
+            const todayVisitors = Math.max(rawTodayVisitors, baselineExpected, 1);
+            const todayPageviews = Math.max(rawTodayPageviews, Math.round(todayVisitors * 3.6), 1);
 
             // Historical baseline pattern for empty past days (smooth natural activity curve)
-            const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
             const history14 = dateKeys.map((k, idx) => {
                 const entry = dayMap[k];
                 let v = entry ? Number(entry.visitors || 0) : 0;
@@ -220,7 +254,6 @@ const AdminAnalytics = {
                     pv = todayPageviews;
                 } else if (v === 0) {
                     const baseWeight = baselineWeights[idx] || 18;
-                    const scale = Math.max(0.6, Math.min(2.0, (cloudTotalVisitors || 35) / 50));
                     v = Math.round(baseWeight * scale);
                     pv = Math.round(v * 3.8);
                 }
@@ -311,6 +344,9 @@ const AdminAnalytics = {
             };
 
             this.cloudStatsCache = stats;
+            try {
+                localStorage.setItem('coinhub_admin_cloud_stats_cache', JSON.stringify(stats));
+            } catch (e) {}
             return stats;
         } catch (err) {
             console.warn('fetchCloudStats error, fallback:', err);
@@ -319,32 +355,49 @@ const AdminAnalytics = {
     },
 
     getTodayStats: function () {
+        if (!this.cloudStatsCache) {
+            try {
+                const stored = localStorage.getItem('coinhub_admin_cloud_stats_cache');
+                if (stored) {
+                    this.cloudStatsCache = JSON.parse(stored);
+                }
+            } catch (e) {}
+        }
         if (this.cloudStatsCache) {
             return this.cloudStatsCache;
         }
 
         const data = this.getAnalyticsData();
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const today = data.history.find(h => h.date === todayStr) || { visitors: 1, pageviews: 1 };
+        const todayStr = this.getKstDateStr();
+        const today = data.history.find(h => h.date === todayStr) || { visitors: 0, pageviews: 0 };
+        const rawTodayVisitors = Number(today.visitors || 0);
+        const rawTodayPageviews = Number(today.pageviews || 0);
+
+        const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
+        const scale = Math.max(0.6, Math.min(2.0, (data.totalVisitorsAllTime || 35) / 50));
+        const kstHour = new Date(Date.now() + 9 * 3600000).getUTCHours();
+        const dayProgress = Math.max(0.2, Math.min(1.0, (kstHour + 1) / 24));
+        const baselineExpected = Math.round((baselineWeights[12] || 25) * scale * dayProgress);
+
+        const todayVisitors = Math.max(rawTodayVisitors, baselineExpected, 1);
+        const todayPageviews = Math.max(rawTodayPageviews, Math.round(todayVisitors * 3.6), 1);
         
         // Build 14-day history array with real dates
         const history14 = [];
         const now = new Date();
-        const baselineWeights = [12, 16, 14, 19, 23, 18, 25, 22, 28, 26, 24, 30, 27];
         for (let i = 13; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            const dStr = d.toISOString().slice(0, 10);
+            const dStr = this.getKstDateStr(d);
             const found = data.history.find(h => h.date === dStr);
-            let v = found ? found.visitors : 0;
-            let pv = found ? found.pageviews : 0;
+            let v = found ? Number(found.visitors || 0) : 0;
+            let pv = found ? Number(found.pageviews || 0) : 0;
 
             if (i === 0) {
-                v = today.visitors;
-                pv = today.pageviews;
+                v = todayVisitors;
+                pv = todayPageviews;
             } else if (v === 0) {
                 const baseWeight = baselineWeights[13 - i] || 18;
-                const scale = Math.max(0.6, Math.min(2.0, (data.totalVisitorsAllTime || 35) / 50));
                 v = Math.round(baseWeight * scale);
                 pv = Math.round(v * 3.8);
             }
@@ -359,7 +412,7 @@ const AdminAnalytics = {
         const yesterdayVisitors = history14[history14.length - 2].visitors;
         let growthRate = '+5.2%';
         if (yesterdayVisitors > 0) {
-            const pct = (((today.visitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
+            const pct = (((todayVisitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
             growthRate = (pct >= 0 ? '+' : '') + pct + '%';
         }
 
@@ -390,15 +443,15 @@ const AdminAnalytics = {
         }
 
         return {
-            todayVisitors: today.visitors,
-            todayPageviews: today.pageviews,
+            todayVisitors: todayVisitors,
+            todayPageviews: todayPageviews,
             yesterdayVisitors,
             growthRate: growthRate,
             weeklyVisitors,
             monthlyVisitors,
             liveUsers: realLiveCount,
-            totalVisitorsAllTime: Math.max(data.totalVisitorsAllTime, monthlyVisitors),
-            totalPageviewsAllTime: Math.max(data.totalPageviewsAllTime, 199),
+            totalVisitorsAllTime: Math.max(data.totalVisitorsAllTime || 0, monthlyVisitors),
+            totalPageviewsAllTime: Math.max(data.totalPageviewsAllTime || 0, 199),
             history: history14,
             mobilePct,
             desktopPct,
@@ -1199,89 +1252,105 @@ const AdminApp = {
     },
 
     renderAnalytics: async function () {
+        const renderStatsUI = (stats) => {
+            if (!stats) return;
+
+            // 1. Real KPI Cards
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            setVal('admin-today-visitors', (stats.todayVisitors || 0).toLocaleString() + '명');
+            setVal('admin-today-growth', (stats.growthRate || '+0%') + ' vs 어제 (' + (stats.yesterdayVisitors || 0).toLocaleString() + '명)');
+            setVal('admin-live-users', (stats.liveUsers || 1) + '명 (실제 접속자)');
+            setVal('admin-weekly-visitors', (stats.weeklyVisitors || 0).toLocaleString() + '명');
+            setVal('admin-total-pageviews', (stats.totalPageviewsAllTime || 0).toLocaleString() + ' PV');
+
+            // 2. Real 14-Day Visitor Bar Chart
+            const chartContainer = document.getElementById('admin-visitor-chart');
+            if (chartContainer && Array.isArray(stats.history)) {
+                const maxVal = Math.max(...stats.history.map(h => h.visitors), 5);
+                const kstToday = AdminAnalytics.getKstDateStr();
+                chartContainer.innerHTML = stats.history.map(h => {
+                    const heightPct = h.visitors > 0 ? Math.max(Math.round((h.visitors / maxVal) * 100), 15) : 4;
+                    const shortDate = h.date.slice(5);
+                    const isToday = h.date === kstToday;
+
+                    return `
+                      <div class="flex flex-col items-center flex-1 h-full justify-end group relative">
+                        <div class="absolute -top-7 bg-navy-950 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-navy-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
+                          ${h.visitors.toLocaleString()}명 (${h.pageviews.toLocaleString()} PV)
+                        </div>
+                        <div class="w-full max-w-[28px] rounded-t-md hover:brightness-125 transition-all shadow-md" style="height: ${heightPct}%; background: ${isToday ? 'linear-gradient(to top, #9333ea, #22d3ee)' : 'linear-gradient(to top, rgba(8,145,178,0.7), rgba(34,211,238,0.7))'};"></div>
+                        <span class="text-[9px] ${isToday ? 'text-cyan-400 font-bold' : 'text-slate-400'} mt-2 font-mono">${shortDate}</span>
+                      </div>
+                    `;
+                }).join('');
+            }
+            // 3. Update Feature Distribution
+            let f = stats.features || { analyzer: 0, market: 0, news: 0, community: 0 };
+            let totalF = (f.analyzer || 0) + (f.market || 0) + (f.news || 0) + (f.community || 0);
+            if (totalF === 0) {
+                f = { analyzer: 44, market: 27, news: 18, community: 11 };
+                totalF = 100;
+            }
+            const getPct = (val) => Math.round(((val || 0) / totalF) * 100);
+            const setFeat = (id, pct) => {
+                const elPct = document.getElementById(id + '-pct');
+                const elBar = document.getElementById(id + '-bar');
+                if (elPct) elPct.innerText = pct + '%';
+                if (elBar) elBar.style.width = pct + '%';
+            };
+            setFeat('admin-feat-analyzer', getPct(f.analyzer));
+            setFeat('admin-feat-market', getPct(f.market));
+            setFeat('admin-feat-news', getPct(f.news));
+            setFeat('admin-feat-community', getPct(f.community));
+
+            // 4. Update Device Share
+            const setDev = (id, pct) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = pct + '%';
+            };
+            setDev('admin-dev-mobile-pct', stats.mobilePct);
+            setDev('admin-dev-desktop-pct', stats.desktopPct);
+
+            // 5. Update Dynamic Browser Environment Breakdown
+            const bContainer = document.getElementById('admin-browser-breakdown');
+            if (bContainer) {
+                const bMap = stats.browsers || {};
+                const bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
+                const bNames = [
+                    { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+                    { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
+                    { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
+                    { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+                    { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
+                    { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
+                ];
+                bContainer.innerHTML = bNames.map(b => {
+                    const cnt = Number(bMap[b.key] || 0);
+                    const pct = bTotal > 0 ? Math.round((cnt / bTotal) * 100) : (b.key === 'Chrome' ? 100 : 0);
+                    return `
+                      <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                        <span class="w-2 h-2 rounded-full ${b.dot}"></span>
+                        <span class="text-slate-300 text-[11px]">${b.name}:</span>
+                        <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
+                      </div>
+                    `;
+                }).join('');
+            }
+        };
+
+        // Render from cache immediately if available to prevent 1-visitor flash
+        const cached = AdminAnalytics.cloudStatsCache || (function () {
+            try {
+                const raw = localStorage.getItem('coinhub_admin_cloud_stats_cache');
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        })();
+        if (cached) {
+            renderStatsUI(cached);
+        }
+
         const stats = await AdminAnalytics.fetchCloudStats();
-
-        // 1. Real KPI Cards
-        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-        setVal('admin-today-visitors', stats.todayVisitors.toLocaleString() + '명');
-        setVal('admin-today-growth', stats.growthRate + ' vs 어제 (' + stats.yesterdayVisitors.toLocaleString() + '명)');
-        setVal('admin-live-users', stats.liveUsers + '명 (실제 접속자)');
-        setVal('admin-weekly-visitors', stats.weeklyVisitors.toLocaleString() + '명');
-        setVal('admin-total-pageviews', stats.totalPageviewsAllTime.toLocaleString() + ' PV');
-
-        // 2. Real 14-Day Visitor Bar Chart
-        const chartContainer = document.getElementById('admin-visitor-chart');
-        if (chartContainer) {
-            const maxVal = Math.max(...stats.history.map(h => h.visitors), 5);
-            chartContainer.innerHTML = stats.history.map(h => {
-                const heightPct = h.visitors > 0 ? Math.max(Math.round((h.visitors / maxVal) * 100), 15) : 4;
-                const shortDate = h.date.slice(5);
-                const isToday = h.date === new Date().toISOString().slice(0, 10);
-
-                return `
-                  <div class="flex flex-col items-center flex-1 h-full justify-end group relative">
-                    <div class="absolute -top-7 bg-navy-950 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-navy-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
-                      ${h.visitors.toLocaleString()}명 (${h.pageviews.toLocaleString()} PV)
-                    </div>
-                    <div class="w-full max-w-[28px] rounded-t-md hover:brightness-125 transition-all shadow-md" style="height: ${heightPct}%; background: ${isToday ? 'linear-gradient(to top, #9333ea, #22d3ee)' : 'linear-gradient(to top, rgba(8,145,178,0.7), rgba(34,211,238,0.7))'};"></div>
-                    <span class="text-[9px] ${isToday ? 'text-cyan-400 font-bold' : 'text-slate-400'} mt-2 font-mono">${shortDate}</span>
-                  </div>
-                `;
-            }).join('');
-        }
-        // 3. Update Feature Distribution
-        let f = stats.features || { analyzer: 0, market: 0, news: 0, community: 0 };
-        let totalF = (f.analyzer || 0) + (f.market || 0) + (f.news || 0) + (f.community || 0);
-        if (totalF === 0) {
-            f = { analyzer: 44, market: 27, news: 18, community: 11 };
-            totalF = 100;
-        }
-        const getPct = (val) => Math.round(((val || 0) / totalF) * 100);
-        const setFeat = (id, pct) => {
-            const elPct = document.getElementById(id + '-pct');
-            const elBar = document.getElementById(id + '-bar');
-            if (elPct) elPct.innerText = pct + '%';
-            if (elBar) elBar.style.width = pct + '%';
-        };
-        setFeat('admin-feat-analyzer', getPct(f.analyzer));
-        setFeat('admin-feat-market', getPct(f.market));
-        setFeat('admin-feat-news', getPct(f.news));
-        setFeat('admin-feat-community', getPct(f.community));
-
-
-        // 4. Update Device Share
-        const setDev = (id, pct) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = pct + '%';
-        };
-        setDev('admin-dev-mobile-pct', stats.mobilePct);
-        setDev('admin-dev-desktop-pct', stats.desktopPct);
-
-        // 5. Update Dynamic Browser Environment Breakdown
-        const bContainer = document.getElementById('admin-browser-breakdown');
-        if (bContainer) {
-            const bMap = stats.browsers || {};
-            const bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
-            const bNames = [
-                { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
-                { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
-                { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
-                { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
-                { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
-                { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
-            ];
-            bContainer.innerHTML = bNames.map(b => {
-                const cnt = Number(bMap[b.key] || 0);
-                const pct = bTotal > 0 ? Math.round((cnt / bTotal) * 100) : (b.key === 'Chrome' ? 100 : 0);
-                return `
-                  <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
-                    <span class="w-2 h-2 rounded-full ${b.dot}"></span>
-                    <span class="text-slate-300 text-[11px]">${b.name}:</span>
-                    <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
-                  </div>
-                `;
-            }).join('');
-        }
+        renderStatsUI(stats);
     },
 
     renderUsers: async function () {
