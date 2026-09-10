@@ -2731,21 +2731,21 @@ window.initNewsPeriodicUpdater = initNewsPeriodicUpdater;
 const CRYPTO_EVENTS = [
   {
     id: 1,
-    date: '2026-09-02',
-    dday: 'D-2',
+    date: '2026-09-04',
+    dday: '종료',
     time: '21:30 (KST)',
     category: 'macro',
     categoryName: '🏦 FOMC/거시경제',
-    coin: 'MACRO',
-    title: '미국 8월 비농업 고용보고서 및 실업률 발표',
-    desc: '연준(Fed)의 9월 금리 결정 방향성을 가늠할 핵심 경제 지표. 시장 예상치 하회 시 조기 금리 인하 기대감 고조.',
+    coin: 'NFP',
+    title: '미국 8월 비농업 고용보고서(NFP) 및 실업률 발표',
+    desc: '연준(Fed) 9월 금리 결정의 핵심 고용 지표. 비농업 신규고용 및 실업률 공식 발표 완료.',
     impact: 'HIGH IMPACT',
     impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
   },
   {
     id: 2,
     date: '2026-09-04',
-    dday: 'D-4',
+    dday: '종료',
     time: '10:00 (KST)',
     category: 'conference',
     categoryName: '🌐 글로벌 컨퍼런스',
@@ -2758,20 +2758,20 @@ const CRYPTO_EVENTS = [
   {
     id: 3,
     date: '2026-09-05',
-    dday: 'D-5',
+    dday: '종료',
     time: '18:00 (KST)',
     category: 'unlock',
     categoryName: '🔓 토큰 락업해제',
     coin: 'SUI',
     title: '수이(SUI) 6,400만 개 대규모 토큰 락업 해제',
-    desc: '초기 기여자 및 커뮤니티 물량 약 9,500만 달러 상당 해제. 단기 유통량 증가에 따른 가격 변동성 주의 필요.',
+    desc: '초기 기여자 및 커뮤니티 물량 약 9,500만 달러 상당 해제 완료.',
     impact: 'VOLATILE',
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
     id: 4,
     date: '2026-09-08',
-    dday: 'D-8',
+    dday: '종료',
     time: '19:00 (KST)',
     category: 'upgrade',
     categoryName: '🚀 메인넷/업그레이드',
@@ -2784,20 +2784,33 @@ const CRYPTO_EVENTS = [
   {
     id: 5,
     date: '2026-09-10',
-    dday: 'D-10',
+    dday: 'D-Day',
     time: '21:30 (KST)',
     category: 'macro',
     categoryName: '🏦 FOMC/거시경제',
-    coin: 'MACRO',
-    title: '미국 8월 소비자물가지수(CPI) 발표',
-    desc: '인플레이션 둔화 추세 지속 여부 확인. 전년 동기 대비 2.8% 하회 시 위험자산 강세 랠리 촉발 가능성.',
+    coin: 'PPI',
+    title: '미국 8월 생산자물가지수(PPI) 발표',
+    desc: '도매 물가 및 기업 생산 비용 동향 발표. 익일(9/11) 발표될 소비자물가(CPI)의 핵심 선행 지표로 시장 촉각 집중.',
     impact: 'HIGH IMPACT',
     impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
   },
   {
     id: 6,
     date: '2026-09-11',
-    dday: 'D-11',
+    dday: 'D-1',
+    time: '21:30 (KST)',
+    category: 'macro',
+    categoryName: '🏦 FOMC/거시경제',
+    coin: 'CPI',
+    title: '미국 8월 소비자물가지수(CPI) 발표',
+    desc: '인플레이션 둔화 추세 지속 여부 확인. 9월 FOMC 기준금리 인하 폭(25bp vs 50bp)을 결정지을 최대 핵심 지표.',
+    impact: 'CRITICAL',
+    impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+  },
+  {
+    id: 7,
+    date: '2026-09-11',
+    dday: 'D-1',
     time: '18:00 (KST)',
     category: 'unlock',
     categoryName: '🔓 토큰 락업해제',
@@ -2808,9 +2821,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
-    id: 7,
+    id: 8,
     date: '2026-09-14',
-    dday: 'D-14',
+    dday: 'D-4',
     time: '10:00 (KST)',
     category: 'conference',
     categoryName: '🌐 글로벌 컨퍼런스',
@@ -2821,22 +2834,22 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
   },
   {
-    id: 8,
-    date: '2026-09-16',
-    dday: 'D-16',
+    id: 9,
+    date: '2026-09-17',
+    dday: 'D-7',
     time: '03:00 (KST)',
     category: 'macro',
     categoryName: '🏦 FOMC/거시경제',
     coin: 'FED',
     title: '미국 연준(Fed) FOMC 기준금리 결정 및 파월 의장 기자회견',
-    desc: '글로벌 유동성 공급과 암호화폐 시장의 향방을 결정지을 2026년 하반기 최대 이벤트.',
+    desc: '미 현지 9월 16일 14:00(EDT) 발표. 글로벌 유동성 공급과 암호화폐 시장 향방을 결정지을 2026년 하반기 최대 이벤트.',
     impact: 'CRITICAL',
     impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
   },
   {
-    id: 9,
+    id: 10,
     date: '2026-09-18',
-    dday: 'D-18',
+    dday: 'D-8',
     time: '15:00 (KST)',
     category: 'upgrade',
     categoryName: '🚀 메인넷/업그레이드',
@@ -2847,9 +2860,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
   },
   {
-    id: 10,
+    id: 11,
     date: '2026-09-20',
-    dday: 'D-20',
+    dday: 'D-10',
     time: '18:00 (KST)',
     category: 'unlock',
     categoryName: '🔓 토큰 락업해제',
@@ -2860,9 +2873,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
-    id: 11,
+    id: 12,
     date: '2026-09-22',
-    dday: 'D-22',
+    dday: 'D-12',
     time: '10:00 (KST)',
     category: 'conference',
     categoryName: '🌐 글로벌 컨퍼런스',
@@ -2873,9 +2886,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-crypto-green bg-emerald-500/10 border-emerald-500/30'
   },
   {
-    id: 12,
+    id: 13,
     date: '2026-09-25',
-    dday: 'D-25',
+    dday: 'D-15',
     time: '17:00 (KST)',
     category: 'unlock',
     categoryName: '🔓 토큰 락업해제',
@@ -2886,9 +2899,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
   },
   {
-    id: 13,
+    id: 14,
     date: '2026-09-28',
-    dday: 'D-28',
+    dday: 'D-18',
     time: '23:00 (KST)',
     category: 'policy',
     categoryName: '⚖️ 규제/법안',
@@ -2899,9 +2912,9 @@ const CRYPTO_EVENTS = [
     impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
   },
   {
-    id: 14,
+    id: 15,
     date: '2026-09-30',
-    dday: 'D-30',
+    dday: 'D-20',
     time: '18:00 (KST)',
     category: 'unlock',
     categoryName: '🔓 토큰 락업해제',
@@ -2941,19 +2954,34 @@ function switchCalendarView(view) {
   const monthView = document.getElementById('calendar-month-view');
 
   if (view === 'list') {
-    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
-    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
+    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5'; }
+    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5'; }
     if (listView) listView.classList.remove('hidden');
     if (monthView) monthView.classList.add('hidden');
   } else {
-    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition'; }
-    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800'; }
+    if (monthBtn) { monthBtn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5'; }
+    if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5'; }
     if (listView) listView.classList.add('hidden');
     if (monthView) monthView.classList.remove('hidden');
     renderMonthCalendar();
   }
 }
 window.switchCalendarView = switchCalendarView;
+
+function getEventDDay(dateStr) {
+  try {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const tTime = new Date(todayStr).getTime();
+    const eTime = new Date(dateStr).getTime();
+    const diffDays = Math.round((eTime - tTime) / (1000 * 3600 * 24));
+    if (diffDays === 0) return 'D-Day';
+    if (diffDays > 0) return `D-${diffDays}`;
+    return '종료';
+  } catch (e) {
+    return 'D-Day';
+  }
+}
 
 function renderCalendarEvents() {
   const container = document.getElementById('calendar-events-list');
@@ -2969,13 +2997,18 @@ function renderCalendarEvents() {
     return;
   }
 
-  container.innerHTML = events.map(ev => `
-    <div class="crypto-card bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
+  container.innerHTML = events.map(ev => {
+    const dday = getEventDDay(ev.date);
+    const isToday = dday === 'D-Day';
+    const isPast = dday === '종료';
+
+    return `
+    <div class="crypto-card bg-navy-900 border ${isToday ? 'border-cyan-400/80 ring-1 ring-cyan-400/30' : 'border-navy-800'} rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
       <div class="flex items-start gap-4 flex-1">
         <!-- Date Badge -->
-        <div class="w-16 h-16 rounded-2xl bg-navy-950 border border-navy-800 flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
-          <span class="text-[11px] font-black text-cyan-400 font-mono">${ev.dday}</span>
-          <span class="text-xs font-bold text-slate-200 mt-0.5">${ev.date.slice(5)}</span>
+        <div class="w-16 h-16 rounded-2xl ${isToday ? 'bg-cyan-950/40 border-cyan-400' : 'bg-navy-950 border-navy-800'} border flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
+          <span class="text-[11px] font-black ${isToday ? 'text-cyan-300 font-extrabold animate-pulse' : (isPast ? 'text-slate-500' : 'text-cyan-400')} font-mono">${dday}</span>
+          <span class="text-xs font-bold text-slate-200 mt-0.5 font-mono">${ev.date.slice(5)}</span>
         </div>
 
         <!-- Info -->
@@ -2991,7 +3024,8 @@ function renderCalendarEvents() {
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
