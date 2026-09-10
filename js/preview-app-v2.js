@@ -2533,6 +2533,85 @@ function downloadSingleImage(btn) {
 window.downloadSingleImage = downloadSingleImage;
 
 /**
+ * Downloads all infographic images in current post as PNG files with numbered prefixes
+ */
+async function downloadAllPostImages(triggerBtn = null) {
+  const contentEl = document.getElementById('cafe-post-content');
+  if (!contentEl) return;
+  const imgs = contentEl.querySelectorAll('.post-img-container img');
+  if (!imgs || !imgs.length) {
+    alert('다운로드할 인포그래픽 이미지가 없습니다.');
+    return;
+  }
+
+  const origHtml = triggerBtn ? triggerBtn.innerHTML : '';
+  if (triggerBtn) {
+    triggerBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 사진 변환 중...';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  try {
+    for (let i = 0; i < imgs.length; i++) {
+      const imgEl = imgs[i];
+      let src = imgEl.getAttribute('src') || imgEl.src || '';
+      let decodedSvg = '';
+      try {
+        if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+        else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
+      } catch (e) {}
+
+      if (decodedSvg) {
+        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+        if (!decodedSvg.includes('width="800"')) {
+          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+        }
+        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+      }
+
+      const tempImg = new Image();
+      tempImg.crossOrigin = 'anonymous';
+
+      await new Promise((resolve) => {
+        tempImg.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1600;
+            canvas.height = 560;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(tempImg, 0, 0, 1600, 560);
+            const pngUrl = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            const alt = (imgEl.getAttribute('alt') || `infographic_${i+1}`).replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
+            a.download = `${String(i + 1).padStart(2, '0')}_${alt}.png`;
+            a.href = pngUrl;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          } catch (e) {}
+          resolve();
+        };
+        tempImg.onerror = resolve;
+        tempImg.src = src;
+      });
+
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    alert('✅ [사진 4장 일괄 다운로드 완료!]\n\n내 컴퓨터(다운로드 폴더)에 01번부터 04번까지 고화질 사진이 저장되었습니다.\n\n📌 [네이버 한 번에 올리는 방법]\n네이버 글쓰기 창 상단의 [사진] 버튼을 누르고, 방금 저장된 4개 사진을 한 번에 선택하여 열면 4장의 사진이 한 방에 즉시 업로드됩니다!');
+  } catch (err) {
+    console.warn('Batch download error:', err);
+    alert('이미지 일괄 다운로드 중 오류가 발생했습니다.');
+  } finally {
+    if (triggerBtn) {
+      triggerBtn.innerHTML = origHtml;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
+}
+window.downloadAllPostImages = downloadAllPostImages;
+
+/**
  * One-click copy for Naver Blog / Cafe SmartEditor ONE.
  * Formats typography and callouts with high contrast for Naver's light background,
  * and creates clean photo placement guide blocks for images.

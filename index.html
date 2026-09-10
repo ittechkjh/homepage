@@ -2010,7 +2010,10 @@
           <button onclick="showForumListView()" class="px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-cyan-400 hover:text-cyan-300 border border-navy-800 text-xs font-bold transition flex items-center gap-2">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> 전체 포럼 목록으로 돌아가기
           </button>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="downloadAllPostImages(this)" class="px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md" title="본문의 인포그래픽 이미지 4장을 고해상도 PNG 파일로 내 컴퓨터에 일괄 다운로드합니다. 네이버 [사진] 메뉴에서 4장을 한 번에 선택해 올리실 수 있습니다.">
+              <i data-lucide="folder-down" class="w-4 h-4 text-cyan-400"></i> 사진 4장 일괄 다운로드
+            </button>
             <button onclick="copyPostForNaverBlog()" class="cafe-naver-copy-btn px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition flex items-center gap-1.5 border border-emerald-500/30" title="네이버 블로그/카페 스마트에디터에 바로 붙여넣을 수 있도록 고해상도 PNG 이미지와 함께 복사합니다.">
               <i data-lucide="copy" class="w-4 h-4"></i> 네이버 블로그/카페 복사
             </button>
@@ -2065,7 +2068,10 @@
               </button>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="downloadAllPostImages(this)" class="px-4 py-2.5 rounded-2xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md" title="본문의 인포그래픽 이미지 4장을 고해상도 PNG 파일로 내 컴퓨터에 일괄 다운로드합니다. 네이버 [사진] 메뉴에서 4장을 한 번에 선택해 올리실 수 있습니다.">
+                <i data-lucide="folder-down" class="w-4 h-4 text-cyan-400"></i> 사진 4장 일괄 다운로드
+              </button>
               <button onclick="copyPostForNaverBlog()" class="cafe-naver-copy-btn px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition flex items-center gap-2 border border-emerald-500/30">
                 <i data-lucide="copy" class="w-4 h-4"></i> 네이버 블로그/카페 복사
               </button>
@@ -5940,7 +5946,7 @@
   <script src="js/admin.js?v=20260910_02"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260909_02"></script>
-  <script src="js/preview-app-v2.js?v=20260910_13"></script>
+  <script src="js/preview-app-v2.js?v=20260910_14"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
