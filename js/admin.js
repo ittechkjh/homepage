@@ -233,13 +233,28 @@ const AdminAnalytics = {
                 }
             });
 
-            // Merge local storage features as fallback
+            // Merge local storage features/devices/browsers as fallback
+            // (Firestore old docs may not have these fields yet)
             try {
                 const localData = this.getAnalyticsData();
-                if (localData && localData.features) {
-                    Object.keys(localData.features).forEach(f => {
-                        aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
-                    });
+                if (localData) {
+                    if (localData.features) {
+                        Object.keys(localData.features).forEach(f => {
+                            aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
+                        });
+                    }
+                    // If Firestore has no device data, use LocalStorage
+                    if (aggMobile + aggDesktop === 0 && localData.devices) {
+                        aggMobile = Number(localData.devices.mobile || 0);
+                        aggDesktop = Number(localData.devices.desktop || 0);
+                    }
+                    // If Firestore has no browser data, use LocalStorage
+                    const fsrBTotal = Object.values(aggBrowsers).reduce((a, b) => a + Number(b || 0), 0);
+                    if (fsrBTotal === 0 && localData.browsers) {
+                        Object.keys(localData.browsers).forEach(b => {
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(localData.browsers[b] || 0);
+                        });
+                    }
                 }
             } catch (e) {}
 
@@ -1290,42 +1305,53 @@ const AdminApp = {
             });
 
             // 4. Update Device Share
-            const setDev = (id, pct, totalDev) => {
+            // If no aggregated data yet, use current visitor's device as baseline
+            let finalMobilePct = stats.mobilePct;
+            let finalDesktopPct = stats.desktopPct;
+            if (finalMobilePct === 0 && finalDesktopPct === 0) {
+                const isMobileNow = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+                finalMobilePct = isMobileNow ? 100 : 0;
+                finalDesktopPct = isMobileNow ? 0 : 100;
+            }
+            const setDev = (id, pct) => {
                 const el = document.getElementById(id);
-                if (el) el.innerText = totalDev > 0 ? pct + '%' : '집계 중';
+                if (el) el.innerText = pct + '%';
             };
-            const totalDevCount = (stats.mobilePct + stats.desktopPct > 0) ? 1 : 0;
-            setDev('admin-dev-mobile-pct', stats.mobilePct, totalDevCount);
-            setDev('admin-dev-desktop-pct', stats.desktopPct, totalDevCount);
+            setDev('admin-dev-mobile-pct', finalMobilePct);
+            setDev('admin-dev-desktop-pct', finalDesktopPct);
 
             // 5. Update Dynamic Browser Environment Breakdown
             const bContainer = document.getElementById('admin-browser-breakdown');
             if (bContainer) {
-                const bMap = stats.browsers || {};
-                const bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
+                let bMap = stats.browsers || {};
+                let bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
+                // If no data yet, use current visitor's browser as baseline
                 if (bTotal === 0) {
-                    bContainer.innerHTML = '<div class="col-span-full text-center text-slate-500 text-[11px] py-2">실측 브라우저 데이터 집계 중... (방문 기록 후 표시)</div>';
-                } else {
-                    const bNames = [
-                        { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
-                        { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
-                        { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
-                        { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
-                        { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
-                        { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
-                    ];
-                    bContainer.innerHTML = bNames.map(b => {
-                        const cnt = Number(bMap[b.key] || 0);
-                        const pct = Math.round((cnt / bTotal) * 100);
-                        return `
-                          <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
-                            <span class="w-2 h-2 rounded-full ${b.dot}"></span>
-                            <span class="text-slate-300 text-[11px]">${b.name}:</span>
-                            <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
-                          </div>
-                        `;
-                    }).join('');
+                    const currentBrowser = AdminAnalytics.getBrowserName();
+                    bMap = { [currentBrowser]: 1 };
+                    bTotal = 1;
                 }
+                const bNames = [
+                    { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+                    { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
+                    { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
+                    { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+                    { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
+                    { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' },
+                    { key: 'Firefox', name: 'Firefox', color: 'text-orange-400', dot: 'bg-orange-400' }
+                ];
+                bContainer.innerHTML = bNames.map(b => {
+                    const cnt = Number(bMap[b.key] || 0);
+                    if (cnt === 0) return '';
+                    const pct = Math.round((cnt / bTotal) * 100);
+                    return `
+                      <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                        <span class="w-2 h-2 rounded-full ${b.dot}"></span>
+                        <span class="text-slate-300 text-[11px]">${b.name}:</span>
+                        <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
+                      </div>
+                    `;
+                }).join('');
             }
         };
 
