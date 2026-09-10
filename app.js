@@ -2928,6 +2928,46 @@ let CRYPTO_EVENTS = [
 
 let activeCalendarFilter = 'all';
 let currentCalendarView = 'list';
+let currentCalendarYear = 2026;
+let currentCalendarMonth = 9; // 1-12
+let calendarSearchQuery = '';
+
+function onCalendarSearch(val) {
+  calendarSearchQuery = (val || '').trim().toLowerCase();
+  renderCalendarEvents();
+  renderMonthCalendar();
+}
+window.onCalendarSearch = onCalendarSearch;
+
+function changeCalendarMonth(delta) {
+  currentCalendarMonth += delta;
+  if (currentCalendarMonth > 12) {
+    currentCalendarMonth = 1;
+    currentCalendarYear++;
+  } else if (currentCalendarMonth < 1) {
+    currentCalendarMonth = 12;
+    currentCalendarYear--;
+  }
+  updateCalendarMonthHeader();
+  renderMonthCalendar();
+}
+window.changeCalendarMonth = changeCalendarMonth;
+
+function resetCalendarMonth() {
+  const today = new Date();
+  currentCalendarYear = today.getFullYear();
+  currentCalendarMonth = today.getMonth() + 1;
+  updateCalendarMonthHeader();
+  renderMonthCalendar();
+}
+window.resetCalendarMonth = resetCalendarMonth;
+
+function updateCalendarMonthHeader() {
+  const titleEl = document.getElementById('calendar-month-title');
+  if (titleEl) {
+    titleEl.textContent = `${currentCalendarYear}년 ${currentCalendarMonth}월 가상자산 월간 캘린더`;
+  }
+}
 
 function filterCalendar(cat) {
   activeCalendarFilter = cat;
@@ -2963,6 +3003,7 @@ function switchCalendarView(view) {
     if (listBtn) { listBtn.className = 'px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5'; }
     if (listView) listView.classList.add('hidden');
     if (monthView) monthView.classList.remove('hidden');
+    updateCalendarMonthHeader();
     renderMonthCalendar();
   }
 }
@@ -3016,8 +3057,18 @@ function renderCalendarEvents() {
     events = events.filter(e => e.category === activeCalendarFilter);
   }
 
+  if (calendarSearchQuery) {
+    events = events.filter(e => {
+      const title = (e.title || '').toLowerCase();
+      const desc = (e.desc || '').toLowerCase();
+      const coin = (e.coin || '').toLowerCase();
+      const cat = (e.categoryName || '').toLowerCase();
+      return title.includes(calendarSearchQuery) || desc.includes(calendarSearchQuery) || coin.includes(calendarSearchQuery) || cat.includes(calendarSearchQuery);
+    });
+  }
+
   if (events.length === 0) {
-    container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">선택하신 카테고리의 예정된 일정이 없습니다.</div>';
+    container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">일치하거나 예정된 일정이 없습니다.</div>';
     return;
   }
 
@@ -3059,45 +3110,64 @@ function renderMonthCalendar() {
   const container = document.getElementById('month-calendar-grid');
   if (!container) return;
 
+  updateCalendarMonthHeader();
+
   let events = CRYPTO_EVENTS;
   if (activeCalendarFilter !== 'all') {
     events = events.filter(e => e.category === activeCalendarFilter);
   }
 
-  const year = 2026;
-  const month = 9; // 2026년 9월
+  if (calendarSearchQuery) {
+    events = events.filter(e => {
+      const title = (e.title || '').toLowerCase();
+      const desc = (e.desc || '').toLowerCase();
+      const coin = (e.coin || '').toLowerCase();
+      return title.includes(calendarSearchQuery) || desc.includes(calendarSearchQuery) || coin.includes(calendarSearchQuery);
+    });
+  }
+
+  const year = currentCalendarYear;
+  const month = currentCalendarMonth;
   const firstDay = new Date(year, month - 1, 1);
-  const startDayOfWeek = firstDay.getDay(); // 0: 일, 1: 월, 2: 화 (2026-09-01 = 화요일)
-  const daysInMonth = new Date(year, month, 0).getDate(); // 30일
-  const daysInPrevMonth = new Date(year, month - 1, 0).getDate(); // 31일 (8월)
+  const startDayOfWeek = firstDay.getDay(); // 0: 일, 1: 월, 2: 화...
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
 
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
   let gridHtml = '';
 
-  // 1. 이전 달(8월) 말일 패딩 셀 (화요일 시작이므로 일, 월 2칸)
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth() + 1;
+  const todayDate = today.getDate();
+
+  const prevMonthNum = month === 1 ? 12 : month - 1;
+  const nextMonthNum = month === 12 ? 1 : month + 1;
+
+  // 1. 이전 달 말일 패딩 셀
   for (let i = 0; i < startDayOfWeek; i++) {
     const prevDate = daysInPrevMonth - startDayOfWeek + 1 + i;
     const isSun = i === 0;
     gridHtml += `
       <div class="min-h-[95px] p-2.5 rounded-2xl bg-navy-950/40 border border-navy-800/40 opacity-35 flex flex-col justify-between select-none">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold font-mono ${isSun ? 'text-rose-400/80' : 'text-slate-400'}">8/${prevDate}</span>
+          <span class="text-xs font-semibold font-mono ${isSun ? 'text-rose-400/80' : 'text-slate-400'}">${prevMonthNum}/${prevDate}</span>
           <span class="text-[10px] text-slate-400">(${dayNames[i]})</span>
         </div>
-        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">8월</div>
+        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">${prevMonthNum}월</div>
       </div>
     `;
   }
 
-  // 2. 당월(9월) 1일 ~ 30일
+  // 2. 당월 1일 ~ 말일
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayEvents = events.filter(e => e.date === dateStr);
     const hasEvents = dayEvents.length > 0;
     const dayOfWeek = (startDayOfWeek + day - 1) % 7; // 0=일, 6=토
     const isSunday = dayOfWeek === 0;
     const isSaturday = dayOfWeek === 6;
-    const isToday = (day === 10); // 현재 기준일 2026-09-10 (목)
+    const isToday = (year === todayYear && month === todayMonth && day === todayDate);
 
     let borderClass = 'border-navy-800/80 bg-navy-950';
     if (isToday) {
@@ -3110,24 +3180,25 @@ function renderMonthCalendar() {
       <div class="min-h-[95px] p-2.5 rounded-2xl ${borderClass} flex flex-col justify-between transition hover:border-cyan-400 hover:shadow-md group">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1">
-            <span class="text-xs font-bold font-mono ${isToday ? 'text-cyan-300 font-extrabold' : (isSunday ? 'text-rose-400 font-extrabold' : (isSaturday ? 'text-cyan-400 font-extrabold' : (hasEvents ? 'text-white' : 'text-slate-300')))}">9/${day}</span>
+            <span class="text-xs font-bold font-mono ${isToday ? 'text-cyan-300 font-extrabold' : (isSunday ? 'text-rose-400 font-extrabold' : (isSaturday ? 'text-cyan-400 font-extrabold' : (hasEvents ? 'text-white' : 'text-slate-300')))}">${month}/${day}</span>
             <span class="text-[10px] font-semibold ${isSunday ? 'text-rose-400/90' : (isSaturday ? 'text-cyan-400/90' : 'text-slate-400')}">(${dayNames[dayOfWeek]})</span>
           </div>
           ${isToday ? `<span class="px-1.5 py-0.5 rounded bg-cyan-500 text-navy-950 font-black text-[9px] leading-none shadow-sm">오늘</span>` : (hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : '')}
         </div>
-        <div class="space-y-1 mt-1.5 flex-1">
-          ${dayEvents.map(e => `
+        <div class="space-y-1 mt-1.5 flex-1 overflow-hidden">
+          ${dayEvents.slice(0, 3).map(e => `
             <div class="text-[10px] px-1.5 py-0.5 rounded bg-navy-900 border border-navy-800 text-slate-200 truncate font-medium flex items-center gap-1 hover:border-cyan-500/50 transition cursor-pointer" title="${escapeHtml(e.coin)}: ${escapeHtml(e.title)} (${e.time})">
               <span class="font-bold text-cyan-400 font-mono shrink-0">${escapeHtml(e.coin)}</span>
               <span class="truncate">${escapeHtml(e.title)}</span>
             </div>
           `).join('')}
+          ${dayEvents.length > 3 ? `<div class="text-[9px] text-cyan-400 font-mono text-center">+${dayEvents.length - 3}개 더보기</div>` : ''}
         </div>
       </div>
     `;
   }
 
-  // 3. 다음 달(10월) 초일 패딩 셀 (7열 그리드 직사각형 완성)
+  // 3. 다음 달 초일 패딩 셀
   const totalCells = startDayOfWeek + daysInMonth;
   const remainingCells = (7 - (totalCells % 7)) % 7;
   for (let j = 1; j <= remainingCells; j++) {
@@ -3136,10 +3207,10 @@ function renderMonthCalendar() {
     gridHtml += `
       <div class="min-h-[95px] p-2.5 rounded-2xl bg-navy-950/40 border border-navy-800/40 opacity-35 flex flex-col justify-between select-none">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold font-mono ${isSat ? 'text-cyan-400/80' : 'text-slate-400'}">10/${j}</span>
+          <span class="text-xs font-semibold font-mono ${isSat ? 'text-cyan-400/80' : 'text-slate-400'}">${nextMonthNum}/${j}</span>
           <span class="text-[10px] text-slate-400">(${dayNames[dow]})</span>
         </div>
-        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">10월</div>
+        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">${nextMonthNum}월</div>
       </div>
     `;
   }

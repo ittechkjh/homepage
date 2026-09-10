@@ -2439,8 +2439,8 @@
         </div>
       </div>
 
-      <!-- Controls: Category Filters & View Toggle -->
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
+      <!-- Controls: Category Filters, Search & View Toggle -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm">
         <div id="calendar-filter-buttons" class="flex flex-wrap items-center gap-2 text-xs">
           <button type="button" onclick="filterCalendar('all')" data-cal-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-bold transition">전체 일정</button>
           <button type="button" onclick="filterCalendar('macro')" data-cal-cat="macro" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">🏦 FOMC/거시경제</button>
@@ -2450,13 +2450,20 @@
           <button type="button" onclick="filterCalendar('policy')" data-cal-cat="policy" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 font-medium transition">⚖️ 규제/법안</button>
         </div>
 
-        <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
-          <button id="btn-cal-view-list" onclick="switchCalendarView('list')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i> 리스트 뷰
-          </button>
-          <button id="btn-cal-view-month" onclick="switchCalendarView('month')" class="px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 월간 달력
-          </button>
+        <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          <!-- Calendar Search Bar -->
+          <div class="relative flex-1 sm:w-56">
+            <input type="text" id="calendar-search-input" oninput="onCalendarSearch(this.value)" placeholder="코인명, 일정 검색 (예: FOMC, TIA)" class="w-full bg-navy-950 border border-navy-700 focus:border-cyan-400 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none transition">
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="btn-cal-view-list" onclick="switchCalendarView('list')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i> 리스트
+            </button>
+            <button id="btn-cal-view-month" onclick="switchCalendarView('month')" class="px-3 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white text-xs font-medium transition border border-navy-800 flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 월간 달력
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2469,12 +2476,20 @@
 
       <!-- View 2: Month Calendar Grid View -->
       <div id="calendar-month-view" class="hidden bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-navy-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-navy-800">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">📅</span>
             <div>
-              <h3 class="font-extrabold text-lg text-white">2026년 9월 가상자산 월간 캘린더</h3>
-              <p class="text-xs text-slate-400">주요 경제 지표, 연준 FOMC, 토큰 락업해제 및 하드포크 일정</p>
+              <div class="flex items-center gap-2">
+                <h3 id="calendar-month-title" class="font-extrabold text-lg text-white">2026년 9월 가상자산 월간 캘린더</h3>
+                <!-- Month Prev/Next Buttons -->
+                <div class="flex items-center gap-1 ml-2 bg-navy-950 border border-navy-800 rounded-xl p-0.5">
+                  <button type="button" onclick="changeCalendarMonth(-1)" class="px-2 py-1 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 rounded-lg text-xs font-bold transition" title="이전 달">◀</button>
+                  <button type="button" onclick="resetCalendarMonth()" class="px-2 py-1 hover:bg-navy-800 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition" title="현재 달로 이동">오늘</button>
+                  <button type="button" onclick="changeCalendarMonth(1)" class="px-2 py-1 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 rounded-lg text-xs font-bold transition" title="다음 달">▶</button>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">주요 경제 지표, 연준 FOMC, 토큰 락업해제 및 하드포크 일정</p>
             </div>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -5905,7 +5920,7 @@
   <script src="js/admin.js?v=20260910_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260909_02"></script>
-  <script src="js/preview-app-v2.js?v=20260910_04"></script>
+  <script src="js/preview-app-v2.js?v=20260910_05"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
