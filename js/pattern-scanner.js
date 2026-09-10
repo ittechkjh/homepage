@@ -418,18 +418,54 @@ const PatternScannerEngine = {
         }
 
         try {
-            // 1. 빗썸 전체 원화 마켓 실시간 Ticker API 호출 (CORS 프리, 250+ 전 종목 실시간 거래대금/등락률/고가/저가/시가)
+            // 1. 빗썸 전체 원화 마켓 실시간 Ticker API 호출 (CORS 지원 v1 Open API + 폴백)
             let bMap = {};
             try {
-                const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
-                if (bRes.ok) {
-                    const bJson = await bRes.json();
-                    if (bJson && bJson.status === '0000' && bJson.data) {
-                        bMap = bJson.data;
+                const bMktsRes = await fetch('https://api.bithumb.com/v1/market/all');
+                if (bMktsRes.ok) {
+                    const bMkts = await bMktsRes.json();
+                    const krwMarkets = bMkts.filter(m => m.market && m.market.startsWith('KRW-')).map(m => m.market);
+                    if (krwMarkets.length > 0) {
+                        const chunks = [];
+                        for (let i = 0; i < krwMarkets.length; i += 100) {
+                            chunks.push(krwMarkets.slice(i, i + 100).join(','));
+                        }
+                        const chunkResponses = await Promise.allSettled(chunks.map(c =>
+                            fetch('https://api.bithumb.com/v1/ticker?markets=' + c).then(r => r.ok ? r.json() : [])
+                        ));
+                        chunkResponses.forEach(res => {
+                            if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+                                res.value.forEach(item => {
+                                    if (item.market) {
+                                        const sym = item.market.replace('KRW-', '').toUpperCase();
+                                        bMap[sym] = {
+                                            closing_price: item.trade_price,
+                                            fluctate_rate_24H: (item.signed_change_rate || 0) * 100,
+                                            acc_trade_value_24H: item.acc_trade_price_24h || item.acc_trade_price || 0,
+                                            acc_trade_value: item.acc_trade_price || 0,
+                                            max_price: item.high_price,
+                                            min_price: item.low_price,
+                                            opening_price: item.opening_price
+                                        };
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
-            } catch (bErr) {
-                console.warn('빗썸 전체 Ticker 조회 오류:', bErr);
+            } catch (v1Err) {}
+
+            // 폴백: 레거시 ALL_KRW (Node 환경 등에서 작동)
+            if (Object.keys(bMap).length === 0) {
+                try {
+                    const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
+                    if (bRes.ok) {
+                        const bJson = await bRes.json();
+                        if (bJson && bJson.status === '0000' && bJson.data) {
+                            bMap = bJson.data;
+                        }
+                    }
+                } catch (bErr) {}
             }
 
             // 2. 업비트 전체 원화(KRW) 마켓 실시간 Ticker API 호출 (280+ 전 종목 실시간 거래대금/등락률/고가/저가/시가)
