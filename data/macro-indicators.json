@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-09-10",
-  "lastUpdatedTimeKst": "09. 10. 07:00",
-  "timestamp": 1789053600000,
+  "lastUpdatedTimeKst": "09. 11. 08:39",
+  "timestamp": 1789083597376,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -30,15 +30,15 @@
       "lastUpdated": "2026-09-10"
     },
     "realYieldTIPS": {
-      "value": 1.94,
+      "value": 2.5,
       "badge": "TIPS",
-      "text": "실질금리 완화",
+      "text": "긴축적 유지",
       "source": "미국 재무부 실질 국채 금리",
       "cycle": "재무부 공시",
       "lastUpdated": "2026-09-10"
     },
     "yieldCurveSpread": {
-      "value": 0.06,
+      "value": 0.21,
       "badge": "정상화",
       "text": "침체 우려 완화",
       "source": "미국 재무부 국채 수익률 곡선",
@@ -46,15 +46,15 @@
       "lastUpdated": "2026-09-10"
     },
     "dxy": {
-      "value": 98.91,
-      "change": 0.1,
+      "value": 99.09,
+      "change": -0.07,
       "text": "달러 약세 (코인 유리)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
       "lastUpdated": "2026-09-10"
     },
     "highYieldSpread": {
-      "value": 3.24,
+      "value": 3.3,
       "badge": "위험선호",
       "text": "글로벌 유동성 안정",
       "source": "ICE BofA US High Yield Spread",
@@ -62,23 +62,23 @@
       "lastUpdated": "2026-09-10"
     },
     "nasdaqSpot": {
-      "value": 29206.0,
-      "change": -0.73,
+      "value": 29103.5,
+      "change": -0.14,
       "text": "기술주 숨고르기",
       "source": "NASDAQ-100 (^NDX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-10"
     },
     "sox": {
-      "value": 11718.7,
-      "change": -1.78,
-      "text": "반도체 조정",
+      "value": 11614.2,
+      "change": 2.42,
+      "text": "반도체 강세 주도",
       "source": "PHLX Semiconductor Index (^SOX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-10"
     },
     "vix": {
-      "value": 17.35,
+      "value": 17.84,
       "badge": "안정권",
       "text": "시장 심리 안정",
       "source": "CBOE Volatility Index (^VIX)",
@@ -86,16 +86,16 @@
       "lastUpdated": "2026-09-10"
     },
     "goldFut": {
-      "value": 4396.8,
-      "change": -1.43,
+      "value": 4358.7,
+      "change": -1.61,
       "text": "금값 조정",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-09-10"
     },
     "wti": {
-      "value": 100.05,
-      "change": 4.16,
+      "value": 103.86,
+      "change": 13.53,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
