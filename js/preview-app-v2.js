@@ -1861,11 +1861,11 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
 오늘 21:30 발표되는 미국 8월 PPI(예상치 전월비 +0.1%) 결과에 따라 9월 FOMC 25bp 금리 인하 확률(현재 94% 반영)이 확정될 전망입니다. 내일 11일 CPI와 12일 앱토스(APT) 1,131만 개 락업 해제도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.
 </p>
 
-<div style="background: rgba(8, 47, 73, 0.4); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 16px; margin: 16px 0; color: #cbd5e1;">
-  <div style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 6px;">
+<div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
+  <div style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-bottom: 8px;">
     💡 [종합 결론 및 트레이딩 전략 가이드]
   </div>
-  <p style="font-size: 12px; line-height: 1.65; margin: 0;">
+  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
     공포&탐욕 지수 69(탐욕), LTH 비중 74.2%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 오늘 21:30 PPI 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
   </p>
 </div>
@@ -2350,15 +2350,97 @@ function convertPostSvgImagesToPng(container) {
   const imgs = container.querySelectorAll('img');
   imgs.forEach((imgEl) => {
     let src = imgEl.getAttribute('src') || '';
-    if (!src.startsWith('data:image/svg+xml')) return;
+    if (src.startsWith('data:image/svg+xml')) {
+      let decodedSvg = '';
+      try {
+        if (src.includes(';utf8,')) {
+          decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+        } else if (src.includes(';base64,')) {
+          decodedSvg = atob(src.split(';base64,')[1]);
+        }
+      } catch (e) {}
 
+      if (decodedSvg) {
+        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+        if (!decodedSvg.includes('width="800"')) {
+          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+        }
+        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+      }
+
+      const tempImg = new Image();
+      tempImg.crossOrigin = 'anonymous';
+      tempImg.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const dpr = 2; // 2x high-resolution for crystal clear paste
+          const w = (tempImg.naturalWidth || 800) * dpr;
+          const h = (tempImg.naturalHeight || 280) * dpr;
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(tempImg, 0, 0, w, h);
+            imgEl.src = canvas.toDataURL('image/png');
+            imgEl.setAttribute('data-converted-png', 'true');
+          }
+        } catch (err) {
+          console.warn('Canvas conversion error:', err);
+        }
+      };
+      tempImg.src = src;
+    }
+
+    // Attach one-click copy & download buttons under each post image
+    const parent = imgEl.closest('.post-img-container') || imgEl.parentElement;
+    if (parent && !parent.querySelector('.img-naver-actions')) {
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'img-naver-actions flex items-center justify-center gap-2.5 mt-3 mb-1 flex-wrap';
+      actionsDiv.innerHTML = `
+        <button type="button" onclick="copySingleImageToClipboard(this)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-950/40 transition flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer" title="이 이미지를 네이버 블로그/카페 글쓰기 창에 바로 [Ctrl + V]로 붙여넣을 수 있도록 고해상도 사진 데이터로 복사합니다.">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i> 🖼️ 이 사진 복사 (네이버 Ctrl+V용)
+        </button>
+        <button type="button" onclick="downloadSingleImage(this)" class="px-3.5 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-700 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer" title="이 인포그래픽을 고해상도 PNG 파일로 내 컴퓨터에 다운로드합니다.">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> PNG 다운로드
+        </button>
+      `;
+      parent.appendChild(actionsDiv);
+    }
+  });
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.convertPostSvgImagesToPng = convertPostSvgImagesToPng;
+
+/**
+ * Copies a single image directly as an image/png blob to OS clipboard.
+ * When user presses Ctrl+V in Naver SmartEditor ONE, Naver treats it as an uploaded photo!
+ */
+async function copySingleImageToClipboard(btn) {
+  const container = btn.closest('.post-img-container') || btn.parentElement.parentElement;
+  if (!container) return;
+  const imgEl = container.querySelector('img');
+  if (!imgEl) return;
+
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 사진 변환 중...';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1600;
+    canvas.height = 560;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    let src = imgEl.getAttribute('src') || imgEl.src || '';
     let decodedSvg = '';
     try {
-      if (src.includes(';utf8,')) {
-        decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
-      } else if (src.includes(';base64,')) {
-        decodedSvg = atob(src.split(';base64,')[1]);
-      }
+      if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+      else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
     } catch (e) {}
 
     if (decodedSvg) {
@@ -2371,35 +2453,89 @@ function convertPostSvgImagesToPng(container) {
 
     const tempImg = new Image();
     tempImg.crossOrigin = 'anonymous';
-    tempImg.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const dpr = 2; // 2x high-resolution for crystal clear paste
-        const w = (tempImg.naturalWidth || 800) * dpr;
-        const h = (tempImg.naturalHeight || 280) * dpr;
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(tempImg, 0, 0, w, h);
-          imgEl.src = canvas.toDataURL('image/png');
-          imgEl.setAttribute('data-converted-png', 'true');
-        }
-      } catch (err) {
-        console.warn('Canvas conversion error:', err);
-      }
-    };
-    tempImg.src = src;
-  });
+
+    await new Promise((resolve, reject) => {
+      tempImg.onload = () => {
+        ctx.drawImage(tempImg, 0, 0, 1600, 560);
+        resolve();
+      };
+      tempImg.onerror = () => reject(new Error('Image failed to load'));
+      tempImg.src = src;
+    });
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) throw new Error('Blob creation failed');
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      btn.innerHTML = '✅ 사진 복사 완료! [Ctrl+V] 누르세요';
+      setTimeout(() => {
+        btn.innerHTML = origHtml;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }, 3500);
+      alert('✅ [사진 복사 완료!]\n\n고화질 인포그래픽 이미지가 클립보드에 복사되었습니다.\n네이버 블로그/카페 글쓰기 화면에서 원하는 위치를 클릭하고 [Ctrl + V]를 누르시면 정식 사진으로 바로 삽입됩니다!');
+    }, 'image/png');
+
+  } catch (err) {
+    console.error('Image copy error:', err);
+    btn.innerHTML = origHtml;
+    alert('이미지 복사 중 오류가 발생했습니다. [PNG 다운로드] 버튼을 이용해 저장 후 업로드해 주세요.');
+  }
 }
-window.convertPostSvgImagesToPng = convertPostSvgImagesToPng;
+window.copySingleImageToClipboard = copySingleImageToClipboard;
+
+/**
+ * Downloads a single infographic image as a crystal clear PNG.
+ */
+function downloadSingleImage(btn) {
+  const container = btn.closest('.post-img-container') || btn.parentElement.parentElement;
+  if (!container) return;
+  const imgEl = container.querySelector('img');
+  if (!imgEl) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1600;
+  canvas.height = 560;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  let src = imgEl.getAttribute('src') || imgEl.src || '';
+  let decodedSvg = '';
+  try {
+    if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
+    else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
+  } catch (e) {}
+
+  if (decodedSvg) {
+    decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+    if (!decodedSvg.includes('width="800"')) {
+      decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+    }
+    src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+  }
+
+  const tempImg = new Image();
+  tempImg.crossOrigin = 'anonymous';
+  tempImg.onload = () => {
+    ctx.drawImage(tempImg, 0, 0, 1600, 560);
+    const pngUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    const alt = (imgEl.getAttribute('alt') || 'market-infographic').replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
+    a.download = `crytopnl_${alt}.png`;
+    a.href = pngUrl;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+  tempImg.src = src;
+}
+window.downloadSingleImage = downloadSingleImage;
 
 /**
  * One-click copy for Naver Blog / Cafe SmartEditor ONE.
- * Converts all images to PNG and formats content for seamless pasting.
- * Supports calling from post detail view or directly from post list card via targetPostId.
+ * Formats typography and callouts with high contrast for Naver's light background,
+ * and creates clean photo placement guide blocks for images.
  */
 async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
   let contentHtml = '';
@@ -2431,57 +2567,55 @@ async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
   const btns = triggerBtn ? [triggerBtn] : document.querySelectorAll('.cafe-naver-copy-btn');
   btns.forEach(b => {
     b.dataset.orig = b.innerHTML;
-    b.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> PNG 변환 중...';
+    b.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 서식 준비 중...';
   });
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
-  const imgs = tempDiv.querySelectorAll('img');
-  const conversionPromises = Array.from(imgs).map(imgEl => {
-    return new Promise((resolve) => {
-      let src = imgEl.getAttribute('src') || imgEl.src || '';
-      if (!src.startsWith('data:image/svg+xml')) {
-        return resolve();
+  const clone = tempDiv.cloneNode(true);
+
+  // 1. Remove action buttons inside clone
+  clone.querySelectorAll('.img-naver-actions').forEach(el => el.remove());
+
+  // 2. Fix conclusion/strategy callout box contrast for Naver light mode
+  clone.querySelectorAll('div').forEach(div => {
+    if (div.classList.contains('post-img-container')) return;
+    if (div.innerText && div.innerText.includes('종합 결론 및 트레이딩 전략 가이드')) {
+      div.style.backgroundColor = '#f8fafc';
+      div.style.background = '#f8fafc';
+      div.style.border = '1px solid #cbd5e1';
+      div.style.borderLeft = '5px solid #0284c7';
+      div.style.borderRadius = '10px';
+      div.style.padding = '18px 22px';
+      div.style.margin = '24px 0';
+      div.style.color = '#0f172a';
+
+      const innerDiv = div.querySelector('div');
+      if (innerDiv) {
+        innerDiv.style.color = '#0369a1';
+        innerDiv.style.fontSize = '16px';
+        innerDiv.style.fontWeight = 'bold';
+        innerDiv.style.marginBottom = '8px';
       }
-      let decodedSvg = '';
-      try {
-        if (src.includes(';utf8,')) decodedSvg = decodeURIComponent(src.split(';utf8,')[1]);
-        else if (src.includes(';base64,')) decodedSvg = atob(src.split(';base64,')[1]);
-      } catch (e) {}
-      if (decodedSvg) {
-        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
-        if (!decodedSvg.includes('width="800"')) {
-          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
-        }
-        src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
+
+      const innerP = div.querySelector('p');
+      if (innerP) {
+        innerP.style.color = '#1e293b';
+        innerP.style.fontSize = '14px';
+        innerP.style.lineHeight = '1.8';
+        innerP.style.fontWeight = '500';
+        innerP.style.margin = '0';
       }
-      const tempImg = new Image();
-      tempImg.crossOrigin = 'anonymous';
-      tempImg.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1600;
-          canvas.height = 560;
-          const ctx = canvas.getContext('2d');
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(tempImg, 0, 0, 1600, 560);
-          imgEl.src = canvas.toDataURL('image/png');
-        } catch (e) {}
-        resolve();
-      };
-      tempImg.onerror = () => resolve();
-      tempImg.src = src;
-    });
+    }
   });
 
-  await Promise.all(conversionPromises);
-
-  const clone = tempDiv.cloneNode(true);
+  // 3. Style Headings and Body text for crystal clear contrast
   clone.querySelectorAll('p').forEach(p => {
-    p.style.color = '#1e293b';
-    p.style.fontSize = '16px';
-    p.style.lineHeight = '1.8';
-    p.style.marginBottom = '16px';
+    if (!p.closest('div[style*="border-left"]')) {
+      p.style.color = '#1e293b';
+      p.style.fontSize = '16px';
+      p.style.lineHeight = '1.85';
+      p.style.marginBottom = '16px';
+    }
   });
   clone.querySelectorAll('h3').forEach(h => {
     h.style.color = '#0284c7';
@@ -2493,15 +2627,29 @@ async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
     h.style.color = '#0f172a';
     h.style.fontSize = '17px';
     h.style.fontWeight = 'bold';
-    h.style.marginTop = '24px';
+    h.style.marginTop = '28px';
     h.style.marginBottom = '10px';
+    h.style.paddingLeft = '10px';
+    h.style.borderLeft = '4px solid #0284c7';
   });
-  clone.querySelectorAll('img').forEach(img => {
-    img.style.maxWidth = '100%';
-    img.style.height = 'auto';
-    img.style.display = 'block';
-    img.style.margin = '20px auto';
-    img.style.borderRadius = '10px';
+
+  // 4. Transform image containers into clean photo guide cards
+  const imgContainers = clone.querySelectorAll('.post-img-container');
+  imgContainers.forEach((container, idx) => {
+    const imgEl = container.querySelector('img');
+    const altText = (imgEl ? imgEl.getAttribute('alt') : '') || `인포그래픽 이미지 #${idx + 1}`;
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText = 'background-color: #f8fafc; border: 2px dashed #94a3b8; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; font-family: -apple-system, sans-serif;';
+    placeholder.innerHTML = `
+      <div style="font-weight: 800; font-size: 15px; color: #0284c7; margin-bottom: 6px;">
+        📷 [사진 첨부 위치: ${escapeHtml(altText)}]
+      </div>
+      <div style="font-size: 13px; color: #64748b; line-height: 1.6;">
+        홈페이지 본문의 해당 이미지 아래 <b style="color: #059669;">[🖼️ 이 사진 복사]</b> 버튼을 누르신 후<br>
+        이 위치를 클릭하고 <b style="color: #0284c7;">[Ctrl + V]</b>를 누르시면 네이버 정식 고화질 사진으로 즉시 등록됩니다!
+      </div>
+    `;
+    container.parentNode.replaceChild(placeholder, container);
   });
 
   const fullHtml = `
@@ -2531,7 +2679,7 @@ async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
     } else {
       await navigator.clipboard.writeText(plainText);
     }
-    alert('✅ [네이버 블로그/카페용 복사 완료!]\n\n고해상도 PNG 이미지와 서식이 클립보드에 복사되었습니다.\n네이버 스마트에디터 글쓰기 화면에서 [Ctrl + V]로 붙여넣으시면 이미지가 정상적으로 첨부됩니다.');
+    alert('✅ [네이버 블로그/카페용 본문 서식 복사 완료!]\n\n글 본문과 제목이 고대비 서식으로 복사되었습니다.\n네이버 스마트에디터에서 [Ctrl + V]로 붙여넣어 보세요!\n\n📌 [사진 첨부 방법]\n홈페이지 본문의 각 인포그래픽 아래에 있는 [🖼️ 이 사진 복사] 버튼을 누른 뒤, 네이버 글쓰기 화면에서 [Ctrl + V]를 누르시면 고화질 정식 사진으로 1초 만에 깔끔하게 삽입됩니다.');
   } catch (err) {
     console.warn('Clipboard write error:', err);
     alert('클립보드에 복사되었습니다. 네이버 에디터에서 [Ctrl + V]로 붙여넣어 보세요.');

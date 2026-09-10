@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Automated Daily Crypto Market Report Generator
  * Runs daily at 08:00 AM KST via GitHub Actions or locally in Node.js
  * 
@@ -365,9 +365,9 @@ async function callGeminiAPI(dateStr, dateKorean, m, apiKey) {
    제공된 일정 데이터 기반 시장 영향력 분석 (2문단)
    </SECTION_4>
    <CONCLUSION>
-   <div style="background: rgba(8, 47, 73, 0.4); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 16px; margin: 16px 0; color: #cbd5e1;">
+   <div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
      <div style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 6px;">💡 [종합 결론 및 트레이딩 전략 가이드]</div>
-     <p style="font-size: 12px; line-height: 1.65; margin: 0;">구체적 매매 전략 및 리스크 관리 조언 (1문단)</p>
+     <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">구체적 매매 전략 및 리스크 관리 조언 (1문단)</p>
    </div>
    </CONCLUSION>`;
 
@@ -500,11 +500,11 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
 오늘 발표되는 주요 지표(${evTodayText}) 결과에 따라 9월 FOMC 25bp 금리 인하 확률(현재 94% 반영)이 확정될 전망입니다. 향후 ${evNextText} 등 주요 캘린더 일정도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.
 </p>
 
-<div style="background: rgba(8, 47, 73, 0.4); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 16px; margin: 16px 0; color: #cbd5e1;">
+<div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
   <div style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 6px;">
     💡 [종합 결론 및 트레이딩 전략 가이드]
   </div>
-  <p style="font-size: 12px; line-height: 1.65; margin: 0;">
+  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
     공포&탐욕 지수 ${m.fngScore}(${m.fngText}), LTH 비중 ${m.lthRatio}%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 오늘 경제 지표 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
   </p>
 </div>
