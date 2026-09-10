@@ -972,13 +972,47 @@ async function fetchMarketAnalysisData() {
     marketAnalysisState.liquidations24h.text = longLiq > shortLiq ? `롱 ${Math.round(longRatio)}% 청산` : '숏 우세 청산';
   }
 
+  // Load Macro & TradFi Automated Indicators from data/macro-indicators.json
+  loadMacroIndicators();
+
   renderMarketAnalysisAndIndicators();
 }
 window.fetchMarketAnalysisData = fetchMarketAnalysisData;
 
+let _macroIndicatorsFetched = false;
+async function loadMacroIndicators(force = false) {
+  if (_macroIndicatorsFetched && !force) return;
+  try {
+    const res = await fetch('data/macro-indicators.json?v=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.indicators) {
+        _macroIndicatorsFetched = true;
+        const ind = data.indicators;
+        if (ind.globalM2) marketAnalysisState.globalM2 = Object.assign({}, marketAnalysisState.globalM2, ind.globalM2);
+        if (ind.fedFundsRate) marketAnalysisState.fedFundsRate = Object.assign({}, marketAnalysisState.fedFundsRate, ind.fedFundsRate);
+        if (ind.rrp) marketAnalysisState.rrp = Object.assign({}, marketAnalysisState.rrp, ind.rrp);
+        if (ind.realYieldTIPS) marketAnalysisState.realYieldTIPS = Object.assign({}, marketAnalysisState.realYieldTIPS, ind.realYieldTIPS);
+        if (ind.yieldCurveSpread) marketAnalysisState.yieldCurveSpread = Object.assign({}, marketAnalysisState.yieldCurveSpread, ind.yieldCurveSpread);
+        if (ind.dxy) marketAnalysisState.dxy = Object.assign({}, marketAnalysisState.dxy, ind.dxy);
+        if (ind.highYieldSpread) marketAnalysisState.highYieldSpread = Object.assign({}, marketAnalysisState.highYieldSpread, ind.highYieldSpread);
+        if (ind.nasdaqSpot) marketAnalysisState.nasdaqSpot = Object.assign({}, marketAnalysisState.nasdaqSpot, ind.nasdaqSpot);
+        if (ind.sox) marketAnalysisState.sox = Object.assign({}, marketAnalysisState.sox, ind.sox);
+        if (ind.vix) marketAnalysisState.vix = Object.assign({}, marketAnalysisState.vix, ind.vix);
+        if (ind.goldFut) marketAnalysisState.goldFut = Object.assign({}, marketAnalysisState.goldFut, ind.goldFut);
+        if (ind.wti) marketAnalysisState.wti = Object.assign({}, marketAnalysisState.wti, ind.wti);
+
+        renderMarketAnalysisAndIndicators();
+      }
+    }
+  } catch (e) {}
+}
+window.loadMacroIndicators = loadMacroIndicators;
+
 function refreshMarketAnalysis() {
   const icon = document.getElementById('analysis-refresh-icon');
   if (icon) icon.classList.add('animate-spin');
+  loadMacroIndicators(true);
   fetchMarketAnalysisData().finally(() => {
     if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
   });
@@ -1296,8 +1330,8 @@ function renderMarketAnalysisAndIndicators() {
   // Card 17: Fed Funds Rate
   const fedBadge = document.getElementById('ind-fed-badge');
   const fedVal = document.getElementById('ind-fed-val');
-  if (fedBadge) fedBadge.innerText = s.fedFundsRate.text;
-  if (fedVal) fedVal.innerText = `${s.fedFundsRate.value.toFixed(2)}%`;
+  if (fedBadge) fedBadge.innerText = s.fedFundsRate.cutProb ? '인하확률 ' + s.fedFundsRate.cutProb : s.fedFundsRate.text;
+  if (fedVal) fedVal.innerText = s.fedFundsRate.range || `${s.fedFundsRate.value.toFixed(2)}%`;
 
   // Card 18: RRP Reverse Repo
   const rrpBadge = document.getElementById('ind-rrp-badge');
@@ -1308,14 +1342,14 @@ function renderMarketAnalysisAndIndicators() {
   // Card 19: 10Y Real Yield TIPS
   const tipsBadge = document.getElementById('ind-tips-badge');
   const tipsVal = document.getElementById('ind-tips-val');
-  if (tipsBadge) tipsBadge.innerText = s.realYieldTIPS.text;
+  if (tipsBadge && s.realYieldTIPS.badge) tipsBadge.innerText = s.realYieldTIPS.badge;
   if (tipsVal) tipsVal.innerText = `${s.realYieldTIPS.value.toFixed(2)}%`;
 
   // Card 20: 2Y-10Y Yield Spread
   const ycBadge = document.getElementById('ind-yieldcurve-badge');
   const ycVal = document.getElementById('ind-yieldcurve-val');
-  if (ycBadge) ycBadge.innerText = s.yieldCurveSpread.text;
-  if (ycVal) ycVal.innerText = `+${s.yieldCurveSpread.value.toFixed(2)}%p`;
+  if (ycBadge && s.yieldCurveSpread.badge) ycBadge.innerText = s.yieldCurveSpread.badge;
+  if (ycVal) ycVal.innerText = `${s.yieldCurveSpread.value >= 0 ? '+' : ''}${s.yieldCurveSpread.value.toFixed(2)}%p`;
 
   // Card 21: DXY
   const dxyRate = document.getElementById('ind-dxy-rate');
@@ -1334,7 +1368,7 @@ function renderMarketAnalysisAndIndicators() {
   // Card 23: High Yield Spread
   const hyBadge = document.getElementById('ind-hy-badge');
   const hyVal = document.getElementById('ind-hy-val');
-  if (hyBadge) hyBadge.innerText = s.highYieldSpread.text;
+  if (hyBadge && s.highYieldSpread.badge) hyBadge.innerText = s.highYieldSpread.badge;
   if (hyVal) hyVal.innerText = `${s.highYieldSpread.value.toFixed(2)}%p`;
 
   // Card 24: Nasdaq
@@ -1358,7 +1392,9 @@ function renderMarketAnalysisAndIndicators() {
   if (soxVal) soxVal.innerText = s.sox.value.toLocaleString();
 
   // Card 26: CBOE VIX
+  const vixBadge = document.getElementById('ind-vix-badge');
   const vixVal = document.getElementById('ind-vix-val');
+  if (vixBadge && s.vix.badge) vixBadge.innerText = s.vix.badge;
   if (vixVal) vixVal.innerText = s.vix.value.toFixed(2);
 
   // Card 27: Gold Futures

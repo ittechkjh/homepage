@@ -1,0 +1,105 @@
+{
+  "lastUpdated": "2026-09-10",
+  "lastUpdatedTimeKst": "09. 10. 07:00",
+  "timestamp": 1789053600000,
+  "indicators": {
+    "globalM2": {
+      "value": "$108.5조",
+      "rawUsd": 108.5,
+      "change": 4.2,
+      "text": "확장 국면",
+      "source": "글로벌 주요국 중앙은행 M2 집계",
+      "cycle": "월간 공시",
+      "lastUpdated": "2026-09-10"
+    },
+    "fedFundsRate": {
+      "value": 5.33,
+      "range": "5.25~5.50%",
+      "cutProb": "88%",
+      "text": "인하 사이클",
+      "source": "미국 연방준비제도 (Fed FOMC)",
+      "cycle": "FOMC 공시",
+      "lastUpdated": "2026-09-10"
+    },
+    "rrp": {
+      "value": "$285.4B",
+      "rawBillion": 285.4,
+      "text": "유동성 방출",
+      "source": "뉴욕 연방준비은행 일일 공시",
+      "cycle": "뉴욕연은 일일",
+      "lastUpdated": "2026-09-10"
+    },
+    "realYieldTIPS": {
+      "value": 1.94,
+      "badge": "TIPS",
+      "text": "실질금리 완화",
+      "source": "미국 재무부 실질 국채 금리",
+      "cycle": "재무부 공시",
+      "lastUpdated": "2026-09-10"
+    },
+    "yieldCurveSpread": {
+      "value": 0.06,
+      "badge": "정상화",
+      "text": "침체 우려 완화",
+      "source": "미국 재무부 국채 수익률 곡선",
+      "cycle": "국채 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "dxy": {
+      "value": 98.91,
+      "change": 0.1,
+      "text": "달러 약세 (코인 유리)",
+      "source": "ICE U.S. Dollar Index (DX-Y)",
+      "cycle": "외환 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "highYieldSpread": {
+      "value": 3.24,
+      "badge": "위험선호",
+      "text": "글로벌 유동성 안정",
+      "source": "ICE BofA US High Yield Spread",
+      "cycle": "신용 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "nasdaqSpot": {
+      "value": 29206.0,
+      "change": -0.73,
+      "text": "기술주 숨고르기",
+      "source": "NASDAQ-100 (^NDX)",
+      "cycle": "증시 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "sox": {
+      "value": 11718.7,
+      "change": -1.78,
+      "text": "반도체 조정",
+      "source": "PHLX Semiconductor Index (^SOX)",
+      "cycle": "증시 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "vix": {
+      "value": 17.35,
+      "badge": "안정권",
+      "text": "시장 심리 안정",
+      "source": "CBOE Volatility Index (^VIX)",
+      "cycle": "옵션 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "goldFut": {
+      "value": 4396.8,
+      "change": -1.43,
+      "text": "금값 조정",
+      "source": "COMEX Gold Futures (GC=F)",
+      "cycle": "원자재 벤치마크",
+      "lastUpdated": "2026-09-10"
+    },
+    "wti": {
+      "value": 100.05,
+      "change": 4.16,
+      "text": "고유가 인플레 우려",
+      "source": "NYMEX Crude Oil Futures (CL=F)",
+      "cycle": "원자재 벤치마크",
+      "lastUpdated": "2026-09-10"
+    }
+  }
+}
