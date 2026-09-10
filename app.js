@@ -4607,12 +4607,12 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     let fName = tabId;
-    if (tabId === 'forum' || tabId === 'chat') fName = 'community';
+    if (tabId === 'forum' || tabId === 'chat' || tabId === 'guides') fName = 'community';
     AdminAnalytics.recordVisit(fName);
   }
 

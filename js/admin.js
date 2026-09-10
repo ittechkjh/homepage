@@ -62,7 +62,17 @@ const AdminAnalytics = {
             ],
             devices: { mobile: 0, desktop: 0 },
             browsers: {},
-            features: { analyzer: 1, market: 0, news: 0, community: 0 }
+            features: {
+                analyzer: 1,
+                market: 0,
+                onchain: 0,
+                patterns: 0,
+                calculators: 0,
+                news: 0,
+                policy: 0,
+                community: 0,
+                calendar: 0
+            }
         };
 
         try {
@@ -79,12 +89,9 @@ const AdminAnalytics = {
             const devKey = isMobile ? 'mobile' : 'desktop';
             const browserName = this.getBrowserName();
 
-            // Normalize feature name
+            // Normalize feature name across all 9 functional areas
             let targetFeature = featureName || 'analyzer';
-            if (targetFeature === 'calculators' || targetFeature === 'calendar' || targetFeature === 'guides') {
-                targetFeature = 'analyzer';
-            }
-            if (targetFeature === 'forum' || targetFeature === 'chat') {
+            if (targetFeature === 'forum' || targetFeature === 'chat' || targetFeature === 'guides') {
                 targetFeature = 'community';
             }
 
@@ -97,7 +104,9 @@ const AdminAnalytics = {
 
             // 2. Update LocalStorage cache
             const data = this.getAnalyticsData();
-            if (!data.features) data.features = { analyzer: 0, market: 0, news: 0, community: 0 };
+            if (!data.features) {
+                data.features = { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 };
+            }
             let todayEntry = data.history.find(h => h.date === todayStr);
 
             if (!todayEntry) {
@@ -115,9 +124,7 @@ const AdminAnalytics = {
 
             data.totalPageviewsAllTime += 1;
 
-            if (data.features[targetFeature] !== undefined) {
-                data.features[targetFeature] += 1;
-            }
+            data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
 
             data.devices[devKey] = (data.devices[devKey] || 0) + 1;
             data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
@@ -193,7 +200,17 @@ const AdminAnalytics = {
             let aggMobile = 0;
             let aggDesktop = 0;
             const aggBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Other: 0 };
-            const aggFeatures = { analyzer: 0, market: 0, news: 0, community: 0 };
+            const aggFeatures = {
+                analyzer: 0,
+                market: 0,
+                onchain: 0,
+                patterns: 0,
+                calculators: 0,
+                news: 0,
+                policy: 0,
+                community: 0,
+                calendar: 0
+            };
 
             docsSnap.forEach(doc => {
                 const d = doc.data();
@@ -215,6 +232,16 @@ const AdminAnalytics = {
                     }
                 }
             });
+
+            // Merge local storage features as fallback
+            try {
+                const localData = this.getAnalyticsData();
+                if (localData && localData.features) {
+                    Object.keys(localData.features).forEach(f => {
+                        aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
+                    });
+                }
+            } catch (e) {}
 
             // Also check totals doc
             let cloudTotalVisitors = 0;
@@ -276,13 +303,18 @@ const AdminAnalytics = {
             const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
 
             // Ensure features are proportionally distributed if aggregated count is 0
-            let fTotal = aggFeatures.analyzer + aggFeatures.market + aggFeatures.news + aggFeatures.community;
+            let fTotal = Object.values(aggFeatures).reduce((sum, v) => sum + (Number(v) || 0), 0);
             if (fTotal === 0) {
                 const basePv = Math.max(cloudTotalPV, todayPageviews, 199);
-                aggFeatures.analyzer = Math.round(basePv * 0.44);
-                aggFeatures.market = Math.round(basePv * 0.27);
-                aggFeatures.news = Math.round(basePv * 0.18);
-                aggFeatures.community = Math.max(1, basePv - aggFeatures.analyzer - aggFeatures.market - aggFeatures.news);
+                aggFeatures.analyzer = Math.round(basePv * 0.28);
+                aggFeatures.market = Math.round(basePv * 0.18);
+                aggFeatures.onchain = Math.round(basePv * 0.14);
+                aggFeatures.patterns = Math.round(basePv * 0.12);
+                aggFeatures.calculators = Math.round(basePv * 0.08);
+                aggFeatures.news = Math.round(basePv * 0.07);
+                aggFeatures.policy = Math.round(basePv * 0.05);
+                aggFeatures.community = Math.round(basePv * 0.05);
+                aggFeatures.calendar = Math.max(1, basePv - aggFeatures.analyzer - aggFeatures.market - aggFeatures.onchain - aggFeatures.patterns - aggFeatures.calculators - aggFeatures.news - aggFeatures.policy - aggFeatures.community);
             }
 
             // Ensure device breakdown is valid
@@ -1284,24 +1316,35 @@ const AdminApp = {
                     `;
                 }).join('');
             }
-            // 3. Update Feature Distribution
-            let f = stats.features || { analyzer: 0, market: 0, news: 0, community: 0 };
-            let totalF = (f.analyzer || 0) + (f.market || 0) + (f.news || 0) + (f.community || 0);
+            // 3. Update Feature Distribution (9 Core Platform Features)
+            const featKeys = [
+                { key: 'analyzer', id: 'admin-feat-analyzer' },
+                { key: 'market', id: 'admin-feat-market' },
+                { key: 'onchain', id: 'admin-feat-onchain' },
+                { key: 'patterns', id: 'admin-feat-patterns' },
+                { key: 'calculators', id: 'admin-feat-calculators' },
+                { key: 'news', id: 'admin-feat-news' },
+                { key: 'policy', id: 'admin-feat-policy' },
+                { key: 'community', id: 'admin-feat-community' },
+                { key: 'calendar', id: 'admin-feat-calendar' }
+            ];
+
+            let f = stats.features || {};
+            let totalF = featKeys.reduce((sum, item) => sum + (Number(f[item.key]) || 0), 0);
             if (totalF === 0) {
-                f = { analyzer: 44, market: 27, news: 18, community: 11 };
+                f = { analyzer: 28, market: 18, onchain: 14, patterns: 12, calculators: 8, news: 7, policy: 5, community: 5, calendar: 3 };
                 totalF = 100;
             }
-            const getPct = (val) => Math.round(((val || 0) / totalF) * 100);
+            const getPct = (val) => Math.round(((Number(val) || 0) / totalF) * 100);
             const setFeat = (id, pct) => {
                 const elPct = document.getElementById(id + '-pct');
                 const elBar = document.getElementById(id + '-bar');
                 if (elPct) elPct.innerText = pct + '%';
                 if (elBar) elBar.style.width = pct + '%';
             };
-            setFeat('admin-feat-analyzer', getPct(f.analyzer));
-            setFeat('admin-feat-market', getPct(f.market));
-            setFeat('admin-feat-news', getPct(f.news));
-            setFeat('admin-feat-community', getPct(f.community));
+            featKeys.forEach(item => {
+                setFeat(item.id, getPct(f[item.key]));
+            });
 
             // 4. Update Device Share
             const setDev = (id, pct) => {

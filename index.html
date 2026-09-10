@@ -5347,41 +5347,86 @@
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
               <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 방문 점유율
             </h3>
-            <div class="space-y-3 text-xs">
+            <div id="admin-features-container" class="space-y-3 text-xs">
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
-                  <span>📊 거래내역 분석기 (Excel/FIFO)</span>
-                  <span id="admin-feat-analyzer-pct" class="text-cyan-400 font-bold">44%</span>
+                  <span>📊 거래내역 손익 분석기 (Excel/FIFO)</span>
+                  <span id="admin-feat-analyzer-pct" class="text-cyan-400 font-bold">28%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div id="admin-feat-analyzer-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 44%;"></div>
+                  <div id="admin-feat-analyzer-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 28%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>📈 가상자산 실시간 시세 & 차트</span>
-                  <span id="admin-feat-market-pct" class="text-purple-400 font-bold">27%</span>
+                  <span id="admin-feat-market-pct" class="text-purple-400 font-bold">18%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div id="admin-feat-market-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 27%;"></div>
+                  <div id="admin-feat-market-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 18%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>🐋 온체인 & 고래 레이더 (Whale Radar)</span>
+                  <span id="admin-feat-onchain-pct" class="text-cyan-300 font-bold">14%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div id="admin-feat-onchain-bar" class="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full" style="width: 14%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>🤖 AI 차트패턴 실시간 스캐너</span>
+                  <span id="admin-feat-patterns-pct" class="text-emerald-400 font-bold">12%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div id="admin-feat-patterns-bar" class="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full" style="width: 12%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>🧮 투자 보조 계산기 5종 (물타기·김프·세금·선물)</span>
+                  <span id="admin-feat-calculators-pct" class="text-amber-400 font-bold">8%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div id="admin-feat-calculators-bar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style="width: 8%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>⚡ 글로벌 암호화폐 실시간 속보</span>
-                  <span id="admin-feat-news-pct" class="text-amber-400 font-bold">18%</span>
+                  <span id="admin-feat-news-pct" class="text-yellow-400 font-bold">7%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div id="admin-feat-news-bar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" style="width: 18%;"></div>
+                  <div id="admin-feat-news-bar" class="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full" style="width: 7%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>🏛️ 2026 정부 지원 & 청년 정책 가이드</span>
+                  <span id="admin-feat-policy-pct" class="text-teal-400 font-bold">5%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div id="admin-feat-policy-bar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full" style="width: 5%;"></div>
                 </div>
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 font-semibold mb-1">
                   <span>💬 커뮤니티 포럼 & 실시간 채팅</span>
-                  <span id="admin-feat-community-pct" class="text-emerald-400 font-bold">11%</span>
+                  <span id="admin-feat-community-pct" class="text-indigo-400 font-bold">5%</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
-                  <div id="admin-feat-community-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style="width: 11%;"></div>
+                  <div id="admin-feat-community-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style="width: 5%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                  <span>📅 코인 일정 & 거시경제 캘린더</span>
+                  <span id="admin-feat-calendar-pct" class="text-rose-400 font-bold">3%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
+                  <div id="admin-feat-calendar-bar" class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full" style="width: 3%;"></div>
                 </div>
               </div>
             </div>
