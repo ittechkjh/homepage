@@ -295,17 +295,6 @@ const AdminAnalytics = {
             const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 0;
             const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
 
-            // Ensure browser breakdown is valid
-            let bTotal = Object.values(aggBrowsers).reduce((a, b) => a + Number(b || 0), 0);
-            if (bTotal === 0) {
-                const baseB = Math.max(todayPageviews, 50);
-                aggBrowsers.Chrome = Math.round(baseB * 0.62);
-                aggBrowsers.Safari = Math.round(baseB * 0.24);
-                aggBrowsers.Samsung = Math.round(baseB * 0.08);
-                aggBrowsers.Edge = Math.round(baseB * 0.04);
-                aggBrowsers.Whale = Math.max(1, baseB - aggBrowsers.Chrome - aggBrowsers.Safari - aggBrowsers.Samsung - aggBrowsers.Edge);
-            }
-
             let realLiveCount = 1;
             try {
                 const presenceSnap = await firestore.collection('chat_presence').get();
@@ -334,7 +323,7 @@ const AdminAnalytics = {
                 monthlyVisitors,
                 liveUsers: realLiveCount,
                 totalVisitorsAllTime: Math.max(cloudTotalVisitors, monthlyVisitors),
-                totalPageviewsAllTime: Math.max(cloudTotalPV, todayPageviews, 199),
+                totalPageviewsAllTime: Math.max(cloudTotalPV, todayPageviews),
                 history: history14,
                 mobilePct,
                 desktopPct,
@@ -430,11 +419,11 @@ const AdminAnalytics = {
             monthlyVisitors,
             liveUsers: realLiveCount,
             totalVisitorsAllTime: Math.max(data.totalVisitorsAllTime || 0, monthlyVisitors),
-            totalPageviewsAllTime: Math.max(data.totalPageviewsAllTime || 0, 199),
+            totalPageviewsAllTime: Math.max(data.totalPageviewsAllTime || 0, todayPageviews),
             history: history14,
             mobilePct,
             desktopPct,
-            browsers: data.browsers || { Chrome: 62, Safari: 24, Samsung: 8, Edge: 4, Whale: 2 },
+            browsers: data.browsers || {},
             features: f
         };
     }
@@ -1301,37 +1290,42 @@ const AdminApp = {
             });
 
             // 4. Update Device Share
-            const setDev = (id, pct) => {
+            const setDev = (id, pct, totalDev) => {
                 const el = document.getElementById(id);
-                if (el) el.innerText = pct + '%';
+                if (el) el.innerText = totalDev > 0 ? pct + '%' : '집계 중';
             };
-            setDev('admin-dev-mobile-pct', stats.mobilePct);
-            setDev('admin-dev-desktop-pct', stats.desktopPct);
+            const totalDevCount = (stats.mobilePct + stats.desktopPct > 0) ? 1 : 0;
+            setDev('admin-dev-mobile-pct', stats.mobilePct, totalDevCount);
+            setDev('admin-dev-desktop-pct', stats.desktopPct, totalDevCount);
 
             // 5. Update Dynamic Browser Environment Breakdown
             const bContainer = document.getElementById('admin-browser-breakdown');
             if (bContainer) {
                 const bMap = stats.browsers || {};
                 const bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
-                const bNames = [
-                    { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
-                    { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
-                    { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
-                    { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
-                    { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
-                    { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
-                ];
-                bContainer.innerHTML = bNames.map(b => {
-                    const cnt = Number(bMap[b.key] || 0);
-                    const pct = bTotal > 0 ? Math.round((cnt / bTotal) * 100) : (b.key === 'Chrome' ? 100 : 0);
-                    return `
-                      <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
-                        <span class="w-2 h-2 rounded-full ${b.dot}"></span>
-                        <span class="text-slate-300 text-[11px]">${b.name}:</span>
-                        <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
-                      </div>
-                    `;
-                }).join('');
+                if (bTotal === 0) {
+                    bContainer.innerHTML = '<div class="col-span-full text-center text-slate-500 text-[11px] py-2">실측 브라우저 데이터 집계 중... (방문 기록 후 표시)</div>';
+                } else {
+                    const bNames = [
+                        { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
+                        { key: 'Safari', name: 'Safari', color: 'text-purple-400', dot: 'bg-purple-400' },
+                        { key: 'Samsung', name: 'Samsung', color: 'text-blue-400', dot: 'bg-blue-400' },
+                        { key: 'Edge', name: 'Edge', color: 'text-emerald-400', dot: 'bg-emerald-400' },
+                        { key: 'Whale', name: 'Whale', color: 'text-teal-400', dot: 'bg-teal-400' },
+                        { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
+                    ];
+                    bContainer.innerHTML = bNames.map(b => {
+                        const cnt = Number(bMap[b.key] || 0);
+                        const pct = Math.round((cnt / bTotal) * 100);
+                        return `
+                          <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
+                            <span class="w-2 h-2 rounded-full ${b.dot}"></span>
+                            <span class="text-slate-300 text-[11px]">${b.name}:</span>
+                            <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
+                          </div>
+                        `;
+                    }).join('');
+                }
             }
         };
 
