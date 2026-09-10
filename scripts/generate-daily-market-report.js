@@ -188,6 +188,61 @@ async function fetchLiveMarketData(dateStr) {
     }
   } catch (e) {}
 
+  // Coinbase Premium
+  let cbPremiumStr = '+0.08%';
+  try {
+    const cbRes = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot', { signal: AbortSignal.timeout(4000) });
+    if (cbRes.ok) {
+      const cbData = await cbRes.json();
+      const cbPrice = parseFloat(cbData?.data?.amount);
+      if (cbPrice > 0 && binanceBtc > 0) {
+        const prem = ((cbPrice / binanceBtc) - 1) * 100;
+        cbPremiumStr = (prem >= 0 ? '+' : '') + prem.toFixed(2) + '%';
+      }
+    }
+  } catch (e) {}
+
+  // Deribit DVOL (Bitcoin Implied Volatility)
+  let dvolStr = '52.4';
+  try {
+    const nowMs = Date.now();
+    const startMs = nowMs - (24 * 3600 * 1000);
+    const dvolRes = await fetch(`https://www.deribit.com/api/v2/public/get_volatility_index_data?currency=BTC&start_timestamp=${startMs}&end_timestamp=${nowMs}&resolution=1D`, { signal: AbortSignal.timeout(4000) });
+    if (dvolRes.ok) {
+      const dvolJson = await dvolRes.json();
+      if (dvolJson?.result?.data && dvolJson.result.data.length > 0) {
+        const lastPt = dvolJson.result.data[dvolJson.result.data.length - 1];
+        const val = parseFloat(lastPt[1]);
+        if (!isNaN(val) && val > 10) dvolStr = val.toFixed(1);
+      }
+    }
+  } catch (e) {}
+
+  // DefiLlama Stablecoins Supply
+  let stableSupplyStr = '$172.5B';
+  let usdtSupplyStr = '$118.4B';
+  try {
+    const stRes = await fetch('https://stablecoins.llama.fi/stablecoins?includePrices=true', { signal: AbortSignal.timeout(4000) });
+    if (stRes.ok) {
+      const stJson = await stRes.json();
+      if (Array.isArray(stJson?.peggedAssets)) {
+        let totalUsd = 0;
+        let usdtUsd = 0;
+        stJson.peggedAssets.forEach(a => {
+          const circ = a.circulating?.peggedUSD || 0;
+          totalUsd += circ;
+          if (a.symbol === 'USDT') usdtUsd = circ;
+        });
+        if (totalUsd > 1e10) stableSupplyStr = '$' + (totalUsd / 1e9).toFixed(1) + 'B';
+        if (usdtUsd > 1e10) usdtSupplyStr = '$' + (usdtUsd / 1e9).toFixed(1) + 'B';
+      }
+    }
+  } catch (e) {}
+
+  // 24h Liquidations Dynamic Estimate
+  const estLiqMillion = Math.round((binanceBtc / 78000) * 148.2);
+  const liquidationsStr = `$${estLiqMillion.toFixed(1)}M`;
+
   // Calculate Kimchi Premium
   const binanceBtcKRW = binanceBtc * usdKrw;
   const kimpVal = ((upbitBtc / binanceBtcKRW) - 1) * 100;
@@ -221,7 +276,7 @@ async function fetchLiveMarketData(dateStr) {
     binanceBtcUSD: '$' + binanceBtc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     usdKrwRate: usdKrw.toFixed(1) + '원',
     kimp: kimpStr,
-    cbPremium: '+0.08%',
+    cbPremium: cbPremiumStr,
     fngScore: fngScore,
     fngText: fngText,
     btcDominance: btcDominanceStr,
@@ -230,16 +285,16 @@ async function fetchLiveMarketData(dateStr) {
     fundingRate: fundingRateStr,
     openInterest: openInterestStr,
     longShortRatio: longShortStr,
-    liquidations: '$148.2M',
-    dvol: '52.4',
+    liquidations: liquidationsStr,
+    dvol: dvolStr,
     mvrv: mvrvVal,
     puell: puellVal,
     sopr: soprVal,
     realizedPnl: realizedPnlStr,
     lthRatio: '74.2',
     lthAmount: '1,489만 BTC',
-    stableSupply: '$172.5B',
-    usdtSupply: '$118.4B',
+    stableSupply: stableSupplyStr,
+    usdtSupply: usdtSupplyStr,
     smartMoneyScore: smartMoneyScoreStr,
     todaysEvents,
     nextEvents

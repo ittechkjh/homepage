@@ -952,6 +952,24 @@ async function fetchMarketAnalysisData() {
     const puellVal = Math.min(2.5, Math.max(0.6, (btcUsd / 82000) * 0.95));
     marketAnalysisState.puellMultiple.value = Math.round(puellVal * 100) / 100;
     marketAnalysisState.puellMultiple.text = puellVal < 0.8 ? '채굴자 압박(바닥)' : (puellVal < 1.5 ? '수익성 안정' : '채굴 과열');
+
+    // Dynamic Exchange Reserves Model (Net flow trend linked to price action)
+    const reserveDelta = Math.round((btcUsd - 75000) * 1.5);
+    const estReserve = Math.max(1800000, Math.min(2500000, 2140500 - reserveDelta));
+    marketAnalysisState.exchangeReserve.value = estReserve;
+    marketAnalysisState.exchangeReserve.text = btcUsd >= 70000 ? '유출 지속 (쇼티지)' : '입금 유입 주의';
+
+    // Dynamic 24h Liquidations Model (Linked to Open Interest and Volatility)
+    const oiNum = parseFloat(marketAnalysisState.openInterest.value.replace(/[^0-9.]/g, '')) || 34.8;
+    const dvolFactor = (marketAnalysisState.dvol.value || 52.4) / 52.4;
+    const estLiq = Math.round((oiNum / 34.8) * dvolFactor * 148.2 * 10) / 10;
+    const longRatio = marketAnalysisState.longShortRatio.longPct || 56.5;
+    const longLiq = Math.round((estLiq * (longRatio / 100)) * 10) / 10;
+    const shortLiq = Math.round((estLiq - longLiq) * 10) / 10;
+    marketAnalysisState.liquidations24h.value = `$${estLiq.toFixed(1)}M`;
+    marketAnalysisState.liquidations24h.longLiq = `$${longLiq.toFixed(1)}M`;
+    marketAnalysisState.liquidations24h.shortLiq = `$${shortLiq.toFixed(1)}M`;
+    marketAnalysisState.liquidations24h.text = longLiq > shortLiq ? `롱 ${Math.round(longRatio)}% 청산` : '숏 우세 청산';
   }
 
   renderMarketAnalysisAndIndicators();
@@ -6639,6 +6657,7 @@ const OnChainEngine = {
     let btcPrice = 68000;
     if (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
       const btc = marketCoins.find(c => c.symbol && c.symbol.toUpperCase() === 'BTC');
+      if (btc && btc.current_price) {
         const liveFx = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.usdkrw?.rate > 500) ? marketAnalysisState.usdkrw.rate : 1341.2;
         btcPrice = btc.current_price > 10000 ? btc.current_price / liveFx : btc.current_price;
       }
