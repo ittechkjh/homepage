@@ -412,6 +412,86 @@ const AdminUserManager = {
     STORAGE_KEY: 'coinhub_registered_users',
     cloudUsers: [],
 
+    getNowFormatted: function () {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        return `${y}.${m}.${d} ${h}:${min}:${s}`;
+    },
+
+    formatActivityTime: function (raw) {
+        if (!raw) return '<span class="text-slate-400 font-mono text-[11px]">기록 없음</span>';
+        
+        // 1. If explicitly marked online or recent
+        if (typeof raw === 'string' && (raw.includes('방금') || raw.includes('온라인'))) {
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>방금 전 (온라인)</span>';
+        }
+
+        // 2. Parse Date correctly (handles Firestore timestamp, ISO string, KST local string, numbers)
+        let d = null;
+        if (raw && typeof raw === 'object' && raw.seconds !== undefined) {
+            d = new Date(raw.seconds * 1000);
+        } else if (raw instanceof Date) {
+            d = raw;
+        } else if (typeof raw === 'number') {
+            d = new Date(raw);
+        } else if (typeof raw === 'string') {
+            const trimmed = raw.trim();
+            if (trimmed.includes('Z') || trimmed.includes('T')) {
+                d = new Date(trimmed);
+            } else if (trimmed.includes('.')) {
+                const parts = trimmed.split(' ');
+                const datePart = parts[0].replace(/\./g, '-');
+                const timePart = parts[1] || '00:00:00';
+                d = new Date(`${datePart}T${timePart}`);
+            } else {
+                d = new Date(trimmed.replace(/\s+/g, 'T'));
+            }
+        }
+
+        if (!d || isNaN(d.getTime())) {
+            return `<span class="text-slate-300 font-mono text-[11px]">${typeof escapeHtml === 'function' ? escapeHtml(String(raw)) : String(raw)}</span>`;
+        }
+
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+
+        const pad = n => String(n).padStart(2, '0');
+        const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        const dateStr = `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+
+        // Within 3 minutes -> active online
+        if (diffSec < 180 && diffSec >= -60) {
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>방금 전 (온라인)</span>';
+        }
+        // Within 60 minutes
+        if (diffMin < 60 && diffMin > 0) {
+            return `<span class="text-cyan-400 font-bold">${diffMin}분 전</span> <span class="text-slate-400 text-[10px] font-mono">(${timeStr})</span>`;
+        }
+        // Today
+        const isToday = now.getFullYear() === d.getFullYear() && now.getMonth() === d.getMonth() && now.getDate() === d.getDate();
+        if (isToday) {
+            return `<span class="text-slate-200 font-semibold">오늘 ${timeStr}</span> <span class="text-slate-400 text-[10px] font-mono">(${diffHour}시간 전)</span>`;
+        }
+        // Yesterday
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = yesterday.getFullYear() === d.getFullYear() && yesterday.getMonth() === d.getMonth() && yesterday.getDate() === d.getDate();
+        if (isYesterday) {
+            return `<span class="text-slate-300">어제 ${timeStr}</span>`;
+        }
+
+        // Previous dates
+        return `<span class="text-slate-300 font-mono text-[11px]">${dateStr} ${timeStr}</span>`;
+    },
+
     initFirebaseSync: function () {
         const firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (firestore) {
@@ -427,7 +507,7 @@ const AdminUserManager = {
                                 email: data.email || (data.username + '@crytopnl.com'),
                                 role: data.role || 'USER',
                                 status: data.status || 'ACTIVE',
-                                joinedDate: data.joinedDate || (data.lastLoginAt ? data.lastLoginAt.slice(0, 10) : '2026.09.03'),
+                                joinedDate: data.joinedDate || (data.lastLoginAt ? String(data.lastLoginAt).slice(0, 10) : '2026.09.03'),
                                 lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
                                 lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
                                 reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
@@ -478,34 +558,51 @@ const AdminUserManager = {
             });
         }
 
-        // 4. Aggregate current logged in user if missing
+        // 4. Update current logged-in user activity if present
         try {
             const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
             if (currentRaw) {
                 const u = JSON.parse(currentRaw);
-                if (u && u.username && !userMap.has(u.username.toLowerCase())) {
-                    userMap.set(u.username.toLowerCase(), {
-                        id: 'usr_' + Date.now(),
-                        username: u.username,
-                        email: u.email || `${u.username}@crytopnl.com`,
-                        role: u.role || 'USER',
-                        status: 'ACTIVE',
-                        joinedDate: u.joinedDate || new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-                        lastLogin: '방금 전 (온라인)',
-                        lastLoginAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                        reputation: u.reputation || 100,
-                        tradesCount: this.getUserTradesCount(u.username),
-                        memo: '현재 접속 회원'
-                    });
+                if (u && u.username) {
+                    const uKey = u.username.toLowerCase();
+                    const existing = userMap.get(uKey);
+                    if (existing) {
+                        existing.lastLogin = '방금 전 (온라인)';
+                        existing.lastLoginAt = '방금 전 (온라인)';
+                        if (u.role) existing.role = u.role;
+                    } else {
+                        userMap.set(uKey, {
+                            id: u.id || ('usr_' + uKey),
+                            username: u.username,
+                            email: u.email || `${u.username}@crytopnl.com`,
+                            role: u.role || 'USER',
+                            status: u.status || 'ACTIVE',
+                            joinedDate: u.joinedDate || AdminUserManager.getNowFormatted().slice(0, 10),
+                            lastLogin: '방금 전 (온라인)',
+                            lastLoginAt: '방금 전 (온라인)',
+                            reputation: u.reputation || 100,
+                            tradesCount: this.getUserTradesCount(u.username),
+                            memo: '현재 접속 회원'
+                        });
+                    }
                 }
             }
         } catch(e) {}
+
+        // 5. If session admin is authenticated, ensure admin is marked online
+        if (sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || sessionStorage.getItem('coinhub_admin_authenticated') === '1') {
+            const adminEntry = userMap.get('admin');
+            if (adminEntry) {
+                adminEntry.lastLogin = '방금 전 (온라인)';
+                adminEntry.lastLoginAt = '방금 전 (온라인)';
+            }
+        }
 
         return Array.from(userMap.values());
     },
 
     initRealUsers: function () {
-        const nowFormatted = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const nowFormatted = this.getNowFormatted();
         const users = [
             {
                 id: 'usr_admin',
@@ -513,8 +610,8 @@ const AdminUserManager = {
                 email: 'admin@crytopnl.com',
                 role: 'ADMIN',
                 status: 'ACTIVE',
-                joinedDate: nowFormatted.slice(0, 10).replace(/-/g, '.'),
-                lastLogin: nowFormatted,
+                joinedDate: nowFormatted.slice(0, 10),
+                lastLogin: '방금 전 (온라인)',
                 lastLoginAt: nowFormatted,
                 reputation: 9999,
                 tradesCount: this.getUserTradesCount('admin'),
@@ -747,9 +844,9 @@ const AdminUserManager = {
             password: newUser.password || '',
             role: newUser.role || 'USER',
             status: 'ACTIVE',
-            joinedDate: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-            lastLogin: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            lastLoginAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+            joinedDate: this.getNowFormatted().slice(0, 10),
+            lastLogin: this.getNowFormatted(),
+            lastLoginAt: this.getNowFormatted(),
             reputation: newUser.role === 'ADMIN' ? 9999 : (newUser.role === 'PRO' ? 150 : 100),
             tradesCount: 0,
             memo: newUser.memo || '실제 가입 회원'
@@ -1283,7 +1380,7 @@ const AdminApp = {
                 <td class="py-3 px-4">${roleBadge}</td>
                 <td class="py-3 px-4">${statusBadge}</td>
                 <td class="py-3 px-4 font-mono font-semibold text-right ${realTrades > 0 ? 'text-cyan-400 font-bold' : 'text-slate-400'}">${realTrades.toLocaleString()}건</td>
-                <td class="py-3 px-4 text-slate-300 font-mono text-[11px]">${u.lastLoginAt || u.lastLogin || '방금 전'}</td>
+                <td class="py-3 px-4 text-slate-300 font-mono text-[11px]">${AdminUserManager.formatActivityTime(u.lastLoginAt || u.lastLogin)}</td>
                 <td class="py-3 px-4 text-right">
                   <div class="flex items-center justify-end gap-1.5">
                     <button onclick="AdminApp.promptChangeRole('${u.username}', '${u.role}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 rounded text-[10px] font-semibold transition border border-navy-700" title="권한 변경">

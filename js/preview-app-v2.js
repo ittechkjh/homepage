@@ -599,26 +599,53 @@ const defaultMarketAnalysisState = {
 let marketAnalysisState = JSON.parse(JSON.stringify(defaultMarketAnalysisState));
 
 async function fetchMarketAnalysisData() {
+  // 1. Upbit: KRW-BTC, KRW-ETH, and all KRW market breadth
   try {
-    // 1. Upbit KRW tickers for BTC & ETH
-    const upbitRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH');
-    if (upbitRes.ok) {
-      const uData = await upbitRes.json();
-      const uBtc = uData.find(d => d.market === 'KRW-BTC');
-      const uEth = uData.find(d => d.market === 'KRW-ETH');
-      if (uBtc) {
-        marketAnalysisState.btckrw.price = uBtc.trade_price;
-        marketAnalysisState.btckrw.change = (uBtc.signed_change_rate || 0) * 100;
-      }
-      if (uEth) {
-        marketAnalysisState.ethkrw.price = uEth.trade_price;
-        marketAnalysisState.ethkrw.change = (uEth.signed_change_rate || 0) * 100;
+    const upbitMarketsRes = await fetch('https://api.upbit.com/v1/market/all?isDetails=false');
+    if (upbitMarketsRes.ok) {
+      const allMkts = await upbitMarketsRes.json();
+      const krwMkts = allMkts.filter(m => m.market && m.market.startsWith('KRW-')).map(m => m.market);
+      if (krwMkts.length > 0) {
+        const upbitTickersRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + krwMkts.join(','));
+        if (upbitTickersRes.ok) {
+          const uTickers = await upbitTickersRes.json();
+          let up = 0, down = 0, total = uTickers.length;
+          uTickers.forEach(t => {
+            const rate = t.signed_change_rate || 0;
+            if (rate > 0) up++;
+            else if (rate < 0) down++;
+            if (t.market === 'KRW-BTC') {
+              marketAnalysisState.btckrw.price = t.trade_price;
+              marketAnalysisState.btckrw.change = rate * 100;
+            } else if (t.market === 'KRW-ETH') {
+              marketAnalysisState.ethkrw.price = t.trade_price;
+              marketAnalysisState.ethkrw.change = rate * 100;
+            }
+          });
+          if (total > 30) {
+            marketAnalysisState.upbit.total = total;
+            marketAnalysisState.upbit.up = up;
+            marketAnalysisState.upbit.down = down;
+            marketAnalysisState.upbit.ratio = Math.round((up / total) * 100);
+          }
+        }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    try {
+      const uFallback = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH');
+      if (uFallback.ok) {
+        const j = await uFallback.json();
+        const b = j.find(d => d.market === 'KRW-BTC');
+        const e = j.find(d => d.market === 'KRW-ETH');
+        if (b) { marketAnalysisState.btckrw.price = b.trade_price; marketAnalysisState.btckrw.change = (b.signed_change_rate || 0) * 100; }
+        if (e) { marketAnalysisState.ethkrw.price = e.trade_price; marketAnalysisState.ethkrw.change = (e.signed_change_rate || 0) * 100; }
+      }
+    } catch(err) {}
+  }
 
+  // 2. Bithumb tickers count for advancing/declining
   try {
-    // 2. Bithumb tickers count for advancing/declining
     const bitRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
     if (bitRes.ok) {
       const bitJson = await bitRes.json();
@@ -641,8 +668,77 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
+  // 3. Real-time USD/KRW exchange rate (open.er-api.com, fallback Upbit KRW-USDT)
   try {
-    // 3. Binance Futures: Funding Rate
+    const fxRes = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (fxRes.ok) {
+      const fxJson = await fxRes.json();
+      if (fxJson && fxJson.rates && fxJson.rates.KRW) {
+        const krw = parseFloat(fxJson.rates.KRW);
+        if (krw > 1000 && krw < 2000) {
+          marketAnalysisState.usdkrw.rate = Math.round(krw * 10) / 10;
+        }
+      }
+    }
+  } catch (e) {
+    try {
+      const usdtRes = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-USDT');
+      if (usdtRes.ok) {
+        const uJson = await usdtRes.json();
+        if (uJson && uJson[0] && uJson[0].trade_price) {
+          marketAnalysisState.usdkrw.rate = Math.round(uJson[0].trade_price * 10) / 10;
+        }
+      }
+    } catch(err) {}
+  }
+
+  // 4. Coinbase Premium (Coinbase spot BTC-USD vs Binance spot BTCUSDT)
+  try {
+    const [cbRes, bnRes] = await Promise.all([
+      fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot'),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
+    ]);
+    if (cbRes.ok && bnRes.ok) {
+      const [cbJson, bnJson] = await Promise.all([cbRes.json(), bnRes.json()]);
+      const cbPrice = parseFloat(cbJson?.data?.amount);
+      const bnPrice = parseFloat(bnJson?.price);
+      if (cbPrice > 0 && bnPrice > 0) {
+        const cbPrem = ((cbPrice / bnPrice) - 1) * 100;
+        marketAnalysisState.coinbasePremium.rate = Math.round(cbPrem * 100) / 100;
+        marketAnalysisState.coinbasePremium.text = cbPrem > 0.05 ? '미국 기관매수' : (cbPrem < -0.05 ? '미국 매도세' : '미국 중립');
+      }
+    }
+  } catch (e) {}
+
+  // 5. Bitcoin Network Hashrate (mempool.space, fallback blockchain.info)
+  try {
+    const memRes = await fetch('https://mempool.space/api/v1/mining/hashrate/3d');
+    if (memRes.ok) {
+      const memJson = await memRes.json();
+      if (memJson && memJson.currentHashrate) {
+        const eh = parseFloat(memJson.currentHashrate) / 1e18;
+        if (eh > 100) {
+          marketAnalysisState.hashrate.value = Math.round(eh);
+          marketAnalysisState.hashrate.text = eh >= 800 ? '사상 최고치' : '네트워크 견고';
+        }
+      }
+    }
+  } catch (e) {
+    try {
+      const bcRes = await fetch('https://blockchain.info/q/hashrate');
+      if (bcRes.ok) {
+        const gh = parseFloat(await bcRes.text());
+        if (gh > 1e9) {
+          const eh = gh / 1e9;
+          marketAnalysisState.hashrate.value = Math.round(eh);
+          marketAnalysisState.hashrate.text = eh >= 800 ? '사상 최고치' : '네트워크 견고';
+        }
+      }
+    } catch (err) {}
+  }
+
+  // 6. Binance Futures: Funding Rate
+  try {
     const fundRes = await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');
     if (fundRes.ok) {
       const fundData = await fundRes.json();
@@ -654,8 +750,8 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
+  // 7. Binance Futures: Long/Short Ratio
   try {
-    // 4. Binance Futures: Long/Short Ratio
     const lsRes = await fetch('https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1');
     if (lsRes.ok) {
       const lsData = await lsRes.json();
@@ -674,13 +770,13 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
+  // 8. Binance Futures: Open Interest
   try {
-    // 5. Binance Futures: Open Interest
     const oiRes = await fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT');
     if (oiRes.ok) {
       const oiData = await oiRes.json();
       if (oiData && oiData.openInterest) {
-        const btcPrice = marketCoins.find(c => c.symbol === 'btc')?.current_price || 77000;
+        const btcPrice = marketCoins.find(c => c.symbol === 'btc')?.current_price || 78000;
         const oiVal = parseFloat(oiData.openInterest) * btcPrice;
         if (oiVal > 1e8) {
           marketAnalysisState.openInterest.value = `$${(oiVal / 1e9).toFixed(2)}B`;
@@ -689,8 +785,8 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
+  // 9. Alternative.me Fear & Greed Index
   try {
-    // 6. Alternative.me Fear & Greed Index
     const fngRes = await fetch('https://api.alternative.me/fng/?limit=1');
     if (fngRes.ok) {
       const fData = await fngRes.json();
@@ -707,7 +803,40 @@ async function fetchMarketAnalysisData() {
     }
   } catch (e) {}
 
-  // 7. Kimchi Premium & ETH/BTC calculation
+  // 10. CoinGecko Global: BTC Dominance
+  try {
+    const cgRes = await fetch('https://api.coingecko.com/api/v3/global');
+    if (cgRes.ok) {
+      const cgJson = await cgRes.json();
+      if (cgJson && cgJson.data && cgJson.data.market_cap_percentage && cgJson.data.market_cap_percentage.btc) {
+        const btcDom = parseFloat(cgJson.data.market_cap_percentage.btc);
+        if (btcDom > 30 && btcDom < 90) {
+          marketAnalysisState.btcDom.value = Math.round(btcDom * 100) / 100;
+          marketAnalysisState.btcDom.text = btcDom >= 58 ? '비트 독주' : (btcDom <= 52 ? '알트 순환매' : '비트 우세');
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 11. Deribit: Bitcoin Implied Volatility (DVOL)
+  try {
+    const nowMs = Date.now();
+    const startMs = nowMs - (24 * 3600 * 1000);
+    const dvolRes = await fetch(`https://www.deribit.com/api/v2/public/get_volatility_index_data?currency=BTC&start_timestamp=${startMs}&end_timestamp=${nowMs}&resolution=1D`);
+    if (dvolRes.ok) {
+      const dvolJson = await dvolRes.json();
+      if (dvolJson && dvolJson.result && Array.isArray(dvolJson.result.data) && dvolJson.result.data.length > 0) {
+        const lastPt = dvolJson.result.data[dvolJson.result.data.length - 1];
+        const dvolVal = parseFloat(lastPt[1]);
+        if (!isNaN(dvolVal) && dvolVal > 10) {
+          marketAnalysisState.dvol.value = Math.round(dvolVal * 10) / 10;
+          marketAnalysisState.dvol.text = dvolVal > 70 ? '변동성 과열' : (dvolVal < 45 ? '변동성 안정' : '중립 변동성');
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 12. Kimchi Premium & ETH/BTC calculation
   const btcUsd = marketCoins.find(c => c.symbol === 'btc')?.current_price;
   const ethUsd = marketCoins.find(c => c.symbol === 'eth')?.current_price;
   if (btcUsd && marketAnalysisState.btckrw.price && marketAnalysisState.usdkrw.rate) {
