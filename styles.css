@@ -519,6 +519,24 @@ html.theme-light #month-calendar-grid > div.bg-navy-950\/40 {
   color: #64748b !important;
 }
 
+html.theme-light #calendar-month-view .grid-cols-7 > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.theme-light #calendar-month-view .grid-cols-7 > div.text-rose-400 {
+  color: #e11d48 !important;
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+html.theme-light #calendar-month-view .grid-cols-7 > div.text-cyan-400 {
+  color: #0284c7 !important;
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+}
+
 /* 13. Scrollbar in Light Mode */
 html.theme-light ::-webkit-scrollbar-track {
   background: #f1f5f9 !important;

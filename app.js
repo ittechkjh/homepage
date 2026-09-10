@@ -3006,27 +3006,82 @@ function renderMonthCalendar() {
     events = events.filter(e => e.category === activeCalendarFilter);
   }
 
-  const daysInMonth = 30; // Sep 2026
+  const year = 2026;
+  const month = 9; // 2026년 9월
+  const firstDay = new Date(year, month - 1, 1);
+  const startDayOfWeek = firstDay.getDay(); // 0: 일, 1: 월, 2: 화 (2026-09-01 = 화요일)
+  const daysInMonth = new Date(year, month, 0).getDate(); // 30일
+  const daysInPrevMonth = new Date(year, month - 1, 0).getDate(); // 31일 (8월)
+
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
   let gridHtml = '';
 
+  // 1. 이전 달(8월) 말일 패딩 셀 (화요일 시작이므로 일, 월 2칸)
+  for (let i = 0; i < startDayOfWeek; i++) {
+    const prevDate = daysInPrevMonth - startDayOfWeek + 1 + i;
+    const isSun = i === 0;
+    gridHtml += `
+      <div class="min-h-[95px] p-2.5 rounded-2xl bg-navy-950/40 border border-navy-800/40 opacity-35 flex flex-col justify-between select-none">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold font-mono ${isSun ? 'text-rose-400/80' : 'text-slate-400'}">8/${prevDate}</span>
+          <span class="text-[10px] text-slate-400">(${dayNames[i]})</span>
+        </div>
+        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">8월</div>
+      </div>
+    `;
+  }
+
+  // 2. 당월(9월) 1일 ~ 30일
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `2026-09-${String(day).padStart(2, '0')}`;
     const dayEvents = events.filter(e => e.date === dateStr);
     const hasEvents = dayEvents.length > 0;
+    const dayOfWeek = (startDayOfWeek + day - 1) % 7; // 0=일, 6=토
+    const isSunday = dayOfWeek === 0;
+    const isSaturday = dayOfWeek === 6;
+    const isToday = (day === 10); // 현재 기준일 2026-09-10 (목)
+
+    let borderClass = 'border-navy-800/80 bg-navy-950';
+    if (isToday) {
+      borderClass = 'border-cyan-400 bg-cyan-950/30 ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/10';
+    } else if (hasEvents) {
+      borderClass = 'border-cyan-500/40 bg-cyan-950/20';
+    }
 
     gridHtml += `
-      <div class="min-h-[90px] p-2.5 rounded-2xl bg-navy-950 border ${hasEvents ? 'border-cyan-500/40 bg-cyan-950/20' : 'border-navy-800/80'} flex flex-col justify-between transition hover:border-cyan-400 group">
+      <div class="min-h-[95px] p-2.5 rounded-2xl ${borderClass} flex flex-col justify-between transition hover:border-cyan-400 hover:shadow-md group">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold ${hasEvents ? 'text-cyan-400 font-mono' : 'text-slate-400'}">9/${day}</span>
-          ${hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : ''}
+          <div class="flex items-center gap-1">
+            <span class="text-xs font-bold font-mono ${isToday ? 'text-cyan-300 font-extrabold' : (isSunday ? 'text-rose-400 font-extrabold' : (isSaturday ? 'text-cyan-400 font-extrabold' : (hasEvents ? 'text-white' : 'text-slate-300')))}">9/${day}</span>
+            <span class="text-[10px] font-semibold ${isSunday ? 'text-rose-400/90' : (isSaturday ? 'text-cyan-400/90' : 'text-slate-400')}">(${dayNames[dayOfWeek]})</span>
+          </div>
+          ${isToday ? `<span class="px-1.5 py-0.5 rounded bg-cyan-500 text-navy-950 font-black text-[9px] leading-none shadow-sm">오늘</span>` : (hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : '')}
         </div>
-        <div class="space-y-1 mt-1">
+        <div class="space-y-1 mt-1.5 flex-1">
           ${dayEvents.map(e => `
-            <div class="text-[10px] px-1.5 py-0.5 rounded bg-navy-900 border border-navy-800 text-slate-200 truncate font-medium" title="${escapeHtml(e.title)}">
-              ${escapeHtml(e.coin)}: ${escapeHtml(e.title)}
+            <div class="text-[10px] px-1.5 py-0.5 rounded bg-navy-900 border border-navy-800 text-slate-200 truncate font-medium flex items-center gap-1 hover:border-cyan-500/50 transition cursor-pointer" title="${escapeHtml(e.coin)}: ${escapeHtml(e.title)} (${e.time})">
+              <span class="font-bold text-cyan-400 font-mono shrink-0">${escapeHtml(e.coin)}</span>
+              <span class="truncate">${escapeHtml(e.title)}</span>
             </div>
           `).join('')}
         </div>
+      </div>
+    `;
+  }
+
+  // 3. 다음 달(10월) 초일 패딩 셀 (7열 그리드 직사각형 완성)
+  const totalCells = startDayOfWeek + daysInMonth;
+  const remainingCells = (7 - (totalCells % 7)) % 7;
+  for (let j = 1; j <= remainingCells; j++) {
+    const dow = (totalCells + j - 1) % 7;
+    const isSat = dow === 6;
+    gridHtml += `
+      <div class="min-h-[95px] p-2.5 rounded-2xl bg-navy-950/40 border border-navy-800/40 opacity-35 flex flex-col justify-between select-none">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold font-mono ${isSat ? 'text-cyan-400/80' : 'text-slate-400'}">10/${j}</span>
+          <span class="text-[10px] text-slate-400">(${dayNames[dow]})</span>
+        </div>
+        <div class="text-[10px] text-slate-400 text-center py-2 font-mono">10월</div>
       </div>
     `;
   }
@@ -3680,6 +3735,11 @@ function handleRoute() {
     switchTab('calculators', false);
     if (parts[1] && typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.switchSubTab === 'function') {
       CoinCalculators.switchSubTab(parts[1]);
+    }
+  } else if (tabId === 'calendar') {
+    switchTab('calendar', false);
+    if (parts[1] === 'month') {
+      switchCalendarView('month');
     }
   } else {
     switchTab(tabId, false);

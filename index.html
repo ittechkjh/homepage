@@ -140,7 +140,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260908_01">
+  <link rel="stylesheet" href="styles.css?v=20260910_02">
   <link rel="stylesheet" href="css/analyzer.css?v=20260907_02">
 
   <style>
@@ -2468,15 +2468,41 @@
       </div>
 
       <!-- View 2: Month Calendar Grid View -->
-      <div id="calendar-month-view" class="hidden bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-navy-800">
-          <h3 class="font-extrabold text-lg text-white flex items-center gap-2">
-            <span>📅</span> 2026년 9월 가상자산 월간 캘린더
-          </h3>
-          <span class="text-xs text-cyan-400 font-mono font-bold">※ 주요 이벤트 자동 하이라이트</span>
+      <div id="calendar-month-view" class="hidden bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-navy-800">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">📅</span>
+            <div>
+              <h3 class="font-extrabold text-lg text-white">2026년 9월 가상자산 월간 캘린더</h3>
+              <p class="text-xs text-slate-400">주요 경제 지표, 연준 FOMC, 토큰 락업해제 및 하드포크 일정</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono font-bold flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              오늘: 2026.09.10 (목)
+            </span>
+          </div>
         </div>
-        <div id="month-calendar-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-3">
-          <!-- Rendered by JS -->
+
+        <div class="overflow-x-auto no-scrollbar pb-1">
+          <div class="min-w-[700px] space-y-2">
+            <!-- 7-Day Weekday Header -->
+            <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold select-none">
+              <div class="py-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">일 (SUN)</div>
+              <div class="py-2.5 rounded-xl bg-navy-950 text-slate-300 border border-navy-800 font-semibold">월 (MON)</div>
+              <div class="py-2.5 rounded-xl bg-navy-950 text-slate-300 border border-navy-800 font-semibold">화 (TUE)</div>
+              <div class="py-2.5 rounded-xl bg-navy-950 text-slate-300 border border-navy-800 font-semibold">수 (WED)</div>
+              <div class="py-2.5 rounded-xl bg-navy-950 text-slate-300 border border-navy-800 font-semibold">목 (THU)</div>
+              <div class="py-2.5 rounded-xl bg-navy-950 text-slate-300 border border-navy-800 font-semibold">금 (FRI)</div>
+              <div class="py-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold">토 (SAT)</div>
+            </div>
+
+            <!-- Calendar Days Grid (Strict 7 columns aligned with header) -->
+            <div id="month-calendar-grid" class="grid grid-cols-7 gap-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -5879,7 +5905,7 @@
   <script src="js/admin.js?v=20260910_01"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260909_02"></script>
-  <script src="js/preview-app-v2.js?v=20260910_01"></script>
+  <script src="js/preview-app-v2.js?v=20260910_02"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
