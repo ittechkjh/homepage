@@ -1434,7 +1434,7 @@ const App = {
         const feesEl = document.getElementById('cardTotalFees');
         const winRateEl = document.getElementById('cardWinRate');
         if (feesEl) feesEl.textContent = this.formatCurrency(s.totalFees);
-        if (winRateEl) winRateEl.textContent = s.totalWinRate.toFixed(1) + '% (' + s.totalWinTrades + '승 ' + s.totalLossTrades + '패 / 총 ' + s.totalTradesCount + '건)';
+        if (winRateEl) winRateEl.textContent = s.totalWinRate.toFixed(1) + '% (' + s.totalWinTrades + '승 ' + s.totalLossTrades + '패 / 청산 ' + s.totalSellTrades + '건, 총 ' + s.totalTradesCount + '건)';
     },
 
     renderCoinsTable: function () {

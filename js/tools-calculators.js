@@ -911,7 +911,8 @@ const CoinCalculators = {
         if (rep && rep.summary) {
             const s = rep.summary;
             const sellAmt = Math.round(s.totalCumulativeSellAmount || s.totalSold || s.totalSellAmount || 0);
-            const buyAmt = Math.round(s.totalCumulativeBuyAmount || s.totalInvested || s.totalBuyAmount || 0);
+            const closedCostBasis = Math.max(0, (s.totalCumulativeBuyAmount || 0) - (s.currentPortfolioCost || 0));
+            const buyAmt = Math.round(closedCostBasis || s.totalInvested || s.totalBuyAmount || 0);
             const feeAmt = Math.round(s.totalFees || s.totalFee || 0);
 
             const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
@@ -919,7 +920,7 @@ const CoinCalculators = {
             setVal('taxTotalBuy', buyAmt);
             setVal('taxTotalFee', feeAmt);
             this.calcTax();
-            alert('손익 분석기의 실측 손익 데이터(총 매도액 ' + sellAmt.toLocaleString() + '원, 매수액 ' + buyAmt.toLocaleString() + '원, 수수료 ' + feeAmt.toLocaleString() + '원)가 세금 계산기에 성공적으로 반영되었습니다!');
+            alert('손익 분석기의 실측 손익 데이터(총 매도액 ' + sellAmt.toLocaleString() + '원, 매도분 취득원가 ' + buyAmt.toLocaleString() + '원, 수수료 ' + feeAmt.toLocaleString() + '원)가 세금 계산기에 성공적으로 반영되었습니다!');
         } else {
             alert('손익 분석기에 업로드된 거래내역이 없습니다. 먼저 [손익 분석기]에서 엑셀을 업로드하거나 샘플 데이터를 로드해 주세요.');
         }

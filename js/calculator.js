@@ -190,7 +190,9 @@ const ProfitCalculator = {
         const totalWinRate = totalSellTrades > 0 ? (totalWinTrades / totalSellTrades) * 100 : 0;
         
         const closedCostBasis = totalCumulativeBuyAmount - currentPortfolioCost;
-        const totalRealizedRoi = closedCostBasis > 0 ? (totalRealizedProfit / closedCostBasis) * 100 : 0;
+        const totalRealizedRoi = closedCostBasis > 0 
+            ? (totalRealizedProfit / closedCostBasis) * 100 
+            : (totalRealizedProfit > 0 ? 100 : 0);
 
         const monthlyStats = Object.values(monthlyStatsMap).sort((a, b) => a.period.localeCompare(b.period));
         monthlyStats.forEach(m => {
@@ -595,9 +597,10 @@ const ProfitCalculator = {
 
         const avgBuyPrice = holdingQty > 1e-8 ? holdingCost / holdingQty : 0;
         const totalTradeVolume = totalBuyAmount + totalSellAmount;
-        const realizedRoi = (totalBuyAmount - holdingCost) > 0 
-            ? (realizedProfit / (totalBuyAmount - holdingCost)) * 100 
-            : 0;
+        const closedBasis = totalBuyAmount - holdingCost;
+        const realizedRoi = closedBasis > 0 
+            ? (realizedProfit / closedBasis) * 100 
+            : (realizedProfit > 0 ? 100 : 0);
 
         const avgSellPrice = totalSellQty > 0 ? totalSellAmount / totalSellQty : 0;
         const referencePrice = avgSellPrice > 0 ? avgSellPrice : avgBuyPrice;
@@ -750,12 +753,12 @@ const ProfitCalculator = {
             avgBuyPrice = 0;
         }
 
-        const totalTradeVolume = totalBuyAmount + totalSellAmount;
-        const realizedRoi = (totalBuyAmount - holdingCost) > 0 
-            ? (realizedProfit / (totalBuyAmount - holdingCost)) * 100 
-            : 0;
+        const closedBasis = totalBuyAmount - holdingCost;
+        const realizedRoi = closedBasis > 0 
+            ? (realizedProfit / closedBasis) * 100 
+            : (realizedProfit > 0 ? 100 : 0);
 
-        const avgSellPrice = totalSellCount > 0 ? totalSellAmount / totalSellQty : 0;
+        const avgSellPrice = totalSellQty > 0 ? totalSellAmount / totalSellQty : 0;
         const referencePrice = avgSellPrice > 0 ? avgSellPrice : avgBuyPrice;
         const gainedCoinQty = referencePrice > 0 ? (realizedProfit / referencePrice) : 0;
         const gainedCoinRoi = totalBuyQty > 0 ? (gainedCoinQty / totalBuyQty) * 100 : 0;
