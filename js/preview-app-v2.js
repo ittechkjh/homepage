@@ -1910,43 +1910,69 @@ function ensureDailyMarketReportPost(posts) {
   if (!Array.isArray(posts)) posts = [];
   const deletedIds = getDeletedPostIds();
 
-  // Determine active report date (KST)
-  // If before 08:00 KST, use yesterday's 08:00 report; if 08:00 or later, use today's 08:00 report
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const kst = new Date(utc + (9 * 3600000));
-  
-  if (kst.getHours() < 8) {
-    kst.setDate(kst.getDate() - 1);
-  }
-  const year = kst.getFullYear();
-  const month = String(kst.getMonth() + 1).padStart(2, '0');
-  const day = String(kst.getDate()).padStart(2, '0');
-  const dateStr = `${year}-${month}-${day}`;
-  const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
-  const targetReportId = `report-${year}${month}${day}`;
-
-  if (deletedIds.includes(targetReportId)) {
-    return posts;
+  // 1. Resolve daily market reports from memory cache or localStorage
+  let cachedReports = window._dailyMarketReportsCache;
+  if (!cachedReports || !Array.isArray(cachedReports) || cachedReports.length === 0) {
+    try {
+      const raw = localStorage.getItem('crytopnl_daily_market_reports_cache');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          cachedReports = parsed;
+          window._dailyMarketReportsCache = parsed;
+        }
+      }
+    } catch(e) {}
   }
 
-  const exists = posts.some(p => String(p.id) === targetReportId);
-  if (!exists) {
-    let reportToAdd = null;
-    if (window._dailyMarketReportsCache && Array.isArray(window._dailyMarketReportsCache)) {
-      reportToAdd = window._dailyMarketReportsCache.find(r => r.id === targetReportId);
+  if (Array.isArray(cachedReports) && cachedReports.length > 0) {
+    // Inject all cached market reports if not deleted and not already in posts
+    cachedReports.forEach(rep => {
+      if (rep && rep.id && !deletedIds.includes(String(rep.id))) {
+        const existingIdx = posts.findIndex(p => String(p.id) === String(rep.id));
+        if (existingIdx === -1) {
+          posts.push(rep);
+        }
+      }
+    });
+  } else {
+    // Determine active report date (KST)
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const kst = new Date(utc + (9 * 3600000));
+    if (kst.getHours() < 8) {
+      kst.setDate(kst.getDate() - 1);
     }
-    if (!reportToAdd) {
-      reportToAdd = buildDefaultDailyMarketReport(dateStr, dateKorean);
+    const year = kst.getFullYear();
+    const month = String(kst.getMonth() + 1).padStart(2, '0');
+    const day = String(kst.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
+    const targetReportId = `report-${year}${month}${day}`;
+
+    if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id) === targetReportId)) {
+      posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
     }
-    posts.unshift(reportToAdd);
   }
+
+  // Restore persistent views and upvotes from local storage
+  try {
+    const votesMap = JSON.parse(localStorage.getItem('crytopnl_post_votes') || '{}');
+    const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+    posts.forEach(p => {
+      if (p && p.id) {
+        if (votesMap[p.id] !== undefined) p.upvotes = votesMap[p.id];
+        if (viewsMap[p.id] !== undefined) p.views = viewsMap[p.id];
+      }
+    });
+  } catch(e) {}
+
   return posts;
 }
 
 let _dailyMarketReportsFetched = false;
-async function loadDailyMarketReports() {
-  if (_dailyMarketReportsFetched) return;
+async function loadDailyMarketReports(force = false) {
+  if (_dailyMarketReportsFetched && !force) return;
   _dailyMarketReportsFetched = true;
   try {
     const res = await fetch('data/daily-market-reports.json?v=' + Date.now());
@@ -1955,20 +1981,13 @@ async function loadDailyMarketReports() {
       const reports = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
       if (reports.length > 0) {
         window._dailyMarketReportsCache = reports;
+        try {
+          localStorage.setItem('crytopnl_daily_market_reports_cache', JSON.stringify(reports));
+        } catch(e) {}
         const currentPosts = getStoredPosts();
-        const deletedIds = getDeletedPostIds();
-        let changed = false;
-        reports.forEach(rep => {
-          if (!deletedIds.includes(String(rep.id)) && !currentPosts.some(p => String(p.id) === String(rep.id))) {
-            currentPosts.unshift(rep);
-            changed = true;
-          }
-        });
-        if (changed) {
-          saveStoredPosts(currentPosts);
-          if (typeof renderForumPosts === 'function') {
-            renderForumPosts();
-          }
+        saveStoredPosts(currentPosts);
+        if (typeof renderForumPosts === 'function') {
+          renderForumPosts();
         }
       }
     }
@@ -2012,6 +2031,9 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
+  if (category === 'altcoin' && typeof loadDailyMarketReports === 'function') {
+    loadDailyMarketReports(true);
+  }
   renderForumPosts();
 }
 window.filterForum = filterForum;
@@ -2244,6 +2266,11 @@ function openPostDetailModal(postId, updateHistory = true) {
   currentCafePostId = post.id;
   currentViewingPostId = post.id;
   post.views = (post.views || 0) + 1;
+  try {
+    const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+    viewsMap[post.id] = post.views;
+    localStorage.setItem('crytopnl_post_views', JSON.stringify(viewsMap));
+  } catch(e) {}
   saveStoredPosts(posts);
 
   if (updateHistory && window.location.hash !== `#/forum/post/${post.id}`) {
@@ -2892,6 +2919,11 @@ function handleVoteInModal(delta) {
   }
 
   post.upvotes = Math.max(0, (post.upvotes || 0) + delta);
+  try {
+    const votesMap = JSON.parse(localStorage.getItem('crytopnl_post_votes') || '{}');
+    votesMap[post.id] = post.upvotes;
+    localStorage.setItem('crytopnl_post_votes', JSON.stringify(votesMap));
+  } catch(e) {}
   saveStoredPosts(posts);
 
   const el = document.getElementById('cafe-post-upvotes');
@@ -4466,6 +4498,7 @@ function switchTab(tabId, updateHash = true) {
   }
 
   if (tabId === 'forum') {
+    if (typeof loadDailyMarketReports === 'function') loadDailyMarketReports(true);
     showForumListView();
   }
 
@@ -4669,6 +4702,7 @@ if (db) {
     });
 
     posts.sort((a,b) => (b.id || 0) - (a.id || 0));
+    posts = ensureDailyMarketReportPost(posts);
     saveStoredPosts(posts);
     if (typeof renderForumPosts === 'function') renderForumPosts();
   }, err => {
