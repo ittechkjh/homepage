@@ -22,6 +22,8 @@ jobs:
           node-version: '20'
 
       - name: Generate daily 08:00 KST market report
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: node scripts/generate-daily-market-report.js
 
       - name: Commit and push if changed
