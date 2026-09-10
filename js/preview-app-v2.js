@@ -6266,6 +6266,12 @@ const OnChainEngine = {
     });
 
     this.render();
+
+    if (coinSym === 'BTC') {
+      this.fetchRealOnChainData();
+    } else {
+      this.fetchAltcoinRealData(coinSym);
+    }
   },
 
   updateLiveMetrics: function () {
@@ -6364,7 +6370,12 @@ const OnChainEngine = {
       setTimeout(() => btn.classList.remove('animate-spin'), 600);
     }
     this.updateLiveMetrics();
-    this.fetchRealOnChainData();
+    if (this.currentCoin === 'BTC') {
+      this.fetchRealOnChainData();
+    } else {
+      if (this._lastAltcoinFetch) delete this._lastAltcoinFetch[this.currentCoin];
+      this.fetchAltcoinRealData(this.currentCoin);
+    }
   },
 
   render: function () {
@@ -6372,6 +6383,19 @@ const OnChainEngine = {
     this.renderSummaryBanner();
     
     // 1. Cards
+    const elCard1Label = document.getElementById('onchain-card1-label');
+    const elFlowSub = document.getElementById('onchain-flow-sub');
+    if (elCard1Label) {
+      elCard1Label.innerHTML = this.currentCoin === 'BTC' 
+        ? '<i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 거래소 24h 순유출입'
+        : '<i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 24h 넷 테이커 순유입';
+    }
+    if (elFlowSub) {
+      elFlowSub.innerText = this.currentCoin === 'BTC'
+        ? (d.netFlow < 0 ? '거래소 외부 유출 (매집)' : '거래소 내부 유입 (매도)')
+        : (d.netFlow >= 0 ? '순매수 시장가 유입' : '순매도 시장가 유출');
+    }
+
     const elFlow = document.getElementById('onchain-net-flow');
     const elFlowUsd = document.getElementById('onchain-net-flow-usd');
     const elFlowSignal = document.getElementById('onchain-flow-signal');
@@ -6390,18 +6414,70 @@ const OnChainEngine = {
       elFlowSignal.className = (d.netFlow < 0 ? 'badge-green' : 'badge-yellow') + ' text-[11px] font-bold px-2 py-0.5 rounded-full';
     }
 
+    const elCard2Label = document.getElementById('onchain-card2-label');
+    const elReserveSub = document.getElementById('onchain-reserve-sub');
+    if (elCard2Label) {
+      if (['ETH', 'SOL', 'SUI', 'AVAX'].includes(this.currentCoin)) {
+        elCard2Label.innerHTML = '<i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 온체인 총 예치금 (TVL)';
+      } else if (this.currentCoin === 'BTC') {
+        elCard2Label.innerHTML = '<i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 거래소 총 보유 잔고';
+      } else {
+        elCard2Label.innerHTML = '<i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 선물 미결제약정 (OI)';
+      }
+    }
+    if (elReserveSub) {
+      if (['ETH', 'SOL', 'SUI', 'AVAX'].includes(this.currentCoin)) {
+        elReserveSub.innerText = 'DefiLlama 실시간 체인 TVL';
+      } else if (this.currentCoin === 'BTC') {
+        elReserveSub.innerText = '3년 내 최저 수준 (공급 부족)';
+      } else {
+        elReserveSub.innerText = '바이낸스 실시간 선물 미결제약정(OI)';
+      }
+    }
+
     const elReserve = document.getElementById('onchain-reserve-balance');
     const elReserveChange = document.getElementById('onchain-reserve-change');
     if (elReserve) elReserve.innerText = d.reserveBalance;
     if (elReserveChange) {
       elReserveChange.innerText = d.reserveChange;
-      elReserveChange.className = 'text-xs font-mono font-bold ' + (d.reserveChange.startsWith('-') ? 'text-emerald-400' : 'text-rose-400');
+      elReserveChange.className = 'text-xs font-mono font-bold ' + (d.reserveChange.startsWith('-') || d.reserveChange.includes('FR:') ? 'text-emerald-400' : 'text-rose-400');
+    }
+
+    const elCard3Label = document.getElementById('onchain-card3-label');
+    const elWhaleSub = document.getElementById('onchain-whale-sub');
+    if (elCard3Label) {
+      elCard3Label.innerHTML = this.currentCoin === 'BTC'
+        ? '<i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 고래 이체액'
+        : '<i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 체결 & 미결제';
+    }
+    if (elWhaleSub) {
+      elWhaleSub.innerText = this.currentCoin === 'BTC'
+        ? '100만 달러($1M) 이상 초대형 트랜잭션'
+        : '대형 체결 틱 실시간 감지';
     }
 
     const elWhaleVol = document.getElementById('onchain-whale-volume');
     const elWhaleCount = document.getElementById('onchain-whale-count');
     if (elWhaleVol) elWhaleVol.innerText = d.whaleVolume;
     if (elWhaleCount) elWhaleCount.innerText = d.whaleCount;
+
+    const elCard4Label = document.getElementById('onchain-card4-label');
+    const elCard4M1 = document.getElementById('onchain-card4-metric1');
+    const elCard4M2 = document.getElementById('onchain-card4-metric2');
+    if (elCard4Label) {
+      elCard4Label.innerHTML = this.currentCoin === 'BTC'
+        ? '<i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 활성 지갑 & MVRV'
+        : '<i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 롱숏 포지션 & 펀딩비';
+    }
+    if (elCard4M1 && elCard4M2) {
+      if (this.currentCoin === 'BTC') {
+        elCard4M1.innerHTML = `MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">${d.mvrvVal}</strong>`;
+        elCard4M2.innerHTML = `NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">${d.nvtVal}</strong>`;
+      } else {
+        elCard4M1.innerHTML = `롱/숏: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">${d.mvrvVal}</strong>`;
+        elCard4M2.innerHTML = `연환산: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">${d.nvtVal}</strong>`;
+      }
+    }
 
     const elActiveWallets = document.getElementById('onchain-active-wallets');
     const elMvrvStatus = document.getElementById('onchain-mvrv-status');
@@ -6606,6 +6682,196 @@ const OnChainEngine = {
     if (elNuplPhase) elNuplPhase.innerText = m.nuplPhase;
   },
 
+  _cachedChains: null,
+  _cachedChainsTime: 0,
+  _lastAltcoinFetch: {},
+
+  // Real-time Altcoin On-Chain & Derivatives Live Data Engine (Plan 1 + 2)
+  fetchAltcoinRealData: async function (coinSym) {
+    if (!coinSym || coinSym === 'BTC') return;
+    const now = Date.now();
+    if (this._lastAltcoinFetch && this._lastAltcoinFetch[coinSym] && (now - this._lastAltcoinFetch[coinSym] < 15000)) {
+      return;
+    }
+    if (!this._lastAltcoinFetch) this._lastAltcoinFetch = {};
+    this._lastAltcoinFetch[coinSym] = now;
+
+    const binanceSym = `${coinSym}USDT`;
+    const chainMap = {
+      ETH: 'Ethereum',
+      SOL: 'Solana',
+      SUI: 'Sui',
+      AVAX: 'Avalanche'
+    };
+
+    try {
+      // 1. Parallel fetch from Binance Futures
+      const [takerRes, oiRes, premRes, lsRes, tradesRes] = await Promise.all([
+        fetch(`https://fapi.binance.com/futures/data/takerlongshortRatio?symbol=${binanceSym}&period=1d&limit=1`).catch(() => null),
+        fetch(`https://fapi.binance.com/fapi/v1/openInterest?symbol=${binanceSym}`).catch(() => null),
+        fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${binanceSym}`).catch(() => null),
+        fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSym}&period=1h&limit=1`).catch(() => null),
+        fetch(`https://fapi.binance.com/fapi/v1/aggTrades?symbol=${binanceSym}&limit=60`).catch(() => null)
+      ]);
+
+      // 2. DefiLlama Chains TVL cache (refresh every 3 minutes)
+      if (!this._cachedChains || (now - (this._cachedChainsTime || 0) > 180000)) {
+        try {
+          const chainsRes = await fetch('https://api.llama.fi/v2/chains');
+          if (chainsRes && chainsRes.ok) {
+            this._cachedChains = await chainsRes.json();
+            this._cachedChainsTime = now;
+          }
+        } catch (e) {
+          console.warn('DefiLlama chains fetch fallback:', e);
+        }
+      }
+
+      let markPrice = 0;
+      let fundingRate = 0;
+      if (premRes && premRes.ok) {
+        const premJson = await premRes.json();
+        if (premJson) {
+          markPrice = parseFloat(premJson.markPrice) || 0;
+          fundingRate = parseFloat(premJson.lastFundingRate) || 0;
+        }
+      }
+
+      // Fallback price from marketCoins
+      if (!markPrice && typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
+        const match = marketCoins.find(c => c.symbol && c.symbol.toUpperCase() === coinSym.toUpperCase());
+        if (match && match.current_price) {
+          const liveFx = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.usdkrw?.rate > 500) ? marketAnalysisState.usdkrw.rate : 1341.2;
+          markPrice = match.current_price > 10000 ? match.current_price / liveFx : match.current_price;
+        }
+      }
+
+      const coinData = this.data[coinSym] || {};
+
+      // 3. Taker Buy/Sell Net Flow
+      let buyVol = 0, sellVol = 0, buySellRatio = 1.0;
+      if (takerRes && takerRes.ok) {
+        const takerJson = await takerRes.json();
+        if (Array.isArray(takerJson) && takerJson.length > 0) {
+          buyVol = parseFloat(takerJson[0].buyVol) || 0;
+          sellVol = parseFloat(takerJson[0].sellVol) || 0;
+          buySellRatio = parseFloat(takerJson[0].buySellRatio) || 1.0;
+          const netFlow = buyVol - sellVol;
+          coinData.netFlow = Math.round(netFlow);
+          coinData.netFlowUsd = Math.round(netFlow * (markPrice || 1));
+          coinData.signal = buySellRatio >= 1.0 ? '순매수 우세 (Taker Buy)' : '순매도 우세 (Taker Sell)';
+          coinData.signalClass = buySellRatio >= 1.0 ? 'badge-green' : 'badge-yellow';
+        }
+      }
+
+      // 4. Open Interest (USD)
+      let openInterestCoins = 0, oiUsd = 0;
+      if (oiRes && oiRes.ok) {
+        const oiJson = await oiRes.json();
+        if (oiJson && oiJson.openInterest) {
+          openInterestCoins = parseFloat(oiJson.openInterest) || 0;
+          oiUsd = openInterestCoins * (markPrice || 1);
+        }
+      }
+
+      // 5. DefiLlama TVL or Reserve
+      let chainTvl = 0;
+      if (chainMap[coinSym] && Array.isArray(this._cachedChains)) {
+        const matched = this._cachedChains.find(c => c.name === chainMap[coinSym]);
+        if (matched && matched.tvl) chainTvl = matched.tvl;
+      }
+
+      if (chainTvl > 0) {
+        coinData.reserveBalance = chainTvl >= 1e9 
+          ? `$${(chainTvl / 1e9).toFixed(2)}B USD` 
+          : `$${(chainTvl / 1e6).toFixed(1)}M USD`;
+        coinData.reserveChange = buySellRatio >= 1.0 ? '+온체인 확장' : '-온체인 횡보';
+      } else if (oiUsd > 0) {
+        coinData.reserveBalance = oiUsd >= 1e9 
+          ? `$${(oiUsd / 1e9).toFixed(2)}B USD` 
+          : `$${(oiUsd / 1e6).toFixed(1)}M USD`;
+        coinData.reserveChange = `FR: ${(fundingRate * 100).toFixed(4)}%`;
+      }
+
+      // 6. Long/Short Ratio
+      let lsRatio = 1.0, longPct = 50, shortPct = 50;
+      if (lsRes && lsRes.ok) {
+        const lsJson = await lsRes.json();
+        if (Array.isArray(lsJson) && lsJson.length > 0) {
+          lsRatio = parseFloat(lsJson[0].longShortRatio) || 1.0;
+          longPct = Math.round((parseFloat(lsJson[0].longAccount) || 0.5) * 100);
+          shortPct = 100 - longPct;
+          coinData.activeWallets = `롱숏: ${lsRatio.toFixed(2)} (${longPct}% / ${shortPct}%)`;
+          coinData.outflowPct = shortPct;
+          coinData.inflowPct = longPct;
+          coinData.mvrvStatus = lsRatio >= 1.2 ? '롱 포지션 우세' : (lsRatio <= 0.8 ? '숏 포지션 우세' : '균형 관망');
+          coinData.mvrvVal = lsRatio.toFixed(2);
+          coinData.nvtVal = `${(fundingRate * 100 * 3 * 365).toFixed(1)}%`;
+        }
+      }
+
+      // 7. Large Aggregated Trades (고래 실시간 체결)
+      if (tradesRes && tradesRes.ok) {
+        const tradesJson = await tradesRes.json();
+        if (Array.isArray(tradesJson) && tradesJson.length > 0) {
+          const threshold = (markPrice * 100 > 30000) ? 30000 : (coinSym === 'DOGE' || coinSym === 'SUI' ? 15000 : 25000);
+          const largeTrades = tradesJson.filter(t => {
+            const val = (parseFloat(t.p) || 0) * (parseFloat(t.q) || 0);
+            return val >= threshold;
+          });
+
+          const alerts = [];
+          let totalLargeUsd = 0;
+          largeTrades.slice(0, 10).forEach(t => {
+            const p = parseFloat(t.p) || markPrice;
+            const q = parseFloat(t.q) || 0;
+            const usdVal = Math.round(p * q);
+            totalLargeUsd += usdVal;
+            const isBuyerMaker = t.m;
+            const isMega = usdVal >= 100000;
+            alerts.push({
+              time: '방금 전',
+              timestamp: t.T || Date.now(),
+              coin: coinSym,
+              qty: `${q.toLocaleString('ko-KR', { maximumFractionDigits: q < 10 ? 2 : 0 })} ${coinSym}`,
+              usd: usdVal >= 1e6 ? `$${(usdVal / 1e6).toFixed(2)}M` : `$${(usdVal / 1e3).toFixed(1)}K`,
+              fromTo: isBuyerMaker ? 'Binance Taker ➔ Market Sell' : 'Market Buy ➔ Binance Taker',
+              type: isBuyerMaker ? (isMega ? '초대형 시장가 매도' : '대형 시장가 매도') : (isMega ? '초대형 시장가 매수' : '대형 시장가 매수'),
+              typeClass: isBuyerMaker ? 'text-rose-400' : 'text-emerald-400'
+            });
+          });
+
+          if (alerts.length > 0) {
+            coinData.whaleAlerts = alerts;
+            coinData.whaleCount = `${alerts.length}건 실시간 감지`;
+            coinData.whaleVolume = totalLargeUsd >= 1e6 ? `$${(totalLargeUsd / 1e6).toFixed(2)}M` : `$${(totalLargeUsd / 1e3).toFixed(0)}K`;
+          } else if (oiUsd > 0) {
+            coinData.whaleVolume = `$${(oiUsd / 1e6).toFixed(1)}M (OI)`;
+          }
+        }
+      }
+
+      // 8. Dynamic Sentiment Text
+      const isBullish = buySellRatio >= 1.0 && lsRatio >= 1.0;
+      coinData.sentimentText = `온체인 종합 진단: <span class="${isBullish ? 'text-emerald-400' : 'text-amber-400'} font-bold">24h 넷 테이커 ${buySellRatio >= 1.0 ? '순매수 우세' : '순매도 우세'}(비율 ${buySellRatio.toFixed(2)}) & 롱숏비율 ${lsRatio.toFixed(2)} [실시간 연동]</span>`;
+
+      // 9. Summary Banner Updates
+      if (this.summaryData && this.summaryData[coinSym]) {
+        this.summaryData[coinSym].badge = `${buySellRatio >= 1.0 ? '실시간 매수 우위' : '실시간 매도 우위'} (${coinSym})`;
+        this.summaryData[coinSym].badgeClass = buySellRatio >= 1.0 ? 'badge-green' : 'badge-yellow';
+        this.summaryData[coinSym].title = `24h 테이커 볼륨 매수 ${Math.round(buyVol).toLocaleString()} vs 매도 ${Math.round(sellVol).toLocaleString()} ➔ ${buySellRatio >= 1.0 ? '적극적 매수세 유입 국면' : '단기 차익 실현 및 매도세 우세'}`;
+        this.summaryData[coinSym].desc = `${chainTvl > 0 ? `온체인 DefiLlama TVL $${(chainTvl / 1e9).toFixed(2)}B 및 ` : ''}선물 미결제약정 $${(oiUsd / 1e6).toFixed(1)}M, 8h 펀딩비 ${(fundingRate * 100).toFixed(4)}%가 반영된 실시간 라이브 온체인·파생 데이터입니다.`;
+        this.summaryData[coinSym].pressure = `매수 압력 ${coinData.inflowPct}% vs 매도 압력 ${coinData.outflowPct}%`;
+      }
+
+      if (this.currentCoin === coinSym) {
+        this.render();
+      }
+    } catch (err) {
+      console.warn(`Error fetching real data for altcoin ${coinSym}:`, err);
+    }
+  },
+
   // Fetch real data from DefiLlama & Public Blockchain Node APIs
   fetchRealOnChainData: async function() {
     // 1. DefiLlama Real Stablecoins API
@@ -6761,7 +7027,11 @@ const OnChainEngine = {
     // Refresh real on-chain APIs every 60 seconds
     if (!this._apiInterval) {
       this._apiInterval = setInterval(() => {
-        this.fetchRealOnChainData();
+        if (this.currentCoin === 'BTC') {
+          this.fetchRealOnChainData();
+        } else {
+          this.fetchAltcoinRealData(this.currentCoin);
+        }
       }, 60000);
     }
   }

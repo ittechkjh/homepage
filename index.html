@@ -4254,14 +4254,14 @@
         <div class="p-5 rounded-3xl bg-navy-900 border border-cyan-500/30 shadow-xl relative overflow-hidden group flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <span id="onchain-card1-label" class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                 <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> 거래소 24h 순유출입
               </span>
               <span id="onchain-flow-signal" class="badge-green text-[11px] font-bold px-2 py-0.5 rounded-full">강력 매집</span>
             </div>
             <div id="onchain-net-flow" class="text-2xl font-black font-mono text-emerald-400 mt-3">-18,420 BTC</div>
             <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-              <span>거래소 외부 유출 (매집)</span>
+              <span id="onchain-flow-sub">거래소 외부 유출 (매집)</span>
               <span id="onchain-net-flow-usd" class="font-mono text-slate-300 font-bold">-$2.36B</span>
             </div>
           </div>
@@ -4274,13 +4274,13 @@
         <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <span id="onchain-card2-label" class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                 <i data-lucide="wallet" class="w-4 h-4 text-indigo-400"></i> 거래소 총 보유 잔고
               </span>
               <span id="onchain-reserve-change" class="text-emerald-400 text-xs font-mono font-bold">-1.28%</span>
             </div>
             <div id="onchain-reserve-balance" class="text-2xl font-black font-mono text-white mt-3">2,184,200 BTC</div>
-            <div class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
+            <div id="onchain-reserve-sub" class="text-[11px] text-slate-400 mt-1">3년 내 최저 수준 (공급 부족)</div>
           </div>
           <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
             💡 <span class="text-indigo-400 font-semibold">실전 해석:</span> 거래소 보유량이 줄면 시장에서 즉각 던질 수 있는 코인이 마르는 <strong class="text-slate-200">공급 쇼크</strong> 상태를 의미합니다.
@@ -4291,13 +4291,13 @@
         <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <span id="onchain-card3-label" class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                 <i data-lucide="boxes" class="w-4 h-4 text-amber-400"></i> 24h 대형 고래 이체액
               </span>
               <span id="onchain-whale-count" class="text-amber-300 text-xs font-mono font-bold">142건 감지</span>
             </div>
             <div id="onchain-whale-volume" class="text-2xl font-black font-mono text-amber-300 mt-3">$4.82B</div>
-            <div class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
+            <div id="onchain-whale-sub" class="text-[11px] text-slate-400 mt-1">100만 달러($1M) 이상 초대형 트랜잭션</div>
           </div>
           <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
             💡 <span class="text-amber-400 font-semibold">실전 해석:</span> $100만(약 14억원) 이상 거액 트랜잭션의 80% 이상이 거래소 외부 매집성 이체로 분류됩니다.
@@ -4308,15 +4308,15 @@
         <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <span id="onchain-card4-label" class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                 <i data-lucide="fingerprint" class="w-4 h-4 text-purple-400"></i> 활성 지갑 & MVRV
               </span>
               <span id="onchain-mvrv-status" class="text-cyan-400 text-xs font-mono font-bold">저평가/매수구간</span>
             </div>
             <div id="onchain-active-wallets" class="text-2xl font-black font-mono text-white mt-3">984,200 주소</div>
             <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
-              <span>MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
-              <span>NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
+              <span id="onchain-card4-metric1">MVRV Ratio: <strong id="onchain-mvrv-val" class="text-cyan-300 font-mono">1.84</strong></span>
+              <span id="onchain-card4-metric2">NVT: <strong id="onchain-nvt-val" class="text-slate-300 font-mono">38.2</strong></span>
             </div>
           </div>
           <div class="mt-3 p-2 rounded-xl bg-navy-950/80 border border-navy-800/80 text-[11px] text-slate-300 leading-relaxed">
@@ -5949,7 +5949,7 @@
   <script src="js/admin.js?v=20260910_02"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
-  <script src="js/preview-app-v2.js?v=20260911_04"></script>
+  <script src="js/preview-app-v2.js?v=20260911_05"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
