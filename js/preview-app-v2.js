@@ -1807,6 +1807,20 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
   }
 
+  const s = (typeof marketAnalysisState !== 'undefined') ? marketAnalysisState : defaultMarketAnalysisState;
+  const kimpVal = (s.kimp && s.kimp.rate !== undefined) ? (s.kimp.rate >= 0 ? '+' : '') + s.kimp.rate.toFixed(2) + '%' : '+1.20%';
+  const cbVal = (s.coinbasePremium && s.coinbasePremium.rate !== undefined) ? (s.coinbasePremium.rate >= 0 ? '+' : '') + s.coinbasePremium.rate.toFixed(2) + '%' : '+0.08%';
+  const fngScore = (s.fng && s.fng.score !== undefined) ? s.fng.score : 69;
+  const fngText = (s.fng && s.fng.text) ? s.fng.text : '탐욕';
+  const btcDomVal = (s.btcDom && s.btcDom.value !== undefined) ? s.btcDom.value + '%' : '58.34%';
+  const usdkrwVal = (s.usdkrw && s.usdkrw.rate) ? s.usdkrw.rate.toLocaleString() + '원' : '1,340.5원';
+  const upbitRatio = s.upbit?.ratio || 40;
+  const upbitUp = s.upbit?.up || 114;
+  const upbitDown = s.upbit?.down || 150;
+  const bithumbRatio = s.bithumb?.ratio || 36;
+  const bithumbUp = s.bithumb?.up || 172;
+  const bithumbDown = s.bithumb?.down || 287;
+
   function generateReportImage1(dStr) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
     <defs>
@@ -1823,28 +1837,28 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
     <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
     <rect x="20" y="70" width="175" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
     <text x="107" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">공포&amp;탐욕 지수</text>
-    <text x="107" y="140" fill="#fbbf24" font-size="32" font-weight="900" font-family="monospace" text-anchor="middle">69</text>
+    <text x="107" y="140" fill="#fbbf24" font-size="32" font-weight="900" font-family="monospace" text-anchor="middle">${fngScore}</text>
     <rect x="60" y="160" width="95" height="22" rx="11" fill="#f59e0b" fill-opacity="0.15"/>
-    <text x="107" y="175" fill="#fcd34d" font-size="11" font-weight="bold" font-family="sans-serif" text-anchor="middle">탐욕 (Greed)</text>
+    <text x="107" y="175" fill="#fcd34d" font-size="11" font-weight="bold" font-family="sans-serif" text-anchor="middle">${fngText}</text>
     <text x="107" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">단단한 하방 지지</text>
     <rect x="210" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
     <text x="300" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">김프 / 코베 프리미엄</text>
-    <text x="300" y="138" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">+1.20%</text>
-    <text x="300" y="162" fill="#34d399" font-size="13" font-weight="bold" font-family="monospace" text-anchor="middle">CB: +0.08%</text>
+    <text x="300" y="138" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${kimpVal}</text>
+    <text x="300" y="162" fill="#34d399" font-size="13" font-weight="bold" font-family="monospace" text-anchor="middle">CB: ${cbVal}</text>
     <text x="300" y="185" fill="#a78bfa" font-size="10" font-family="sans-serif" text-anchor="middle">미국 기관 꾸준한 순매수</text>
     <text x="300" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">과열 없는 차분한 수치</text>
     <rect x="405" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
     <text x="495" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">BTC 도미넌스 &amp; 환율</text>
-    <text x="495" y="138" fill="#f43f5e" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">58.34%</text>
-    <text x="495" y="162" fill="#cbd5e1" font-size="12" font-weight="bold" font-family="monospace" text-anchor="middle">USD/KRW: 1,340.5원</text>
+    <text x="495" y="138" fill="#f43f5e" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${btcDomVal}</text>
+    <text x="495" y="162" fill="#cbd5e1" font-size="12" font-weight="bold" font-family="monospace" text-anchor="middle">USD/KRW: ${usdkrwVal}</text>
     <text x="495" y="185" fill="#38bdf8" font-size="10" font-family="sans-serif" text-anchor="middle">비트코인 점유율 주도</text>
     <text x="495" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">알트코인 선별 차별화</text>
     <rect x="600" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
     <text x="690" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">거래소 상승 종목 비율</text>
-    <text x="690" y="132" fill="#34d399" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">업비트 40%</text>
-    <text x="690" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 114 / 하락 150)</text>
-    <text x="690" y="174" fill="#fbbf24" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">빗썸 36%</text>
-    <text x="690" y="194" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 172 / 하락 287)</text>
+    <text x="690" y="132" fill="#34d399" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">업비트 ${upbitRatio}%</text>
+    <text x="690" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 ${upbitUp} / 하락 ${upbitDown})</text>
+    <text x="690" y="174" fill="#fbbf24" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">빗썸 ${bithumbRatio}%</text>
+    <text x="690" y="194" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 ${bithumbUp} / 하락 ${bithumbDown})</text>
     <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 데이터 출처: crytopnl.com 실시간 통합 엔진</text>
     </svg>`;
     return createSvgDataUri(svg);
@@ -3651,14 +3665,23 @@ window.handleVoteInModal = handleVoteInModal;
 // ----------------------------------------------------
 // Section 4: Real-Time Chat System
 // ----------------------------------------------------
-let chatMessages = [
-  { id: 1, user: '비트홀더', rank: 'PRO', text: '비트코인 64.8K 지지선 강력하네요. 오늘 밤 나스닥 개장 반응 봐야겠습니다.', time: '오후 8:40' },
-  { id: 2, user: '단타마스터', rank: 'VIP', text: '솔라나 쪽으로 롱 포지션 수익 실현하고 비트 진입 대기 중입니다.', time: '오후 8:42' }
-];
+let chatMessages = [];
 
 function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
+
+  if (chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 text-xs">
+        <div class="w-10 h-10 rounded-2xl bg-navy-900 border border-navy-800 flex items-center justify-center text-lg mb-2">💬</div>
+        <div class="font-bold text-slate-400 mb-1">실시간 대화방에 참여해 보세요</div>
+        <div>아직 작성된 메시지가 없습니다. 첫 번째 메시지를 남겨보세요!</div>
+      </div>
+    `;
+    renderChatActiveUsers();
+    return;
+  }
 
   container.innerHTML = chatMessages.map(msg => `
     <div class="flex items-start gap-3 animate-in">
@@ -6250,22 +6273,14 @@ const OnChainEngine = {
     const d = this.data[coin];
     if (!d) return;
 
-    // 1. Dynamic Net Flow fluctuation (+- 0.3%)
-    const flowDelta = Math.round((Math.random() - 0.48) * (Math.abs(d.netFlow) * 0.005));
-    d.netFlow += flowDelta;
-
-    // 2. Fetch live price if available
+    // Fetch live price if available
     let priceUsd = 65000;
     if (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) {
       const match = marketCoins.find(c => c.symbol && c.symbol.toUpperCase() === coin.toUpperCase());
       if (match && match.current_price) {
-        // Convert KRW to USD using dynamic fx rate or direct USD
         const liveFx = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.usdkrw?.rate > 500) ? marketAnalysisState.usdkrw.rate : 1341.2;
         priceUsd = match.current_price > 10000 ? match.current_price / liveFx : match.current_price;
       }
-    } else {
-      const defaultUsdPrices = { BTC: 68000, ETH: 2500, SOL: 145, XRP: 0.58, DOGE: 0.12, SUI: 1.8, AVAX: 28, LINK: 12 };
-      priceUsd = defaultUsdPrices[coin] || 100;
     }
 
     d.netFlowUsd = Math.round(d.netFlow * priceUsd);
@@ -6273,40 +6288,6 @@ const OnChainEngine = {
     if (coin === 'BTC' && typeof marketAnalysisState !== 'undefined' && marketAnalysisState.mvrvZ) {
       d.mvrvVal = marketAnalysisState.mvrvZ.value.toFixed(2);
       d.mvrvStatus = marketAnalysisState.mvrvZ.text;
-    }
-
-    // 3. Dynamic active wallets & whale count
-    const baseWallets = parseInt(d.activeWallets.replace(/[^0-9]/g, '')) || 500000;
-    const newWallets = Math.max(1000, baseWallets + Math.floor((Math.random() - 0.48) * 800));
-    d.activeWallets = newWallets.toLocaleString() + ' 주소';
-
-    // 4. Periodically insert a fresh whale transaction (35% chance on tick)
-    if (Math.random() < 0.35 && d.whaleAlerts) {
-      const exchanges = ['Binance', 'Coinbase', 'OKX', 'Kraken', 'Upbit', 'Bithumb', 'Cold Storage', 'Institutional Custody'];
-      const fromEx = exchanges[Math.floor(Math.random() * exchanges.length)];
-      let toEx = exchanges[Math.floor(Math.random() * exchanges.length)];
-      while (toEx === fromEx) toEx = exchanges[Math.floor(Math.random() * exchanges.length)];
-
-      const isDeposit = toEx.includes('Binance') || toEx.includes('Upbit') || toEx.includes('OKX');
-      const isOutflow = toEx.includes('Cold') || toEx.includes('Custody') || toEx.includes('Wallet');
-      const type = isOutflow ? '외부 유출 (매집)' : (isDeposit ? '거래소 입금 (주의)' : '기관 지갑 이체');
-      const typeClass = isOutflow ? 'text-emerald-400' : (isDeposit ? 'text-rose-400' : 'text-cyan-400');
-
-      const randQty = Math.round(Math.abs(d.netFlow) * (0.02 + Math.random() * 0.08));
-      const randUsd = (randQty * priceUsd / 1e6).toFixed(1);
-
-      d.whaleAlerts.unshift({
-        time: formatDateTime(Date.now(), true),
-        timestamp: Date.now(),
-        coin: coin,
-        qty: `${randQty.toLocaleString()} ${coin}`,
-        usd: `$${randUsd}M`,
-        fromTo: `${fromEx} ➔ ${toEx}`,
-        type: type,
-        typeClass: typeClass
-      });
-
-      if (d.whaleAlerts.length > 5) d.whaleAlerts.pop();
     }
 
     this.render();
@@ -6713,8 +6694,57 @@ const OnChainEngine = {
     else if (this.realMetrics.nuplVal > 0) this.realMetrics.nuplPhase = 'Hope / Fear (불안·희망)';
     else this.realMetrics.nuplPhase = 'Capitulation (항복·투매 바닥)';
 
+    // 5. Blockchain.info Real Unconfirmed Transactions (Live On-Chain Whale Radar)
+    try {
+      const txRes = await fetch('https://blockchain.info/unconfirmed-transactions?format=json');
+      if (txRes.ok) {
+        const txJson = await txRes.json();
+        if (txJson && Array.isArray(txJson.txs) && txJson.txs.length > 0) {
+          const liveFx = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.usdkrw?.rate > 500) ? marketAnalysisState.usdkrw.rate : 1341.2;
+          const realBtcPrice = (typeof marketCoins !== 'undefined' && Array.isArray(marketCoins)) 
+            ? ((marketCoins.find(c => c.symbol === 'btc')?.current_price || 90000000) / liveFx) 
+            : 68000;
+
+          const whaleList = [];
+          for (const tx of txJson.txs) {
+            if (!tx || !Array.isArray(tx.out)) continue;
+            const totalSats = tx.out.reduce((sum, o) => sum + (o.value || 0), 0);
+            const btcAmt = totalSats / 1e8;
+            if (btcAmt >= 1.5) {
+              const usdAmt = Math.round(btcAmt * realBtcPrice);
+              const hashShort = tx.hash ? `${tx.hash.substring(0, 6)}...${tx.hash.substring(tx.hash.length - 4)}` : '온체인 지갑';
+              const isMega = btcAmt >= 20;
+              whaleList.push({
+                time: '방금 전',
+                timestamp: tx.time ? tx.time * 1000 : Date.now(),
+                coin: 'BTC',
+                qty: `${btcAmt.toLocaleString('ko-KR', { maximumFractionDigits: 2 })} BTC`,
+                usd: usdAmt >= 1e6 ? `$${(usdAmt / 1e6).toFixed(2)}M` : `$${(usdAmt / 1e3).toFixed(0)}K`,
+                fromTo: `Tx: ${hashShort} ➔ ${tx.out.length}개 출력 주소`,
+                type: isMega ? '초대형 고래 이체' : '대형 온체인 이체',
+                typeClass: isMega ? 'text-amber-400' : 'text-cyan-400',
+                txHash: tx.hash
+              });
+            }
+            if (whaleList.length >= 10) break;
+          }
+
+          if (whaleList.length > 0) {
+            this.data.BTC.whaleAlerts = whaleList;
+            this.data.BTC.whaleCount = `${whaleList.length}건 실시간 감지`;
+            const totalWhaleBtc = whaleList.reduce((acc, w) => acc + (parseFloat(w.qty) || 0), 0);
+            this.data.BTC.whaleVolume = `$${((totalWhaleBtc * realBtcPrice) / 1e6).toFixed(1)}M`;
+            this.renderTicker();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Blockchain.info whale txs fetch fallback:', e);
+    }
+
     this.realMetrics.lastFetched = Date.now();
     this.renderAdvancedFundamentals();
+    this.render();
   },
 
   init: function () {

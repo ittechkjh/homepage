@@ -3157,14 +3157,23 @@ window.handleVoteInModal = handleVoteInModal;
 // ----------------------------------------------------
 // Section 4: Real-Time Chat System
 // ----------------------------------------------------
-let chatMessages = [
-  { id: 1, user: '비트홀더', rank: 'PRO', text: '비트코인 64.8K 지지선 강력하네요. 오늘 밤 나스닥 개장 반응 봐야겠습니다.', time: '오후 8:40' },
-  { id: 2, user: '단타마스터', rank: 'VIP', text: '솔라나 쪽으로 롱 포지션 수익 실현하고 비트 진입 대기 중입니다.', time: '오후 8:42' }
-];
+let chatMessages = [];
 
 function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
+
+  if (chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-500 text-xs">
+        <div class="w-10 h-10 rounded-2xl bg-navy-900 border border-navy-800 flex items-center justify-center text-lg mb-2">💬</div>
+        <div class="font-bold text-slate-400 mb-1">실시간 대화방에 참여해 보세요</div>
+        <div>아직 작성된 메시지가 없습니다. 첫 번째 메시지를 남겨보세요!</div>
+      </div>
+    `;
+    renderChatActiveUsers();
+    return;
+  }
 
   container.innerHTML = chatMessages.map(msg => `
     <div class="flex items-start gap-3 animate-in">
