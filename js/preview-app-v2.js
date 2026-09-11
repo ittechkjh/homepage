@@ -2116,24 +2116,25 @@ function ensureDailyMarketReportPost(posts) {
         }
       }
     });
-  } else {
-    // Determine active report date (KST)
-    const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const kst = new Date(utc + (9 * 3600000));
-    if (kst.getHours() < 8) {
-      kst.setDate(kst.getDate() - 1);
-    }
-    const year = kst.getFullYear();
-    const month = String(kst.getMonth() + 1).padStart(2, '0');
-    const day = String(kst.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
-    const targetReportId = `report-${year}${month}${day}`;
+  }
 
-    if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id) === targetReportId)) {
-      posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
-    }
+  // Determine active report date (KST) - Ensure TODAY's report is ALWAYS present after 08:00 KST
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const kst = new Date(utc + (9 * 3600000));
+  if (kst.getHours() < 8) {
+    kst.setDate(kst.getDate() - 1);
+  }
+  const year = kst.getFullYear();
+  const month = String(kst.getMonth() + 1).padStart(2, '0');
+  const day = String(kst.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${month}-${day}`;
+  const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
+  const targetReportId = `report-${year}${month}${day}`;
+
+  // If today's report is not in cached reports or posts, generate it immediately as fallback
+  if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id) === targetReportId)) {
+    posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
   }
 
   // Restore persistent views and upvotes from local storage
@@ -2151,10 +2152,14 @@ function ensureDailyMarketReportPost(posts) {
   return posts;
 }
 
-let _dailyMarketReportsFetched = false;
+let _lastDailyMarketReportsFetchTime = 0;
 async function loadDailyMarketReports(force = false) {
-  if (_dailyMarketReportsFetched && !force) return;
-  _dailyMarketReportsFetched = true;
+  const now = Date.now();
+  // Allow refetch if forced or if 5 minutes have elapsed since last fetch
+  if (!force && _lastDailyMarketReportsFetchTime > 0 && (now - _lastDailyMarketReportsFetchTime) < 300000) {
+    return;
+  }
+  _lastDailyMarketReportsFetchTime = now;
   try {
     const res = await fetch('data/daily-market-reports.json?v=' + Date.now());
     if (res.ok) {
