@@ -27,10 +27,10 @@ const AdminAnalytics = {
         const ua = navigator.userAgent;
         if (/Whale/i.test(ua)) return 'Whale';
         if (/SamsungBrowser/i.test(ua)) return 'Samsung';
-        if (/Edg/i.test(ua)) return 'Edge';
-        if (/Chrome/i.test(ua)) return 'Chrome';
-        if (/Safari/i.test(ua)) return 'Safari';
-        if (/Firefox/i.test(ua)) return 'Firefox';
+        if (/Edg|EdgiOS/i.test(ua)) return 'Edge';
+        if (/Chrome|CriOS/i.test(ua) && !/Edg|EdgiOS|Whale|Samsung/i.test(ua)) return 'Chrome';
+        if (/Firefox|FxiOS/i.test(ua)) return 'Firefox';
+        if (/Safari/i.test(ua) && !/Chrome|CriOS|Android/i.test(ua)) return 'Safari';
         return 'Other';
     },
 
@@ -85,7 +85,9 @@ const AdminAnalytics = {
     recordVisit: function (featureName = null) {
         try {
             const todayStr = this.getKstDateStr();
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+            // Accurate mobile detection: handles standard mobile UA, iPadOS 13+ desktop mode with touch, and narrow touch screens
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent) ||
+                             (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
             const devKey = isMobile ? 'mobile' : 'desktop';
             const browserName = this.getBrowserName();
 
@@ -102,32 +104,48 @@ const AdminAnalytics = {
                 sessionStorage.setItem('crytopnl_visited_' + todayStr, '1');
             }
 
-            // 2. Update LocalStorage cache
+            // Session-based unique device/browser check (prevents single user clicking 50 tabs from skewing ratios)
+            let isNewDeviceSession = false;
+            if (!sessionStorage.getItem('crytopnl_dev_logged_' + todayStr)) {
+                isNewDeviceSession = true;
+                sessionStorage.setItem('crytopnl_dev_logged_' + todayStr, '1');
+            }
+
+            // 2. Update LocalStorage cache synchronously for zero-delay UI
             const data = this.getAnalyticsData();
             if (!data.features) {
                 data.features = { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 };
             }
+            if (!data.devices) {
+                data.devices = { mobile: 0, desktop: 0 };
+            }
+            if (!data.browsers) {
+                data.browsers = {};
+            }
+
             let todayEntry = data.history.find(h => h.date === todayStr);
 
             if (!todayEntry) {
                 todayEntry = { date: todayStr, visitors: 1, pageviews: 1 };
                 data.history.push(todayEntry);
                 if (data.history.length > 30) data.history.shift();
-                data.totalVisitorsAllTime += 1;
+                data.totalVisitorsAllTime = (data.totalVisitorsAllTime || 0) + 1;
             } else {
                 if (isNewVisitor) {
                     todayEntry.visitors += 1;
-                    data.totalVisitorsAllTime += 1;
+                    data.totalVisitorsAllTime = (data.totalVisitorsAllTime || 0) + 1;
                 }
                 todayEntry.pageviews += 1;
             }
 
-            data.totalPageviewsAllTime += 1;
-
+            data.totalPageviewsAllTime = (data.totalPageviewsAllTime || 0) + 1;
             data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
 
-            data.devices[devKey] = (data.devices[devKey] || 0) + 1;
-            data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
+            // Only increment device & browser counts on unique session or initial visit
+            if (isNewDeviceSession || (data.devices.mobile === 0 && data.devices.desktop === 0)) {
+                data.devices[devKey] = (data.devices[devKey] || 0) + 1;
+                data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
+            }
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
 
@@ -137,8 +155,6 @@ const AdminAnalytics = {
                 const updateObj = {
                     date: todayStr,
                     pageviews: firebase.firestore.FieldValue.increment(1),
-                    [`devices.${devKey}`]: firebase.firestore.FieldValue.increment(1),
-                    [`browsers.${browserName}`]: firebase.firestore.FieldValue.increment(1),
                     [`features.${targetFeature}`]: firebase.firestore.FieldValue.increment(1),
                     lastVisitAt: new Date().toISOString()
                 };
@@ -146,8 +162,12 @@ const AdminAnalytics = {
                 if (isNewVisitor) {
                     updateObj.visitors = firebase.firestore.FieldValue.increment(1);
                 }
+                if (isNewDeviceSession) {
+                    updateObj[`devices.${devKey}`] = firebase.firestore.FieldValue.increment(1);
+                    updateObj[`browsers.${browserName}`] = firebase.firestore.FieldValue.increment(1);
+                }
 
-                firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
+                const p1 = firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
                     .catch(e => console.warn('Firestore analytics sync note:', e));
 
                 // Totals accumulator doc
@@ -157,10 +177,13 @@ const AdminAnalytics = {
                 if (isNewVisitor) {
                     totalsObj.totalVisitors = firebase.firestore.FieldValue.increment(1);
                 }
-                firestore.collection('site_analytics').doc('totals').set(totalsObj, { merge: true })
+                const p2 = firestore.collection('site_analytics').doc('totals').set(totalsObj, { merge: true })
                     .catch(e => console.warn('Firestore totals sync note:', e));
+
+                return Promise.all([p1, p2]);
             }
         } catch (e) {}
+        return Promise.resolve();
     },
 
     fetchCloudStats: async function () {
@@ -244,9 +267,8 @@ const AdminAnalytics = {
                         });
                     }
                     // devices/browsers: Firestore is the multi-user source of truth.
-                    // However, Firestore write is async and may not yet reflect the current session
-                    // (race condition on page load). So we supplement ONLY when Firestore total is 0.
-                    // This ensures the current visitor's device is counted while respecting aggregated data.
+                    // devices/browsers: Firestore is the multi-user source of truth.
+                    // If Firestore has no device record for today or total is 0, merge from localData
                     if (aggMobile + aggDesktop === 0 && localData.devices) {
                         aggMobile = Number(localData.devices.mobile || 0);
                         aggDesktop = Number(localData.devices.desktop || 0);
@@ -272,10 +294,19 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
-            // Real progression for today (pure actual data, no fake baseline)
+            // Real progression for today: merge Firestore with LocalStorage to guarantee ZERO-DELAY visitor count
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
-            const todayVisitors = Number(todayEntry.visitors || 0);
-            const todayPageviews = Number(todayEntry.pageviews || 0);
+            let todayVisitors = Number(todayEntry.visitors || 0);
+            let todayPageviews = Number(todayEntry.pageviews || 0);
+
+            try {
+                const localData = this.getAnalyticsData();
+                const localToday = localData && localData.history ? localData.history.find(h => h.date === todayStr) : null;
+                if (localToday) {
+                    todayVisitors = Math.max(todayVisitors, Number(localToday.visitors || 0));
+                    todayPageviews = Math.max(todayPageviews, Number(localToday.pageviews || 0));
+                }
+            } catch (e) {}
 
             // Pure 14-day history array from Firestore (0 if no visits)
             const history14 = dateKeys.map((k, idx) => {
@@ -360,23 +391,24 @@ const AdminAnalytics = {
     },
 
     getTodayStats: function () {
-        if (!this.cloudStatsCache) {
-            try {
-                const stored = localStorage.getItem('coinhub_admin_cloud_stats_cache');
-                if (stored) {
-                    this.cloudStatsCache = JSON.parse(stored);
-                }
-            } catch (e) {}
-        }
-        if (this.cloudStatsCache) {
-            return this.cloudStatsCache;
-        }
-
         const data = this.getAnalyticsData();
         const todayStr = this.getKstDateStr();
-        const today = data.history.find(h => h.date === todayStr) || { visitors: 0, pageviews: 0 };
-        const todayVisitors = Number(today.visitors || 0);
-        const todayPageviews = Number(today.pageviews || 0);
+        const today = (data.history && data.history.find(h => h.date === todayStr)) || { visitors: 0, pageviews: 0 };
+        let todayVisitors = Number(today.visitors || 0);
+        let todayPageviews = Number(today.pageviews || 0);
+
+        // Merge cached cloud stats if available and higher
+        let cached = this.cloudStatsCache;
+        if (!cached) {
+            try {
+                const stored = localStorage.getItem('coinhub_admin_cloud_stats_cache');
+                if (stored) cached = JSON.parse(stored);
+            } catch (e) {}
+        }
+        if (cached && typeof cached === 'object') {
+            todayVisitors = Math.max(todayVisitors, Number(cached.todayVisitors || 0));
+            todayPageviews = Math.max(todayPageviews, Number(cached.todayPageviews || 0));
+        }
         
         // Build 14-day history array with real dates (0 if no visits)
         const history14 = [];
@@ -1348,23 +1380,15 @@ const AdminApp = {
             }
         };
 
-        // Render from cache immediately if available to prevent 1-visitor flash
-        const cached = AdminAnalytics.cloudStatsCache || (function () {
-            try {
-                const raw = localStorage.getItem('coinhub_admin_cloud_stats_cache');
-                return raw ? JSON.parse(raw) : null;
-            } catch (e) { return null; }
-        })();
-        if (cached) {
-            renderStatsUI(cached);
-        }
+        // 1. Render from LocalStorage immediately for zero-delay instant UI response
+        try {
+            const instantStats = AdminAnalytics.getTodayStats();
+            if (instantStats) {
+                renderStatsUI(instantStats);
+            }
+        } catch (e) {}
 
-        // Ensure current visitor is recorded in LocalStorage before fetching stats
-        // This prevents race condition where fetchCloudStats reads before recordVisit writes
-        if (typeof AdminAnalytics.recordVisit === 'function') {
-            AdminAnalytics.recordVisit();
-        }
-
+        // 2. Fetch and render aggregated multi-user cloud stats from Firestore
         const stats = await AdminAnalytics.fetchCloudStats();
         renderStatsUI(stats);
     },
