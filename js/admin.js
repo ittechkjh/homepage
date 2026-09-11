@@ -152,19 +152,26 @@ const AdminAnalytics = {
             // 3. Firestore Cloud Real-time Aggregation
             const firestore = window.db || (typeof db !== 'undefined' ? db : null);
             if (firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+                const inc = firebase.firestore.FieldValue.increment(1);
                 const updateObj = {
                     date: todayStr,
-                    pageviews: firebase.firestore.FieldValue.increment(1),
-                    [`features.${targetFeature}`]: firebase.firestore.FieldValue.increment(1),
+                    pageviews: inc,
+                    features: {
+                        [targetFeature]: inc
+                    },
                     lastVisitAt: new Date().toISOString()
                 };
 
                 if (isNewVisitor) {
-                    updateObj.visitors = firebase.firestore.FieldValue.increment(1);
+                    updateObj.visitors = inc;
                 }
                 if (isNewDeviceSession) {
-                    updateObj[`devices.${devKey}`] = firebase.firestore.FieldValue.increment(1);
-                    updateObj[`browsers.${browserName}`] = firebase.firestore.FieldValue.increment(1);
+                    updateObj.devices = {
+                        [devKey]: inc
+                    };
+                    updateObj.browsers = {
+                        [browserName]: inc
+                    };
                 }
 
                 const p1 = firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
@@ -239,20 +246,40 @@ const AdminAnalytics = {
                 const d = doc.data();
                 if (d) {
                     dayMap[doc.id] = d;
-                    if (d.devices) {
-                        aggMobile += Number(d.devices.mobile || 0);
-                        aggDesktop += Number(d.devices.desktop || 0);
-                    }
-                    if (d.browsers) {
+
+                    // 1. Devices: Read nested map + flat dot keys (for backwards compatibility)
+                    let mob = (d.devices && d.devices.mobile !== undefined) ? Number(d.devices.mobile || 0) : 0;
+                    let dsk = (d.devices && d.devices.desktop !== undefined) ? Number(d.devices.desktop || 0) : 0;
+                    if (d['devices.mobile'] !== undefined) mob += Number(d['devices.mobile'] || 0);
+                    if (d['devices.desktop'] !== undefined) dsk += Number(d['devices.desktop'] || 0);
+                    aggMobile += mob;
+                    aggDesktop += dsk;
+
+                    // 2. Browsers: Read nested map + flat dot keys
+                    if (d.browsers && typeof d.browsers === 'object') {
                         Object.keys(d.browsers).forEach(b => {
                             aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(d.browsers[b] || 0);
                         });
                     }
-                    if (d.features) {
+                    Object.keys(d).forEach(k => {
+                        if (k.startsWith('browsers.')) {
+                            const b = k.slice(9);
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(d[k] || 0);
+                        }
+                    });
+
+                    // 3. Features: Read nested map + flat dot keys
+                    if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
                             aggFeatures[f] = (aggFeatures[f] || 0) + Number(d.features[f] || 0);
                         });
                     }
+                    Object.keys(d).forEach(k => {
+                        if (k.startsWith('features.')) {
+                            const f = k.slice(9);
+                            aggFeatures[f] = (aggFeatures[f] || 0) + Number(d[k] || 0);
+                        }
+                    });
                 }
             });
 
