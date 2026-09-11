@@ -269,7 +269,7 @@ async function fetchLiveMarketData(dateStr) {
   }
 
   const todaysEvents = upcomingEvents.filter(ev => ev.date === dateStr);
-  const nextEvents = upcomingEvents.filter(ev => ev.date > dateStr).slice(0, 3);
+  const nextEvents = upcomingEvents.filter(ev => ev.date > dateStr).slice(0, 5);
 
   return {
     upbitBtcKRW: upbitBtc.toLocaleString('ko-KR') + '원',
@@ -432,9 +432,49 @@ function generateReportImage3(dStr, m) {
 }
 
 function generateReportImage4(dStr, m) {
-  const ev1 = (m.todaysEvents && m.todaysEvents[0]) || { title: '미국 8월 생산자물가(PPI) 발표', time: '오늘 21:30', desc: '전월비 +0.1% 예상' };
-  const ev2 = (m.nextEvents && m.nextEvents[0]) || { title: '미국 8월 소비자물가(CPI) 발표', time: '내일 21:30', desc: '인플레이션 둔화 여부' };
-  const ev3 = (m.nextEvents && m.nextEvents[1]) || { title: '앱토스(APT) 락업 해제', time: '9월 12일', desc: '1,131만 APT 공급' };
+  // Combine today's events and upcoming events in chronological order
+  const combined = [];
+  if (Array.isArray(m.todaysEvents)) {
+    m.todaysEvents.forEach(e => combined.push({ ...e, isToday: true }));
+  }
+  if (Array.isArray(m.nextEvents)) {
+    m.nextEvents.forEach(e => combined.push({ ...e, isToday: false }));
+  }
+
+  // Forward-looking defaults if events list is short
+  const forwardDefaults = [
+    { title: '글로벌 유동성 및 거시 지표', date: dStr, time: '실시간 추적', desc: 'M2 통화량 및 금리 모니터링', isToday: true },
+    { title: '미국 연준(Fed) 금리 정책', date: dStr, time: '상시 모니터링', desc: 'FOMC 인하 경로 추적', isToday: false },
+    { title: '온체인 원장 & 파생 레버리지', date: dStr, time: '실시간 분석', desc: 'OI 미결제약정 & SOPR 지지선', isToday: false }
+  ];
+
+  while (combined.length < 3) {
+    combined.push(forwardDefaults[combined.length]);
+  }
+
+  const formatBadge = (ev) => {
+    if (ev.isToday) {
+      const cleanTime = (ev.time || '오늘').replace(' (KST)', '').trim();
+      return cleanTime.includes('오늘') ? cleanTime : `오늘 ${cleanTime}`;
+    }
+    const datePart = ev.date ? ev.date.slice(5).replace('-', '/') : '';
+    const timePart = ev.time ? ev.time.replace(' (KST)', '').trim() : '';
+    return datePart ? `${datePart} ${timePart}`.trim() : (timePart || '예정 일정');
+  };
+
+  const ev1 = combined[0];
+  const ev2 = combined[1];
+  const ev3 = combined[2];
+
+  const badge1 = formatBadge(ev1);
+  const badge2 = formatBadge(ev2);
+  const badge3 = formatBadge(ev3);
+
+  const getImportance = (ev) => {
+    if (ev.impact === 'CRITICAL') return '★★★★★';
+    if (ev.impact === 'HIGH IMPACT') return '★★★★☆';
+    return '★★★★☆';
+  };
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
   <defs>
@@ -450,26 +490,26 @@ function generateReportImage4(dStr, m) {
   <text x="705" y="35" fill="#fcd34d" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
   <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
   <rect x="20" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="1"/>
-  <rect x="35" y="85" width="85" height="20" rx="6" fill="#f59e0b" fill-opacity="0.2"/>
-  <text x="77" y="99" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev1.time || '오늘'}</text>
+  <rect x="35" y="85" width="95" height="20" rx="6" fill="#f59e0b" fill-opacity="0.2"/>
+  <text x="82" y="99" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge1}</text>
   <text x="35" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev1.title || '').slice(0, 18)}</text>
-  <text x="35" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev1.desc || '').slice(0, 18)}</text>
-  <text x="35" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 시장 변동성 주목</text>
-  <text x="35" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★★</text>
+  <text x="35" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev1.desc || '주요 일정 모니터링').slice(0, 18)}</text>
+  <text x="35" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev1.isToday ? '당일 시장 변동성 주목' : '글로벌 유동성 영향 분석'}</text>
+  <text x="35" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev1)}</text>
   <rect x="280" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <rect x="295" y="85" width="85" height="20" rx="6" fill="#06b6d4" fill-opacity="0.2"/>
-  <text x="337" y="99" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev2.time || '내일'}</text>
+  <rect x="295" y="85" width="95" height="20" rx="6" fill="#06b6d4" fill-opacity="0.2"/>
+  <text x="342" y="99" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge2}</text>
   <text x="295" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev2.title || '').slice(0, 18)}</text>
-  <text x="295" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev2.desc || '').slice(0, 18)}</text>
-  <text x="295" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 인플레이션 추세 확인</text>
-  <text x="295" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★★</text>
+  <text x="295" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev2.desc || '주요 일정 모니터링').slice(0, 18)}</text>
+  <text x="295" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev2.isToday ? '당일 시장 변동성 주목' : '글로벌 유동성 영향 분석'}</text>
+  <text x="295" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev2)}</text>
   <rect x="540" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <rect x="555" y="85" width="85" height="20" rx="6" fill="#a855f7" fill-opacity="0.2"/>
-  <text x="597" y="99" fill="#c084fc" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev3.time || '주요 일정'}</text>
+  <rect x="555" y="85" width="95" height="20" rx="6" fill="#a855f7" fill-opacity="0.2"/>
+  <text x="602" y="99" fill="#c084fc" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge3}</text>
   <text x="555" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev3.title || '').slice(0, 18)}</text>
-  <text x="555" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev3.desc || '').slice(0, 18)}</text>
-  <text x="555" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 토큰 공급 및 일정 관리</text>
-  <text x="555" y="196" fill="#fbbf24" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★☆</text>
+  <text x="555" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev3.desc || '주요 일정 모니터링').slice(0, 18)}</text>
+  <text x="555" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev3.isToday ? '당일 시장 변동성 주목' : '일정 전후 포지션 관리'}</text>
+  <text x="555" y="196" fill="#fbbf24" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev3)}</text>
   <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 경제 캘린더 제공: crytopnl.com</text>
   </svg>`;
   return createSvgDataUri(svg);
@@ -582,20 +622,45 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
 
 // 4. Dynamic Quant Fallback Engine
 function generateDynamicQuantReport(dateStr, dateKorean, m, img1, img2, img3, img4) {
-  const evTodayText = m.todaysEvents && m.todaysEvents.length > 0
-    ? m.todaysEvents.map(e => `[${e.time || '오늘'}] ${e.title}`).join(' / ')
-    : '금일 예정된 주요 경제 발표를 모니터링 중입니다.';
+  const hasTodayEvents = Array.isArray(m.todaysEvents) && m.todaysEvents.length > 0;
+  const evTodayText = hasTodayEvents
+    ? m.todaysEvents.map(e => `[${(e.time || '오늘').replace(' (KST)', '')}] ${e.title}`).join(' / ')
+    : '';
 
   const evNextText = m.nextEvents && m.nextEvents.length > 0
     ? m.nextEvents.map(e => `[${e.date}] ${e.title}`).join(', ')
     : '향후 주요 일정들이 순차 대기하고 있습니다.';
+
+  // Contextual intro sentence depending on whether today has events
+  let introEventSentence = '';
+  if (hasTodayEvents) {
+    introEventSentence = `오늘 예정된 주요 경제 이벤트(${evTodayText})를 앞두고 관망세를 보이고 있습니다.`;
+  } else {
+    const nextSummary = m.nextEvents && m.nextEvents.length > 0
+      ? `향후 예정된 주요 일정([${m.nextEvents[0].date.slice(5)}] ${m.nextEvents[0].title}${m.nextEvents[1] ? `, [${m.nextEvents[1].date.slice(5)}] ${m.nextEvents[1].title}` : ''})`
+      : '글로벌 유동성 추이 및 온체인 공급 지표';
+    introEventSentence = `금일 발표 예정된 주요 거시 경제 지표는 부재한 가운데, ${nextSummary}을(를) 주시하며 안정적인 관망세를 보이고 있습니다.`;
+  }
+
+  // Contextual section 4 sentence
+  let section4Content = '';
+  if (hasTodayEvents) {
+    section4Content = `오늘 발표되는 주요 지표(${evTodayText}) 결과에 따라 단기 변동성 확대 및 방향성 탐색이 전개될 전망입니다. 향후 ${evNextText} 등 주요 캘린더 일정도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.`;
+  } else {
+    section4Content = `금일은 공식 발표되는 미국 주요 거시 경제 지표가 부재하여 매크로 충격에 의한 급격한 변동성 리스크는 제한적인 구간입니다. 시장은 거래소 유통량 쇼티지와 온체인 축적 강도 등 내부 펀더멘털에 집중하고 있으며, 향후 ${evNextText} 등의 주요 캘린더 일정을 순차적으로 소화해 나갈 것으로 전망됩니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 온체인 활성 지갑 증가세가 시장의 견고한 하방 지지력을 제공하고 있습니다.`;
+  }
+
+  // Contextual conclusion sentence
+  const conclusionAdvice = hasTodayEvents
+    ? '오늘 경제 지표 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.'
+    : '단기 거시 지표 공백기 속에서 무리한 고레버리지 추격 매수보다는 1.000 SOPR 지지선 및 LTH 락업 구간을 활용한 분할 매수 대응을 권장합니다.';
 
   return `
 <h3 style="font-size: 16px; font-weight: 700; color: #22d3ee; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
   📌 [모닝 브리핑] 30대 거시·온체인 핵심 지표 총괄 및 시장 종합 진단
 </h3>
 <p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
-${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, 오늘 밤 21시 30분 예정된 ${evTodayText}를 앞두고 관망세를 보이고 있습니다. 현재 비트코인은 업비트 ${m.upbitBtcKRW}, 해외 바이낸스 ${m.binanceBtcUSD} 선에서 안정적으로 거래 중입니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 투기적 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
+${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, ${introEventSentence} 현재 비트코인은 업비트 ${m.upbitBtcKRW}, 해외 바이낸스 ${m.binanceBtcUSD} 선에서 안정적으로 거래 중입니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 투기적 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
 </p>
 
 <!-- Image 1: Macro & Sentiment Matrix (crytopnl.com) -->
@@ -645,7 +710,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
 4. 금일 주요 경제 일정 및 글로벌 속보 이슈
 </h4>
 <p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-오늘 발표되는 주요 지표(${evTodayText}) 결과에 따라 9월 FOMC 25bp 금리 인하 확률(현재 94% 반영)이 확정될 전망입니다. 향후 ${evNextText} 등 주요 캘린더 일정도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.
+${section4Content}
 </p>
 
 <div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
@@ -653,7 +718,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     💡 [종합 결론 및 트레이딩 전략 가이드]
   </div>
   <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
-    공포&탐욕 지수 ${m.fngScore}(${m.fngText}), LTH 비중 ${m.lthRatio}%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 오늘 경제 지표 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
+    공포&탐욕 지수 ${m.fngScore}(${m.fngText}), LTH 비중 ${m.lthRatio}%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. ${conclusionAdvice}
   </p>
 </div>
 `;

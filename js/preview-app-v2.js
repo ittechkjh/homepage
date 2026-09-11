@@ -1964,26 +1964,52 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
     <rect x="630" y="18" width="150" height="26" rx="6" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.35"/>
     <text x="705" y="35" fill="#fcd34d" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
     <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
+    let ev1 = { title: '글로벌 통화정책 및 유동성', time: '실시간 추적', desc: 'M2 통화량 & 금리 모니터링' };
+    let ev2 = { title: '미국 연준(Fed) 금리 경로', time: '상시 모니터링', desc: 'FOMC 인하 확률 추적' };
+    let ev3 = { title: '온체인 원장 & 파생 레버리지', time: '실시간 분석', desc: 'OI 미결제약정 & SOPR 지지선' };
+
+    if (typeof CRYPTO_EVENTS !== 'undefined' && Array.isArray(CRYPTO_EVENTS) && CRYPTO_EVENTS.length > 0) {
+      const todayEvs = CRYPTO_EVENTS.filter(e => e.date === dStr);
+      const nextEvs = CRYPTO_EVENTS.filter(e => e.date > dStr);
+      const combined = [...todayEvs, ...nextEvs];
+      if (combined[0]) ev1 = { ...combined[0], time: combined[0].date === dStr ? (combined[0].time || '오늘').replace(' (KST)', '') : `${combined[0].date.slice(5).replace('-', '/')} ${(combined[0].time || '').replace(' (KST)', '')}`.trim() };
+      if (combined[1]) ev2 = { ...combined[1], time: combined[1].date === dStr ? (combined[1].time || '오늘').replace(' (KST)', '') : `${combined[1].date.slice(5).replace('-', '/')} ${(combined[1].time || '').replace(' (KST)', '')}`.trim() };
+      if (combined[2]) ev3 = { ...combined[2], time: combined[2].date === dStr ? (combined[2].time || '오늘').replace(' (KST)', '') : `${combined[2].date.slice(5).replace('-', '/')} ${(combined[2].time || '').replace(' (KST)', '')}`.trim() };
+    }
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
+    <defs>
+      <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#19151c"/><stop offset="100%" stop-color="#07090e"/>
+      </linearGradient>
+    </defs>
+    <rect width="800" height="280" rx="16" fill="url(#bg4)" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.35"/>
+    <rect x="20" y="18" width="140" height="26" rx="6" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-opacity="0.4"/>
+    <text x="90" y="35" fill="#fbbf24" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">MACRO CALENDAR</text>
+    <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">글로벌 경제 캘린더 타임라인 &amp; 트레이딩 체크포인트</text>
+    <rect x="630" y="18" width="150" height="26" rx="6" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.35"/>
+    <text x="705" y="35" fill="#fcd34d" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
+    <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
     <rect x="20" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="1"/>
-    <rect x="35" y="85" width="85" height="20" rx="6" fill="#f59e0b" fill-opacity="0.2"/>
-    <text x="77" y="99" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">오늘 21:30</text>
-    <text x="35" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">미국 8월 생산자물가(PPI)</text>
-    <text x="35" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• 예상치: 전월비 +0.1%</text>
-    <text x="35" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 9월 FOMC 25bp 인하 확정</text>
+    <rect x="35" y="85" width="95" height="20" rx="6" fill="#f59e0b" fill-opacity="0.2"/>
+    <text x="82" y="99" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev1.time}</text>
+    <text x="35" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">${(ev1.title || '').slice(0, 18)}</text>
+    <text x="35" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev1.desc || '').slice(0, 18)}</text>
+    <text x="35" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 글로벌 일정 영향 분석</text>
     <text x="35" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★★</text>
     <rect x="280" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-    <rect x="295" y="85" width="85" height="20" rx="6" fill="#06b6d4" fill-opacity="0.2"/>
-    <text x="337" y="99" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">내일 21:30</text>
-    <text x="295" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">미국 8월 소비자물가(CPI)</text>
-    <text x="295" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• 예상치: 전년비 +2.6%</text>
-    <text x="295" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 인플레이션 둔화 여부</text>
+    <rect x="295" y="85" width="95" height="20" rx="6" fill="#06b6d4" fill-opacity="0.2"/>
+    <text x="342" y="99" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev2.time}</text>
+    <text x="295" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">${(ev2.title || '').slice(0, 18)}</text>
+    <text x="295" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev2.desc || '').slice(0, 18)}</text>
+    <text x="295" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 주요 매크로 일정 추적</text>
     <text x="295" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★★</text>
     <rect x="540" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-    <rect x="555" y="85" width="85" height="20" rx="6" fill="#a855f7" fill-opacity="0.2"/>
-    <text x="597" y="99" fill="#c084fc" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">9월 12일</text>
-    <text x="555" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">앱토스(APT) 락업 해제</text>
-    <text x="555" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• 1,131만 APT 유통량 공급</text>
-    <text x="555" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 단기 매도 물량 출회 주의</text>
+    <rect x="555" y="85" width="95" height="20" rx="6" fill="#a855f7" fill-opacity="0.2"/>
+    <text x="602" y="99" fill="#c084fc" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${ev3.time}</text>
+    <text x="555" y="128" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">${(ev3.title || '').slice(0, 18)}</text>
+    <text x="555" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev3.desc || '').slice(0, 18)}</text>
+    <text x="555" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• 일정 전후 포지션 관리</text>
     <text x="555" y="196" fill="#fbbf24" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ★★★★☆</text>
     <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 경제 캘린더 제공: crytopnl.com</text>
     </svg>`;
@@ -2000,7 +2026,7 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
   📌 [모닝 브리핑] 30대 거시·온체인 핵심 지표 총괄 및 시장 종합 진단
 </h3>
 <p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
-${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, 오늘 밤 21시 30분 예정된 미국 8월 생산자물가지수(PPI) 발표를 앞두고 관망세를 보이고 있습니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
+${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, 주요 글로벌 거시 경제 일정과 온체인 축적 흐름을 주시하며 안정적인 관망세를 보이고 있습니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
 </p>
 
 <!-- Image 1: Macro & Sentiment Matrix (crytopnl.com) -->
@@ -2050,7 +2076,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
 4. 금일 주요 경제 일정 및 글로벌 속보 이슈
 </h4>
 <p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-오늘 21:30 발표되는 미국 8월 PPI(예상치 전월비 +0.1%) 결과에 따라 9월 FOMC 25bp 금리 인하 확률(현재 94% 반영)이 확정될 전망입니다. 내일 11일 CPI와 12일 앱토스(APT) 1,131만 개 락업 해제도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.
+금일 글로벌 거시 경제 및 주요 크립토 이벤트 일정을 상시 모니터링 중이며, 향후 발표될 미국 통화 정책 지표와 주요 프로젝트 일정에 따라 방향성 탐색이 전개될 전망입니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 온체인 활성 지갑 증가세가 시장의 견고한 하방 지지력을 제공하고 있습니다.
 </p>
 
 <div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
@@ -2058,7 +2084,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     💡 [종합 결론 및 트레이딩 전략 가이드]
   </div>
   <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
-    공포&탐욕 지수 69(탐욕), LTH 비중 74.2%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 오늘 21:30 PPI 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
+    공포&탐욕 지수 69(탐욕), LTH 비중 74.2%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 주요 지표 발표 및 일정 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
   </p>
 </div>
 `;
