@@ -1,7 +1,7 @@
 {
-  "lastUpdated": "2026-09-10",
-  "lastUpdatedTimeKst": "09. 11. 08:39",
-  "timestamp": 1789083597376,
+  "lastUpdated": "2026-09-11",
+  "lastUpdatedTimeKst": "09. 12. 08:50",
+  "timestamp": 1789170653657,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -10,7 +10,7 @@
       "text": "확장 국면",
       "source": "글로벌 주요국 중앙은행 M2 집계",
       "cycle": "월간 공시",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "fedFundsRate": {
       "value": 5.33,
@@ -19,7 +19,7 @@
       "text": "인하 사이클",
       "source": "미국 연방준비제도 (Fed FOMC)",
       "cycle": "FOMC 공시",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "rrp": {
       "value": "$285.4B",
@@ -27,7 +27,7 @@
       "text": "유동성 방출",
       "source": "뉴욕 연방준비은행 일일 공시",
       "cycle": "뉴욕연은 일일",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "realYieldTIPS": {
       "value": 2.5,
@@ -35,71 +35,71 @@
       "text": "긴축적 유지",
       "source": "미국 재무부 실질 국채 금리",
       "cycle": "재무부 공시",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "yieldCurveSpread": {
-      "value": 0.21,
+      "value": 0.18,
       "badge": "정상화",
       "text": "침체 우려 완화",
       "source": "미국 재무부 국채 수익률 곡선",
       "cycle": "국채 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "dxy": {
-      "value": 99.09,
-      "change": -0.07,
+      "value": 99.1,
+      "change": 0.26,
       "text": "달러 약세 (코인 유리)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "highYieldSpread": {
-      "value": 3.3,
+      "value": 3.32,
       "badge": "위험선호",
       "text": "글로벌 유동성 안정",
       "source": "ICE BofA US High Yield Spread",
       "cycle": "신용 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "nasdaqSpot": {
-      "value": 29103.5,
-      "change": -0.14,
+      "value": 29368.4,
+      "change": -0.39,
       "text": "기술주 숨고르기",
       "source": "NASDAQ-100 (^NDX)",
       "cycle": "증시 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "sox": {
-      "value": 11614.2,
-      "change": 2.42,
+      "value": 11824,
+      "change": 4.16,
       "text": "반도체 강세 주도",
       "source": "PHLX Semiconductor Index (^SOX)",
       "cycle": "증시 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "vix": {
-      "value": 17.84,
+      "value": 15.84,
       "badge": "안정권",
       "text": "시장 심리 안정",
       "source": "CBOE Volatility Index (^VIX)",
       "cycle": "옵션 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "goldFut": {
-      "value": 4358.7,
-      "change": -1.61,
+      "value": 4390,
+      "change": -0.09,
       "text": "금값 조정",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     },
     "wti": {
-      "value": 103.86,
-      "change": 13.53,
+      "value": 99.99,
+      "change": 7.48,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
-      "lastUpdated": "2026-09-10"
+      "lastUpdated": "2026-09-11"
     }
   }
 }
