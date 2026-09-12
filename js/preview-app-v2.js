@@ -5328,6 +5328,10 @@ const ROUTE_SEO_MAP = {
   patterns: {
     title: "CrytoPnL – AI 실시간 차트패턴 분석 레이더 (업비트·빗썸)",
     desc: "업비트 및 빗썸 주요 코인의 13가지 핵심 기술적 차트패턴(쌍바닥, 눌림목, 컵앤핸들 등)을 AI 알고리즘으로 실시간 자동 포착 및 유사도 스캐닝"
+  },
+  'yearend-tax': {
+    title: "CrytoPnL – 2026 연말정산 모의계산기 & 13월의 월급 절세 시뮬레이터",
+    desc: "2025·2026년 개정세법 완벽 반영! 근로소득공제, 신용카드·체크카드, 인적공제, IRP·연금저축, 의료비·교육비·월세액 세액공제 및 13월의 월급 환급액 정밀 모의계산"
   }
 };
 
@@ -5359,7 +5363,7 @@ function updateCommunitySubNav(activeSubTab) {
 window.updateCommunitySubNav = updateCommunitySubNav;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
@@ -5391,6 +5395,8 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300');
         } else if (t === 'calculators') {
           navBtn.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+        } else if (t === 'yearend-tax') {
+          navBtn.classList.add('bg-teal-500/10', 'border-teal-500/30', 'text-teal-300');
         } else if (t === 'calendar') {
           navBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
         } else if (t === 'policy') {
@@ -5402,7 +5408,11 @@ function switchTab(tabId, updateHash = true) {
         }
       }
       if (mNavBtn) {
-        mNavBtn.classList.add('text-cyan-400', 'font-bold');
+        if (t === 'yearend-tax') {
+          mNavBtn.classList.add('text-teal-400', 'font-bold');
+        } else {
+          mNavBtn.classList.add('text-cyan-400', 'font-bold');
+        }
         mNavBtn.classList.remove('text-slate-400');
       }
     } else {
@@ -5412,10 +5422,10 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'text-cyan-300', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'bg-emerald-500/20', 'border-emerald-400/50');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'text-cyan-300', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-teal-500/10', 'border-teal-500/30', 'text-teal-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'bg-emerald-500/20', 'border-emerald-400/50');
       }
       if (mNavBtn) {
-        mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'font-bold');
+        mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'text-teal-400', 'font-bold');
         mNavBtn.classList.add('text-slate-400');
       }
     }
@@ -5490,6 +5500,10 @@ function switchTab(tabId, updateHash = true) {
 
   if (tabId === 'patterns' && typeof PatternScannerEngine !== 'undefined') {
     PatternScannerEngine.init();
+  }
+
+  if (tabId === 'yearend-tax' && typeof YearendTaxCalculator !== 'undefined') {
+    YearendTaxCalculator.init();
   }
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
