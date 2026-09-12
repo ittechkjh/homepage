@@ -1134,7 +1134,7 @@ ${sessionContext}
 3. 글씨가 선명하게 잘 보이도록 제목 헤딩은 진한 딥 네이비(#0f172a), 본문 텍스트는 선명하고 또렷한 짙은 슬레이트(#1e293b, 15px), 강조 수치는 굵고 명확한 색상(#0284c7, #e11d48, #059669)을 사용하세요.
 4. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함하세요.
 5. 구성:
-   - <HEADER>[BTC/USDT ${slotName}] 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
+   - <HEADER>[BTC/USDT ${slotName}] ${dateKorean} 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
    - <!-- TRADINGVIEW_CHART_IMAGE -->
    - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: SHORT, 진입: $78,200~$78,600, TP1: $76,500, TP2: $74,800, SL: $79,800, 손익비: 1:2.65)</SETUP_BOX>
    - <SECTION_1>1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) vs 추세 전환 (2문단)</SECTION_1>
@@ -1257,7 +1257,7 @@ function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, s
 
   return `
 <h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  🎯 [BTC/USDT ${slotName}] 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단 (${sessionTitle})
+  🎯 [BTC/USDT ${slotName}] ${dateKorean} 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단 (${sessionTitle})
 </h3>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 18px;">
 ${dateKorean} ${slotName} 기준 비트코인은 $78,370 선 부근에서 기술적 반등을 시도하고 있으나, 4시간봉 주요 이동평균선인 200 EMA($78,850) 및 직전 고점 매물대의 강한 저항에 직면해 있습니다. 특히 이번 반등 파동은 거래량이 지속적으로 줄어드는 전형적인 <strong>'거래량 수축형 약세 반등(Volume Contraction Bounce)'</strong> 패턴을 띠고 있어, 추가 상승보다는 일시적 반등 후 하방 리테스트가 전개되는 <strong>'데드캣 바운스(Dead Cat Bounce)'</strong> 가능성에 높은 무게를 둡니다.
@@ -1426,7 +1426,7 @@ async function buildDailyPerspectiveReport(targetDate = null) {
     id: slotInfo.id,
     category: 'perspective',
     categoryName: '🎯 차트 관점',
-    title: `[BTC/USDT ${slotInfo.slotName}] 4시간봉 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단`,
+    title: `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 4시간봉 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단`,
     author: 'AI 퀀트 애널리스트',
     authorRank: 'VERIFIED',
     timestamp: slotInfo.postDate.getTime(),
