@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 2026 대한민국 근로소득 연말정산 정밀 모의계산기 & 절세 시뮬레이터
  * YearendTaxCalculator (Client-Side 100% Local Encryption)
  * 
@@ -46,7 +46,18 @@ const YearendTaxCalculator = (function() {
     education: 0,                // 교육비 지출액
     donationLoveHometown: 100000,// 고향사랑기부금 (10만원 100% 환급)
     donationGeneral: 0,          // 일반 기부금
-    monthlyRent: 0               // 월세액 (무주택 세대주, 총급여 7천만 이하)
+    monthlyRent: 0,              // 월세액 (무주택 세대주, 총급여 7천만 이하)
+
+    // 5. 맞벌이 부부 비교 & 전략
+    currentSubTab: 'calculator', // 'calculator' | 'couple' | 'cards'
+    coupleMode: false,           // 맞벌이 활성화
+    spouseSalary: 42000000,      // 배우자 총급여액 (원)
+    spousePrepaidTax: 1650000,   // 배우자 기납부세액 (원)
+    familyExpenseTotal: 28000000,// 부부 합산 연간 소비 규모 (원)
+    familyMedicalTotal: 1800000, // 부부 합산 연간 의료비 지출 (원)
+
+    // 6. 소득구간별 카드 vs 현금 가이드
+    guideSalary: 50000000        // 황금소비 가이드 기준 연봉 (원)
   };
 
   let state = { ...defaultState };
@@ -164,6 +175,217 @@ const YearendTaxCalculator = (function() {
     // 전통시장/대중교통 추가 한도 100만원
     const totalLimit = basicLimit + Math.min(1000000, marketDeductible);
     return Math.min(totalLimit, calculatedDeduction);
+  }
+
+  // 5. 종합소득세 과세표준 구간별 한계세율(Marginal Tax Rate)
+  function getMarginalTaxRate(taxBase) {
+    if (taxBase <= 14000000) return { rate: 6, fullRate: 6.6, label: '6% (지방세 포함 6.6%)' };
+    if (taxBase <= 50000000) return { rate: 15, fullRate: 16.5, label: '15% (지방세 포함 16.5%)' };
+    if (taxBase <= 88000000) return { rate: 24, fullRate: 26.4, label: '24% (지방세 포함 26.4%)' };
+    if (taxBase <= 150000000) return { rate: 35, fullRate: 38.5, label: '35% (지방세 포함 38.5%)' };
+    if (taxBase <= 300000000) return { rate: 38, fullRate: 41.8, label: '38% (지방세 포함 41.8%)' };
+    if (taxBase <= 500000000) return { rate: 40, fullRate: 44.0, label: '40% (지방세 포함 44.0%)' };
+    if (taxBase <= 1000000000) return { rate: 42, fullRate: 46.2, label: '42% (지방세 포함 46.2%)' };
+    return { rate: 45, fullRate: 49.5, label: '45% (지방세 포함 49.5%)' };
+  }
+
+  // 6. 맞벌이 부부 비교 및 절세 분석 로직
+  function analyzeCouple(pSalary, sSalary, familyExpense, familyMedical) {
+    const pEarnedDeduct = calcEarnedIncomeDeduction(pSalary);
+    const sEarnedDeduct = calcEarnedIncomeDeduction(sSalary);
+
+    const pTaxBase = Math.max(0, pSalary - pEarnedDeduct - 1500000 - Math.min(pSalary * 0.085, 6000000));
+    const sTaxBase = Math.max(0, sSalary - sEarnedDeduct - 1500000 - Math.min(sSalary * 0.085, 6000000));
+
+    const pRate = getMarginalTaxRate(pTaxBase);
+    const sRate = getMarginalTaxRate(sTaxBase);
+
+    const isPrimaryHigher = pSalary >= sSalary;
+    const higherName = isPrimaryHigher ? '본인' : '배우자';
+    const lowerName = isPrimaryHigher ? '배우자' : '본인';
+    const higherSalary = Math.max(pSalary, sSalary);
+    const lowerSalary = Math.min(pSalary, sSalary);
+    const higherTaxBase = Math.max(pTaxBase, sTaxBase);
+    const lowerTaxBase = Math.min(pTaxBase, sTaxBase);
+    const higherRate = isPrimaryHigher ? pRate : sRate;
+    const lowerRate = isPrimaryHigher ? sRate : pRate;
+    const rateDiff = higherRate.rate - lowerRate.rate;
+
+    // 25% 카드 문턱
+    const pHurdle = pSalary * 0.25;
+    const sHurdle = sSalary * 0.25;
+    const higherHurdle = higherSalary * 0.25;
+    const lowerHurdle = lowerSalary * 0.25;
+
+    // 3% 의료비 문턱
+    const pMedHurdle = pSalary * 0.03;
+    const sMedHurdle = sSalary * 0.03;
+    const higherMedHurdle = higherSalary * 0.03;
+    const lowerMedHurdle = lowerSalary * 0.03;
+
+    // 카드 한도
+    const getCardLimit = (sal) => {
+      if (sal <= 70000000) return 3000000;
+      if (sal <= 120000000) return 2500000;
+      return 2000000;
+    };
+    const higherCardLimit = getCardLimit(higherSalary);
+    const lowerCardLimit = getCardLimit(lowerSalary);
+
+    // 카드 소비 배분 전략
+    let cardStrategy = {};
+    if (familyExpense < lowerHurdle) {
+      cardStrategy = {
+        target: '신용카드 혜택 중심',
+        headline: '부부 합산 소비가 적어 양쪽 모두 25% 문턱을 넘지 못합니다.',
+        badge: '소비 미달',
+        badgeColor: 'bg-rose-500/10 border-rose-500/30 text-rose-300',
+        detail: `부부 합산 연간 소비(${formatWon(familyExpense)})가 소득이 낮은 ${lowerName}의 25% 문턱(${formatWon(lowerHurdle)})에도 미달합니다. 세법상 카드 소득공제는 0원이므로 무리한 지출 대신 마일리지·캐시백 혜택이 가장 큰 신용카드를 집중 사용하세요.`,
+        step1: `1단계: 항공 마일리지나 캐시백 혜택이 가장 좋은 신용카드로 결제`,
+        step2: `2단계: 카드 소득공제보다는 연금저축/IRP(최대 16.5% 세액공제)로 절세 전환`
+      };
+    } else if (familyExpense < higherHurdle) {
+      const lowerCheckNeeded = Math.round(lowerCardLimit / 0.3);
+      cardStrategy = {
+        target: `${lowerName} 명의 카드 집중 사용`,
+        headline: `소득이 낮은 ${lowerName} 명의 카드로 몰아야 공제를 챙깁니다!`,
+        badge: `${lowerName} 몰아주기 추천`,
+        badgeColor: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
+        detail: `부부 합산 소비(${formatWon(familyExpense)})가 고소득자인 ${higherName}의 25% 문턱(${formatWon(higherHurdle)})에는 못 미치지만, ${lowerName}의 문턱(${formatWon(lowerHurdle)})은 넉넉히 넘깁니다. 고소득자 카드로 긁으면 공제액이 0원이 되므로, 반드시 ${lowerName} 명의 카드로 집중 결제하세요!`,
+        step1: `1단계: ${lowerName} 명의 신용카드로 ${formatWon(lowerHurdle)}(25%)까지 사용 (카드 혜택 수령)`,
+        step2: `2단계: ${formatWon(lowerHurdle)} 초과분은 ${lowerName} 명의 체크카드/현금영수증(30% 공제)으로 결제`
+      };
+    } else {
+      const higherCheckNeeded = Math.round(higherCardLimit / 0.3);
+      const higherOptimumTotal = higherHurdle + higherCheckNeeded;
+
+      if (familyExpense <= higherOptimumTotal) {
+        cardStrategy = {
+          target: `${higherName} 명의 카드 집중 사용`,
+          headline: `세율이 높은 ${higherName} 명의 카드로 결제하여 세율 차익(${higherRate.rate}%)을 극대화하세요!`,
+          badge: `${higherName} 집중 추천`,
+          badgeColor: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
+          detail: `${higherName}의 한계세율(${higherRate.label})이 ${lowerName}(${lowerRate.label})보다 ${rateDiff}%p 더 높아, 동일한 카드 공제를 받아도 환급액이 훨씬 큽니다.`,
+          step1: `1단계: ${higherName} 신용카드로 ${formatWon(higherHurdle)}(25%)까지 결제 (카드사 혜택 100% 챙기기)`,
+          step2: `2단계: ${formatWon(higherHurdle)} 초과분은 ${higherName} 체크카드/현금영수증(30% 공제)으로 결제`
+        };
+      } else {
+        const overflow = familyExpense - higherOptimumTotal;
+        cardStrategy = {
+          target: `1차 ${higherName} 한도 달성 후 ➡️ 2차 ${lowerName} 바톤 터치`,
+          headline: `${higherName} 공제한도를 먼저 채운 뒤, 남은 소비는 ${lowerName} 명의로 전환하세요!`,
+          badge: '부부 릴레이 분배 추천',
+          badgeColor: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+          detail: `${higherName}이 카드 소득공제 한도(${formatWon(higherCardLimit)})를 모두 채운 뒤 발생하는 초과 소비(${formatWon(overflow)})는 더 이상 공제되지 않습니다. 따라서 바톤을 넘겨 ${lowerName} 명의 카드로 전환해야 부부 합산 절세액이 극대화됩니다.`,
+          step1: `1차: ${higherName} 명의로 신용카드 ${formatWon(higherHurdle)} + 체크카드/현금 ${formatWon(higherCheckNeeded)} (한도 100% 달성)`,
+          step2: `2차: 초과 지출(${formatWon(overflow)})은 ${lowerName} 명의 카드(신용카드 ➡️ 체크카드)로 전환 결제`
+        };
+      }
+    }
+
+    // 의료비 몰아주기 판정
+    let medicalAdvice = {};
+    if (familyMedical <= lowerMedHurdle) {
+      medicalAdvice = {
+        winner: '공제 미달',
+        title: '의료비 세액공제 문턱(3%) 미달',
+        badge: '공제 불가',
+        badgeColor: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+        desc: `부부 합산 의료비(${formatWon(familyMedical)})가 부부 중 낮은 문턱(${formatWon(lowerMedHurdle)}) 이하이므로 의료비 세액공제(3% 초과분 15%)를 받을 수 없습니다.`
+      };
+    } else if (familyMedical <= higherMedHurdle) {
+      const lowerExcess = familyMedical - lowerMedHurdle;
+      const lowerSavings = Math.round(lowerExcess * 0.15 * 1.1);
+      medicalAdvice = {
+        winner: lowerName,
+        title: `의료비 역발상: 3% 문턱이 낮은 ${lowerName}에게 몰아주기!`,
+        badge: `${lowerName} 몰아주기 압승`,
+        badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+        desc: `고소득자(${higherName})의 3% 문턱(${formatWon(higherMedHurdle)})에는 미달하여 공제 0원이지만, 소득이 낮은 ${lowerName}(3% 문턱 ${formatWon(lowerMedHurdle)})에게 몰아주면 초과분(${formatWon(lowerExcess)})의 16.5%인 약 ${formatWon(lowerSavings)}을 세액공제로 환급받습니다!`
+      };
+    } else {
+      const lowerExcess = familyMedical - lowerMedHurdle;
+      const higherExcess = familyMedical - higherMedHurdle;
+      const benefitDiff = Math.round((lowerExcess - higherExcess) * 0.15 * 1.1);
+      medicalAdvice = {
+        winner: lowerName,
+        title: `의료비는 세액공제(15% 정률)이므로 문턱 낮은 ${lowerName}에게 유리!`,
+        badge: `${lowerName} 추천 (+${formatWon(benefitDiff)} 유리)`,
+        badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+        desc: `의료비 세액공제는 세율과 상관없이 초과분의 16.5%(지방세 포함)를 깎아줍니다. 따라서 3% 문턱이 ${formatWon(higherMedHurdle - lowerMedHurdle)} 더 낮은 ${lowerName}에게 몰아줄 때 약 ${formatWon(benefitDiff)}을 더 환급받습니다!`
+      };
+    }
+
+    // 부양가족 인적공제 판정
+    let dependentAdvice = {};
+    if (rateDiff > 0) {
+      const extraRefundPerPerson = Math.round(1500000 * (higherRate.fullRate - lowerRate.fullRate) / 100);
+      dependentAdvice = {
+        winner: higherName,
+        title: `부양가족(자녀/부모님)은 무조건 세율 높은 ${higherName}에게 배정!`,
+        badge: `${higherName} 추천 (인당 +${formatWon(extraRefundPerPerson)})`,
+        badgeColor: 'bg-teal-500/10 text-teal-300 border-teal-500/30',
+        desc: `기본 인적공제(1인당 150만원)는 소득공제이므로 한계세율이 높은 쪽에 넣어야 환급액이 큽니다. ${higherName}(세율 ${higherRate.fullRate}%)이 ${lowerName}(세율 ${lowerRate.fullRate}%)보다 부양가족 1인당 약 ${formatWon(extraRefundPerPerson)}을 더 돌려받습니다.`
+      };
+    } else {
+      dependentAdvice = {
+        winner: '동일 (양쪽 무관)',
+        title: '부부의 소득세율 구간이 동일합니다.',
+        badge: '양쪽 동일',
+        badgeColor: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
+        desc: '두 분 모두 동일한 과세표준 세율 구간에 속해 있어 부양가족을 어느 쪽에 배정하셔도 절세 효과가 같습니다. 결정세액이 남아있는 쪽에 배분하세요.'
+      };
+    }
+
+    return {
+      isPrimaryHigher,
+      higherName,
+      lowerName,
+      higherSalary,
+      lowerSalary,
+      higherTaxBase,
+      lowerTaxBase,
+      higherRate,
+      lowerRate,
+      rateDiff,
+      pHurdle,
+      sHurdle,
+      higherHurdle,
+      lowerHurdle,
+      pMedHurdle,
+      sMedHurdle,
+      cardStrategy,
+      medicalAdvice,
+      dependentAdvice
+    };
+  }
+
+  // 7. 소득구간별 현금 vs 카드 황금비율 계산
+  function calcCardGoldenRatio(salary) {
+    const hurdle = salary * 0.25; // 25% 문턱
+    let limit = 3000000;
+    if (salary > 70000000 && salary <= 120000000) limit = 2500000;
+    else if (salary > 120000000) limit = 2000000;
+
+    // 체크카드/현금영수증(30%)으로 한도를 채우는 데 필요한 추가 소비액
+    const checkCardNeeded = Math.round(limit / 0.30);
+    // 한도 달성을 위한 총 최적 소비액
+    const totalOptimum = hurdle + checkCardNeeded;
+
+    const earnedDeduct = calcEarnedIncomeDeduction(salary);
+    const estTaxBase = Math.max(0, salary - earnedDeduct - 1500000 - salary * 0.08);
+    const marginalRate = getMarginalTaxRate(estTaxBase);
+    const maxTaxSaved = Math.round(limit * (marginalRate.fullRate / 100));
+
+    return {
+      salary,
+      hurdle,
+      limit,
+      checkCardNeeded,
+      totalOptimum,
+      marginalRate,
+      maxTaxSaved
+    };
   }
 
   // Main Calculation Engine
@@ -509,6 +731,240 @@ const YearendTaxCalculator = (function() {
     }
   }
 
+  // SubTab Switcher (1. 모의계산 / 2. 맞벌이 절세 / 3. 황금소비 공식)
+  function switchSubTab(subTabKey) {
+    state.currentSubTab = subTabKey;
+
+    const views = {
+      calculator: document.getElementById('ytax-view-calculator'),
+      couple: document.getElementById('ytax-view-couple'),
+      cards: document.getElementById('ytax-view-cards')
+    };
+
+    Object.keys(views).forEach(k => {
+      const v = views[k];
+      const btn = document.getElementById(`ytax-subtab-btn-${k}`);
+      if (v) {
+        if (k === subTabKey) {
+          v.classList.remove('hidden');
+        } else {
+          v.classList.add('hidden');
+        }
+      }
+      if (btn) {
+        if (k === subTabKey) {
+          btn.className = 'ytax-subtab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-300 border border-teal-500/40 shadow-md cursor-pointer';
+        } else {
+          btn.className = 'ytax-subtab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent cursor-pointer';
+        }
+      }
+    });
+
+    if (subTabKey === 'couple') renderCoupleUI();
+    if (subTabKey === 'cards') renderGoldenRatioUI();
+    if (subTabKey === 'calculator') updateUI();
+
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
+  }
+
+  // Couple UI Renderer
+  function renderCoupleUI() {
+    const pSalary = Math.max(0, Number(state.annualSalary) || 0);
+    const sSalary = Math.max(0, Number(state.spouseSalary) || 0);
+    const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
+    const familyMedical = Math.max(0, Number(state.familyMedicalTotal) || 0);
+
+    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical);
+
+    const setInner = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+    const setHtml = (id, html) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    };
+
+    setInner('ytax-couple-p-salary-disp', formatWon(pSalary));
+    setInner('ytax-couple-s-salary-disp', formatWon(sSalary));
+    setInner('ytax-couple-p-rate-disp', advice.isPrimaryHigher ? advice.higherRate.label : advice.lowerRate.label);
+    setInner('ytax-couple-s-rate-disp', advice.isPrimaryHigher ? advice.lowerRate.label : advice.higherRate.label);
+    setInner('ytax-couple-p-hurdle-disp', formatWon(advice.pHurdle));
+    setInner('ytax-couple-s-hurdle-disp', formatWon(advice.sHurdle));
+    setInner('ytax-couple-p-med-disp', formatWon(advice.pMedHurdle));
+    setInner('ytax-couple-s-med-disp', formatWon(advice.sMedHurdle));
+
+    // Winner Summary
+    setInner('ytax-couple-winner-name', `${advice.higherName} (세율 ${advice.higherRate.rate}%)`);
+    setInner('ytax-couple-rate-diff', advice.rateDiff > 0 ? `+${advice.rateDiff}%p 세율차이` : '동일세율');
+
+    // Card Advice
+    setInner('ytax-couple-card-target', advice.cardStrategy.target);
+    const cardBadgeEl = document.getElementById('ytax-couple-card-badge');
+    if (cardBadgeEl) {
+      cardBadgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold border ${advice.cardStrategy.badgeColor}`;
+      cardBadgeEl.innerText = advice.cardStrategy.badge;
+    }
+    setInner('ytax-couple-card-headline', advice.cardStrategy.headline);
+    setInner('ytax-couple-card-detail', advice.cardStrategy.detail);
+    setInner('ytax-couple-card-step1', advice.cardStrategy.step1);
+    setInner('ytax-couple-card-step2', advice.cardStrategy.step2);
+
+    // Medical Advice
+    setInner('ytax-couple-med-winner', advice.medicalAdvice.winner);
+    const medBadgeEl = document.getElementById('ytax-couple-med-badge');
+    if (medBadgeEl) {
+      medBadgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold border ${advice.medicalAdvice.badgeColor}`;
+      medBadgeEl.innerText = advice.medicalAdvice.badge;
+    }
+    setInner('ytax-couple-med-title', advice.medicalAdvice.title);
+    setInner('ytax-couple-med-desc', advice.medicalAdvice.desc);
+
+    // Dependent Advice
+    setInner('ytax-couple-dep-winner', advice.dependentAdvice.winner);
+    const depBadgeEl = document.getElementById('ytax-couple-dep-badge');
+    if (depBadgeEl) {
+      depBadgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold border ${advice.dependentAdvice.badgeColor}`;
+      depBadgeEl.innerText = advice.dependentAdvice.badge;
+    }
+    setInner('ytax-couple-dep-title', advice.dependentAdvice.title);
+    setInner('ytax-couple-dep-desc', advice.dependentAdvice.desc);
+  }
+
+  // Golden Ratio UI Renderer
+  function renderGoldenRatioUI() {
+    const salary = Math.max(0, Number(state.guideSalary) || 50000000);
+    const gr = calcCardGoldenRatio(salary);
+
+    const setInner = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+
+    setInner('ytax-gr-salary-disp', formatWon(gr.salary));
+    setInner('ytax-gr-step1-range', `0원 ~ ${formatWon(gr.hurdle)}`);
+    setInner('ytax-gr-step2-range', `${formatWon(gr.hurdle)} ~ ${formatWon(gr.totalOptimum)}`);
+    setInner('ytax-gr-step3-range', `${formatWon(gr.totalOptimum)} 초과`);
+
+    setInner('ytax-gr-hurdle-won', formatWon(gr.hurdle));
+    setInner('ytax-gr-check-needed', formatWon(gr.checkCardNeeded));
+    setInner('ytax-gr-limit-won', formatWon(gr.limit));
+    setInner('ytax-gr-total-optimum', formatWon(gr.totalOptimum));
+    setInner('ytax-gr-rate-disp', gr.marginalRate.label);
+    setInner('ytax-gr-saved-won', `최대 약 ${formatWon(gr.maxTaxSaved)} 절세`);
+  }
+
+  function handleCoupleInputChange() {
+    const getNum = (id, fallback = 0) => {
+      const el = document.getElementById(id);
+      if (!el) return fallback;
+      const parsed = parseFloat(el.value);
+      return isNaN(parsed) ? fallback : parsed;
+    };
+
+    state.annualSalary = getNum('ytax-couple-input-salary', state.annualSalary);
+    state.spouseSalary = getNum('ytax-couple-input-spouse-salary', 42000000);
+    state.familyExpenseTotal = getNum('ytax-couple-input-expense', 28000000);
+    state.familyMedicalTotal = getNum('ytax-couple-input-medical', 1800000);
+
+    // Sync back to main input as well
+    const mainSalaryEl = document.getElementById('ytax-input-salary');
+    if (mainSalaryEl) mainSalaryEl.value = state.annualSalary;
+
+    renderCoupleUI();
+  }
+
+  function setGoldenRatioSalary(amount) {
+    state.guideSalary = amount;
+    const inp = document.getElementById('ytax-gr-input-salary');
+    if (inp) inp.value = amount;
+
+    // Visual button active toggle
+    document.querySelectorAll('.ytax-gr-sal-btn').forEach(btn => {
+      if (Number(btn.dataset.sal) === amount) {
+        btn.className = 'ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition shadow-sm';
+      } else {
+        btn.className = 'ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-400 hover:text-slate-200 border border-navy-800 text-xs font-medium transition';
+      }
+    });
+
+    renderGoldenRatioUI();
+  }
+
+  function handleGoldenRatioChange() {
+    const el = document.getElementById('ytax-gr-input-salary');
+    if (el) {
+      const val = parseFloat(el.value) || 0;
+      state.guideSalary = val;
+      renderGoldenRatioUI();
+    }
+  }
+
+  function copyCoupleAdviceToClipboard() {
+    const pSalary = Math.max(0, Number(state.annualSalary) || 0);
+    const sSalary = Math.max(0, Number(state.spouseSalary) || 0);
+    const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
+    const familyMedical = Math.max(0, Number(state.familyMedicalTotal) || 0);
+    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical);
+
+    const text = `[👫 2026 맞벌이 부부 연말정산 절세 & 카드 소비 진단 결과 - CrytoPnL]
+• 본인 총급여: ${formatWon(pSalary)} (세율 ${advice.isPrimaryHigher ? advice.higherRate.rate : advice.lowerRate.rate}%)
+• 배우자 총급여: ${formatWon(sSalary)} (세율 ${advice.isPrimaryHigher ? advice.lowerRate.rate : advice.higherRate.rate}%)
+• 부부 세율차이: ${advice.rateDiff}%p (${advice.higherName} 세율 우위)
+---------------------------------
+💳 [누구 카드로 써야 할까?]
+• 추천: ${advice.cardStrategy.target}
+• 전략: ${advice.cardStrategy.headline}
+• 1단계: ${advice.cardStrategy.step1}
+• 2단계: ${advice.cardStrategy.step2}
+---------------------------------
+🏥 [의료비 세액공제 3% 전략]
+• ${advice.medicalAdvice.title}
+• ${advice.medicalAdvice.desc}
+---------------------------------
+👶 [부양가족/자녀 인적공제 배정]
+• ${advice.dependentAdvice.title}
+• ${advice.dependentAdvice.desc}
+---------------------------------
+🎁 [고향사랑기부금 부부 더블 혜택]
+• 부부 각자 10만원씩 기부 시 총 20만원 100% 환급 + 답례품 6만원 수령 (순이익 6만원!)
+---------------------------------
+출처: CrytoPnL 연말정산기 (https://crytopnl.com/#/yearend-tax)`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 맞벌이 부부 절세 진단 결과가 클립보드에 복사되었습니다!\n배우자에게 카카오톡으로 공유해 보세요.');
+      }).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function copyGoldenRatioToClipboard() {
+    const salary = Math.max(0, Number(state.guideSalary) || 50000000);
+    const gr = calcCardGoldenRatio(salary);
+
+    const text = `[💳 연봉 ${formatWon(salary)} 신용카드 vs 현금/체크카드 황금 소비 공식 - CrytoPnL]
+1️⃣ [0원 ~ ${formatWon(gr.hurdle)} (총급여 25%)]
+   👉 무조건 신용카드 사용! (공제 0% 구간, 카드사 마일리지·할인 극대화)
+2️⃣ [${formatWon(gr.hurdle)} ~ ${formatWon(gr.totalOptimum)}]
+   👉 체크카드/현금영수증 집중 결제! (공제율 30%로 한도 ${formatWon(gr.limit)} 전액 달성)
+3️⃣ [${formatWon(gr.totalOptimum)} 초과분]
+   👉 전통시장/대중교통(40~80%) 또는 다시 혜택 좋은 신용카드 결제!
+★ 예상 최대 절세 효과: 약 ${formatWon(gr.maxTaxSaved)}
+출처: CrytoPnL 연말정산기 (https://crytopnl.com/#/yearend-tax)`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 연봉별 황금 소비 공식이 클립보드에 복사되었습니다!');
+      }).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
   // Load Form from State
   function syncFormFromState() {
     const setVal = (id, val) => {
@@ -695,11 +1151,19 @@ const YearendTaxCalculator = (function() {
   return {
     init,
     calculate,
+    analyzeCouple,
+    calcCardGoldenRatio,
+    switchSubTab,
     handleInputChange,
+    handleCoupleInputChange,
+    handleGoldenRatioChange,
+    setGoldenRatioSalary,
     addSalary,
     applyPreset,
     resetAll,
-    copyResultToClipboard
+    copyResultToClipboard,
+    copyCoupleAdviceToClipboard,
+    copyGoldenRatioToClipboard
   };
 })();
 
