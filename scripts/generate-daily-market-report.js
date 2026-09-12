@@ -1403,7 +1403,7 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
     }
   };
 
-  const models = ['gemini-3.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
   for (const model of models) {
     try {
       console.log(`[Gemini Perspective AI] Calling ${model}...`);
@@ -1412,7 +1412,7 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(60000)
+        signal: AbortSignal.timeout(40000)
       });
       if (res.ok) {
         const data = await res.json();
