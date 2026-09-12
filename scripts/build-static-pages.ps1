@@ -244,8 +244,19 @@ foreach ($rep in $reports) {
     }
 
     $dateStr = $today
-    if ($rep["time"] -and $rep["time"].Length -ge 10) {
-        $dateStr = $rep["time"].Substring(0, 10)
+    if ($rep["timestamp"]) {
+        try {
+            $ts = [int64]$rep["timestamp"]
+            if ($ts -gt 1000000000000) {
+                $epoch = [DateTimeOffset]::FromUnixTimeMilliseconds($ts)
+                $dateStr = $epoch.ToString("yyyy-MM-dd")
+            } elseif ($ts -gt 1000000000) {
+                $epoch = [DateTimeOffset]::FromUnixTimeSeconds($ts)
+                $dateStr = $epoch.ToString("yyyy-MM-dd")
+            }
+        } catch {}
+    } elseif ($rep["time"] -and ($rep["time"] -match '^\d{4}[-.]\d{2}[-.]\d{2}')) {
+        $dateStr = ($rep["time"] -replace '\.', '-').Substring(0, 10)
     }
 
     $page = $template

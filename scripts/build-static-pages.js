@@ -210,7 +210,15 @@ reports.forEach(rep => {
   const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
   const plain = stripHtml(rep.content || '');
   const desc = plain.length > 150 ? plain.substring(0, 150) + '...' : `${rep.title} - CrytoPnL 실시간 퀀트 분석 및 온체인 마켓 리포트`;
-  const dateStr = (rep.time && rep.time.length >= 10) ? rep.time.substring(0, 10) : today;
+  let dateStr = today;
+  if (rep.timestamp && typeof rep.timestamp === 'number') {
+    const ts = rep.timestamp > 1000000000000 ? rep.timestamp : rep.timestamp * 1000;
+    try {
+      dateStr = new Date(ts).toISOString().split('T')[0];
+    } catch(e) {}
+  } else if (rep.time && /^\d{4}[-.]\d{2}[-.]\d{2}/.test(rep.time)) {
+    dateStr = rep.time.substring(0, 10).replace(/\./g, '-');
+  }
 
   const html = renderPage(template, {
     fullTitle: `${rep.title} | CrytoPnL 포럼`,
