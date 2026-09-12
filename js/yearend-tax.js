@@ -976,6 +976,34 @@ const YearendTaxCalculator = (function() {
       `;
       depBreakdownEl.innerHTML = breakdownHtml;
     }
+
+    // Live Calculation Metrics Binding in Couple Tab
+    const elderNormalCount = Number(state.coupleDepElderNormal) || 0;
+    const depDeductTotal = (advice.dependentAdvice.youthCnt + advice.dependentAdvice.infantCnt + elderNormalCount) * 1500000 
+      + (advice.dependentAdvice.elderSeniorCnt * 2500000) 
+      + (advice.dependentAdvice.disabledCnt * 3500000);
+    const childCreditTotal = advice.dependentAdvice.childCreditTotal || 0;
+    const hasUnlimitedMedical = (advice.dependentAdvice.elderSeniorCnt > 0 || advice.dependentAdvice.disabledCnt > 0);
+    const medLimitText = hasUnlimitedMedical ? '무제한 전액 공제' : '연 700만원 한도';
+    const benefitDiff = advice.dependentAdvice.totalExtraTaxSaved || 0;
+
+    setInner('ytax-couple-calc-dep-deduct', formatWon(depDeductTotal));
+    setInner('ytax-couple-calc-child-credit', formatWon(childCreditTotal));
+    setInner('ytax-couple-calc-med-limit', medLimitText);
+    setInner('ytax-couple-calc-benefit-diff', `+${formatWon(benefitDiff)}`);
+
+    const calcNoteEl = document.getElementById('ytax-couple-calc-note');
+    if (calcNoteEl) {
+      if (advice.dependentAdvice.adultCnt > 0) {
+        calcNoteEl.innerHTML = `<span>⚠️ <strong class="text-amber-300">성인 자녀(${advice.dependentAdvice.adultCnt}명)</strong>는 기본공제(0원)에서 제외되었습니다. 대학교 등록금(최대 900만 한도 15%)은 결정세액이 큰 쪽에 배정하세요.</span>`;
+      } else if (hasUnlimitedMedical) {
+        calcNoteEl.innerHTML = `<span>🎉 70세 이상 어르신 또는 장애인이 포함되어 <strong>의료비 700만원 한도가 전액 무제한 해제</strong>되었습니다!</span>`;
+      } else if (benefitDiff > 0) {
+        calcNoteEl.innerHTML = `<span>💡 부양가족을 <strong>${advice.higherName}</strong>에게 몰아줄 때 ${advice.lowerName} 대비 <strong>+${formatWon(benefitDiff)}</strong>의 절세 환급금이 발생합니다.</span>`;
+      } else {
+        calcNoteEl.innerHTML = `<span>💡 자녀 및 부양가족 수를 변경하시면 공제액과 최적 부부 배정 결과가 즉시 재계산됩니다.</span>`;
+      }
+    }
   }
 
   // Golden Ratio UI Renderer
@@ -1014,16 +1042,34 @@ const YearendTaxCalculator = (function() {
     state.familyExpenseTotal = getNum('ytax-couple-input-expense', 28000000);
     state.familyMedicalTotal = getNum('ytax-couple-input-medical', 1800000);
 
-    state.coupleDepYouth = getNum('ytax-couple-input-dep-youth', state.coupleDepYouth);
-    state.coupleDepInfant = getNum('ytax-couple-input-dep-infant', state.coupleDepInfant);
-    state.coupleDepAdult = getNum('ytax-couple-input-dep-adult', state.coupleDepAdult);
-    state.coupleDepElderNormal = getNum('ytax-couple-input-dep-elder-normal', state.coupleDepElderNormal);
-    state.coupleDepElderSenior = getNum('ytax-couple-input-dep-elder-senior', state.coupleDepElderSenior);
-    state.coupleDepDisabled = getNum('ytax-couple-input-dep-disabled', state.coupleDepDisabled);
+    state.coupleDepYouth = getNum('ytax-couple-input-dep-youth', 0);
+    state.coupleDepInfant = getNum('ytax-couple-input-dep-infant', 0);
+    state.coupleDepAdult = getNum('ytax-couple-input-dep-adult', 0);
+    state.coupleDepElderNormal = getNum('ytax-couple-input-dep-elder-normal', 0);
+    state.coupleDepElderSenior = getNum('ytax-couple-input-dep-elder-senior', 0);
+    state.coupleDepDisabled = getNum('ytax-couple-input-dep-disabled', 0);
 
-    // Sync back to main input as well
-    const mainSalaryEl = document.getElementById('ytax-input-salary');
-    if (mainSalaryEl) mainSalaryEl.value = state.annualSalary;
+    // Two-way sync to Main Calculator state
+    state.childrenYouthCount = state.coupleDepYouth;
+    state.childrenInfantCount = state.coupleDepInfant;
+    state.childrenAdultCount = state.coupleDepAdult;
+    state.childrenCount = state.childrenYouthCount + state.childrenInfantCount;
+    state.eldersCount = state.coupleDepElderNormal;
+    state.isSeniorElder = state.coupleDepElderSenior;
+    state.disabledCount = state.coupleDepDisabled;
+
+    // Sync input values to Main Calculator DOM elements as well
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    setVal('ytax-input-salary', state.annualSalary);
+    setVal('ytax-input-children-youth', state.childrenYouthCount);
+    setVal('ytax-input-children-infant', state.childrenInfantCount);
+    setVal('ytax-input-children-adult', state.childrenAdultCount);
+    setVal('ytax-input-elders', state.eldersCount);
+    setVal('ytax-input-senior-elders', state.isSeniorElder);
+    setVal('ytax-input-disabled', state.disabledCount);
 
     renderCoupleUI();
   }
@@ -1205,6 +1251,25 @@ const YearendTaxCalculator = (function() {
     state.disabledCount = getNum('ytax-input-disabled', 0);
     state.isSingleParent = getCheck('ytax-chk-singleparent');
     state.isFemaleHead = getCheck('ytax-chk-femalehead');
+
+    // Two-way sync to Couple Tab state & DOM
+    state.coupleDepYouth = state.childrenYouthCount;
+    state.coupleDepInfant = state.childrenInfantCount;
+    state.coupleDepAdult = state.childrenAdultCount;
+    state.coupleDepElderNormal = state.eldersCount;
+    state.coupleDepElderSenior = state.isSeniorElder;
+    state.coupleDepDisabled = state.disabledCount;
+
+    const setCoupleVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    setCoupleVal('ytax-couple-input-dep-youth', state.coupleDepYouth);
+    setCoupleVal('ytax-couple-input-dep-infant', state.coupleDepInfant);
+    setCoupleVal('ytax-couple-input-dep-adult', state.coupleDepAdult);
+    setCoupleVal('ytax-couple-input-dep-elder-normal', state.coupleDepElderNormal);
+    setCoupleVal('ytax-couple-input-dep-elder-senior', state.coupleDepElderSenior);
+    setCoupleVal('ytax-couple-input-dep-disabled', state.coupleDepDisabled);
 
     state.creditCard = getNum('ytax-input-creditcard', 0);
     state.debitCard = getNum('ytax-input-debitcard', 0);

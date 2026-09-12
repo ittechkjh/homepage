@@ -4951,6 +4951,45 @@
                     <span class="text-[9px] text-emerald-300 block text-center">350만+의료비무제한</span>
                   </div>
                 </div>
+
+                <!-- Live Dynamic Calculation Results in Couple Tab -->
+                <div class="mt-3 pt-2.5 border-t border-navy-800/80 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                      <span>부양가족 변경 시 실시간 세법 계산 결과</span>
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono font-bold">LIVE CALC</span>
+                  </div>
+
+                  <!-- 4-Grid Live Metrics -->
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="p-2 bg-navy-900/90 rounded-xl border border-navy-800 space-y-0.5">
+                      <span class="text-[10px] text-slate-400 block">인적 소득공제</span>
+                      <strong class="text-xs font-mono font-black text-cyan-400 block" id="ytax-couple-calc-dep-deduct">0원</strong>
+                    </div>
+
+                    <div class="p-2 bg-navy-900/90 rounded-xl border border-navy-800 space-y-0.5">
+                      <span class="text-[10px] text-slate-400 block">자녀 세액공제</span>
+                      <strong class="text-xs font-mono font-black text-pink-400 block" id="ytax-couple-calc-child-credit">0원</strong>
+                    </div>
+
+                    <div class="p-2 bg-navy-900/90 rounded-xl border border-navy-800 space-y-0.5">
+                      <span class="text-[10px] text-slate-400 block">의료비 공제한도</span>
+                      <strong class="text-[11px] font-mono font-bold text-emerald-400 block" id="ytax-couple-calc-med-limit">700만원 한도</strong>
+                    </div>
+
+                    <div class="p-2 bg-navy-900/90 rounded-xl border border-teal-500/30 space-y-0.5 bg-teal-950/20">
+                      <span class="text-[10px] text-teal-300 block">고소득자 배정 이득</span>
+                      <strong class="text-xs font-mono font-black text-teal-300 block" id="ytax-couple-calc-benefit-diff">+0원</strong>
+                    </div>
+                  </div>
+
+                  <!-- Live Guidance Banner -->
+                  <div class="p-2 bg-navy-900/60 rounded-xl border border-navy-800/80 text-[10px] text-slate-300 flex items-center justify-between" id="ytax-couple-calc-note">
+                    <span>💡 자녀 및 부양가족 수를 변경하시면 공제액과 최적 부부 배정 결과가 즉시 재계산됩니다.</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
