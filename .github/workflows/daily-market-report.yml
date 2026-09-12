@@ -35,14 +35,17 @@ jobs:
           REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
         run: node scripts/generate-daily-market-report.js
 
+      - name: Build static SEO pages and update sitemap
+        run: node scripts/build-static-pages.js
+
       - name: Commit and push if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/daily-market-reports.json
+          git add data/daily-market-reports.json posts/ calculators/ guides/ sitemap.xml
           if git diff --staged --quiet; then
             echo "No market report changes to commit."
           else
-            git commit -m "chore(report): auto-publish daily 08:00 KST crypto market report [skip ci]"
+            git commit -m "chore(report): auto-publish daily crypto market report & static pages [skip ci]"
             git push origin main
           fi

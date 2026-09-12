@@ -1,0 +1,253 @@
+/**
+ * CrytoPnL Static Page & Sitemap Generator (Node.js)
+ * Designed for automated execution in GitHub Actions workflows.
+ * Reads:
+ *   - scripts/page-template.html
+ *   - data/static-seo-articles.json
+ *   - data/daily-market-reports.json
+ * Generates:
+ *   - calculators/*.html
+ *   - guides/*.html
+ *   - posts/*.html
+ *   - sitemap.xml
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+const templatePath = path.join(rootDir, 'scripts', 'page-template.html');
+const seoArticlesPath = path.join(rootDir, 'data', 'static-seo-articles.json');
+const reportsPath = path.join(rootDir, 'data', 'daily-market-reports.json');
+const sitemapPath = path.join(rootDir, 'sitemap.xml');
+
+// Ensure output directories
+['calculators', 'guides', 'posts'].forEach(dir => {
+  const p = path.join(rootDir, dir);
+  if (!fs.existsSync(p)) {
+    fs.mkdirSync(p, { recursive: true });
+  }
+});
+
+const template = fs.readFileSync(templatePath, 'utf8');
+const seoData = JSON.parse(fs.readFileSync(seoArticlesPath, 'utf8'));
+const repData = JSON.parse(fs.readFileSync(reportsPath, 'utf8'));
+
+const today = new Date().toISOString().split('T')[0];
+const sitemapUrls = [];
+
+function stripHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function escapeJson(str) {
+  if (!str) return '';
+  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/\r/g, '');
+}
+
+// Add Root
+sitemapUrls.push({
+  loc: 'https://crytopnl.com/',
+  lastmod: today,
+  changefreq: 'daily',
+  priority: '1.0'
+});
+
+const calcRelatedHtml = `
+    <section class="mt-8 pt-6 border-t border-navy-800">
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+        함께 읽으면 좋은 추천 가이드
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
+          <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">차익거래 전략</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
+          <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
+          <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
+        </a>
+      </div>
+    </section>
+`;
+
+const guideRelatedHtml = `
+    <section class="mt-8 pt-6 border-t border-navy-800">
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i data-lucide="calculator" class="w-4 h-4 text-cyan-400"></i>
+        직접 계산해보기: 추천 실전 계산기
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="https://crytopnl.com/calculators/crypto-tax-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">세무 계산기</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">가상자산 세금 계산기 (2025/2026 기본공제 적용)</h4>
+          <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/calculators/waterfall-dca-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">물타기 계산기</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 평단가 & 탈출 반등률 정밀 계산기</h4>
+          <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/calculators/binance-futures-fee-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">선물 수수료</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">바이낸스 선물 레버리지 수수료 & 펀딩비 계산기</h4>
+          <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
+        </a>
+      </div>
+    </section>
+`;
+
+const postRelatedHtml = `
+    <section class="mt-8 pt-6 border-t border-navy-800">
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
+        실전 트레이딩 유용한 도구 & 가이드
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="https://crytopnl.com/calculators/kimchi-premium-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">실시간 계산기</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">실시간 김치프리미엄 차익 계산기</h4>
+          <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/guides/orderbook-depth-slippage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">주문 분석</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">호가창 오더북 뎁스(Depth)와 슬리피지 최소화 전략</h4>
+          <span class="text-[11px] text-slate-500 mt-2">가이드 보기 &rarr;</span>
+        </a>
+        <a href="https://crytopnl.com/#/forum" class="p-4 rounded-2xl bg-navy-900/80 border border-cyan-500/40 hover:border-cyan-400 transition flex flex-col justify-between">
+          <span class="text-xs text-amber-400 font-bold mb-1">실시간 토론</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">투자 포럼에서 다른 투자자들과 관점 공유하기</h4>
+          <span class="text-[11px] text-cyan-400 mt-2">포럼 이동 &rarr;</span>
+        </a>
+      </div>
+    </section>
+`;
+
+function renderPage(tpl, params) {
+  return tpl
+    .replace(/__FULL_TITLE__/g, params.fullTitle)
+    .replace(/__DESCRIPTION__/g, params.desc)
+    .replace(/__KEYWORDS__/g, params.keywords)
+    .replace(/__AUTHOR__/g, params.author)
+    .replace(/__CANONICAL_URL__/g, params.canonical)
+    .replace(/__ESCAPED_TITLE__/g, escapeJson(params.title))
+    .replace(/__ESCAPED_DESC__/g, escapeJson(params.desc))
+    .replace(/__DATE__/g, params.date)
+    .replace(/__CTA_LINK__/g, params.ctaLink)
+    .replace(/__CTA_TEXT__/g, params.ctaText)
+    .replace(/__CATEGORY__/g, params.category)
+    .replace(/__TITLE__/g, params.title)
+    .replace(/__CONTENT_HTML__/g, params.contentHtml)
+    .replace(/__RELATED_SECTION__/g, params.relatedHtml);
+}
+
+// 1. Calculators
+(seoData.calculators || []).forEach(calc => {
+  const canonical = `https://crytopnl.com/calculators/${calc.slug}.html`;
+  const html = renderPage(template, {
+    fullTitle: `${calc.title} | CrytoPnL 실전 계산기`,
+    desc: calc.description,
+    keywords: calc.keywords,
+    author: 'CrytoPnL 금융공학팀',
+    canonical,
+    title: calc.title,
+    date: today,
+    ctaLink: calc.ctaLink,
+    ctaText: calc.ctaText,
+    category: calc.category,
+    contentHtml: calc.contentHtml,
+    relatedHtml: calcRelatedHtml
+  });
+  fs.writeFileSync(path.join(rootDir, 'calculators', `${calc.slug}.html`), html, 'utf8');
+  sitemapUrls.push({
+    loc: canonical,
+    lastmod: today,
+    changefreq: 'weekly',
+    priority: '0.9'
+  });
+});
+console.log(`Calculators generated: ${(seoData.calculators || []).length}`);
+
+// 2. Guides
+(seoData.guides || []).forEach(guide => {
+  const canonical = `https://crytopnl.com/guides/${guide.slug}.html`;
+  const html = renderPage(template, {
+    fullTitle: `${guide.title} | CrytoPnL 백서`,
+    desc: guide.description,
+    keywords: guide.keywords,
+    author: 'CrytoPnL 퀀트 리서치팀',
+    canonical,
+    title: guide.title,
+    date: today,
+    ctaLink: guide.ctaLink,
+    ctaText: guide.ctaText,
+    category: guide.category,
+    contentHtml: guide.contentHtml,
+    relatedHtml: guideRelatedHtml
+  });
+  fs.writeFileSync(path.join(rootDir, 'guides', `${guide.slug}.html`), html, 'utf8');
+  sitemapUrls.push({
+    loc: canonical,
+    lastmod: today,
+    changefreq: 'weekly',
+    priority: '0.8'
+  });
+});
+console.log(`Guides generated: ${(seoData.guides || []).length}`);
+
+// 3. Forum Posts
+const reports = repData.reports || [];
+reports.forEach(rep => {
+  const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
+  const plain = stripHtml(rep.content || '');
+  const desc = plain.length > 150 ? plain.substring(0, 150) + '...' : `${rep.title} - CrytoPnL 실시간 퀀트 분석 및 온체인 마켓 리포트`;
+  const dateStr = (rep.time && rep.time.length >= 10) ? rep.time.substring(0, 10) : today;
+
+  const html = renderPage(template, {
+    fullTitle: `${rep.title} | CrytoPnL 포럼`,
+    desc,
+    keywords: '비트코인 시황, 암호화폐 퀀트 분석, 온체인 데이터, 시장 전망, CrytoPnL, BTC USDT',
+    author: rep.author || 'AI 퀀트 애널리스트',
+    canonical,
+    title: rep.title,
+    date: dateStr,
+    ctaLink: 'https://crytopnl.com/#/forum',
+    ctaText: '실시간 지표 & 포럼 참여하기',
+    category: rep.categoryName || '시장 분석 리포트',
+    contentHtml: rep.content || '',
+    relatedHtml: postRelatedHtml
+  });
+  fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
+  sitemapUrls.push({
+    loc: canonical,
+    lastmod: dateStr,
+    changefreq: 'weekly',
+    priority: '0.85'
+  });
+});
+console.log(`Posts generated: ${reports.length}`);
+
+// 4. Sitemap.xml
+const xml = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...sitemapUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`),
+  '</urlset>'
+].join('\n');
+
+fs.writeFileSync(sitemapPath, xml, 'utf8');
+console.log(`sitemap.xml generated with ${sitemapUrls.length} URLs`);

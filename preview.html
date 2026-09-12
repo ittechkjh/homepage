@@ -2056,6 +2056,9 @@
             <button onclick="copyPostForNaverBlog()" class="cafe-naver-copy-btn px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition flex items-center gap-1.5 border border-emerald-500/30" title="네이버 블로그/카페 스마트에디터에 바로 붙여넣을 수 있도록 고해상도 PNG 이미지와 함께 복사합니다.">
               <i data-lucide="copy" class="w-4 h-4"></i> 네이버 블로그/카페 복사
             </button>
+            <a id="cafe-post-static-link" href="#" target="_blank" class="px-3.5 py-2 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 border border-navy-700 text-xs font-bold transition flex items-center gap-1.5" title="구글 검색용 정적 원문 페이지로 이동합니다.">
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-cyan-400"></i> 웹문서 보기
+            </a>
             <div id="cafe-post-author-controls" class="hidden flex items-center gap-2">
               <!-- Edit / Delete buttons -->
             </div>
@@ -7190,20 +7193,78 @@
        ============================================== -->
 
   
-  <!-- Simplified Lightweight Footer (AdSense Compliant) -->
-  <footer class="bg-navy-950 border-t border-navy-800/80 py-8 px-4 text-center mt-auto">
-    <div class="max-w-4xl mx-auto space-y-3">
-      <p class="text-xs text-slate-400 font-medium">© 2026 CrytoPnL</p>
-      <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs text-slate-400">
-        <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hover:text-cyan-400 transition">개인정보처리방침</button>
-        <span class="text-slate-700">|</span>
-        <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">이용약관</button>
-        <span class="text-slate-700">|</span>
-        <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">면책조항</button>
-        <span class="text-slate-700">|</span>
-        <button type="button" data-open-legal="contact" onclick="openLegalModal('contact')" class="hover:text-cyan-400 transition">문의</button>
-        <span class="text-slate-700">|</span>
-        <button type="button" data-open-legal="about" onclick="openLegalModal('about')" class="hover:text-cyan-400 transition">소개</button>
+  <!-- Comprehensive SEO & Directory Footer -->
+  <footer class="bg-navy-950 border-t border-navy-800/80 py-10 px-4 text-xs mt-auto">
+    <div class="max-w-6xl mx-auto space-y-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-left">
+        <!-- Col 1: Brand & About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-white font-extrabold text-base">
+            <span class="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-[10px] text-white font-black">CP</span>
+            <span>CrytoPnL <span class="text-cyan-400 font-mono text-xs">PRO</span></span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            대한민국 1등 암호화폐 퀀트 분석 &amp; 엑셀 세무 회계 플랫폼. 서버 전송 없는 100% 로컬 프라이버시 엔진을 지원합니다.
+          </p>
+        </div>
+
+        <!-- Col 2: Calculators -->
+        <div class="space-y-2">
+          <h4 class="text-slate-200 font-bold text-xs flex items-center gap-1.5">
+            <span class="text-cyan-400">⚡</span> 실전 암호화폐 계산기
+          </h4>
+          <ul class="space-y-1.5 text-slate-400 text-[11px]">
+            <li><a href="/calculators/fifo-pnl.html" class="hover:text-cyan-400 transition">선입선출(FIFO) 수익률 계산기</a></li>
+            <li><a href="/calculators/average-down.html" class="hover:text-cyan-400 transition">물타기 평단가 &amp; 탈출 계산기</a></li>
+            <li><a href="/calculators/kimchi-premium.html" class="hover:text-cyan-400 transition">실시간 김치프리미엄 차익 계산기</a></li>
+            <li><a href="/calculators/liquidation-price.html" class="hover:text-cyan-400 transition">선물 레버리지 청산가 계산기</a></li>
+            <li><a href="/calculators/crypto-tax.html" class="hover:text-cyan-400 transition">가상자산 세금 시뮬레이터</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Guides -->
+        <div class="space-y-2">
+          <h4 class="text-slate-200 font-bold text-xs flex items-center gap-1.5">
+            <span class="text-cyan-400">📚</span> 투자 &amp; 세무 지식 백서
+          </h4>
+          <ul class="space-y-1.5 text-slate-400 text-[11px]">
+            <li><a href="/guides/upbit-excel-download.html" class="hover:text-cyan-400 transition">업비트 전체 거래내역 엑셀 다운로드</a></li>
+            <li><a href="/guides/bithumb-excel-download.html" class="hover:text-cyan-400 transition">빗썸 거래내역 엑셀 다운로드 가이드</a></li>
+            <li><a href="/guides/fifo-accounting.html" class="hover:text-cyan-400 transition">가상자산 선입선출 회계원칙 완벽정리</a></li>
+            <li><a href="/guides/crypto-tax-deduction.html" class="hover:text-cyan-400 transition">코인 세금 기본공제 &amp; 절세 전략</a></li>
+            <li><a href="/guides/kimchi-premium-arbitrage.html" class="hover:text-cyan-400 transition">김프 매매 기법과 무위험 헤징 전략</a></li>
+            <li><a href="/guides/yearend-tax-guide.html" class="hover:text-cyan-400 transition">직장인을 위한 연말정산 절세 꿀팁</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Market Reports -->
+        <div class="space-y-2">
+          <h4 class="text-slate-200 font-bold text-xs flex items-center gap-1.5">
+            <span class="text-cyan-400">📊</span> 데일리 퀀트 리포트
+          </h4>
+          <ul class="space-y-1.5 text-slate-400 text-[11px]">
+            <li><a href="/posts/report-20260912.html" class="hover:text-cyan-400 transition line-clamp-1">일일 모닝 시황 리포트</a></li>
+            <li><a href="/posts/perspective-20260912-21.html" class="hover:text-cyan-400 transition line-clamp-1">BTC 야간 관점 및 온체인 지표</a></li>
+            <li><a href="/posts/perspective-20260912-17.html" class="hover:text-cyan-400 transition line-clamp-1">BTC 오후 관점 및 거시 지표</a></li>
+            <li><a href="/#/forum" class="text-cyan-400 hover:underline transition font-bold mt-1 inline-block">포럼 전체 게시글 보기 &rarr;</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Legal & Copyright -->
+      <div class="pt-6 border-t border-navy-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-slate-500">
+        <p class="text-[11px]">© 2026 CrytoPnL. 본 플랫폼의 데이터는 투자 참고용이며 투자 권유가 아닙니다.</p>
+        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-slate-400 text-[11px]">
+          <button type="button" data-open-legal="privacy" onclick="openLegalModal('privacy')" class="hover:text-cyan-400 transition">개인정보처리방침</button>
+          <span class="text-slate-700">|</span>
+          <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">이용약관</button>
+          <span class="text-slate-700">|</span>
+          <button type="button" data-open-legal="terms" onclick="openLegalModal('terms')" class="hover:text-cyan-400 transition">면책조항</button>
+          <span class="text-slate-700">|</span>
+          <button type="button" data-open-legal="contact" onclick="openLegalModal('contact')" class="hover:text-cyan-400 transition">문의</button>
+          <span class="text-slate-700">|</span>
+          <button type="button" data-open-legal="about" onclick="openLegalModal('about')" class="hover:text-cyan-400 transition">소개</button>
+        </div>
       </div>
     </div>
   </footer>
