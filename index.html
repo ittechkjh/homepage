@@ -1228,6 +1228,11 @@
           <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
         <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i> 계산기 5종</button>
+        <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-teal-300 hover:text-teal-100 border border-teal-500/30 bg-teal-500/10 hover:border-teal-400 group shadow-sm">
+          <i data-lucide="receipt" class="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform"></i>
+          <span>연말정산 팁</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
+        </button>
         <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 group shadow-sm">
           <i data-lucide="landmark" class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform"></i>
           <span>🏛️ 정책 혜택</span>
@@ -1287,6 +1292,10 @@
     <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-0.5 text-amber-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calculator" class="w-4 h-4"></i>
       <span>계산기</span>
+    </button>
+    <button onclick="switchTab('yearend-tax')" id="m-nav-yearend-tax" class="flex flex-col items-center gap-0.5 text-teal-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
+      <i data-lucide="receipt" class="w-4 h-4"></i>
+      <span>연말정산</span>
     </button>
     <button onclick="switchTab('policy')" id="m-nav-policy" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="landmark" class="w-4 h-4"></i>
@@ -3747,6 +3756,11 @@
             <button type="button" onclick="CoinCalculators.switchSubTab('card')" data-calctab="card" class="calc-subtab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-slate-400 hover:text-white">
               <span>🖼️ 수익 인증 카드</span>
             </button>
+            <button type="button" onclick="switchTab('yearend-tax')" class="px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-teal-300 hover:text-white bg-teal-500/15 border border-teal-500/30 hover:bg-teal-500/25 shadow-sm" title="2026 연말정산 모의계산기 바로가기">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400"></i>
+              <span>🧾 연말정산 팁</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-teal-400 text-navy-950">NEW</span>
+            </button>
           </div>
         </div>
       </div>
@@ -3789,7 +3803,7 @@
                 <div class="grid grid-cols-2 gap-2">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1">현재 보유 평단가 (KRW)</label>
-                    <input type="number" step="any" id="waterCurrentPrice" value="95000000" oninput="CoinCalculators.calcWater()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-cyan-500 focus:outline-none">
+                    <input type="text" inputmode="numeric" id="waterCurrentPrice" value="95,000,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcWater()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-cyan-500 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1">현재 보유 수량</label>
@@ -3967,7 +3981,7 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">송금 원화 금액 (KRW)</label>
-                <input type="number" id="arbSendAmount" value="5000000" oninput="CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="arbSendAmount" value="5,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">적용 김프율 (%)</label>
@@ -4006,15 +4020,15 @@
             <div class="space-y-3 text-xs">
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">연간 총 양도(매도) 대금 (KRW)</label>
-                <input type="number" id="taxTotalSell" value="150000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalSell" value="150,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">연간 총 취득(매수) 가액 (KRW)</label>
-                <input type="number" id="taxTotalBuy" value="120000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalBuy" value="120,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">매매 수수료 및 부대비용 (KRW)</label>
-                <input type="number" id="taxTotalFee" value="135000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalFee" value="135,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">기본 공제액 기준</label>
@@ -4078,15 +4092,15 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">진입 가격 (Entry, USD)</label>
-                <input type="number" id="futuresEntryPrice" value="64000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="futuresEntryPrice" value="64,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">투자 원금 (Margin, USDT)</label>
-                <input type="number" id="futuresMargin" value="1000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="futuresMargin" value="1,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">목표 가격 (Target, USD)</label>
-                <input type="number" id="futuresTargetPrice" value="68000" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
+                <input type="text" inputmode="numeric" id="futuresTargetPrice" value="68,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
               </div>
             </div>
           </div>
@@ -4189,6 +4203,1212 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- ==============================================
+         TAB: YEAR-END TAX SETTLEMENT CALCULATOR (연말정산기)
+         ============================================== -->
+    <section id="tab-yearend-tax" class="tab-content hidden w-full space-y-6">
+
+      <!-- 1. Hero Header & Overview -->
+      <div class="bg-gradient-to-r from-teal-950/80 via-navy-900 to-navy-950 border border-teal-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="space-y-1.5 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+              <span>2025/2026 귀속 대한민국 최신 개정세법 완전 반영</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <span>근로소득 연말정산 정밀 계산기</span>
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 font-mono text-xl sm:text-2xl">Tax Settlement</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              연봉·인적공제·신용카드·연금저축/IRP·의료비·월세 등을 입력하면 1초 만에 <strong>결정세액과 13월의 월급 환급액(추가납부액)</strong>을 정밀 시뮬레이션합니다. (서버 전송 0% 100% 로컬 암호화 연산)
+            </p>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full md:w-auto">
+            <span class="text-[11px] font-bold text-slate-400 hidden sm:inline">빠른 예시:</span>
+            <div class="flex flex-wrap gap-1.5 p-1 bg-navy-950/80 rounded-2xl border border-navy-800">
+              <button type="button" onclick="YearendTaxCalculator.applyPreset('junior')" data-preset="junior" class="ytax-preset-btn px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition">초년생 3,500만</button>
+              <button type="button" onclick="YearendTaxCalculator.applyPreset('senior')" data-preset="senior" class="ytax-preset-btn px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition">대리 5,500만</button>
+              <button type="button" onclick="YearendTaxCalculator.applyPreset('family')" data-preset="family" class="ytax-preset-btn px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition">외벌이 7,000만</button>
+              <button type="button" onclick="YearendTaxCalculator.applyPreset('dualHigh')" data-preset="dualHigh" class="ytax-preset-btn px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition">고소득 1억</button>
+              <button type="button" onclick="YearendTaxCalculator.resetAll()" class="px-2.5 py-1.5 rounded-xl bg-navy-900 hover:bg-rose-950/50 text-slate-400 hover:text-rose-300 border border-navy-700 text-xs font-semibold transition" title="초기화">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SubTab Navigation Bar: 1. 단독/외벌이 계산기 | 2. 맞벌이 부부 절세 진단 | 3. 황금소비 공식 -->
+      <div class="flex flex-wrap items-center gap-2 p-1.5 bg-navy-900 border border-navy-800 rounded-2xl shadow-lg">
+        <button type="button" onclick="YearendTaxCalculator.switchSubTab('calculator')" id="ytax-subtab-btn-calculator" class="ytax-subtab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-300 border border-teal-500/40 shadow-md cursor-pointer">
+          <i data-lucide="calculator" class="w-4 h-4 text-teal-400"></i>
+          <span>1. 연말정산 정밀 모의계산</span>
+        </button>
+        <button type="button" onclick="YearendTaxCalculator.switchSubTab('couple')" id="ytax-subtab-btn-couple" class="ytax-subtab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent cursor-pointer">
+          <i data-lucide="heart-handshake" class="w-4 h-4 text-pink-400"></i>
+          <span>2. 맞벌이 부부 절세 &amp; 카드 몰아주기 진단</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-pink-500/20 text-pink-300 border border-pink-500/30">HOT</span>
+        </button>
+        <button type="button" onclick="YearendTaxCalculator.switchSubTab('cards')" id="ytax-subtab-btn-cards" class="ytax-subtab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-navy-800/60 border border-transparent cursor-pointer">
+          <i data-lucide="credit-card" class="w-4 h-4 text-amber-400"></i>
+          <span>3. 연봉별 카드 vs 현금 황금비율</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">공식</span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: Main Calculator Grid (개인/외벌이 정밀 모의계산기) -->
+      <div id="ytax-view-calculator" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT COLUMN: Input Forms (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+
+          <!-- Card 1: 소득 및 원천징수 정보 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="wallet" class="w-4 h-4 text-teal-400"></i>
+                <span>1. 연간 총급여 및 원천징수 세액</span>
+              </h3>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">기본 소득</span>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label for="ytax-input-salary" class="text-xs font-bold text-slate-300">연간 총급여액 (세전 연봉 + 상여금)</label>
+                  <span class="text-xs font-mono text-teal-400 font-bold" id="ytax-label-salary-won"></span>
+                </div>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-sm sm:text-base text-white font-mono font-bold focus:border-teal-400 outline-none pr-12">
+                  <span class="absolute right-4 top-3.5 text-xs text-slate-400 font-bold">원</span>
+                </div>
+                <!-- Quick Salary Add Buttons -->
+                <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addSalary(10000000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-navy-800 border border-navy-800 text-[11px] text-slate-300 font-medium transition">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addSalary(5000000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-navy-800 border border-navy-800 text-[11px] text-slate-300 font-medium transition">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addSalary(1000000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-navy-800 border border-navy-800 text-[11px] text-slate-300 font-medium transition">+100만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addSalary(-5000000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-navy-800 border border-navy-800 text-[11px] text-slate-400 font-medium transition">-500만</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label for="ytax-select-paidmethod" class="block text-xs font-bold text-slate-300 mb-1.5">기납부세액 계산 방식</label>
+                  <select id="ytax-select-paidmethod" onchange="YearendTaxCalculator.handleInputChange(this)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-teal-400 outline-none">
+                    <option value="auto">표준 100% 원천징수 (자동 추정)</option>
+                    <option value="manual">원천징수영수증 금액 직접 입력</option>
+                  </select>
+                </div>
+                <div id="ytax-manual-prepaid-box" class="hidden">
+                  <label for="ytax-input-prepaid" class="block text-xs font-bold text-slate-300 mb-1.5">기납부세액 직접 입력 (소득세+지방세)</label>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="ytax-input-prepaid" value="2,500,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-teal-400 outline-none pr-8">
+                    <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: 인적공제 & 부양가족 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+                <span>2. 인적공제 (본인 및 부양가족)</span>
+              </h3>
+              <span class="text-[11px] font-mono text-cyan-400">기본 인당 150만원</span>
+            </div>
+
+            <!-- 인적공제 항목 리스트 (자녀 연령별, 부모님, 어르신, 장애인 세분화) -->
+            <div class="space-y-3">
+              <!-- 기본 본인 및 배우자 -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
+                  <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                      <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400"></i>
+                      <span>본인 기본공제</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">근로자 본인 (기본 자동적용)</div>
+                  </div>
+                  <span class="text-xs font-mono font-bold text-cyan-400">150만원</span>
+                </div>
+
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
+                  <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                      <i data-lucide="heart" class="w-3.5 h-3.5 text-pink-400"></i>
+                      <span>배우자 기본공제</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">연간 소득금액 100만원 이하 (150만)</div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="ytax-chk-spouse" onchange="YearendTaxCalculator.handleInputChange()" class="sr-only peer">
+                    <div class="w-9 h-5 bg-navy-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 자녀 연령별 세분화 (청소년 vs 미취학 vs 성인자녀) -->
+              <div class="p-3.5 bg-navy-950/80 rounded-2xl border border-cyan-500/20 space-y-2.5">
+                <div class="flex items-center justify-between border-b border-navy-800 pb-1.5">
+                  <div class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                    <i data-lucide="baby" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>자녀 연령별 세분화 (청소년 · 미취학 · 성인 자녀)</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400">연령별 혜택 상이</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <!-- 청소년 / 초중고 자녀 (만 8세 ~ 20세) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-white">청소년·초중고</span>
+                      <input type="number" id="ytax-input-children-youth" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    </div>
+                    <div class="text-[10px] text-slate-400 leading-tight">만 8세~20세: 인당 150만 + 자녀세액공제(15만/35만/65만)</div>
+                  </div>
+
+                  <!-- 미취학 아동 자녀 (만 7세 이하) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-white">미취학 아동</span>
+                      <input type="number" id="ytax-input-children-infant" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    </div>
+                    <div class="text-[10px] text-slate-400 leading-tight">만 7세 이하: 인당 150만 기본공제 + 학원/유치원 교육비</div>
+                  </div>
+
+                  <!-- 성인 자녀 (만 20세 초과, 대학생 등) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-amber-300">성인 자녀(20세초과)</span>
+                      <input type="number" id="ytax-input-children-adult" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-amber-500/40 rounded-lg py-0.5 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                    </div>
+                    <div class="text-[10px] text-amber-400/90 leading-tight">⚠️기본공제 불가! 대학생 등록금(900만 한도 15%) 및 카드 가능</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 부모님 및 어르신 (경로우대 노인) & 장애인 구분 -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- 60세~69세 부모님/직계존속 -->
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-white">60세~69세 부모님</span>
+                    <input type="number" id="ytax-input-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
+                  </div>
+                  <div class="text-[10px] text-slate-400 leading-tight">인당 150만원 소득공제 (연소득 100만 이하)</div>
+                </div>
+
+                <!-- 70세 이상 경로우대 노인 -->
+                <div class="p-3 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-amber-300">70세이상 경로우대</span>
+                    <input type="number" id="ytax-input-senior-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-amber-500/40 rounded-lg py-0.5 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                  </div>
+                  <div class="text-[10px] text-slate-300 leading-tight"><strong>인당 250만</strong> (기본150+경로우대100) + <strong>의료비 무제한</strong></div>
+                </div>
+
+                <!-- 장애인 부양가족 (나이 제한 없음) -->
+                <div class="p-3 bg-emerald-950/20 rounded-2xl border border-emerald-500/30 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-emerald-300">장애인 (나이무관)</span>
+                    <input type="number" id="ytax-input-disabled" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-emerald-500/40 rounded-lg py-0.5 text-xs text-center text-emerald-300 font-bold outline-none focus:border-emerald-400">
+                  </div>
+                  <div class="text-[10px] text-slate-300 leading-tight"><strong>인당 350만</strong> (기본150+장애인200) + <strong>의료비/특수교육비 무제한</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 추가 특수공제 접이식 토글 (한부모, 부녀자) -->
+            <details class="bg-navy-950/40 rounded-2xl border border-navy-800/60 p-3 text-xs">
+              <summary class="font-bold text-slate-300 cursor-pointer select-none flex items-center justify-between">
+                <span>➕ 한부모 · 부녀자 추가공제 (해당 시 체크)</span>
+                <span class="text-[10px] text-cyan-400">열기/닫기</span>
+              </summary>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 mt-2 border-t border-navy-800">
+                <div class="flex items-center justify-between p-2 bg-navy-900/60 rounded-xl">
+                  <div>
+                    <span class="text-white font-bold block">한부모 공제 (100만원)</span>
+                    <span class="text-[10px] text-slate-400">배우자 없이 20세 이하 자녀 양육</span>
+                  </div>
+                  <input type="checkbox" id="ytax-chk-singleparent" onchange="YearendTaxCalculator.handleInputChange()" class="w-4 h-4 accent-cyan-500">
+                </div>
+                <div class="flex items-center justify-between p-2 bg-navy-900/60 rounded-xl">
+                  <div>
+                    <span class="text-white font-bold block">부녀자 공제 (50만원)</span>
+                    <span class="text-[10px] text-slate-400">종합소득 3천만(총급여 4,500만) 이하 여성 세대주</span>
+                  </div>
+                  <input type="checkbox" id="ytax-chk-femalehead" onchange="YearendTaxCalculator.handleInputChange()" class="w-4 h-4 accent-cyan-500">
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Card 3: 소비 및 주택 소득공제 -->
+          <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4 text-amber-400"></i>
+                <span>3. 신용카드·체크카드 소비 및 주택 소득공제</span>
+              </h3>
+              <span class="text-[11px] font-mono text-amber-400">총급여 25% 초과분 공제</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="ytax-input-creditcard" class="block text-xs font-bold text-slate-300 mb-1">신용카드 연간 사용액 (15%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-creditcard" value="12,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="ytax-input-debitcard" class="block text-xs font-bold text-slate-300 mb-1">체크카드 / 현금영수증 (30%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-debitcard" value="8,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="ytax-input-markettransit" class="block text-xs font-bold text-slate-300 mb-1">전통시장 / 대중교통 (40%~80%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-markettransit" value="1,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="ytax-input-housing" class="block text-xs font-bold text-slate-300 mb-1">주택청약저축 납입액 (40% 공제)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-housing" value="1,200,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="ytax-input-rentloan" class="block text-xs font-bold text-slate-300 mb-1">주택임차차입금(전세대출) 원리금 상환액 (40% 공제)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-rentloan" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: 세액공제 (연금저축/IRP/특별세액공제) -->
+          <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="piggy-bank" class="w-4 h-4 text-indigo-400"></i>
+                <span>4. 세액공제 (연금저축·IRP·의료비·월세)</span>
+              </h3>
+              <span class="text-[11px] font-mono text-indigo-400">산출세액에서 직접 차감</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 연금저축 -->
+              <div class="p-3.5 bg-indigo-950/30 rounded-2xl border border-indigo-500/30 space-y-1.5">
+                <div class="flex justify-between items-center">
+                  <label for="ytax-input-pensionsavings" class="text-xs font-bold text-indigo-300">연금저축 납입액</label>
+                  <span class="text-[10px] text-indigo-400">최대 600만원</span>
+                </div>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-pensionsavings" value="3,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">13.2%~16.5% 세액공제 혜택</p>
+              </div>
+
+              <!-- IRP 퇴직연금 -->
+              <div class="p-3.5 bg-indigo-950/30 rounded-2xl border border-indigo-500/30 space-y-1.5">
+                <div class="flex justify-between items-center">
+                  <label for="ytax-input-irpsavings" class="text-xs font-bold text-indigo-300">IRP 퇴직연금 납입액</label>
+                  <span class="text-[10px] text-indigo-400">합산 최대 900만원</span>
+                </div>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-irpsavings" value="3,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">연금저축과 합산 최대 900만원</p>
+              </div>
+
+              <!-- 보장성 보험료 -->
+              <div>
+                <label for="ytax-input-insurance" class="block text-xs font-bold text-slate-300 mb-1">보장성 보험료 (한도 100만, 12%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-insurance" value="1,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <!-- 의료비 -->
+              <div>
+                <label for="ytax-input-medical" class="block text-xs font-bold text-slate-300 mb-1">
+                  의료비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(3%초과 15% · 70세이상/장애인 한도무제한)</span>
+                </label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-medical" value="1,500,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">일반 700만 한도 / 65세이상 어르신·장애인은 무제한 전액 공제</p>
+              </div>
+
+              <!-- 교육비 -->
+              <div>
+                <label for="ytax-input-education" class="block text-xs font-bold text-slate-300 mb-1">
+                  교육비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(15% · 초중고 300만 · 대학생 성인자녀 900만)</span>
+                </label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-education" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">취학전·초중고 인당 300만 / 대학생(성인) 인당 900만 한도 15%</p>
+              </div>
+
+              <!-- 월세액 -->
+              <div>
+                <label for="ytax-input-monthlyrent" class="block text-xs font-bold text-slate-300 mb-1">연간 월세액 (총급여 7천만 이하 무주택, 15%~17%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-monthlyrent" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <!-- 고향사랑기부금 -->
+              <div>
+                <label for="ytax-input-hometown" class="block text-xs font-bold text-slate-300 mb-1">고향사랑기부금 (10만원 100% 환급)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-hometown" value="100,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+
+              <!-- 일반기부금 -->
+              <div>
+                <label for="ytax-input-donation" class="block text-xs font-bold text-slate-300 mb-1">일반 기부금 (15%)</label>
+                <div class="relative">
+                  <input type="text" inputmode="numeric" id="ytax-input-donation" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- RIGHT COLUMN: Results Dashboard & Smart Optimization (5 cols) -->
+        <div class="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+
+          <!-- Main Highlight Result Card -->
+          <div id="ytax-result-card" class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-emerald-950/80 via-navy-900 to-navy-950 border border-emerald-500/40 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+              <span id="ytax-result-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 🎉 13월의 월급 환급 대상
+              </span>
+              <button type="button" onclick="YearendTaxCalculator.copyResultToClipboard()" class="px-3 py-1.5 rounded-xl bg-navy-900/80 hover:bg-navy-800 border border-navy-700 text-xs font-bold text-slate-200 transition flex items-center gap-1.5 cursor-pointer" title="결과 복사하기">
+                <i data-lucide="copy" class="w-3.5 h-3.5 text-teal-400"></i> 결과 복사
+              </button>
+            </div>
+
+            <div class="space-y-1">
+              <div id="ytax-result-title" class="text-xs sm:text-sm font-bold text-slate-300">예상 환급액 (돌려받는 세금)</div>
+              <div id="ytax-result-amount" class="text-3xl sm:text-5xl font-black text-emerald-400 tracking-tight font-mono">+0원</div>
+            </div>
+
+            <p id="ytax-result-subdesc" class="text-xs text-slate-300 mt-4 leading-relaxed bg-navy-950/60 p-3.5 rounded-2xl border border-navy-800">
+              매월 미리 납부한 기납부세액이 최종 결정세액보다 많아 환급받습니다.
+            </p>
+
+            <!-- Key Figures Mini Grid -->
+            <div class="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-navy-800/80 text-xs">
+              <div class="bg-navy-950/80 p-2.5 rounded-xl border border-navy-800">
+                <div class="text-[11px] text-slate-400">총급여액</div>
+                <div class="font-bold text-white font-mono mt-0.5" id="ytax-stat-salary">-</div>
+              </div>
+              <div class="bg-navy-950/80 p-2.5 rounded-xl border border-navy-800">
+                <div class="text-[11px] text-slate-400">과세표준</div>
+                <div class="font-bold text-cyan-300 font-mono mt-0.5" id="ytax-stat-taxbase">-</div>
+              </div>
+              <div class="bg-navy-950/80 p-2.5 rounded-xl border border-navy-800">
+                <div class="text-[11px] text-slate-400">총 결정세액</div>
+                <div class="font-bold text-amber-300 font-mono mt-0.5" id="ytax-stat-finaltax">-</div>
+              </div>
+              <div class="bg-navy-950/80 p-2.5 rounded-xl border border-navy-800">
+                <div class="text-[11px] text-slate-400">기납부세액 (원천징수)</div>
+                <div class="font-bold text-slate-300 font-mono mt-0.5" id="ytax-stat-prepaid">-</div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-3 text-xs px-1 text-slate-400">
+              <span>내 실효세율:</span>
+              <span class="font-bold font-mono text-white text-sm" id="ytax-stat-rate">0.00%</span>
+            </div>
+          </div>
+
+          <!-- Smart Tax Optimization Banner -->
+          <div class="bg-gradient-to-br from-navy-900 to-indigo-950/40 border border-indigo-500/30 rounded-3xl p-5 sm:p-6 shadow-xl space-y-3.5">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-sm font-bold text-white">💡 13월의 월급 극대화 핵심 팁</h4>
+            </div>
+
+            <div class="space-y-2.5 text-xs leading-relaxed text-slate-300">
+              <div class="p-3 bg-navy-950/70 rounded-2xl border border-navy-800">
+                <div class="font-bold text-indigo-300 flex items-center justify-between">
+                  <span>연금저축/IRP 한도 잔여분 활용</span>
+                  <span class="text-emerald-400 font-mono font-bold" id="ytax-tip-pension-refund">+0원 추가환급</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                  남은 세액공제 한도 <strong class="text-white" id="ytax-tip-pension-amount">300만원</strong>을 연말까지 추가 납입하시면 최대 추가 세액공제를 받으실 수 있습니다.
+                </p>
+              </div>
+
+              <div class="p-3 bg-navy-950/70 rounded-2xl border border-navy-800">
+                <div class="font-bold text-amber-300">신용카드 vs 체크카드 황금 비율</div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                  총급여의 25%까지는 혜택 좋은 <strong>신용카드</strong>를 쓰고, 25% 초과 금액은 소득공제율이 2배(30%)인 <strong>체크카드·현금영수증</strong>을 사용하는 것이 가장 유리합니다.
+                </p>
+              </div>
+
+              <div class="p-3 bg-navy-950/70 rounded-2xl border border-navy-800">
+                <div class="font-bold text-teal-300">고향사랑기부제 10만원 = 13만원 혜택</div>
+                <p class="text-[11px] text-slate-400 mt-1">
+                  10만원 기부 시 10만원 전액 세액공제 환급 + 3만원 상당의 답례품(한우, 지역특산품 등)을 받아 사실상 <strong>3만원 순이익</strong>입니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Breakdown Accordion/Table -->
+          <details class="bg-navy-900 border border-navy-800 rounded-3xl p-5 shadow-xl text-xs space-y-3">
+            <summary class="font-bold text-slate-200 cursor-pointer select-none flex items-center justify-between">
+              <span class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i>
+                <span>과세표준 및 세액 계산 상세 명세서</span>
+              </span>
+              <span class="text-[11px] text-cyan-400 font-semibold">자세히 보기</span>
+            </summary>
+
+            <div class="pt-3 space-y-2 border-t border-navy-800">
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">1. 총급여액</span>
+                <span class="font-mono text-white" id="ytax-dt-salary">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 근로소득공제</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-earned-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60 font-bold">
+                <span class="text-slate-300">(=) 근로소득금액</span>
+                <span class="font-mono text-white" id="ytax-dt-earned-amt">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 기본·인적공제</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-personal-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 국민연금 등 공적연금</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-pension-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 건강·고용보험료</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-insurance-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 주택청약·전세대출</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-housing-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 신용카드 등 사용액</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-card-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60 font-bold">
+                <span class="text-slate-300">(-) 총 소득공제 합계</span>
+                <span class="font-mono text-cyan-400" id="ytax-dt-total-income-deduct">-</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-navy-800 font-bold bg-navy-950/60 px-2 rounded-lg">
+                <span class="text-amber-300">(=) 과세표준</span>
+                <span class="font-mono text-amber-300" id="ytax-dt-taxbase">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">산출세액 (기본세율 6%~45%)</span>
+                <span class="font-mono text-white" id="ytax-dt-calc-tax">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 근로소득 세액공제</span>
+                <span class="font-mono text-indigo-400" id="ytax-dt-earned-credit">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 자녀 세액공제</span>
+                <span class="font-mono text-indigo-400" id="ytax-dt-child-credit">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 연금계좌(연금저축+IRP) 세액공제</span>
+                <span class="font-mono text-indigo-400" id="ytax-dt-pension-credit">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 특별세액공제(보험·의료·교육·기부·월세)</span>
+                <span class="font-mono text-indigo-400" id="ytax-dt-special-credit">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60 font-bold">
+                <span class="text-slate-300">(-) 세액공제 합계</span>
+                <span class="font-mono text-indigo-400" id="ytax-dt-total-credit">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">결정세액 (소득세)</span>
+                <span class="font-mono text-white" id="ytax-dt-final-income-tax">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">지방소득세 (10%)</span>
+                <span class="font-mono text-white" id="ytax-dt-final-local-tax">-</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-navy-800 font-bold bg-navy-950/60 px-2 rounded-lg">
+                <span class="text-teal-300">(=) 총 결정세액</span>
+                <span class="font-mono text-teal-300" id="ytax-dt-total-final-tax">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-navy-800/60">
+                <span class="text-slate-400">(-) 기납부세액 (원천징수)</span>
+                <span class="font-mono text-slate-300" id="ytax-dt-prepaid-tax">-</span>
+              </div>
+              <div class="flex justify-between py-2 font-black text-sm bg-navy-950 px-2.5 rounded-xl border border-navy-700">
+                <span class="text-white">최종 차감징수세액</span>
+                <span class="font-mono" id="ytax-dt-diff-tax">-</span>
+              </div>
+            </div>
+          </details>
+
+        </div>
+
+      </div>
+
+      </div>
+      <!-- END VIEW 1: Main Calculator Grid -->
+
+      <!-- VIEW 2: 맞벌이 부부 절세 & 카드 몰아주기 진단 -->
+      <div id="ytax-view-couple" class="hidden space-y-6">
+        
+        <!-- Couple Hero Banner -->
+        <div class="bg-gradient-to-r from-pink-950/70 via-purple-950/50 to-navy-950 border border-pink-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-3">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="space-y-1.5 max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-400 text-xs font-bold">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>맞벌이 부부 전용 절세 &amp; 소비 분배 AI 진단</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                <span>맞벌이 부부 연말정산 최적화 센터</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 font-mono text-xl sm:text-2xl">Dual-Income AI</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                부부의 총급여를 비교하여 <strong>누구의 소득세율이 더 높은지</strong>, <strong>누구 카드로 얼마를 써야 소득공제를 극대화할 수 있는지</strong>, <strong>의료비와 자녀 인적공제는 누구에게 몰아야 하는지</strong> 1초 만에 맞춤 분석합니다.
+              </p>
+            </div>
+            <button type="button" onclick="YearendTaxCalculator.saveCoupleReportAsImage()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-pink-500/20 shrink-0 cursor-pointer">
+              <i data-lucide="image" class="w-4 h-4"></i>
+              <span>부부 진단 결과 이미지 저장/공유</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Couple Input Cards (2 Symmetrical Columns) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          
+          <!-- Column A: 부부 소득 및 연간 지출 입력 (6 cols) -->
+          <div class="lg:col-span-6 bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="wallet" class="w-4 h-4 text-pink-400"></i>
+                <span>1. 부부 소득 및 연간 지출 입력</span>
+              </h3>
+              <span class="text-[11px] font-mono text-pink-400">소득·소비 규모</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 flex-1">
+              <!-- Primary Income -->
+              <div class="p-3.5 bg-navy-950/70 rounded-2xl border border-navy-800 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label for="ytax-couple-input-salary" class="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                      <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                      <span>본인 총급여 (연봉)</span>
+                    </label>
+                    <span class="text-xs font-mono font-bold text-teal-400" id="ytax-couple-p-salary-disp">50,000,000원</span>
+                  </div>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="ytax-couple-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono font-bold focus:border-teal-400 outline-none pr-8">
+                    <span class="absolute right-2.5 top-2 text-xs text-slate-400">원</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 mt-1 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', 10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-teal-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', 5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-teal-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', -5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
+                </div>
+              </div>
+
+              <!-- Spouse Income -->
+              <div class="p-3.5 bg-navy-950/70 rounded-2xl border border-navy-800 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label for="ytax-couple-input-spouse-salary" class="text-xs font-bold text-pink-300 flex items-center gap-1.5">
+                      <i data-lucide="heart" class="w-3.5 h-3.5 text-pink-400"></i>
+                      <span>배우자 총급여 (연봉)</span>
+                    </label>
+                    <span class="text-xs font-mono font-bold text-pink-400" id="ytax-couple-s-salary-disp">42,000,000원</span>
+                  </div>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="ytax-couple-input-spouse-salary" value="42,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono font-bold focus:border-pink-400 outline-none pr-8">
+                    <span class="absolute right-2.5 top-2 text-xs text-slate-400">원</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 mt-1 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', 10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-pink-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', 5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-pink-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', -5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
+                </div>
+              </div>
+
+              <!-- Family Expense Total -->
+              <div class="p-3.5 bg-navy-950/70 rounded-2xl border border-navy-800 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label for="ytax-couple-input-expense" class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <i data-lucide="credit-card" class="w-3.5 h-3.5 text-cyan-400"></i>
+                      <span>부부 연간 카드 소비액</span>
+                    </label>
+                    <span class="text-[11px] font-mono font-bold text-cyan-400">신용+체크+현금</span>
+                  </div>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="ytax-couple-input-expense" value="28,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none pr-8">
+                    <span class="absolute right-2.5 top-2 text-xs text-slate-400">원</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 mt-1 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-cyan-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-cyan-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(-5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
+                </div>
+              </div>
+
+              <!-- Family Medical Total -->
+              <div class="p-3.5 bg-navy-950/70 rounded-2xl border border-navy-800 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label for="ytax-couple-input-medical" class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-indigo-400"></i>
+                      <span>부부 합산 연간 의료비</span>
+                    </label>
+                    <span class="text-[11px] font-mono font-bold text-indigo-400">병원비/약값</span>
+                  </div>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="ytax-couple-input-medical" value="1,800,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono font-bold focus:border-indigo-400 outline-none pr-8">
+                    <span class="absolute right-2.5 top-2 text-xs text-slate-400">원</span>
+                  </div>
+                </div>
+                <p class="text-[10px] text-slate-400">안경/렌즈(50만), 산후조리원(200만) 포함</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column B: 부양가족 조건 & 실시간 절세 효과 (6 cols) -->
+          <div class="lg:col-span-6 bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-2.5 border-b border-navy-800">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-teal-400"></i>
+                <span>2. 자녀·부양가족 조건 &amp; 실시간 절세 효과</span>
+              </h3>
+              <span class="text-[11px] font-mono text-teal-400">인적공제 최적 배정</span>
+            </div>
+
+            <div class="space-y-2.5 flex-1">
+              <!-- Counter 6 Grid -->
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-1">
+                  <span class="text-[11px] text-slate-300 block font-semibold">청소년 자녀</span>
+                  <input type="number" id="ytax-couple-input-dep-youth" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-1 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                  <span class="text-[9px] text-slate-400 block text-center">만 8~20세 (150만)</span>
+                </div>
+                <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-1">
+                  <span class="text-[11px] text-slate-300 block font-semibold">미취학 아동</span>
+                  <input type="number" id="ytax-couple-input-dep-infant" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-1 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                  <span class="text-[9px] text-slate-400 block text-center">만 7세 이하 (150만)</span>
+                </div>
+                <div class="p-2 bg-navy-950 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                  <span class="text-[11px] text-amber-300 block font-semibold">성인 자녀</span>
+                  <input type="number" id="ytax-couple-input-dep-adult" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-amber-500/40 rounded-lg p-1 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                  <span class="text-[9px] text-amber-300/80 block text-center">만 20세초과 (등록금)</span>
+                </div>
+                <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-1">
+                  <span class="text-[11px] text-slate-300 block font-semibold">60~69세 부모</span>
+                  <input type="number" id="ytax-couple-input-dep-elder-normal" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-lg p-1 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
+                  <span class="text-[9px] text-slate-400 block text-center">인당 150만</span>
+                </div>
+                <div class="p-2 bg-navy-950 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                  <span class="text-[11px] text-amber-300 block font-semibold">70세이상 노인</span>
+                  <input type="number" id="ytax-couple-input-dep-elder-senior" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-amber-500/40 rounded-lg p-1 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                  <span class="text-[9px] text-amber-300 block text-center">250만+의료비무제한</span>
+                </div>
+                <div class="p-2 bg-navy-950 rounded-xl border border-emerald-500/30 space-y-1 bg-emerald-950/10">
+                  <span class="text-[11px] text-emerald-300 block font-semibold">장애인 (나이무관)</span>
+                  <input type="number" id="ytax-couple-input-dep-disabled" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-emerald-500/40 rounded-lg p-1 text-xs text-center text-emerald-300 font-bold outline-none focus:border-emerald-400">
+                  <span class="text-[9px] text-emerald-300 block text-center">350만+의료비무제한</span>
+                </div>
+              </div>
+
+              <!-- Live Dynamic Calculation Results in Couple Tab -->
+              <div class="pt-2 border-t border-navy-800/80 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-white flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>부양가족 변경 시 실시간 세법 계산 결과</span>
+                  </span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono font-bold">LIVE CALC</span>
+                </div>
+
+                <!-- 4-Grid Live Metrics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block">인적 소득공제</span>
+                    <strong class="text-xs font-mono font-black text-cyan-400 block" id="ytax-couple-calc-dep-deduct">0원</strong>
+                  </div>
+
+                  <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block">자녀 세액공제</span>
+                    <strong class="text-xs font-mono font-black text-pink-400 block" id="ytax-couple-calc-child-credit">0원</strong>
+                  </div>
+
+                  <div class="p-2 bg-navy-950 rounded-xl border border-navy-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block">의료비 공제한도</span>
+                    <strong class="text-[11px] font-mono font-bold text-emerald-400 block" id="ytax-couple-calc-med-limit">700만원 한도</strong>
+                  </div>
+
+                  <div class="p-2 bg-navy-950 rounded-xl border border-teal-500/30 space-y-0.5 bg-teal-950/20">
+                    <span class="text-[10px] text-teal-300 block">고소득자 배정 이득</span>
+                    <strong class="text-xs font-mono font-black text-teal-300 block" id="ytax-couple-calc-benefit-diff">+0원</strong>
+                  </div>
+                </div>
+
+                <!-- Live Guidance Banner -->
+                <div class="p-2 bg-navy-950/60 rounded-xl border border-navy-800/80 text-[10px] text-slate-300 flex items-center justify-between" id="ytax-couple-calc-note">
+                  <span>💡 자녀 및 부양가족 수를 변경하시면 공제액과 최적 부부 배정 결과가 즉시 재계산됩니다.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2. AI Couple Strategy Output Dashboard (Optimized, Zero-Waste Compact Layout) -->
+        <div class="space-y-6">
+
+          <!-- TOP HERO CARD (Full-Width): 💳 누구 카드로 소비해야 할까? (핵심 로드맵 & 총 소비 흐름도) -->
+          <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-amber-950/40 via-navy-900 to-navy-950 border border-amber-500/40 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <div class="flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-5 h-5 text-amber-400"></i>
+                <h4 class="font-bold text-white text-sm sm:text-base">💳 누구 카드로 소비해야 할까? (맞춤 소비 로드맵)</h4>
+              </div>
+              <span id="ytax-couple-card-badge" class="px-2.5 py-1 rounded-full text-xs font-bold border bg-teal-500/10 border-teal-500/30 text-teal-300">본인 몰아주기 추천</span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="text-sm font-bold text-amber-300" id="ytax-couple-card-headline">세율이 높은 본인 명의 카드로 결제하여 세율 차익을 극대화하세요!</div>
+              <p class="text-xs text-slate-300 leading-relaxed" id="ytax-couple-card-detail">
+                고소득자의 25% 문턱을 넘길 수 있는 소비 규모이므로, 세율이 더 높은 본인 명의 카드로 공제받아야 동일 공제금액 대비 환급액이 커집니다.
+              </p>
+            </div>
+
+            <!-- Visual Consumption Flow Diagram (총 소비 흐름도) -->
+            <div id="ytax-couple-card-flow" class="p-3.5 sm:p-4 bg-navy-950/90 rounded-2xl border border-navy-800 space-y-3">
+            </div>
+
+            <!-- Step-by-Step Action Roadmap (2 Columns on Desktop) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-navy-800">
+              <div class="p-3 bg-navy-950/80 rounded-2xl border border-navy-800 flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black flex items-center justify-center shrink-0">1</span>
+                <div class="space-y-0.5 text-xs">
+                  <div class="font-bold text-white" id="ytax-couple-card-step1-title">1단계: 신용카드 결제 구간</div>
+                  <div class="text-slate-300" id="ytax-couple-card-step1">본인 신용카드로 1,250만원(25%)까지 사용 (카드사 포인트/마일리지 챙기기)</div>
+                </div>
+              </div>
+
+              <div class="p-3 bg-navy-950/80 rounded-2xl border border-navy-800 flex items-start gap-3">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">2</span>
+                <div class="space-y-0.5 text-xs">
+                  <div class="font-bold text-white" id="ytax-couple-card-step2-title">2단계: 체크카드·현금영수증 집중 구간</div>
+                  <div class="text-slate-300" id="ytax-couple-card-step2">1,250만원 초과분은 본인 명의 체크카드/현금영수증(30% 공제)으로 결제</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BALANCED 2 COLUMNS (6 cols + 6 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT 6 COLS: 소득세율 비교 + 의료비 몰아주기 -->
+            <div class="lg:col-span-6 space-y-5">
+              <!-- Card 1: 한계세율 및 소득 우위 판정 -->
+              <div class="p-5 sm:p-6 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+                    <h4 class="font-bold text-white text-sm sm:text-base">소득 우위 및 한계세율 비교</h4>
+                  </div>
+                  <span id="ytax-couple-rate-diff" class="px-2.5 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-mono font-bold">+9%p 세율차이</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="p-3 bg-navy-950/80 rounded-2xl border border-teal-500/30 space-y-1">
+                    <div class="text-xs text-teal-300 font-bold flex items-center gap-1">
+                      <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                      <span>본인 적용세율</span>
+                    </div>
+                    <div class="text-sm sm:text-base font-black text-white font-mono" id="ytax-couple-p-rate-disp">24% (지방세 26.4%)</div>
+                    <div class="text-[11px] text-slate-400">카드 25% 문턱: <strong class="text-teal-300 font-mono" id="ytax-couple-p-hurdle-disp">1,250만원</strong></div>
+                  </div>
+
+                  <div class="p-3 bg-navy-950/80 rounded-2xl border border-pink-500/30 space-y-1">
+                    <div class="text-xs text-pink-300 font-bold flex items-center gap-1">
+                      <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                      <span>배우자 적용세율</span>
+                    </div>
+                    <div class="text-sm sm:text-base font-black text-white font-mono" id="ytax-couple-s-rate-disp">15% (지방세 16.5%)</div>
+                    <div class="text-[11px] text-slate-400">카드 25% 문턱: <strong class="text-pink-300 font-mono" id="ytax-couple-s-hurdle-disp">1,050만원</strong></div>
+                  </div>
+                </div>
+
+                <div class="p-3.5 bg-navy-950/60 rounded-2xl border border-navy-800 text-xs text-slate-300 leading-relaxed">
+                  💡 종합소득세는 소득이 많을수록 세율이 높아지는 <strong>초과누진세율</strong>입니다. 과세표준 세율이 더 높은 <strong><span class="text-teal-300 font-bold" id="ytax-couple-winner-name">본인</span></strong> 쪽에 소득공제(카드·인적공제)를 배정해야 환급액이 커집니다.
+                </div>
+              </div>
+
+              <!-- Card 3: 의료비 세액공제의 역발상 (3% 룰) -->
+              <div class="p-5 sm:p-6 rounded-3xl bg-navy-900 border border-indigo-500/30 shadow-xl space-y-3">
+                <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="stethoscope" class="w-5 h-5 text-indigo-400"></i>
+                    <h4 class="font-bold text-white text-sm sm:text-base">🏥 의료비 세액공제: 소득 낮은 쪽에 몰아주기</h4>
+                  </div>
+                  <span id="ytax-couple-med-badge" class="px-2.5 py-1 rounded-full text-xs font-bold border bg-indigo-500/10 text-indigo-300 border-indigo-500/30">배우자 추천</span>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="text-xs sm:text-sm font-bold text-indigo-300" id="ytax-couple-med-title">의료비 역발상: 3% 문턱이 낮은 배우자에게 몰아주기!</div>
+                  <p class="text-xs text-slate-300 leading-relaxed" id="ytax-couple-med-desc">
+                    의료비는 <strong>총급여 3% 초과분</strong>부터 16.5%를 환급하므로, 문턱이 낮은 쪽 명의로 결제해야 환급액이 극대화됩니다.
+                  </p>
+                  <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                    <div class="p-2.5 bg-navy-950 rounded-xl border border-navy-800">
+                      <span class="text-slate-400">본인 3% 문턱:</span>
+                      <span class="font-mono text-white font-bold ml-1" id="ytax-couple-p-med-disp">150만원</span>
+                    </div>
+                    <div class="p-2.5 bg-navy-950 rounded-xl border border-navy-800">
+                      <span class="text-slate-400">배우자 3% 문턱:</span>
+                      <span class="font-mono text-pink-300 font-bold ml-1" id="ytax-couple-s-med-disp">126만원</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT 6 COLS: 부양가족 배정 + 기부금/연금계좌 -->
+            <div class="lg:col-span-6 space-y-5">
+              <!-- Card 4: Dependent & Children Advice -->
+              <div class="p-5 rounded-3xl bg-navy-900 border border-teal-500/30 shadow-xl space-y-3">
+                <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="baby" class="w-4 h-4 text-teal-400"></i>
+                    <h5 class="font-bold text-white text-xs sm:text-sm">자녀·부양가족 인적공제 배정</h5>
+                  </div>
+                  <span id="ytax-couple-dep-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold border bg-teal-500/10 text-teal-300 border-teal-500/30">고소득자 배정</span>
+                </div>
+                <div class="text-xs text-slate-300 leading-relaxed" id="ytax-couple-dep-desc">
+                  기본 인적공제(1인당 150만원)는 소득공제이므로 한계세율이 높은 쪽에 넣어야 환급액이 큽니다.
+                </div>
+                <div id="ytax-couple-dep-breakdown"></div>
+              </div>
+
+              <!-- Card 5: Hometown Love Donation & Pension / IRP Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Hometown Love Donation -->
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/60 via-navy-900 to-navy-950 border border-emerald-500/40 shadow-xl space-y-2">
+                  <div class="flex items-center justify-between pb-1.5 border-b border-navy-800">
+                    <span class="font-bold text-white text-xs flex items-center gap-1.5">
+                      <i data-lucide="gift" class="w-3.5 h-3.5 text-emerald-400"></i>
+                      <span>🎁 고향사랑기부금</span>
+                    </span>
+                    <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">+6만 순익</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 leading-relaxed">
+                    부부 각각 10만원씩 기부 시 <strong>20만원 전액 환급</strong> + <strong>6만원 답례품</strong> 수령!
+                  </p>
+                </div>
+
+                <!-- Pension / IRP -->
+                <div class="p-4 rounded-2xl bg-navy-900 border border-navy-800 shadow-xl space-y-2">
+                  <div class="flex items-center justify-between pb-1.5 border-b border-navy-800">
+                    <span class="font-bold text-white text-xs flex items-center gap-1.5">
+                      <i data-lucide="landmark" class="w-3.5 h-3.5 text-cyan-400"></i>
+                      <span>연금계좌 분산</span>
+                    </span>
+                    <span class="text-[10px] text-cyan-300 font-bold">16.5% 우대</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 leading-relaxed">
+                    총급여 5,500만원 이하 배우자 계좌에 먼저 납입 시 <strong>16.5% 우대 공제율</strong>을 챙길 수 있습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+      <!-- END VIEW 2 -->
+
+      <!-- VIEW 3: 연봉별 카드 vs 현금 황금소비 공식 -->
+      <div id="ytax-view-cards" class="hidden space-y-6">
+        
+        <!-- Golden Ratio Hero Banner -->
+        <div class="bg-gradient-to-r from-amber-950/70 via-orange-950/50 to-navy-950 border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-3">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="space-y-1.5 max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>국세청 소득공제 100% 털어먹는 실전 소비 테크트리</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                <span>연봉별 신용카드 vs 체크카드 황금 소비 공식</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 font-mono text-xl sm:text-2xl">Golden Ratio</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                "어디까지는 신용카드? 어디부터는 체크카드/현금영수증?" 내 연봉 구간에 맞춘 <strong>최적의 결제 수단 전환 시점</strong>과 <strong>한도 달성 금액</strong>을 명쾌하게 제시합니다.
+              </p>
+            </div>
+            <button type="button" onclick="YearendTaxCalculator.copyGoldenRatioToClipboard()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-navy-950 font-black text-xs transition flex items-center gap-2 shadow-lg shadow-amber-500/20 shrink-0 cursor-pointer">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+              <span>황금공식 복사</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Interactive Salary Picker -->
+        <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-navy-800">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="wallet" class="w-4 h-4 text-amber-400"></i>
+                <span>기준 연봉 선택 (내 총급여액)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">버튼을 클릭하거나 직접 연봉을 입력하면 황금소비 구간이 즉시 계산됩니다.</p>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <div class="relative flex-1 sm:w-48">
+                <input type="text" inputmode="numeric" id="ytax-gr-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleGoldenRatioChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-white outline-none focus:border-amber-400 pr-8">
+                <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Salary Preset Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="YearendTaxCalculator.setGoldenRatioSalary(30000000)" data-sal="30000000" class="ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition border border-navy-800 cursor-pointer">3,000만원</button>
+            <button type="button" onclick="YearendTaxCalculator.setGoldenRatioSalary(50000000)" data-sal="50000000" class="ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition shadow-sm cursor-pointer">5,000만원</button>
+            <button type="button" onclick="YearendTaxCalculator.setGoldenRatioSalary(70000000)" data-sal="70000000" class="ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition border border-navy-800 cursor-pointer">7,000만원</button>
+            <button type="button" onclick="YearendTaxCalculator.setGoldenRatioSalary(100000000)" data-sal="100000000" class="ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition border border-navy-800 cursor-pointer">1억원</button>
+            <button type="button" onclick="YearendTaxCalculator.setGoldenRatioSalary(130000000)" data-sal="130000000" class="ytax-gr-sal-btn px-3 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 text-xs font-semibold transition border border-navy-800 cursor-pointer">1.3억원 (고소득)</button>
+          </div>
+        </div>
+
+        <!-- 2. 3-Tier Visual Roadmap Bar -->
+        <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-7 shadow-xl space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <span class="text-xs text-amber-400 font-bold font-mono" id="ytax-gr-salary-disp">50,000,000원</span>
+              <h4 class="text-base sm:text-lg font-black text-white">단계별 결제 수단 전환 로드맵</h4>
+            </div>
+            <div class="px-3 py-1 rounded-xl bg-navy-950 border border-navy-800 text-xs text-slate-300">
+              적용 한계세율: <strong class="text-amber-300 font-mono font-bold" id="ytax-gr-rate-disp">15%</strong> • <span class="text-emerald-400 font-bold" id="ytax-gr-saved-won">최대 약 495,000원 절세</span>
+            </div>
+          </div>
+
+          <!-- 3 Step Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Step 1: 신용카드 -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-rose-950/40 via-navy-950 to-navy-950 border border-rose-500/30 space-y-3 relative overflow-hidden">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-black border border-rose-500/30">1단계 (총급여 25%)</span>
+                <span class="text-xs font-mono font-bold text-rose-400">공제율 0%</span>
+              </div>
+              <div class="space-y-1">
+                <div class="text-lg font-black text-white flex items-center gap-1.5">
+                  <i data-lucide="credit-card" class="w-5 h-5 text-rose-400"></i>
+                  <span>무조건 신용카드</span>
+                </div>
+                <div class="text-xs font-mono font-bold text-rose-300" id="ytax-gr-step1-range">0원 ~ 1,250만원</div>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                총급여 25% 이하 지출액은 세법상 소득공제율이 <strong>0%</strong>입니다. 따라서 소득공제는 포기하고, 항공 마일리지·캐시백·할인 등 <strong>카드사 부가 혜택이 가장 높은 신용카드</strong>로만 집중 결제하세요!
+              </p>
+            </div>
+
+            <!-- Step 2: 체크카드 & 현금영수증 -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-navy-950 to-navy-950 border border-emerald-500/40 space-y-3 relative overflow-hidden shadow-lg shadow-emerald-500/5">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-black border border-emerald-500/30">2단계 (한도 달성)</span>
+                <span class="text-xs font-mono font-bold text-emerald-400">공제율 30% (2배)</span>
+              </div>
+              <div class="space-y-1">
+                <div class="text-lg font-black text-white flex items-center gap-1.5">
+                  <i data-lucide="banknote" class="w-5 h-5 text-emerald-400"></i>
+                  <span>체크카드 &amp; 현금영수증</span>
+                </div>
+                <div class="text-xs font-mono font-bold text-emerald-300" id="ytax-gr-step2-range">1,250만원 ~ 2,250만원</div>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                총급여 25%를 넘긴 순간부터는 공제율이 신용카드(15%)의 딱 2배인 <strong>체크카드/현금영수증(30%)</strong>으로 결제 수단을 전환해야 합니다. 추가로 <strong class="text-emerald-300 font-mono" id="ytax-gr-check-needed">1,000만원</strong> 결제 시 한도(<strong class="text-emerald-300 font-mono" id="ytax-gr-limit-won">300만원</strong>)를 100% 달성합니다!
+              </p>
+            </div>
+
+            <!-- Step 3: 한도 초과분 -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 via-navy-950 to-navy-950 border border-blue-500/30 space-y-3 relative overflow-hidden">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-black border border-blue-500/30">3단계 (한도 초과분)</span>
+                <span class="text-xs font-mono font-bold text-blue-400">특수 공제 or 신용카드</span>
+              </div>
+              <div class="space-y-1">
+                <div class="text-lg font-black text-white flex items-center gap-1.5">
+                  <i data-lucide="shopping-bag" class="w-5 h-5 text-blue-400"></i>
+                  <span>전통시장/문화비 or 신용카드</span>
+                </div>
+                <div class="text-xs font-mono font-bold text-blue-300" id="ytax-gr-step3-range">2,250만원 초과분</div>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                일반 카드 한도를 다 채운 이후에는 더 이상 일반 카드 공제가 나오지 않습니다. 별도 추가 한도가 부여되는 <strong>전통시장(40%), 대중교통(40~80%), 문화비(30%)</strong>로 소비하거나, 다시 혜택 좋은 <strong>신용카드</strong>로 복귀하세요!
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 3. Complete Cheat Sheet Table (연봉 구간별 요약표) -->
+        <div class="bg-navy-900 border border-navy-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+            <h4 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i>
+              <span>📊 대한민국 연봉 구간별 카드 소득공제 공식 총정리표</span>
+            </h4>
+            <span class="text-[11px] font-mono text-cyan-400">2026 개정세법</span>
+          </div>
+
+          <div class="overflow-x-auto no-scrollbar">
+            <table class="w-full text-xs text-left">
+              <thead>
+                <tr class="bg-navy-950/80 text-slate-300 border-b border-navy-800 font-bold">
+                  <th class="py-3 px-4 rounded-l-xl">총급여액 (연봉)</th>
+                  <th class="py-3 px-3">1단계: 신용카드 (25% 문턱)</th>
+                  <th class="py-3 px-3">2단계: 체크카드 추가 결제</th>
+                  <th class="py-3 px-3">최적 총 소비액</th>
+                  <th class="py-3 px-3">기본 소득공제 한도</th>
+                  <th class="py-3 px-4 rounded-r-xl text-right">예상 최대 절세액</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-navy-800/60 font-mono">
+                <tr class="hover:bg-navy-800/40 transition">
+                  <td class="py-3 px-4 font-bold text-white">3,000만원</td>
+                  <td class="py-3 px-3 text-rose-300">0 ~ 750만원</td>
+                  <td class="py-3 px-3 text-emerald-300">+1,000만원</td>
+                  <td class="py-3 px-3 text-white font-bold">1,750만원</td>
+                  <td class="py-3 px-3 text-cyan-400">300만원</td>
+                  <td class="py-3 px-4 text-right font-bold text-emerald-400">약 19.8만원 (6.6%)</td>
+                </tr>
+                <tr class="hover:bg-navy-800/40 transition bg-amber-500/5">
+                  <td class="py-3 px-4 font-bold text-amber-300">5,000만원 ★</td>
+                  <td class="py-3 px-3 text-rose-300">0 ~ 1,250만원</td>
+                  <td class="py-3 px-3 text-emerald-300">+1,000만원</td>
+                  <td class="py-3 px-3 text-white font-bold">2,250만원</td>
+                  <td class="py-3 px-3 text-cyan-400">300만원</td>
+                  <td class="py-3 px-4 text-right font-bold text-emerald-400">약 49.5만원 (16.5%)</td>
+                </tr>
+                <tr class="hover:bg-navy-800/40 transition">
+                  <td class="py-3 px-4 font-bold text-white">7,000만원</td>
+                  <td class="py-3 px-3 text-rose-300">0 ~ 1,750만원</td>
+                  <td class="py-3 px-3 text-emerald-300">+1,000만원</td>
+                  <td class="py-3 px-3 text-white font-bold">2,750만원</td>
+                  <td class="py-3 px-3 text-cyan-400">300만원</td>
+                  <td class="py-3 px-4 text-right font-bold text-emerald-400">약 79.2만원 (26.4%)</td>
+                </tr>
+                <tr class="hover:bg-navy-800/40 transition">
+                  <td class="py-3 px-4 font-bold text-white">1억원</td>
+                  <td class="py-3 px-3 text-rose-300">0 ~ 2,500만원</td>
+                  <td class="py-3 px-3 text-emerald-300">+833만원</td>
+                  <td class="py-3 px-3 text-white font-bold">3,333만원</td>
+                  <td class="py-3 px-3 text-cyan-400">250만원 (축소)</td>
+                  <td class="py-3 px-4 text-right font-bold text-emerald-400">약 66.0만원 (26.4%)</td>
+                </tr>
+                <tr class="hover:bg-navy-800/40 transition">
+                  <td class="py-3 px-4 font-bold text-white">1.3억원 이상</td>
+                  <td class="py-3 px-3 text-rose-300">0 ~ 3,250만원</td>
+                  <td class="py-3 px-3 text-emerald-300">+667만원</td>
+                  <td class="py-3 px-3 text-white font-bold">3,917만원</td>
+                  <td class="py-3 px-3 text-cyan-400">200만원 (축소)</td>
+                  <td class="py-3 px-4 text-right font-bold text-emerald-400">약 77.0만원 (38.5%)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. Essential Pro Tips -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-navy-900 border border-navy-800 rounded-2xl space-y-1.5 text-xs">
+            <div class="font-bold text-amber-300 flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+              <span>카드 소득공제 제외 대상 주의</span>
+            </div>
+            <p class="text-slate-400 leading-relaxed text-[11px]">
+              아파트 관리비, 전기·가스 공공요금, 세금, 대학등록금, 자동차 구입비, 상품권, 해외결제액은 카드로 긁어도 <strong>소득공제 대상에서 전액 제외</strong>됩니다.
+            </p>
+          </div>
+
+          <div class="p-4 bg-navy-900 border border-navy-800 rounded-2xl space-y-1.5 text-xs">
+            <div class="font-bold text-emerald-300 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span>현금영수증 홈택스 번호 등록</span>
+            </div>
+            <p class="text-slate-400 leading-relaxed text-[11px]">
+              식당·가게에서 현금 결제 후 발급받는 현금영수증은 국세청 홈택스에 <strong>휴대폰 번호가 사전 등록</strong>되어 있어야만 자동 집계됩니다. 지금 즉시 등록 여부를 확인하세요.
+            </p>
+          </div>
+
+          <div class="p-4 bg-navy-900 border border-navy-800 rounded-2xl space-y-1.5 text-xs">
+            <div class="font-bold text-cyan-300 flex items-center gap-1.5">
+              <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+              <span>부부간 카드 명의 합산 불가</span>
+            </div>
+            <p class="text-slate-400 leading-relaxed text-[11px]">
+              맞벌이 부부는 각자의 명의로 발급된 카드 사용액만 공제받을 수 있습니다. 배우자 명의 카드를 내가 긁어도 <strong>배우자에게만 공제</strong>되므로 명의를 철저히 분배하세요.
+            </p>
+          </div>
+        </div>
+
+      </div>
+      <!-- END VIEW 3 -->
     </section>
 
     <!-- ==============================================
@@ -6008,12 +7228,13 @@
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
   <script src="js/tools-calculators.js?v=20260909_03"></script>
+  <script src="js/yearend-tax.js?v=20260912_02"></script>
   <script src="js/analyzer-app.js?v=20260907_05"></script>
 
   <script src="js/admin.js?v=20260910_02"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
-  <script src="js/preview-app-v2.js?v=20260912_05"></script>
+  <script src="js/preview-app-v2.js?v=20260912_06"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
