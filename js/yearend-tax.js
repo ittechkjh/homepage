@@ -1397,7 +1397,10 @@ const YearendTaxCalculator = (function() {
   }
 
   // 맞벌이 절세 진단서 고해상도 이미지 생성 & 다운로드/공유
+  let isSavingCoupleImage = false;
   function saveCoupleReportAsImage() {
+    if (isSavingCoupleImage) return;
+    isSavingCoupleImage = true;
     const pSalary = Math.max(0, Number(state.annualSalary) || 0);
     const sSalary = Math.max(0, Number(state.spouseSalary) || 0);
     const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
@@ -1607,50 +1610,81 @@ const YearendTaxCalculator = (function() {
 
     // Export Canvas to PNG Blob & File
     canvas.toBlob(async (blob) => {
-      if (!blob) {
-        alert('이미지 생성에 실패했습니다.');
-        return;
-      }
-
-      const filename = `CryptoPnL_맞벌이절세진단서_${dateStr}.png`;
-
-      // 1. Download file automatically
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(link.href), 1500);
-
-      // 2. Try copying image directly to clipboard
-      let clipboardSuccess = false;
-      if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
-        try {
-          const item = new ClipboardItem({ 'image/png': blob });
-          await navigator.clipboard.write([item]);
-          clipboardSuccess = true;
-        } catch (e) {
-          console.warn('Clipboard write failed:', e);
-        }
-      }
-
-      // 3. Try Mobile Web Share API if available
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
-        try {
-          await navigator.share({
-            title: '맞벌이 부부 연말정산 최적 절세 진단서',
-            text: `[CryptoPnL] 맞벌이 부부 연말정산 절세 진단서입니다.`,
-            files: [new File([blob], filename, { type: 'image/png' })]
-          });
+      try {
+        if (!blob) {
+          alert('이미지 생성에 실패했습니다.');
           return;
-        } catch (e) {
-          // Fallback to alert below
         }
-      }
 
-      if (clipboardSuccess) {
-        alert('🎉 맞벌이 절세 진단서 이미지가 저장되었습니다!\n\n클립보드에도 이미지가 복사되었으니, 카카오톡 채팅방에 바로 [붙여넣기(Ctrl+V)]하시면 이미지가 전송됩니다.');
-      } else {
-        alert('🎉 맞벌이 절세 진단서 이미지가 다운로드되었습니다!\n\n다운로드된 이미지를 카카오톡으로 공유해 보세요.');
+        const filename = `CryptoPnL_맞벌이절세진단서_${dateStr}.png`;
+
+        // 1. Download file automatically
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+
+        // 2. Try copying image directly to clipboard
+        // (카카오톡 PC에서 ClipboardItem image/png 사용 시 PNG + CF_DIB 중복 등록으로 2장이 붙여넣어지는 현상 방지:
+        // DOM selection copy를 우선 시도하여 CF_DIB + HTML 단일 이미지 형식으로 전송)
+        let clipboardSuccess = false;
+        try {
+          const div = document.createElement('div');
+          div.contentEditable = 'true';
+          div.style.position = 'fixed';
+          div.style.left = '-9999px';
+          div.style.top = '0';
+          div.style.opacity = '0';
+          const img = document.createElement('img');
+          img.src = canvas.toDataURL('image/png');
+          div.appendChild(img);
+          document.body.appendChild(div);
+
+          const range = document.createRange();
+          range.selectNode(img);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+          clipboardSuccess = document.execCommand('copy');
+          selection.removeAllRanges();
+          document.body.removeChild(div);
+        } catch (e) {
+          clipboardSuccess = false;
+        }
+
+        if (!clipboardSuccess && navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+          try {
+            const item = new ClipboardItem({ 'image/png': blob });
+            await navigator.clipboard.write([item]);
+            clipboardSuccess = true;
+          } catch (e) {
+            console.warn('Clipboard write failed:', e);
+          }
+        }
+
+        // 3. Try Mobile Web Share API if available
+        if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+          try {
+            await navigator.share({
+              title: '맞벌이 부부 연말정산 최적 절세 진단서',
+              text: `[CryptoPnL] 맞벌이 부부 연말정산 절세 진단서입니다.`,
+              files: [new File([blob], filename, { type: 'image/png' })]
+            });
+            return;
+          } catch (e) {
+            // Fallback to alert below
+          }
+        }
+
+        if (clipboardSuccess) {
+          alert('🎉 맞벌이 절세 진단서 이미지가 저장되었습니다!\n\n클립보드에도 이미지가 복사되었으니, 카카오톡 채팅방에 바로 [붙여넣기(Ctrl+V)]하시면 1장의 이미지가 깔끔하게 전송됩니다.');
+        } else {
+          alert('🎉 맞벌이 절세 진단서 이미지가 다운로드되었습니다!\n\n다운로드된 이미지를 카카오톡으로 공유해 보세요.');
+        }
+      } finally {
+        setTimeout(() => { isSavingCoupleImage = false; }, 800);
       }
     }, 'image/png');
   }
@@ -1667,7 +1701,7 @@ const YearendTaxCalculator = (function() {
 3️⃣ [${formatWon(gr.totalOptimum)} 초과분]
    👉 전통시장/대중교통(40~80%) 또는 다시 혜택 좋은 신용카드 결제!
 ★ 예상 최대 절세 효과: 약 ${formatWon(gr.maxTaxSaved)}
-출처: CrytoPnL 연말정산기 (https://crytopnl.com/#/yearend-tax)`;
+출처: CrytoPnL 연말정산 팁 (https://crytopnl.com/#/yearend-tax)`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {

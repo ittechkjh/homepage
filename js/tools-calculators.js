@@ -12,6 +12,85 @@ const CoinCalculators = {
     activeSubTab: 'water',
     exchangeRateUsdKrw: 1380,
     coinStatsMap: {},
+
+    // Helper: Parse numeric value safely (removes commas)
+    parseNum: function (val, fallback = 0) {
+        if (val === null || val === undefined) return fallback;
+        const cleaned = String(val).replace(/,/g, '').trim();
+        if (!cleaned) return fallback;
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? fallback : num;
+    },
+
+    // Helper: Format number with Korean/standard commas
+    formatNumber: function (num) {
+        if (num === null || num === undefined || num === '') return '';
+        const n = Number(String(num).replace(/,/g, ''));
+        if (isNaN(n)) return '';
+        return n.toLocaleString('ko-KR');
+    },
+
+    // Helper: Real-time Comma Formatter for input elements (preserves cursor position)
+    formatInputWithCommas: function (input, allowDecimal = false) {
+        if (!input) return;
+        const oldVal = input.value || '';
+        const cursor = input.selectionStart ?? oldVal.length;
+        const charsBefore = (oldVal.slice(0, cursor).match(/[0-9.]/g) || []).length;
+
+        if (!allowDecimal) {
+            const raw = oldVal.replace(/[^0-9]/g, '');
+            if (!raw) {
+                input.value = '';
+                return;
+            }
+            const num = parseInt(raw, 10);
+            const formatted = isNaN(num) ? '' : num.toLocaleString('ko-KR');
+            input.value = formatted;
+
+            let newCursor = formatted.length;
+            let digitsCount = 0;
+            for (let i = 0; i < formatted.length; i++) {
+                if (/\d/.test(formatted[i])) digitsCount++;
+                if (digitsCount === charsBefore) {
+                    newCursor = i + 1;
+                    break;
+                }
+            }
+            try {
+                input.setSelectionRange(newCursor, newCursor);
+            } catch (e) {}
+        } else {
+            const parts = oldVal.split('.');
+            const integerRaw = parts[0].replace(/[^0-9]/g, '');
+            const hasDot = parts.length > 1;
+            const decimalRaw = hasDot ? parts.slice(1).join('').replace(/[^0-9]/g, '') : null;
+
+            if (!integerRaw && decimalRaw === null) {
+                input.value = '';
+                return;
+            }
+            const num = integerRaw ? parseInt(integerRaw, 10) : 0;
+            let formatted = integerRaw ? num.toLocaleString('ko-KR') : '0';
+            if (hasDot) {
+                formatted += '.' + (decimalRaw !== null ? decimalRaw : '');
+            }
+            input.value = formatted;
+
+            let newCursor = formatted.length;
+            let count = 0;
+            for (let i = 0; i < formatted.length; i++) {
+                if (/[0-9.]/.test(formatted[i])) count++;
+                if (count === charsBefore) {
+                    newCursor = i + 1;
+                    break;
+                }
+            }
+            try {
+                input.setSelectionRange(newCursor, newCursor);
+            } catch (e) {}
+        }
+    },
+
     // 매수 차수 (mode: 'amount' | 'qty' | 'pct')
     waterTiers: [
         { id: 1, mode: 'amount', price: 78000000, val: 10000000 }
@@ -47,8 +126,8 @@ const CoinCalculators = {
 
     // 현재 폼 상태를 시나리오로 저장 (신규 or 덮어쓰기)
     saveScenario: function (customTitle) {
-        const curPrice = parseFloat(document.getElementById('waterCurrentPrice')?.value) || 0;
-        const curQty = parseFloat(document.getElementById('waterCurrentQty')?.value) || 0;
+        const curPrice = this.parseNum(document.getElementById('waterCurrentPrice')?.value);
+        const curQty = this.parseNum(document.getElementById('waterCurrentQty')?.value);
         const feeRate = document.getElementById('waterFeeRate')?.value || '0.05';
 
         if (curPrice <= 0 && curQty <= 0) {
@@ -123,7 +202,7 @@ const CoinCalculators = {
         const qtyEl = document.getElementById('waterCurrentQty');
         const feeEl = document.getElementById('waterFeeRate');
 
-        if (priceEl) priceEl.value = target.currentPrice || '';
+        if (priceEl) priceEl.value = this.formatNumber(target.currentPrice || '');
         if (qtyEl) qtyEl.value = target.currentQty || '';
         if (feeEl && target.feeRate) feeEl.value = target.feeRate;
 
@@ -176,7 +255,7 @@ const CoinCalculators = {
         const qtyEl = document.getElementById('waterCurrentQty');
         const feeEl = document.getElementById('waterFeeRate');
 
-        if (priceEl) priceEl.value = '95000000';
+        if (priceEl) priceEl.value = '95,000,000';
         if (qtyEl) qtyEl.value = '0.5';
         if (feeEl) feeEl.value = '0.05';
 
@@ -295,15 +374,60 @@ const CoinCalculators = {
             }
         }
 
+        const moneyInputs = [
+            { id: 'waterCurrentPrice', allowDecimal: true },
+            { id: 'arbSendAmount', allowDecimal: false },
+            { id: 'taxTotalSell', allowDecimal: false },
+            { id: 'taxTotalBuy', allowDecimal: false },
+            { id: 'taxTotalFee', allowDecimal: false },
+            { id: 'futuresEntryPrice', allowDecimal: true },
+            { id: 'futuresMargin', allowDecimal: true },
+            { id: 'futuresTargetPrice', allowDecimal: true }
+        ];
+        moneyInputs.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el && el.value) {
+                this.formatInputWithCommas(el, item.allowDecimal);
+            }
+        });
+
         this.importProfitCardFromAnalyzer(false);
         this.renderProfitCard();
     },
 
     bindEvents: function () {
+        const moneyInputs = [
+            { id: 'waterCurrentPrice', allowDecimal: true },
+            { id: 'arbSendAmount', allowDecimal: false },
+            { id: 'taxTotalSell', allowDecimal: false },
+            { id: 'taxTotalBuy', allowDecimal: false },
+            { id: 'taxTotalFee', allowDecimal: false },
+            { id: 'futuresEntryPrice', allowDecimal: true },
+            { id: 'futuresMargin', allowDecimal: true },
+            { id: 'futuresTargetPrice', allowDecimal: true }
+        ];
+        moneyInputs.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    this.formatInputWithCommas(el, item.allowDecimal);
+                });
+            }
+        });
+
         const waterInputs = ['waterCurrentPrice', 'waterCurrentQty', 'waterFeeRate'];
         waterInputs.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', () => this.calcWater());
+        });
+
+        const kimpInputs = ['arbSendAmount', 'arbCoinSelect', 'arbCustomKimp'];
+        kimpInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => this.calcArbitrage());
+                el.addEventListener('change', () => this.calcArbitrage());
+            }
         });
 
         const taxInputs = ['taxTotalSell', 'taxTotalBuy', 'taxTotalFee', 'taxDeductionType'];
@@ -382,8 +506,11 @@ const CoinCalculators = {
 
         container.innerHTML = this.waterTiers.map((tier, idx) => {
             const mode = tier.mode || 'amount';
-            const valLabel = mode === 'amount' ? '투자 금액 (KRW)' : (mode === 'qty' ? '매수 수량 (개)' : '보유량 대비 비중 (%)');
-            const placeholder = mode === 'amount' ? '10000000' : (mode === 'qty' ? '0.2' : '50');
+            const isAmount = (mode === 'amount');
+            const valLabel = isAmount ? '투자 금액 (KRW)' : (mode === 'qty' ? '매수 수량 (개)' : '보유량 대비 비중 (%)');
+            const placeholder = isAmount ? '10,000,000' : (mode === 'qty' ? '0.2' : '50');
+            const formattedPrice = this.formatNumber(tier.price);
+            const formattedVal = isAmount ? this.formatNumber(tier.val) : tier.val;
 
             return `
               <div class="p-3 rounded-2xl bg-navy-950 border border-cyan-500/30 space-y-2 relative" data-tier-id="${tier.id}">
@@ -404,11 +531,11 @@ const CoinCalculators = {
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매수 희망가 (KRW)</label>
-                    <input type="number" step="any" value="${tier.price}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <input type="text" inputmode="numeric" value="${formattedPrice}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
-                    <input type="number" step="any" value="${tier.val}" placeholder="${placeholder}" oninput="CoinCalculators.updateWaterTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this); ' : ''}CoinCalculators.updateWaterTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -442,7 +569,7 @@ const CoinCalculators = {
     updateWaterTier: function (id, field, value) {
         const tier = this.waterTiers.find(t => t.id === id);
         if (tier) {
-            tier[field] = parseFloat(value) || 0;
+            tier[field] = this.parseNum(value);
             this.calcWater();
         }
     },
@@ -466,8 +593,11 @@ const CoinCalculators = {
 
         container.innerHTML = this.sellTiers.map((tier, idx) => {
             const mode = tier.mode || 'pct';
+            const isAmount = (mode === 'amount');
             const valLabel = mode === 'pct' ? '매도 비중 (%)' : (mode === 'qty' ? '매도 수량 (개)' : '매도 목표금액 (KRW)');
-            const placeholder = mode === 'pct' ? '50' : (mode === 'qty' ? '0.3' : '20000000');
+            const placeholder = mode === 'pct' ? '50' : (mode === 'qty' ? '0.3' : '20,000,000');
+            const formattedPrice = this.formatNumber(tier.price);
+            const formattedVal = isAmount ? this.formatNumber(tier.val) : tier.val;
 
             return `
               <div class="p-3 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2 relative" data-sell-tier-id="${tier.id}">
@@ -488,11 +618,11 @@ const CoinCalculators = {
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
-                    <input type="number" step="any" value="${tier.price}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                    <input type="text" inputmode="numeric" value="${formattedPrice}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
-                    <input type="number" step="any" value="${tier.val}" placeholder="${placeholder}" oninput="CoinCalculators.updateSellTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this); ' : ''}CoinCalculators.updateSellTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -526,7 +656,7 @@ const CoinCalculators = {
     updateSellTier: function (id, field, value) {
         const tier = this.sellTiers.find(t => t.id === id);
         if (tier) {
-            tier[field] = parseFloat(value) || 0;
+            tier[field] = this.parseNum(value);
             this.calcWater();
         }
     },
@@ -545,8 +675,8 @@ const CoinCalculators = {
 
     // 종합 DCA 매수 및 분할 매도 실시간 연산
     calcWater: function () {
-        const curPrice = parseFloat(document.getElementById('waterCurrentPrice')?.value) || 0;
-        const curQty = parseFloat(document.getElementById('waterCurrentQty')?.value) || 0;
+        const curPrice = this.parseNum(document.getElementById('waterCurrentPrice')?.value);
+        const curQty = this.parseNum(document.getElementById('waterCurrentQty')?.value);
         const feePercent = parseFloat(document.getElementById('waterFeeRate')?.value || 0.05) / 100;
 
         const curTotalCost = curPrice * curQty;
@@ -558,9 +688,9 @@ const CoinCalculators = {
 
         // 1. 추가 매수(DCA) 시뮬레이션
         this.waterTiers.forEach((tier, i) => {
-            const p = parseFloat(tier.price) || 0;
+            const p = this.parseNum(tier.price);
             const mode = tier.mode || 'amount';
-            const val = parseFloat(tier.val) || 0;
+            const val = this.parseNum(tier.val);
 
             let addedQty = 0;
             let addedAmount = 0;
@@ -821,7 +951,7 @@ const CoinCalculators = {
     },
 
     calcArbitrage: function () {
-        const sendAmountKrw = parseFloat(document.getElementById('arbSendAmount')?.value) || 5000000;
+        const sendAmountKrw = this.parseNum(document.getElementById('arbSendAmount')?.value, 5000000);
         const coinType = document.getElementById('arbCoinSelect')?.value || 'XRP';
         const kimpRate = parseFloat(document.getElementById('arbCustomKimp')?.value || 1.8) / 100;
         const feeNetwork = coinType === 'XRP' ? 1500 : (coinType === 'TRX' ? 1400 : 8000);
@@ -871,9 +1001,9 @@ const CoinCalculators = {
     // 3. 코인 세금 계산기
     // ========================================================
     calcTax: function () {
-        const totalSell = parseFloat(document.getElementById('taxTotalSell')?.value) || 0;
-        const totalBuy = parseFloat(document.getElementById('taxTotalBuy')?.value) || 0;
-        const totalFee = parseFloat(document.getElementById('taxTotalFee')?.value) || 0;
+        const totalSell = this.parseNum(document.getElementById('taxTotalSell')?.value);
+        const totalBuy = this.parseNum(document.getElementById('taxTotalBuy')?.value);
+        const totalFee = this.parseNum(document.getElementById('taxTotalFee')?.value);
         const deductType = document.getElementById('taxDeductionType')?.value || '250';
 
         const basicDeduction = deductType === '5000' ? 50000000 : 2500000;
@@ -916,9 +1046,9 @@ const CoinCalculators = {
             const feeAmt = Math.round(s.totalFees || s.totalFee || 0);
 
             const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-            setVal('taxTotalSell', sellAmt);
-            setVal('taxTotalBuy', buyAmt);
-            setVal('taxTotalFee', feeAmt);
+            setVal('taxTotalSell', this.formatNumber(sellAmt));
+            setVal('taxTotalBuy', this.formatNumber(buyAmt));
+            setVal('taxTotalFee', this.formatNumber(feeAmt));
             this.calcTax();
             alert('손익 분석기의 실측 손익 데이터(총 매도액 ' + sellAmt.toLocaleString() + '원, 매도분 취득원가 ' + buyAmt.toLocaleString() + '원, 수수료 ' + feeAmt.toLocaleString() + '원)가 세금 계산기에 성공적으로 반영되었습니다!');
         } else {
@@ -931,10 +1061,10 @@ const CoinCalculators = {
     // ========================================================
     calcFutures: function () {
         const posType = document.getElementById('futuresPosType')?.value || 'LONG';
-        const entryPrice = parseFloat(document.getElementById('futuresEntryPrice')?.value) || 64000;
-        const marginUsdt = parseFloat(document.getElementById('futuresMargin')?.value) || 1000;
-        const leverage = parseFloat(document.getElementById('futuresLeverage')?.value) || 10;
-        const targetPrice = parseFloat(document.getElementById('futuresTargetPrice')?.value) || 68000;
+        const entryPrice = this.parseNum(document.getElementById('futuresEntryPrice')?.value, 64000);
+        const marginUsdt = this.parseNum(document.getElementById('futuresMargin')?.value, 1000);
+        const leverage = this.parseNum(document.getElementById('futuresLeverage')?.value, 10);
+        const targetPrice = this.parseNum(document.getElementById('futuresTargetPrice')?.value, 68000);
 
         const positionSizeUsdt = marginUsdt * leverage;
         const positionCoinQty = entryPrice > 0 ? (positionSizeUsdt / entryPrice) : 0;
@@ -1260,13 +1390,49 @@ const CoinCalculators = {
     copyCardToClipboard: async function (targetCanvasId = null) {
         const canvas = document.getElementById(targetCanvasId || 'profitCardCanvas') || document.getElementById('pnl-card-canvas');
         if (!canvas) return;
+
+        let success = false;
         try {
-            canvas.toBlob(async blob => {
-                const item = new ClipboardItem({ 'image/png': blob });
-                await navigator.clipboard.write([item]);
-                alert('수익 인증 카드가 클립보드에 복사되었습니다! 카카오톡이나 커뮤니티에 Ctrl+V로 붙여넣으세요.');
-            });
-        } catch (err) {
+            const div = document.createElement('div');
+            div.contentEditable = 'true';
+            div.style.position = 'fixed';
+            div.style.left = '-9999px';
+            div.style.top = '0';
+            div.style.opacity = '0';
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL('image/png');
+            div.appendChild(img);
+            document.body.appendChild(div);
+
+            const range = document.createRange();
+            range.selectNode(img);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            success = document.execCommand('copy');
+            selection.removeAllRanges();
+            document.body.removeChild(div);
+        } catch (e) {
+            success = false;
+        }
+
+        if (!success && navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (blob) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    success = true;
+                }
+            } catch (err) {
+                console.warn('ClipboardItem fallback error:', err);
+            }
+        }
+
+        if (success) {
+            alert('수익 인증 카드가 클립보드에 복사되었습니다! 카카오톡이나 커뮤니티에 Ctrl+V로 붙여넣으세요.');
+        } else {
             alert('클립보드 복사를 지원하지 않는 브라우저입니다. [이미지 다운로드]를 이용해 주세요.');
         }
     },

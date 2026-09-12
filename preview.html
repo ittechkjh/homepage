@@ -1230,7 +1230,7 @@
         <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i> 계산기 5종</button>
         <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-teal-300 hover:text-teal-100 border border-teal-500/30 bg-teal-500/10 hover:border-teal-400 group shadow-sm">
           <i data-lucide="receipt" class="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform"></i>
-          <span>연말정산기</span>
+          <span>연말정산 팁</span>
           <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
         </button>
         <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 group shadow-sm">
@@ -3758,7 +3758,7 @@
             </button>
             <button type="button" onclick="switchTab('yearend-tax')" class="px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 text-teal-300 hover:text-white bg-teal-500/15 border border-teal-500/30 hover:bg-teal-500/25 shadow-sm" title="2026 연말정산 모의계산기 바로가기">
               <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400"></i>
-              <span>🧾 연말정산기</span>
+              <span>🧾 연말정산 팁</span>
               <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-teal-400 text-navy-950">NEW</span>
             </button>
           </div>
@@ -3803,7 +3803,7 @@
                 <div class="grid grid-cols-2 gap-2">
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1">현재 보유 평단가 (KRW)</label>
-                    <input type="number" step="any" id="waterCurrentPrice" value="95000000" oninput="CoinCalculators.calcWater()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-cyan-500 focus:outline-none">
+                    <input type="text" inputmode="numeric" id="waterCurrentPrice" value="95,000,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcWater()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-cyan-500 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1">현재 보유 수량</label>
@@ -3981,7 +3981,7 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">송금 원화 금액 (KRW)</label>
-                <input type="number" id="arbSendAmount" value="5000000" oninput="CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="arbSendAmount" value="5,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcArbitrage()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">적용 김프율 (%)</label>
@@ -4020,15 +4020,15 @@
             <div class="space-y-3 text-xs">
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">연간 총 양도(매도) 대금 (KRW)</label>
-                <input type="number" id="taxTotalSell" value="150000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalSell" value="150,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">연간 총 취득(매수) 가액 (KRW)</label>
-                <input type="number" id="taxTotalBuy" value="120000000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalBuy" value="120,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">매매 수수료 및 부대비용 (KRW)</label>
-                <input type="number" id="taxTotalFee" value="135000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="taxTotalFee" value="135,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcTax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">기본 공제액 기준</label>
@@ -4092,15 +4092,15 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">진입 가격 (Entry, USD)</label>
-                <input type="number" id="futuresEntryPrice" value="64000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="futuresEntryPrice" value="64,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">투자 원금 (Margin, USDT)</label>
-                <input type="number" id="futuresMargin" value="1000" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
+                <input type="text" inputmode="numeric" id="futuresMargin" value="1,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2.5 text-white font-mono">
               </div>
               <div>
                 <label class="block font-semibold text-slate-300 mb-1">목표 가격 (Target, USD)</label>
-                <input type="number" id="futuresTargetPrice" value="68000" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
+                <input type="text" inputmode="numeric" id="futuresTargetPrice" value="68,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcFutures()" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-cyan-300 font-mono font-bold">
               </div>
             </div>
           </div>
