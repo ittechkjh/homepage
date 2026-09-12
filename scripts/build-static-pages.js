@@ -56,23 +56,23 @@ sitemapUrls.push({
 });
 
 const calcRelatedHtml = `
-    <section class="mt-8 pt-6 border-t border-navy-800">
-      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+    <section class="related-section-border mt-8 pt-6 border-t border-navy-800">
+      <h3 class="related-title text-base font-bold text-white mb-4 flex items-center gap-2">
         <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">차익거래 전략</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
@@ -82,23 +82,23 @@ const calcRelatedHtml = `
 `;
 
 const guideRelatedHtml = `
-    <section class="mt-8 pt-6 border-t border-navy-800">
-      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+    <section class="related-section-border mt-8 pt-6 border-t border-navy-800">
+      <h3 class="related-title text-base font-bold text-white mb-4 flex items-center gap-2">
         <i data-lucide="calculator" class="w-4 h-4 text-cyan-400"></i>
         직접 계산해보기: 추천 실전 계산기
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/crypto-tax-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/crypto-tax-calculator.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">가상자산 세금 계산기 (2025/2026 기본공제 적용)</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/waterfall-dca-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/waterfall-dca-calculator.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">물타기 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">물타기 평단가 & 탈출 반등률 정밀 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/binance-futures-fee-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/binance-futures-fee-calculator.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">선물 수수료</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">바이낸스 선물 레버리지 수수료 & 펀딩비 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
@@ -108,23 +108,23 @@ const guideRelatedHtml = `
 `;
 
 const postRelatedHtml = `
-    <section class="mt-8 pt-6 border-t border-navy-800">
-      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+    <section class="related-section-border mt-8 pt-6 border-t border-navy-800">
+      <h3 class="related-title text-base font-bold text-white mb-4 flex items-center gap-2">
         <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
         실전 트레이딩 유용한 도구 & 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/kimchi-premium-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/kimchi-premium-calculator.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">실시간 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">실시간 김치프리미엄 차익 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/orderbook-depth-slippage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/orderbook-depth-slippage.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">주문 분석</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">호가창 오더북 뎁스(Depth)와 슬리피지 최소화 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">가이드 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/#/forum" class="p-4 rounded-2xl bg-navy-900/80 border border-cyan-500/40 hover:border-cyan-400 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/#/forum" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-cyan-500/40 hover:border-cyan-400 transition flex flex-col justify-between">
           <span class="text-xs text-amber-400 font-bold mb-1">실시간 토론</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">투자 포럼에서 다른 투자자들과 관점 공유하기</h4>
           <span class="text-[11px] text-cyan-400 mt-2">포럼 이동 &rarr;</span>
