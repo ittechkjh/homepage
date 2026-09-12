@@ -1951,19 +1951,6 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
   }
 
   function generateReportImage4(dStr) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="100%" height="100%">
-    <defs>
-      <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#19151c"/><stop offset="100%" stop-color="#07090e"/>
-      </linearGradient>
-    </defs>
-    <rect width="800" height="280" rx="16" fill="url(#bg4)" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.35"/>
-    <rect x="20" y="18" width="140" height="26" rx="6" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-opacity="0.4"/>
-    <text x="90" y="35" fill="#fbbf24" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">MACRO CALENDAR</text>
-    <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">글로벌 경제 캘린더 타임라인 &amp; 트레이딩 체크포인트</text>
-    <rect x="630" y="18" width="150" height="26" rx="6" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.35"/>
-    <text x="705" y="35" fill="#fcd34d" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-    <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
     let ev1 = { title: '글로벌 통화정책 및 유동성', time: '실시간 추적', desc: 'M2 통화량 & 금리 모니터링' };
     let ev2 = { title: '미국 연준(Fed) 금리 경로', time: '상시 모니터링', desc: 'FOMC 인하 확률 추적' };
     let ev3 = { title: '온체인 원장 & 파생 레버리지', time: '실시간 분석', desc: 'OI 미결제약정 & SOPR 지지선' };
