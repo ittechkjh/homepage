@@ -931,56 +931,88 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   const slotBadge = slotInfo ? slotInfo.slotHour + '시' : '4H';
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 09:00`;
 
-  // 28 Realistic 4H Candlesticks Simulation (Drop from $80k -> Consolidate -> Dead Cat Bounce to 200 EMA -> Resistance)
+  // 48 Realistic 4H Candlesticks Simulation (8 full days of market action: High -> Breakdown -> Base -> Dead Cat Bounce to 200 EMA -> Pullback)
   const baseCandles = [
-    { o: 79800, h: 80150, l: 79200, c: 79350 }, // 0 음봉
-    { o: 79350, h: 79500, l: 78600, c: 78750 }, // 1 음봉
-    { o: 78750, h: 79000, l: 78400, c: 78900 }, // 2 양봉
-    { o: 78900, h: 79050, l: 77800, c: 77950 }, // 3 장대음봉
-    { o: 77950, h: 78200, l: 77100, c: 77250 }, // 4 음봉
-    { o: 77250, h: 77500, l: 76050, c: 76250 }, // 5 패닉셀 장대음봉
-    { o: 76250, h: 76850, l: 75950, c: 76600 }, // 6 롱테일 양봉 (하방 지지)
-    { o: 76600, h: 76950, l: 76350, c: 76450 }, // 7 음봉 도지
-    { o: 76450, h: 77100, l: 76400, c: 76900 }, // 8 양봉
-    { o: 76900, h: 77050, l: 76500, c: 76650 }, // 9 음봉
-    { o: 76650, h: 77150, l: 76550, c: 77050 }, // 10 양봉
-    { o: 77050, h: 77200, l: 76600, c: 76800 }, // 11 음봉
-    { o: 76800, h: 77350, l: 76750, c: 77250 }, // 12 양봉
-    { o: 77250, h: 77650, l: 77100, c: 77550 }, // 13 양봉
-    { o: 77550, h: 77850, l: 77400, c: 77700 }, // 14 양봉
-    { o: 77700, h: 77800, l: 77350, c: 77450 }, // 15 음봉 (숨고르기)
-    { o: 77450, h: 78100, l: 77400, c: 77950 }, // 16 양봉
-    { o: 77950, h: 78250, l: 77800, c: 78200 }, // 17 양봉
-    { o: 78200, h: 78400, l: 77950, c: 78100 }, // 18 음봉
-    { o: 78100, h: 78550, l: 78050, c: 78500 }, // 19 양봉 (50 EMA 상회)
-    { o: 78500, h: 78750, l: 78300, c: 78650 }, // 20 양봉
-    { o: 78650, h: 79150, l: 78550, c: 78800 }, // 21 윗꼬리 긴 양봉 (200 EMA 터치)
-    { o: 78800, h: 79100, l: 78450, c: 78550 }, // 22 윗꼬리 긴 음봉 (저항 확인)
-    { o: 78550, h: 78850, l: 78300, c: 78450 }, // 23 음봉
-    { o: 78450, h: 78700, l: 78200, c: 78350 }, // 24 음봉
-    { o: 78350, h: 78600, l: 78150, c: 78400 }, // 25 작은 도지
-    { o: 78400, h: 78550, l: 78100, c: 78250 }, // 26 음봉
-    { o: 78250, h: 78500, l: 78050, c: Math.round(tech.currentPrice || 78370) }  // 27 현재 진행 캔들
+    // Day 1: Distribution high ($80.2k -> $79.6k)
+    { o: 80100, h: 80350, l: 79800, c: 80250, v: 14 },
+    { o: 80250, h: 80450, l: 79950, c: 80050, v: 12 },
+    { o: 80050, h: 80150, l: 79500, c: 79650, v: 18 },
+    { o: 79650, h: 79900, l: 79450, c: 79750, v: 15 },
+    { o: 79750, h: 80000, l: 79300, c: 79450, v: 19 },
+    { o: 79450, h: 79600, l: 79100, c: 79250, v: 22 },
+    // Day 2: Minor breakdown & weak bounce ($79.2k -> $78.6k)
+    { o: 79250, h: 79450, l: 78750, c: 78900, v: 26 },
+    { o: 78900, h: 79150, l: 78600, c: 78800, v: 20 },
+    { o: 78800, h: 79200, l: 78700, c: 79100, v: 17 },
+    { o: 79100, h: 79350, l: 78850, c: 78950, v: 16 },
+    { o: 78950, h: 79050, l: 78400, c: 78550, v: 24 },
+    { o: 78550, h: 78800, l: 78350, c: 78700, v: 19 },
+    // Day 3: Sharp sell-off panic wave ($78.7k -> $76.2k) - High Volume Surge
+    { o: 78700, h: 78800, l: 77800, c: 77950, v: 38 },
+    { o: 77950, h: 78200, l: 77100, c: 77300, v: 42 },
+    { o: 77300, h: 77650, l: 76800, c: 76950, v: 45 },
+    { o: 76950, h: 77200, l: 76100, c: 76350, v: 52 },
+    { o: 76350, h: 76700, l: 75800, c: 76000, v: 58 },
+    { o: 76000, h: 76600, l: 75750, c: 76450, v: 48 },
+    // Day 4: Capitulation wick & base building ($76.4k -> $76.8k)
+    { o: 76450, h: 76850, l: 76200, c: 76350, v: 31 },
+    { o: 76350, h: 76900, l: 76150, c: 76750, v: 28 },
+    { o: 76750, h: 77100, l: 76500, c: 76600, v: 22 },
+    { o: 76600, h: 77050, l: 76450, c: 76950, v: 24 },
+    { o: 76950, h: 77250, l: 76700, c: 76800, v: 20 },
+    { o: 76800, h: 77150, l: 76550, c: 77050, v: 19 },
+    // Day 5: Low-volume consolidation & re-test low ($77.0k -> $76.6k)
+    { o: 77050, h: 77250, l: 76700, c: 76850, v: 16 },
+    { o: 76850, h: 77100, l: 76400, c: 76600, v: 21 },
+    { o: 76600, h: 76900, l: 76300, c: 76800, v: 18 },
+    { o: 76800, h: 77250, l: 76750, c: 77150, v: 17 },
+    { o: 77150, h: 77450, l: 76950, c: 77350, v: 19 },
+    { o: 77350, h: 77650, l: 77100, c: 77550, v: 21 },
+    // Day 6: Upward reaction wave (Dead Cat Bounce) starts ($77.5k -> $78.2k)
+    { o: 77550, h: 77850, l: 77400, c: 77700, v: 22 },
+    { o: 77700, h: 77800, l: 77350, c: 77450, v: 18 },
+    { o: 77450, h: 78100, l: 77400, c: 77950, v: 23 },
+    { o: 77950, h: 78250, l: 77800, c: 78200, v: 20 },
+    { o: 78200, h: 78400, l: 77950, c: 78100, v: 17 },
+    { o: 78100, h: 78550, l: 78050, c: 78450, v: 19 },
+    // Day 7: Testing 50 EMA & pushing toward 200 EMA ($78.4k -> $78.9k) - Declining Volume
+    { o: 78450, h: 78750, l: 78300, c: 78650, v: 18 },
+    { o: 78650, h: 78950, l: 78450, c: 78800, v: 16 },
+    { o: 78800, h: 79150, l: 78650, c: 78900, v: 15 },
+    { o: 78900, h: 79200, l: 78700, c: 78850, v: 14 },
+    { o: 78850, h: 79100, l: 78500, c: 78650, v: 13 },
+    { o: 78650, h: 78850, l: 78400, c: 78550, v: 14 },
+    // Day 8: 200 EMA Rejection & Resistance Encounter ($78.8k -> $78.37k)
+    { o: 78550, h: 78900, l: 78400, c: 78750, v: 15 },
+    { o: 78750, h: 79100, l: 78500, c: 78600, v: 16 },
+    { o: 78600, h: 78800, l: 78350, c: 78500, v: 14 },
+    { o: 78500, h: 78650, l: 78200, c: 78350, v: 15 },
+    { o: 78350, h: 78550, l: 78150, c: 78400, v: 13 },
+    { o: 78400, h: 78550, l: 78200, c: Math.round(tech.currentPrice || 78370), v: 14 }  // 47 현재 진행 캔들
   ];
 
-  // Price to Y conversion function (Scale: $75,800 to $80,200 mapped to Y: 320 to 134)
-  const minP = 75800;
-  const maxP = 80200;
+  // Price to Y conversion function (Scale: $75,500 to $80,600 mapped to Y: 312 to 136)
+  const minP = 75500;
+  const maxP = 80600;
   const rangeP = maxP - minP;
-  const getY = (p) => 134 + ((maxP - p) / rangeP) * 186;
+  const getY = (p) => 136 + ((maxP - p) / rangeP) * 176;
 
-  // Generate 28 candlesticks SVG strings
+  // Generate 48 candlesticks & volume bars SVG elements
   const candleSvgElements = baseCandles.map((c, i) => {
-    const cx = 50 + (i * 25.5);
+    const cx = 40 + (i * 15.2);
     const isBull = c.c >= c.o;
     const color = isBull ? '#10b981' : '#f43f5e';
     const topY = Math.min(getY(c.o), getY(c.c));
     const botY = Math.max(getY(c.o), getY(c.c));
-    const bodyHeight = Math.max(3, botY - topY);
+    const bodyHeight = Math.max(2.5, botY - topY);
     const highY = getY(c.h);
     const lowY = getY(c.l);
+    
+    // TradingView volume bar at bottom of canvas (y: 295 to 326)
+    const volHeight = Math.min(26, Math.max(4, (c.v || 15) * 0.45));
+    const volY = 325 - volHeight;
 
-    return `  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.2"/>\n  <rect x="${(cx - 5.5).toFixed(1)}" y="${topY.toFixed(1)}" width="11" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
+    return `  <!-- C${i} -->\n  <rect x="${(cx - 3.8).toFixed(1)}" y="${volY.toFixed(1)}" width="7.6" height="${volHeight.toFixed(1)}" fill="${color}" fill-opacity="0.32" rx="0.8"/>\n  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.1"/>\n  <rect x="${(cx - 4.2).toFixed(1)}" y="${topY.toFixed(1)}" width="8.4" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
   }).join('\n');
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
@@ -991,96 +1023,96 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
       <stop offset="100%" stop-color="#060910"/>
     </linearGradient>
   </defs>
-  <!-- Main Background without heavy outer border -->
+  <!-- Main Background: 100% borderless clean card -->
   <rect width="800" height="420" rx="14" fill="url(#bg_chart)" stroke="none"/>
   
-  <!-- Header -->
-  <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
+  <!-- Header: Borderless badges -->
+  <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.18" stroke="none"/>
   <text x="77" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC 4H [${slotBadge}]</text>
-  <text x="150" y="34" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">트레이딩 셋업: 데드캣 바운스(Dead Cat Bounce) 리테스트</text>
-  <rect x="630" y="16" width="150" height="26" rx="6" fill="#06b6d4" fill-opacity="0.12" stroke="#06b6d4" stroke-opacity="0.35"/>
-  <text x="705" y="33" fill="#22d3ee" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="52" x2="780" y2="52" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="148" y="34" fill="#ffffff" font-size="14.5" font-weight="bold" font-family="sans-serif">트레이딩 셋업: 데드캣 바운스(Dead Cat Bounce) 리테스트</text>
+  <rect x="635" y="16" width="145" height="26" rx="6" fill="#06b6d4" fill-opacity="0.14" stroke="none"/>
+  <text x="707" y="33" fill="#22d3ee" font-size="11.5" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
+  <line x1="20" y1="52" x2="780" y2="52" stroke="#1e293b" stroke-width="1"/>
 
-  <!-- Parameters Row -->
-  <rect x="20" y="62" width="175" height="52" rx="10" fill="#1e293b" fill-opacity="0.6" stroke="#f43f5e" stroke-opacity="0.3"/>
+  <!-- Parameters Row: Completely borderless pills with soft dark fill -->
+  <rect x="20" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="32" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">포지션 방향</text>
-  <text x="32" y="102" fill="#f43f5e" font-size="14" font-weight="900" font-family="monospace">SHORT (하방 리테스트)</text>
+  <text x="32" y="102" fill="#f43f5e" font-size="13.5" font-weight="900" font-family="monospace">SHORT (하방 리테스트)</text>
 
-  <rect x="205" y="62" width="185" height="52" rx="10" fill="#1e293b" fill-opacity="0.6" stroke="#0ea5e9" stroke-opacity="0.3"/>
-  <text x="217" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">진입 구역 (Entry Zone)</text>
-  <text x="217" y="102" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">$78,200 ~ $78,600</text>
+  <rect x="206" y="62" width="186" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
+  <text x="218" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">진입 구역 (Entry Zone)</text>
+  <text x="218" y="102" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">$78,200 ~ $78,600</text>
 
-  <rect x="400" y="62" width="195" height="52" rx="10" fill="#1e293b" fill-opacity="0.6" stroke="#10b981" stroke-opacity="0.3"/>
+  <rect x="400" y="62" width="194" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="412" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">목표가 (Take Profit)</text>
   <text x="412" y="102" fill="#34d399" font-size="13" font-weight="bold" font-family="monospace">TP1 $76.5K / TP2 $74.8K</text>
 
-  <rect x="605" y="62" width="175" height="52" rx="10" fill="#1e293b" fill-opacity="0.6" stroke="#fbbf24" stroke-opacity="0.3"/>
-  <text x="617" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">손절 &amp; 손익비</text>
-  <text x="617" y="102" fill="#fbbf24" font-size="13" font-weight="bold" font-family="monospace">SL $79.8K (손익비 1:2.65)</text>
+  <rect x="602" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
+  <text x="614" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">손절 &amp; 손익비</text>
+  <text x="614" y="102" fill="#fbbf24" font-size="13" font-weight="bold" font-family="monospace">SL $79.8K (손익비 1:2.65)</text>
 
-  <!-- Main Chart Canvas -->
-  <rect x="20" y="124" width="760" height="206" rx="10" fill="#0b0e14" stroke="#1e293b" stroke-width="1"/>
+  <!-- Main Chart Canvas: Borderless dark canvas -->
+  <rect x="20" y="124" width="760" height="206" rx="10" fill="#090d16" stroke="none"/>
   
-  <!-- Grid lines -->
-  <line x1="20" y1="160" x2="780" y2="160" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="205" x2="780" y2="205" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="255" x2="780" y2="255" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="298" x2="780" y2="298" stroke="#1e293b" stroke-dasharray="3,3"/>
+  <!-- Subtle grid lines -->
+  <line x1="20" y1="160" x2="780" y2="160" stroke="#172033" stroke-dasharray="3,3"/>
+  <line x1="20" y1="205" x2="780" y2="205" stroke="#172033" stroke-dasharray="3,3"/>
+  <line x1="20" y1="255" x2="780" y2="255" stroke="#172033" stroke-dasharray="3,3"/>
+  <line x1="20" y1="298" x2="780" y2="298" stroke="#172033" stroke-dasharray="3,3"/>
 
   <!-- Resistance Zone ($78,850 ~ $79,200) -->
-  <rect x="22" y="${getY(79200).toFixed(1)}" width="756" height="${(getY(78850) - getY(79200)).toFixed(1)}" fill="#f43f5e" fill-opacity="0.14"/>
+  <rect x="20" y="${getY(79200).toFixed(1)}" width="760" height="${(getY(78850) - getY(79200)).toFixed(1)}" fill="#f43f5e" fill-opacity="0.12" stroke="none"/>
   <line x1="20" y1="${getY(78850).toFixed(1)}" x2="780" y2="${getY(78850).toFixed(1)}" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="770" y="${(getY(79000) + 3).toFixed(1)}" fill="#f43f5e" font-size="10" font-family="monospace" text-anchor="end">200 EMA 저항대 $78,850 ~ $79,200</text>
+  <text x="765" y="${(getY(79000) + 3).toFixed(1)}" fill="#f43f5e" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">200 EMA 저항대 $78,850 ~ $79,200</text>
 
   <!-- Stop Loss line ($79,800) -->
-  <line x1="20" y1="${getY(79800).toFixed(1)}" x2="780" y2="${getY(79800).toFixed(1)}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4,4"/>
-  <text x="35" y="${(getY(79800) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $79,800</text>
+  <line x1="20" y1="${getY(79800).toFixed(1)}" x2="780" y2="${getY(79800).toFixed(1)}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,4"/>
+  <text x="28" y="${(getY(79800) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $79,800</text>
 
   <!-- Entry Zone ($78,200 ~ $78,600) -->
-  <rect x="22" y="${getY(78600).toFixed(1)}" width="756" height="${(getY(78200) - getY(78600)).toFixed(1)}" fill="#0284c7" fill-opacity="0.12"/>
-  <text x="770" y="${(getY(78400) + 3).toFixed(1)}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="end">진입 구간 (Entry Zone) $78,200 ~ $78,600</text>
+  <rect x="20" y="${getY(78600).toFixed(1)}" width="760" height="${(getY(78200) - getY(78600)).toFixed(1)}" fill="#0284c7" fill-opacity="0.11" stroke="none"/>
+  <text x="765" y="${(getY(78400) + 3).toFixed(1)}" fill="#38bdf8" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">진입 구간 (Entry Zone) $78,200 ~ $78,600</text>
 
   <!-- Target 1 line ($76,500) -->
   <line x1="20" y1="${getY(76500).toFixed(1)}" x2="780" y2="${getY(76500).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="770" y="${(getY(76500) - 4).toFixed(1)}" fill="#34d399" font-size="10" font-family="monospace" text-anchor="end">🎯 1차 목표가 (TP1): $76,500</text>
+  <text x="765" y="${(getY(76500) - 4).toFixed(1)}" fill="#34d399" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가 (TP1): $76,500</text>
 
-  <!-- Target 2 line ($74,800 - simulated near lower boundary) -->
-  <line x1="20" y1="318" x2="780" y2="318" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="770" y="314" fill="#10b981" font-size="10" font-family="monospace" text-anchor="end">🎯 2차 목표가 (TP2): $74,800</text>
+  <!-- Target 2 line ($74,800) -->
+  <line x1="20" y1="316" x2="780" y2="316" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="765" y="312" fill="#10b981" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가 (TP2): $74,800</text>
 
   <!-- 200 EMA Line (Yellow Curve) -->
-  <path d="M 30 162 Q 220 170 420 180 T 770 183" fill="none" stroke="#f59e0b" stroke-width="2"/>
-  <text x="40" y="158" fill="#fbbf24" font-size="9" font-family="monospace">200 EMA</text>
+  <path d="M 25 152 Q 240 182 480 192 T 775 196" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <text x="35" y="148" fill="#fbbf24" font-size="9" font-family="monospace" font-weight="bold">200 EMA</text>
 
   <!-- 50 EMA Line (Cyan Curve) -->
-  <path d="M 30 185 Q 200 240 400 225 T 770 208" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
-  <text x="40" y="200" fill="#22d3ee" font-size="9" font-family="monospace">50 EMA</text>
+  <path d="M 25 178 Q 200 248 440 238 T 775 220" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="35" y="195" fill="#22d3ee" font-size="9" font-family="monospace" font-weight="bold">50 EMA</text>
 
-  <!-- Candlesticks (28 Candlesticks Rendering) -->
+  <!-- Candlesticks (48 Candlesticks & Volume Rendering) -->
 ${candleSvgElements}
 
-  <!-- Dead Cat Bounce Arc Arrow annotation -->
-  <path d="M 205 285 Q 390 175 585 183" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,4"/>
-  <polygon points="588,183 580,178 582,188" fill="#fbbf24"/>
-  <rect x="330" y="160" width="135" height="20" rx="4" fill="#0b0e14" fill-opacity="0.85" stroke="#fbbf24" stroke-width="0.8"/>
-  <text x="397" y="174" fill="#fbbf24" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">Dead Cat Bounce</text>
+  <!-- Dead Cat Bounce Arc Arrow annotation (Elevated with ample clearance) -->
+  <path d="M 405 272 Q 530 170 660 188" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5,4"/>
+  <polygon points="664,188 656,182 658,193" fill="#fbbf24"/>
+  <rect x="475" y="166" width="130" height="20" rx="5" fill="#090d16" fill-opacity="0.9" stroke="none"/>
+  <text x="540" y="180" fill="#fbbf24" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">Dead Cat Bounce</text>
 
-  <!-- Bottom Indicators & Volume (Clean 3-row layout to prevent ANY text overlap) -->
-  <rect x="20" y="338" width="760" height="72" rx="8" fill="#1e293b" fill-opacity="0.4" stroke="#334155" stroke-width="1"/>
+  <!-- Bottom Indicators & Volume: 100% Borderless, 3-Row Zero-Overlap Layout -->
+  <rect x="20" y="338" width="760" height="72" rx="8" fill="#151d2f" fill-opacity="0.8" stroke="none"/>
   
   <!-- Row 1: Volume Trend -->
-  <text x="35" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 추세:</text>
-  <text x="105" y="357" fill="#f43f5e" font-size="10" font-weight="bold" font-family="sans-serif">하락 시 거래량 폭증 ➔ 반등 시 거래량 급감 (전형적 약세 반등)</text>
+  <text x="32" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 분석:</text>
+  <text x="100" y="357" fill="#f43f5e" font-size="10" font-weight="bold" font-family="sans-serif">하락 시 거래량 폭증 ➔ 반등 시 거래량 급감 (전형적 거래량 수축 약세 반등)</text>
   
-  <!-- Row 2: Indicators (Clearly separated) -->
-  <text x="35" y="377" fill="#94a3b8" font-size="10" font-family="sans-serif">보조지표:</text>
-  <text x="85" y="377" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스)</text>
-  <text x="255" y="377" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏: 1.297 (롱 56.5% 과밀집)</text>
+  <!-- Row 2: Indicators (Spaced with generous margin) -->
+  <text x="32" y="378" fill="#94a3b8" font-size="10" font-family="sans-serif">핵심 지표:</text>
+  <text x="100" y="378" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스)</text>
+  <text x="310" y="378" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏: 1.297 (롱 56.5% 과밀집)</text>
   
-  <!-- Row 3: Metadata (Timestamp & Attribution separated to left and right) -->
-  <text x="35" y="398" fill="#64748b" font-size="9" font-family="sans-serif">기준: ${slotTimestampStr} KST</text>
-  <text x="765" y="398" fill="#64748b" font-size="9" font-family="sans-serif" text-anchor="end">제공: crytopnl.com 기술적 퀀트엔진</text>
+  <!-- Row 3: Metadata (Left: slot info, Right: provider) -->
+  <text x="32" y="398" fill="#64748b" font-size="9" font-family="sans-serif">분석 기준: ${slotTimestampStr} KST (일봉 마감)</text>
+  <text x="768" y="398" fill="#64748b" font-size="9" font-family="sans-serif" text-anchor="end">제공: crytopnl.com AI 퀀트엔진</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
@@ -1098,7 +1130,7 @@ ${sessionContext}
 
 [필수 작성 규칙 및 네이버 블로그/카페 복사 최적화]
 1. 네이버 블로그 및 카페(SmartEditor ONE)에 복사·붙여넣기 시 100% 호환되는 깔끔한 고대비 서식(흰색 배경 친화적)으로 작성하세요.
-2. 외곽 테두리(border: 1px solid ...)와 답답한 다크 박스를 절대 사용하지 마세요. 테두리는 제거하고, 부드러운 배경(#f8fafc)과 심플한 왼쪽 포인트 선(border-left: 4px solid ...)만 사용하세요.
+2. 외곽 테두리(border: 1px solid ...)나 박스 테두리선(border-left 포함)을 절대 사용하지 마세요. 모든 테두리는 완전히 제거하고, 부드러운 소프트 배경(#f1f5f9)과 여백, 선명한 글씨 색상만으로 단락을 구분하세요.
 3. 글씨가 선명하게 잘 보이도록 제목 헤딩은 진한 딥 네이비(#0f172a), 본문 텍스트는 선명하고 또렷한 짙은 슬레이트(#1e293b, 15px), 강조 수치는 굵고 명확한 색상(#0284c7, #e11d48, #059669)을 사용하세요.
 4. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함하세요.
 5. 구성:
@@ -1234,32 +1266,32 @@ ${dateKorean} ${slotName} 기준 비트코인은 $78,370 선 부근에서 기술
 <!-- Chart Setup Image -->
 ${chartTag}
 
-<!-- Trading Setup Box (Clean Borderless Matrix for Naver Blog/Cafe Copy) -->
-<div class="perspective-setup-card" style="background: #f8fafc; border-left: 4px solid #0284c7; border-radius: 8px; padding: 18px 20px; margin: 22px 0;">
+<!-- Trading Setup Box (Clean 100% Borderless Matrix for Naver Blog/Cafe Copy) -->
+<div class="perspective-setup-card" style="background: #f1f5f9; border-radius: 10px; padding: 18px 20px; margin: 22px 0; border: none;">
   <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
     📊 [트레이딩 셋업 파라미터 (Trading Setup Matrix)]
   </div>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">포지션 방향 (Direction)</div>
       <div style="font-size: 14px; font-weight: 900; color: #e11d48; font-family: monospace; margin-top: 3px;">SHORT (하방 리테스트)</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">진입 구간 (Entry Zone)</div>
       <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 3px;">$78,200 ~ $78,600</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">목표가 (Take Profit)</div>
       <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 3px;">TP1 $76.5K / TP2 $74.8K</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">손절가 &amp; 손익비</div>
       <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 3px;">SL $79,800 (1 : 2.65)</div>
     </div>
   </div>
 </div>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
 1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) 구조적 특징
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
@@ -1267,7 +1299,7 @@ ${chartTag}
 이러한 구조는 전형적인 '베어마켓 랠리' 또는 '데드캣 바운스'의 교과서적인 특징으로, 레버리지 롱 포지션을 유인한 뒤 직전 저점을 다시 위협하는 2차 충격파동(Impulse Wave)이 발생하기 쉬운 국면입니다.
 </p>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
 2. 주요 기술적 지표 &amp; 온체인 괴리 (200 EMA, RSI, 거래량)
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
@@ -1276,12 +1308,19 @@ ${chartTag}
 셋째, 거래소 파생상품 데이터에 따르면 <strong>롱/숏 비율이 1.297</strong>로 개인 투자자들의 롱 쏠림이 여전하여, 세력들의 롱 스퀴즈(청산 헌팅) 유인이 높은 상황입니다.
 </p>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
 3. 시나리오 분석: 시나리오 A(메인) vs 시나리오 B(반대 관점)
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 <strong>[시나리오 A - 메인 관점 (확률 65%)]:</strong> $78,500 저항선에서 추가 상승이 저지되며 1차적으로 $76,500 지지선을 리테스트하고, 하방 지지 실패 시 $74,800 주요 매물대까지 급락하는 시나리오입니다. 손익비 1:2.65의 매력적인 숏 포지션 트레이딩 구간입니다.<br/>
-<strong>[시나리오 B - 불트랩 돌파 관점 (확률 35%)]:</strong> 강력한 호재 속보와 함께 대량 거래량을 동반하여 200 EMA($78,850)를 단번에 뚫고 안착하는 경우입니다. 이 경우 $80,000 라운드넘버까지 추가 숏스퀴즈가 발생할 수 있습니다.
+<strong>[시나리오 B - 반대 관점 (확률 35%)]:</strong> 강력한 현물 매수세와 함께 4시간봉 200 EMA($78,850)를 상방 돌파 마감하는 경우입니다. 이때는 직전 고점인 $79,500~$79,800 라인까지 단기 스퀴즈가 발생할 수 있습니다.
+</p>
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+4. 관점 무효화 기준(Invalidation Level) &amp; 리스크 관리
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">
+본 숏 관점의 <strong>최종 무효화 기준점은 $79,800 상방 돌파 마감</strong>입니다. 이 가격대를 상회하여 안착할 경우 숏 포지션을 즉시 정리해야 합니다. 목표 손익비가 1:2.65로 높게 형성되어 있으므로, 진입 시 분할 매도 및 칼 같은 손절 원칙을 준수하시기 바랍니다.
 </p>
 
 <!-- Invalidation & Risk Box (Borderless Light Card) -->

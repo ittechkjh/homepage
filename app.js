@@ -1974,10 +1974,22 @@ async function loadDailyMarketReports(force = false) {
         } catch(e) {}
         const currentPosts = getStoredPosts();
         reports.forEach(rep => {
+          if (!rep || !rep.id) return;
           const p = currentPosts.find(x => String(x.id) === String(rep.id));
           if (p) {
             const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
             p.comments = (p.comments || []).filter(c => c && !mockAuthors.includes(c.author));
+            p.title = rep.title;
+            p.content = rep.content;
+            p.image = rep.image;
+            p.category = rep.category;
+            p.categoryName = rep.categoryName;
+            p.time = rep.time;
+            p.timestamp = rep.timestamp;
+            p.author = rep.author;
+            p.authorRank = rep.authorRank;
+          } else {
+            currentPosts.unshift(rep);
           }
         });
         saveStoredPosts(currentPosts);
@@ -2345,9 +2357,11 @@ function convertPostSvgImagesToPng(container) {
       } catch (e) {}
 
       if (decodedSvg) {
-        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, 'height="280"');
+        const isPerspective = decodedSvg.includes('420');
+        const targetH = isPerspective ? '420' : '280';
+        decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, `height="${targetH}"`);
         if (!decodedSvg.includes('width="800"')) {
-          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, '<svg $1 width="800" height="280">');
+          decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, `<svg $1 width="800" height="${targetH}">`);
         }
         src = 'data:image/svg+xml;utf8,' + encodeURIComponent(decodedSvg);
       }
@@ -2355,10 +2369,11 @@ function convertPostSvgImagesToPng(container) {
       const tempImg = new Image();
       tempImg.onload = () => {
         try {
+          const isPerspective = decodedSvg && decodedSvg.includes('420');
           const canvas = document.createElement('canvas');
           const dpr = 2; // 2x high-resolution for crystal clear paste
           const w = (tempImg.naturalWidth || 800) * dpr;
-          const h = (tempImg.naturalHeight || 280) * dpr;
+          const h = (tempImg.naturalHeight || (isPerspective ? 420 : 280)) * dpr;
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext('2d');

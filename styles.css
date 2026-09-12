@@ -806,23 +806,24 @@ html.theme-light .community-subtab-guides.font-medium:hover {
   box-shadow: none !important;
 }
 
-/* Dark Mode Card Overrides */
+/* Dark Mode Card Overrides - 100% Borderless */
 #cafe-post-content .perspective-setup-card {
   background: rgba(15, 23, 42, 0.8) !important;
   border: none !important;
-  border-left: 4px solid #38bdf8 !important;
+  border-left: none !important;
 }
 #cafe-post-content .perspective-setup-card > div:first-child {
   color: #f1f5f9 !important;
 }
 #cafe-post-content .perspective-setup-card [style*="background: #ffffff"] {
   background: rgba(30, 41, 59, 0.85) !important;
+  border: none !important;
   box-shadow: none !important;
 }
 #cafe-post-content .perspective-invalidation-card {
   background: rgba(69, 10, 10, 0.45) !important;
   border: none !important;
-  border-left: 4px solid #f43f5e !important;
+  border-left: none !important;
 }
 #cafe-post-content .perspective-invalidation-card p {
   color: #fecdd3 !important;
@@ -830,19 +831,21 @@ html.theme-light .community-subtab-guides.font-medium:hover {
 #cafe-post-content .morning-conclusion-card {
   background: rgba(8, 47, 73, 0.6) !important;
   border: none !important;
-  border-left: 4px solid #38bdf8 !important;
+  border-left: none !important;
 }
 #cafe-post-content .morning-conclusion-card p {
   color: #e0f2fe !important;
 }
 
-/* Light Mode Typography & Cards */
+/* Light Mode Typography & Cards - 100% Borderless */
 html.theme-light #cafe-post-content h3 {
   color: #0284c7 !important;
 }
 html.theme-light #cafe-post-content h4 {
   color: #0f172a !important;
-  border-left: 4px solid #0284c7 !important;
+  border: none !important;
+  border-left: none !important;
+  padding-left: 0 !important;
 }
 html.theme-light #cafe-post-content p {
   color: #1e293b !important;
@@ -851,21 +854,22 @@ html.theme-light #cafe-post-content strong {
   color: #0f172a !important;
 }
 html.theme-light #cafe-post-content .perspective-setup-card {
-  background: #f8fafc !important;
+  background: #f1f5f9 !important;
   border: none !important;
-  border-left: 4px solid #0284c7 !important;
+  border-left: none !important;
 }
 html.theme-light #cafe-post-content .perspective-setup-card > div:first-child {
   color: #0f172a !important;
 }
 html.theme-light #cafe-post-content .perspective-setup-card [style*="background: #ffffff"] {
   background: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 html.theme-light #cafe-post-content .perspective-invalidation-card {
   background: #fef2f2 !important;
   border: none !important;
-  border-left: 4px solid #ef4444 !important;
+  border-left: none !important;
 }
 html.theme-light #cafe-post-content .perspective-invalidation-card p {
   color: #7f1d1d !important;
@@ -873,8 +877,12 @@ html.theme-light #cafe-post-content .perspective-invalidation-card p {
 html.theme-light #cafe-post-content .morning-conclusion-card {
   background: #f0f9ff !important;
   border: none !important;
-  border-left: 4px solid #0284c7 !important;
+  border-left: none !important;
 }
 html.theme-light #cafe-post-content .morning-conclusion-card p {
   color: #0c4a6e !important;
 }
+#cafe-post-content table, #cafe-post-content tr, #cafe-post-content td, #cafe-post-content th {
+  border: none !important;
+}
+
