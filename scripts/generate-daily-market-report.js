@@ -954,6 +954,21 @@ async function fetchBinance4hTechnicals() {
       candles: [],
       isVolDecreasing: true,
       rsi: 48.5,
+      technicalConfluence: {
+        fib: {
+          swingHigh: Math.round(baseP * 1.03),
+          swingLow: Math.round(baseP * 0.97),
+          fib236: Math.round(baseP * 0.984),
+          fib382: Math.round(baseP * 0.993),
+          fib500: baseP,
+          fib618: Math.round(baseP * 1.007),
+          fib786: Math.round(baseP * 1.017),
+          fib886: Math.round(baseP * 1.023)
+        },
+        fibRatio: 0.500,
+        harmonicPattern: '가틀리(Gartley) 0.618 황금비율 PRZ',
+        elliottWave: '4파 수렴 완료 후 5파 분기점'
+      },
       setup: {
         direction: 'SHORT',
         theme: '저항 리테스트 및 박스권 하단 확인',
@@ -1009,8 +1024,42 @@ async function fetchBinance4hTechnicals() {
   const volAvg = volumes.slice(-10).reduce((a, b) => a + b, 0) / 10;
   const isVolDecreasing = volumes[volumes.length - 1] < volAvg;
 
-  // Derive dynamic trading setup based on real market confluence
+  // Swing High/Low & Fibonacci Retracement Levels for Harmonic & Elliott Wave Confluence
+  const swingHigh = Math.round(Math.max(...candles.map(c => c.high)));
+  const swingLow = Math.round(Math.min(...candles.map(c => c.low)));
+  const swingRange = Math.max(1, swingHigh - swingLow);
   const curP = Math.round(last.close);
+
+  const fib236 = Math.round(swingLow + swingRange * 0.236);
+  const fib382 = Math.round(swingLow + swingRange * 0.382);
+  const fib500 = Math.round(swingLow + swingRange * 0.500);
+  const fib618 = Math.round(swingLow + swingRange * 0.618);
+  const fib786 = Math.round(swingLow + swingRange * 0.786);
+  const fib886 = Math.round(swingLow + swingRange * 0.886);
+  const fibRatio = Math.max(0, Math.min(1, (curP - swingLow) / swingRange));
+
+  // Derive Harmonic Pattern & Elliott Wave candidates based on Fibonacci & trend structure
+  let harmonicPattern = '가틀리(Gartley) 또는 박쥐(Bat) 0.618/0.786 PRZ';
+  let elliottWave = '4파 조정 완료 후 5파 충격파 분기점';
+
+  if (fibRatio >= 0.82) {
+    harmonicPattern = '딥 크랩(Deep Crab) 1.618 또는 버터플라이(Butterfly) 1.272 확장 저항대';
+    elliottWave = '상승 충격 5파 완결 후 주요 ABC 되돌림 분기점';
+  } else if (fibRatio >= 0.70) {
+    harmonicPattern = '베어리시/불리시 뱃(Bat) 패턴 0.886 PRZ (잠재적 반전 구역)';
+    elliottWave = '조정 B파 되돌림 고점 확인 후 C파 충격 하락 분기점';
+  } else if (fibRatio >= 0.54 && fibRatio < 0.70) {
+    harmonicPattern = '가틀리(Gartley) 0.618 황금비율 및 AB=CD 대칭 패턴 PRZ';
+    elliottWave = '엘리엇 4파 지그재그/플랫 조정 완료 후 5파 임펄스 개시';
+  } else if (fibRatio >= 0.34 && fibRatio < 0.54) {
+    harmonicPattern = '사이퍼(Cypher) 패턴 0.382~0.500 밸류 리테스트';
+    elliottWave = '충격 3파 진행 중 단기 되돌림 또는 조정 B파 진행';
+  } else {
+    harmonicPattern = '샤크(Shark) 또는 카운터 사이퍼 지지 PRZ';
+    elliottWave = '하락 ABC 지그재그 C파 종결 구간 및 1파 반등 초입';
+  }
+
+  // Derive dynamic trading setup based on real market confluence
   let direction = 'SHORT';
   let theme = '200 EMA 저항 직면 및 하방 리테스트';
   let entryMin, entryMax, tp1, tp2, sl, riskReward;
@@ -1060,6 +1109,21 @@ async function fetchBinance4hTechnicals() {
     candles: candles.slice(-48),
     isVolDecreasing,
     rsi: rsi14,
+    technicalConfluence: {
+      fib: {
+        swingHigh,
+        swingLow,
+        fib236,
+        fib382,
+        fib500,
+        fib618,
+        fib786,
+        fib886
+      },
+      fibRatio: Number(fibRatio.toFixed(3)),
+      harmonicPattern,
+      elliottWave
+    },
     setup: {
       direction,
       theme,
@@ -1118,10 +1182,12 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
     });
   }
 
-  // Price range calculation
+  // Price range calculation including Fibonacci levels
+  const fib = tech.technicalConfluence?.fib;
+  const fibPrices = fib ? [fib.fib382, fib.fib500, fib.fib618, fib.fib786] : [];
   const allPrices = displayCandles.flatMap(c => [c.h, c.l]).concat([
     setup.entryMin, setup.entryMax, setup.tp1, setup.tp2, setup.sl,
-    tech.ema50 || curP, tech.ema200 || curP
+    tech.ema50 || curP, tech.ema200 || curP, ...fibPrices
   ]);
   const minP = Math.floor(Math.min(...allPrices) * 0.995);
   const maxP = Math.ceil(Math.max(...allPrices) * 1.005);
@@ -1154,6 +1220,14 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
 
   const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#f43f5e' : '#f59e0b');
   const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
+  const patternShort = tech.technicalConfluence?.harmonicPattern ? tech.technicalConfluence.harmonicPattern.split(' ')[0] : 'Harmonic';
+
+  const fibLinesSvg = fib ? `
+  <!-- Fibonacci Retracement Levels -->
+  <line x1="20" y1="${getY(fib.fib618).toFixed(1)}" x2="780" y2="${getY(fib.fib618).toFixed(1)}" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" stroke-opacity="0.6"/>
+  <text x="765" y="${(getY(fib.fib618) - 3).toFixed(1)}" fill="#c4b5fd" font-size="8.5" font-family="monospace" text-anchor="end">Fib 0.618 골든레벨: $${Number(fib.fib618).toLocaleString()}</text>
+  <line x1="20" y1="${getY(fib.fib382).toFixed(1)}" x2="780" y2="${getY(fib.fib382).toFixed(1)}" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3" stroke-opacity="0.6"/>
+  <text x="765" y="${(getY(fib.fib382) - 3).toFixed(1)}" fill="#a5b4fc" font-size="8.5" font-family="monospace" text-anchor="end">Fib 0.382 되돌림: $${Number(fib.fib382).toLocaleString()}</text>` : '';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
   <defs>
@@ -1169,7 +1243,7 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <!-- Header: Borderless badges -->
   <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.18" stroke="none"/>
   <text x="77" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC 4H [${slotBadge}]</text>
-  <text x="148" y="34" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">트레이딩 셋업: ${setup.theme}</text>
+  <text x="148" y="34" fill="#ffffff" font-size="13.5" font-weight="bold" font-family="sans-serif">트레이딩 셋업: ${setup.theme} [${patternShort} PRZ • Elliott 4H]</text>
   <rect x="635" y="16" width="145" height="26" rx="6" fill="#06b6d4" fill-opacity="0.14" stroke="none"/>
   <text x="707" y="33" fill="#22d3ee" font-size="11.5" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
   <line x1="20" y1="52" x2="780" y2="52" stroke="#1e293b" stroke-width="1"/>
@@ -1199,6 +1273,7 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <line x1="20" y1="205" x2="780" y2="205" stroke="#172033" stroke-dasharray="3,3"/>
   <line x1="20" y1="255" x2="780" y2="255" stroke="#172033" stroke-dasharray="3,3"/>
   <line x1="20" y1="298" x2="780" y2="298" stroke="#172033" stroke-dasharray="3,3"/>
+${fibLinesSvg}
 
   <!-- Entry Zone Rect -->
   <rect x="20" y="${Math.min(getY(setup.entryMin), getY(setup.entryMax)).toFixed(1)}" width="760" height="${Math.max(4, Math.abs(getY(setup.entryMin) - getY(setup.entryMax))).toFixed(1)}" fill="#0284c7" fill-opacity="0.12" stroke="none"/>
@@ -1210,11 +1285,11 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
 
   <!-- Target 1 line -->
   <line x1="20" y1="${getY(setup.tp1).toFixed(1)}" x2="780" y2="${getY(setup.tp1).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="${(getY(setup.tp1) - 4).toFixed(1)}" fill="#34d399" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가: $${Number(setup.tp1).toLocaleString()}</text>
+  <text x="765" y="${(getY(setup.tp1) - 4).toFixed(1)}" fill="#34d399" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가: $${Number(setup.tp1).toLocaleString()}</text>
 
   <!-- Target 2 line -->
   <line x1="20" y1="${getY(setup.tp2).toFixed(1)}" x2="780" y2="${getY(setup.tp2).toFixed(1)}" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="${(getY(setup.tp2) - 4).toFixed(1)}" fill="#10b981" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가: $${Number(setup.tp2).toLocaleString()}</text>
+  <text x="765" y="${(getY(setup.tp2) - 4).toFixed(1)}" fill="#10b981" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가: $${Number(setup.tp2).toLocaleString()}</text>
 
   <!-- 200 EMA Line -->
   <line x1="20" y1="${getY(tech.ema200 || curP).toFixed(1)}" x2="780" y2="${getY(tech.ema200 || curP).toFixed(1)}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6,3"/>
@@ -1231,14 +1306,14 @@ ${candleSvgElements}
   <rect x="20" y="338" width="760" height="72" rx="8" fill="#151d2f" fill-opacity="0.8" stroke="none"/>
   
   <!-- Row 1: Volume Trend -->
-  <text x="32" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 분석:</text>
-  <text x="100" y="357" fill="${tech.isVolDecreasing ? '#f43f5e' : '#38bdf8'}" font-size="10" font-weight="bold" font-family="sans-serif">${tech.isVolDecreasing ? '반등/조정 국면 거래량 점진적 수축 (지표 괴리 주시)' : '거래량 유입 동반 변동성 확대'}</text>
+  <text x="32" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량/파동 분석:</text>
+  <text x="135" y="357" fill="${tech.isVolDecreasing ? '#f43f5e' : '#38bdf8'}" font-size="10" font-weight="bold" font-family="sans-serif">${tech.isVolDecreasing ? '거래량 점진적 수축 (파동 되돌림 및 PRZ 형성 구간)' : '거래량 유입 동반 변동성 확장 (임펄스 파동 전개)'}</text>
   
   <!-- Row 2: Indicators -->
   <text x="32" y="378" fill="#94a3b8" font-size="10" font-family="sans-serif">핵심 지표:</text>
   <text x="100" y="378" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): ${tech.rsi || 50}</text>
-  <text x="210" y="378" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 24H 레인지: $${Number(tech.low24h || curP).toLocaleString()} ~ $${Number(tech.high24h || curP).toLocaleString()}</text>
-  <text x="470" y="378" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">• 현재가: $${Number(curP).toLocaleString()}</text>
+  <text x="190" y="378" fill="#c4b5fd" font-size="10" font-weight="bold" font-family="monospace">• Fib되돌림: ${(Number(tech.technicalConfluence?.fibRatio || 0.5) * 100).toFixed(0)}% (${patternShort} PRZ)</text>
+  <text x="500" y="378" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">• 현재가: $${Number(curP).toLocaleString()}</text>
   
   <!-- Row 3: Metadata -->
   <text x="32" y="398" fill="#64748b" font-size="9" font-family="sans-serif">분석 기준: ${slotTimestampStr} KST (${slotInfo ? slotInfo.sessionTitle : '실시간 4H'})</text>
@@ -1261,36 +1336,47 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
     sl: Math.round((tech.currentPrice || 78370) * 1.018),
     riskReward: '2.35'
   };
+  const conf = tech.technicalConfluence || {};
+  const fib = conf.fib || {};
 
-  const systemInstruction = `당신은 월가 프롭 트레이딩 출신의 수석 퀀트 트레이더(AI)입니다.
-트레이딩뷰(TradingView)의 Top Ideas 형식에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉) [${slotName} - ${sessionTitle}] 전문 트레이딩 관점(Trading Perspective) 리포트를 작성하세요.
+  const systemInstruction = `당신은 월가 프롭 트레이딩 및 글로벌 헤지펀드 데스크 출신의 세계적인 수석 테크니컬 & 퀀트 스트래티지스트(AI)입니다.
+전통적인 이동평균선(EMA 20/50/200)과 RSI 모멘텀 지표뿐만 아니라, **하모닉 패턴(Harmonic Patterns: Gartley, Bat, Butterfly, Crab, Cypher 등 피보나치 정밀 비율)**과 **엘리엇 파동 이론(Elliott Wave Theory: 1~5파 충격파, ABC 조정파, 파동 연장 및 절단)**을 최고 수준으로 구사하는 차트 분석의 최고 권위자입니다.
 
-[세션 특화 배경]
-${sessionContext}
+트레이딩뷰(TradingView)의 Top Authors Editor's Pick 스타일에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉) [${slotName} - ${sessionTitle}] 전문 테크니컬 관점 리포트를 작성하세요.
 
-[필수 작성 규칙 및 네이버 블로그/카페 복사 최적화]
-1. 네이버 블로그 및 카페(SmartEditor ONE)에 복사·붙여넣기 시 100% 호환되는 깔끔한 고대비 서식(흰색 배경 친화적)으로 작성하세요.
-2. 외곽 테두리(border: 1px solid ...)나 박스 테두리선(border-left 포함)을 절대 사용하지 마세요. 모든 테두리는 완전히 제거하고, 부드러운 소프트 배경(#f1f5f9)과 여백, 선명한 글씨 색상만으로 단락을 구분하세요.
-3. 글씨가 선명하게 잘 보이도록 제목 헤딩은 진한 딥 네이비(#0f172a), 본문 텍스트는 선명하고 또렷한 짙은 슬레이트(#1e293b, 15px), 강조 수치는 굵고 명확한 색상(#0284c7, #e11d48, #059669)을 사용하세요.
-4. **[핵심 필수 요구사항]** 글의 가장 첫 줄에는 반드시 게시글의 제목이 될 한 줄을 <TITLE>[BTC/USDT ${slotName}] (Gemini가 현재 실시간 시세와 세션 특징, 기술적 셋업을 반영하여 직접 지은 매력적이고 독창적인 제목)</TITLE> 형식으로 출력하세요. 이전 세션이나 오전 글과 제목 및 내용이 겹치지 않도록 창의적이고 날카로운 시각을 제시해야 합니다.
-5. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 제목 바로 뒤에 포함하세요.
-6. 구성:
-   - <TITLE>[BTC/USDT ${slotName}] 실시간 시세와 셋업을 반영한 독창적 제목</TITLE>
+[수석 애널리스트 핵심 역할 및 분석 지침]
+1. 단순한 보조지표 수치 나열을 지양하고, 현재 4시간봉 차트의 형태와 피보나치 레벨에 가장 적합한 **핵심 프레임워크(예: 하모닉 패턴의 D점 PRZ 반전 모델, 또는 엘리엇 파동 카운팅 및 파동 목표가 모델)**를 주력 도구로 선정하여 입체적이고 설득력 있게 분석하세요.
+2. 하모닉 패턴(Harmonic Pattern) 분석 시:
+   - XABCD 스윙 레그의 피보나치 비율(0.382, 0.500, 0.618, 0.786, 0.886, 1.272, 1.618 등)과 잠재적 반전 구역(PRZ, Potential Reversal Zone), 목표 손익비를 명확히 다루세요.
+3. 엘리엇 파동(Elliott Wave) 분석 시:
+   - 현재 파동이 충격파(Impulse: 1, 2, 3, 4, 5)의 어느 단계인지, 혹은 조정파(Corrective: Zigzag 5-3-5, Flat 3-3-5, Triangle 등)의 어느 국면인지 파동 카운팅 논리와 무효화 레벨(파동 중첩 원칙 등)을 명쾌하게 설명하세요.
+4. 이동평균선(EMA 20/50/200) 및 RSI, 거래량(Volume)은 해당 파동 또는 하모닉 패턴의 신뢰도를 보강하는 복합 컨플루언스(Confluence) 근거로 유기적으로 결합하세요.
+5. **[제목 필수 규칙]**: 글의 가장 첫 줄에 반드시 <TITLE>[BTC/USDT ${slotName}] (선택한 하모닉 패턴 또는 엘리엇 파동, 실시간 가격 및 세션 특성을 반영한 독창적이고 날카로운 제목)</TITLE> 형식으로 출력하세요.
+6. 네이버 블로그/카페(SmartEditor ONE) 복사 시 테두리가 깨지지 않도록 외곽선(border)을 배제하고, 깔끔한 소프트 배경(#f1f5f9)과 진한 글씨체(#0f172a, #1e293b)의 카드 UI로 구성하세요.
+7. 구성 목차:
+   - <TITLE>[BTC/USDT ${slotName}] 독창적 분석 제목</TITLE>
    - <!-- TRADINGVIEW_CHART_IMAGE -->
-   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: ${setup.direction}, 진입: $${Number(setup.entryMin).toLocaleString()}~$${Number(setup.entryMax).toLocaleString()}, TP1: $${Number(setup.tp1).toLocaleString()}, TP2: $${Number(setup.tp2).toLocaleString()}, SL: $${Number(setup.sl).toLocaleString()}, 손익비: 1:${setup.riskReward})</SETUP_BOX>
-   - <SECTION_1>1. 차트 패턴 진단: ${setup.theme} 및 세션별 캔들 구조 분석 (2문단)</SECTION_1>
-   - <SECTION_2>2. 기술적 지표 & 온체인 괴리 (200 EMA: $${Number(tech.ema200).toLocaleString()}, 50 EMA: $${Number(tech.ema50).toLocaleString()}, RSI(14): ${tech.rsi}, 거래량 추세) (2문단)</SECTION_2>
-   - <SECTION_3>3. 세션별 시나리오 분석: 시나리오 A(메인 ${setup.direction === 'LONG' ? '상방 돌파' : '하방 리테스트'}) vs 시나리오 B(반대 시나리오) (2문단)</SECTION_3>
-   - <SECTION_4>4. 관점 무효화 기준(Invalidation Level: $${Number(setup.sl).toLocaleString()}) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
+   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: ${setup.direction}, 패턴/파동 테마: ${conf.harmonicPattern || setup.theme}, 진입, TP1, TP2, SL, 손익비: 1:${setup.riskReward})</SETUP_BOX>
+   - <SECTION_1>1. 차트 구조 및 파동/패턴 정밀 진단: [엘리엇 파동 카운팅 or 하모닉 패턴 PRZ 분석] (2문단)</SECTION_1>
+   - <SECTION_2>2. 멀티 컨플루언스 분석: 피보나치 레벨, 주요 EMA 이평선(20/50/200), RSI 및 거래량 괴리 (2문단)</SECTION_2>
+   - <SECTION_3>3. 세션별 전개 시나리오: 시나리오 A(메인 파동/패턴 완성 경로) vs 시나리오 B(반대 무효화 경로) (2문단)</SECTION_3>
+   - <SECTION_4>4. 파동/패턴 무효화 기준(Invalidation Level: $${Number(setup.sl).toLocaleString()}) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
 
-  const userPrompt = `[현재 BTC/USDT 기술적 지표 데이터 (${dateKorean} ${slotName} 기준)]
+  const userPrompt = `[현재 BTC/USDT 4시간봉 정밀 기술 데이터 (${dateKorean} ${slotName} 기준)]
 - 현재 시세: $${Number(tech.currentPrice).toLocaleString()}
 - 24시간 최고가: $${Number(tech.high24h).toLocaleString()} / 최저가: $${Number(tech.low24h).toLocaleString()}
-- 4시간봉 200 EMA: $${Number(tech.ema200).toLocaleString()} (중장기 추세 분수령)
-- 4시간봉 50 EMA: $${Number(tech.ema50).toLocaleString()} (단기 추세 지지/저항)
-- 4시간봉 20 EMA: $${Number(tech.ema20).toLocaleString()}
-- RSI(14): ${tech.rsi} (${tech.rsi >= 70 ? '과매수 구간' : (tech.rsi <= 30 ? '과매도 구간' : (tech.rsi >= 50 ? '매수 우위 모멘텀' : '매도 우위 모멘텀'))})
-- 거래량 상태: ${tech.isVolDecreasing ? '반등/조정 과정에서 거래량 점진적 감소세' : '거래량 증가를 동반한 변동성 확장'}
+- 주요 스윙 고점(Swing High): $${Number(fib.swingHigh || tech.recentHigh).toLocaleString()} / 스윙 저점(Swing Low): $${Number(fib.swingLow || tech.recentLow).toLocaleString()}
+- 주요 피보나치 되돌림 레벨:
+  * 0.382 레벨: $${Number(fib.fib382 || 0).toLocaleString()}
+  * 0.500 레벨: $${Number(fib.fib500 || 0).toLocaleString()}
+  * 0.618 골든 레벨: $${Number(fib.fib618 || 0).toLocaleString()}
+  * 0.786 / 0.886 PRZ 레벨: $${Number(fib.fib786 || 0).toLocaleString()} ~ $${Number(fib.fib886 || 0).toLocaleString()}
+  * 현재 가격의 피보나치 위치: ${(Number(conf.fibRatio || 0.5) * 100).toFixed(1)}% 되돌림 구간
+- 패턴 및 파동 컨플루언스 참고 지표:
+  * 하모닉 패턴 후보: ${conf.harmonicPattern || '가틀리/박쥐 패턴 PRZ'}
+  * 엘리엇 파동 후보: ${conf.elliottWave || '충격 5파 또는 ABC 조정파'}
+- 이동평균선(EMA): 20 EMA: $${Number(tech.ema20).toLocaleString()} / 50 EMA: $${Number(tech.ema50).toLocaleString()} / 200 EMA: $${Number(tech.ema200).toLocaleString()}
+- 모멘텀 & 수급: RSI(14) ${tech.rsi}, 거래량 추세: ${tech.isVolDecreasing ? '거래량 점진적 수축 (파동 마무리 또는 되돌림)' : '거래량 유입 변동성 확대 (임펄스 전개)'}
 - 현재 분석 세션: ${sessionTitle} (${sessionContext})
 - 권고 셋업 테마: ${setup.theme}
 - 트레이딩 셋업 파라미터:
@@ -1299,9 +1385,9 @@ ${sessionContext}
   * 1차 목표가(TP1): $${Number(setup.tp1).toLocaleString()} / 2차 목표가(TP2): $${Number(setup.tp2).toLocaleString()}
   * 손절가(SL): $${Number(setup.sl).toLocaleString()} (손익비 1:${setup.riskReward})
 
-[중요 지시사항]
-이전 오전 세션이나 다른 날의 보고서와 복사-붙여넣기처럼 보이지 않도록, 현재 세션(${slotName})과 실시간 가격($${Number(tech.currentPrice).toLocaleString()})에 근거하여 완전히 새로운 어조와 독창적인 헤드라인으로 작성해주세요.
-반드시 첫 줄에 <TITLE>[BTC/USDT ${slotName}] (창의적이고 직관적인 분석 제목)</TITLE>을 작성해주세요.`;
+[작성 요청사항]
+위 4시간봉 스윙과 피보나치 수치를 정밀하게 반영하여, 하모닉 패턴 또는 엘리엇 파동 이론을 주축으로 가장 타당하고 설득력 높은 프로페셔널 관점 리포트를 2,200자 내외로 작성해주세요.
+반드시 첫 줄에 <TITLE>[BTC/USDT ${slotName}] (패턴/파동/시세를 아우르는 창의적이고 전문적인 제목)</TITLE>을 작성해주세요.`;
 
   const payload = {
     contents: [
@@ -1408,16 +1494,18 @@ function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, s
     sl: Math.round(curP * 1.018),
     riskReward: '2.35'
   };
+  const conf = tech.technicalConfluence || {};
+  const fib = conf.fib || {};
 
   const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#e11d48' : '#d97706');
   const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
 
   return `
 <h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  🎯 [BTC/USDT ${slotName}] ${dateKorean} 비트코인 기술적 분석: ${setup.theme} (${sessionTitle})
+  🎯 [BTC/USDT ${slotName}] ${dateKorean} 비트코인 기술적 분석: ${conf.harmonicPattern || setup.theme} (${sessionTitle})
 </h3>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 18px;">
-${dateKorean} ${slotName} 기준 비트코인은 <strong>$${curP.toLocaleString()}</strong> 선에서 거래되고 있으며, 4시간봉 주요 이동평균선인 50 EMA($${Number(tech.ema50).toLocaleString()}) 및 200 EMA($${Number(tech.ema200).toLocaleString()})와의 이격도를 좁히며 ${setup.theme} 국면에 진입하고 있습니다. 실시간 RSI(14) 보조지표는 <strong>${tech.rsi}</strong>를 기록 중이며, 세션 전환에 따른 유동성 유입 여부가 단기 추세의 분수령이 될 전망입니다.
+${dateKorean} ${slotName} 기준 비트코인은 <strong>$${curP.toLocaleString()}</strong> 선에서 거래되고 있으며, 4시간봉 스윙 구조상 피보나치 되돌림 ${(Number(conf.fibRatio || 0.5) * 100).toFixed(1)}% 영역에서 ${conf.harmonicPattern || setup.theme} 국면을 시험하고 있습니다. 4시간봉 주요 이동평균선인 50 EMA($${Number(tech.ema50).toLocaleString()}) 및 200 EMA($${Number(tech.ema200).toLocaleString()})와의 이격도와 RSI(14) <strong>${tech.rsi}</strong> 지표가 결합되며 ${conf.elliottWave || '파동 전환'}의 분수령을 맞이하고 있습니다.
 </p>
 
 <!-- Chart Setup Image -->
@@ -1449,28 +1537,28 @@ ${chartTag}
 </div>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-1. 차트 패턴 진단: ${setup.theme}
+1. 차트 구조 및 파동/패턴 정밀 진단: ${conf.harmonicPattern || setup.theme}
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-현재 4시간봉 차트상 비트코인은 $${curP.toLocaleString()} 선 부근에서 수렴 및 매물대 소화 과정을 거치고 있습니다. 직전 24시간 동안 형성된 고점($${Number(tech.high24h).toLocaleString()})과 저점($${Number(tech.low24h).toLocaleString()}) 사이에서 매수세와 매도세가 팽팽히 맞서는 형국입니다.
-캔들의 실체 크기와 꼬리의 길이를 종합적으로 분석할 때, 주요 지지/저항선 인근에서의 호가 갭과 체결 강도를 주시하여 변동성 확대 방향에 선제 대응하는 전략이 유리합니다.
+현재 4시간봉 차트상 비트코인은 스윙 레인지($${Number(fib.swingLow || tech.low24h).toLocaleString()} ~ $${Number(fib.swingHigh || tech.high24h).toLocaleString()}) 내에서 정밀한 피보나치 되돌림 비율을 형성하고 있습니다.
+엘리엇 파동 관점에서는 <strong>${conf.elliottWave || '파동 전개 구간'}</strong>으로 해석되며, 하모닉 패턴 분석 관점에서는 <strong>${conf.harmonicPattern || 'PRZ 잠재적 반전 영역'}</strong>과의 수렴도가 높아 중요한 변곡점 역할을 수행하고 있습니다.
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-2. 주요 기술적 지표 &amp; 모멘텀 구조 (EMA, RSI, 거래량)
+2. 멀티 컨플루언스 분석: 피보나치 레벨, EMA 이평선(20/50/200), RSI &amp; 거래량
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-첫째, <strong>4시간봉 200 EMA($${Number(tech.ema200).toLocaleString()})</strong>와 <strong>50 EMA($${Number(tech.ema50).toLocaleString()})</strong>는 현재 시장의 중단기 추세를 가르는 핵심 벤치마크입니다. 현재 시세($${curP.toLocaleString()})의 이평선 상회/하회 여부에 따라 모멘텀 추세의 지속성이 결정됩니다.<br/>
-둘째, <strong>RSI(14) 보조지표는 ${tech.rsi}</strong> 수준으로, ${tech.rsi >= 50 ? '중립선(50) 이상에서 완만한 매수 모멘텀을 유지하고 있습니다.' : '중립선(50)을 하회하며 신중한 분할 접근이 요구되는 국면입니다.'}<br/>
-셋째, 거래량 추이는 ${tech.isVolDecreasing ? '점진적인 거래량 수축(Volume Contraction)을 나타내고 있어 돌파 시 폭발적인 거래량 확인이 필수적입니다.' : '평균 대비 증가세를 보이며 가격 변동성을 이끌고 있습니다.'}
+첫째, <strong>피보나치 0.618 골든 레벨($${Number(fib.fib618 || 0).toLocaleString()})</strong> 및 <strong>0.382 레벨($${Number(fib.fib382 || 0).toLocaleString()})</strong>은 현재 프라이스 액션의 핵심 지지/저항 라인으로 기능하고 있습니다.<br/>
+둘째, <strong>4시간봉 200 EMA($${Number(tech.ema200).toLocaleString()})</strong>와 <strong>50 EMA($${Number(tech.ema50).toLocaleString()})</strong>의 중첩 여부는 파동의 상·하방 확장을 결정하는 기술적 방어선입니다.<br/>
+셋째, <strong>RSI(14) ${tech.rsi}</strong>와 거래량 추이는 ${tech.isVolDecreasing ? '점진적 거래량 수축을 보이며 패턴의 PRZ 완성 단계에 근접하고 있습니다.' : '거래량 유입과 함께 모멘텀 확장이 진행 중입니다.'}
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-3. 시나리오 분석: 시나리오 A(메인) vs 시나리오 B(대응 관점)
+3. 세션별 시나리오 분석: 시나리오 A(메인 경로) vs 시나리오 B(반대 무효화)
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-<strong>[시나리오 A - 메인 관점]:</strong> 진입 구간($${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()})에서 유효한 가격 반응을 확인한 후 목표가(1차 $${Number(setup.tp1).toLocaleString()}, 2차 $${Number(setup.tp2).toLocaleString()})를 순차적으로 달성하는 시나리오입니다. 손익비 1:${setup.riskReward}를 확보할 수 있습니다.<br/>
-<strong>[시나리오 B - 반대 관점]:</strong> 예상과 달리 강한 수급 쏠림으로 무효화 기준점인 <strong>$${Number(setup.sl).toLocaleString()}</strong>을 종가 마감 기준으로 이탈/돌파하는 경우입니다. 이때는 기존 포지션을 신속히 정리하고 추세 재확립을 기다려야 합니다.
+<strong>[시나리오 A - 메인 파동/패턴 경로]:</strong> 진입 구간($${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()})에서 유효한 반전 또는 지지 확인 후 목표가(1차 $${Number(setup.tp1).toLocaleString()}, 2차 $${Number(setup.tp2).toLocaleString()})를 순차적으로 달성하는 시나리오입니다. 손익비 1:${setup.riskReward}를 확보할 수 있습니다.<br/>
+<strong>[시나리오 B - 패턴 무효화 경로]:</strong> 예상과 달리 강한 수급 쏠림으로 무효화 기준점인 <strong>$${Number(setup.sl).toLocaleString()}</strong>을 종가 마감 기준으로 이탈/돌파하는 경우입니다. 이때는 기존 포지션을 신속히 정리하고 추세 재확립을 기다려야 합니다.
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
