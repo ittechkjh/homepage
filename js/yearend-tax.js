@@ -78,6 +78,43 @@ const YearendTaxCalculator = (function() {
     return rounded.toLocaleString('ko-KR') + '원';
   }
 
+  // Helper: Format Comma
+  function formatComma(num) {
+    if (isNaN(num) || num === null || num === undefined) return '0';
+    const rounded = Math.round(num);
+    return rounded.toLocaleString('ko-KR');
+  }
+
+  // Real-time Comma Formatter for input elements (preserves cursor)
+  function formatInputWithCommas(input) {
+    if (!input) return;
+    const oldVal = input.value || '';
+    const cursor = input.selectionStart ?? oldVal.length;
+    const digitsBefore = (oldVal.slice(0, cursor).match(/\d/g) || []).length;
+
+    const raw = oldVal.replace(/[^0-9]/g, '');
+    if (!raw) {
+      input.value = '';
+      return;
+    }
+    const num = parseInt(raw, 10);
+    const formatted = num.toLocaleString('ko-KR');
+    input.value = formatted;
+
+    let newCursor = formatted.length;
+    let digitsCount = 0;
+    for (let i = 0; i < formatted.length; i++) {
+      if (/\d/.test(formatted[i])) digitsCount++;
+      if (digitsCount === digitsBefore) {
+        newCursor = i + 1;
+        break;
+      }
+    }
+    try {
+      input.setSelectionRange(newCursor, newCursor);
+    } catch(e) {}
+  }
+
   // 1. 근로소득공제 계산 (소득세법 제47조)
   function calcEarnedIncomeDeduction(salary) {
     if (salary <= 0) return 0;
@@ -250,8 +287,10 @@ const YearendTaxCalculator = (function() {
         badge: '소비 미달',
         badgeColor: 'bg-rose-500/10 border-rose-500/30 text-rose-300',
         detail: `부부 합산 연간 소비(${formatWon(familyExpense)})가 소득이 낮은 ${lowerName}의 25% 문턱(${formatWon(lowerHurdle)})에도 미달합니다. 세법상 카드 소득공제는 0원이므로 무리한 지출 대신 마일리지·캐시백 혜택이 가장 큰 신용카드를 집중 사용하세요.`,
-        step1: `1단계: 항공 마일리지나 캐시백 혜택이 가장 좋은 신용카드로 결제`,
-        step2: `2단계: 카드 소득공제보다는 연금저축/IRP(최대 16.5% 세액공제)로 절세 전환`
+        step1Title: '1단계: 신용카드 혜택 집중 결제',
+        step1: `• 💳 부부 합산 소비가 누구의 25% 문턱에도 미치지 못하므로, 공제율 대신 <strong>항공 마일리지나 캐시백 혜택이 가장 좋은 신용카드</strong>를 집중 결제하세요.`,
+        step2Title: '2단계: 카드 외 다른 절세 금융상품 활용',
+        step2: `• 💡 카드 공제는 0원이므로, <strong>연금저축/IRP(최대 16.5% 세액공제)</strong> 또는 주택청약종합저축으로 절세 혜택을 챙기시는 것을 적극 추천합니다.`
       };
     } else if (familyExpense < higherHurdle) {
       const lowerCheckNeeded = Math.round(lowerCardLimit / 0.3);
@@ -261,8 +300,10 @@ const YearendTaxCalculator = (function() {
         badge: `${lowerName} 몰아주기 추천`,
         badgeColor: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
         detail: `부부 합산 소비(${formatWon(familyExpense)})가 고소득자인 ${higherName}의 25% 문턱(${formatWon(higherHurdle)})에는 못 미치지만, ${lowerName}의 문턱(${formatWon(lowerHurdle)})은 넉넉히 넘깁니다. 고소득자 카드로 긁으면 공제액이 0원이 되므로, 반드시 ${lowerName} 명의 카드로 집중 결제하세요!`,
-        step1: `1단계: ${lowerName} 명의 신용카드로 ${formatWon(lowerHurdle)}(25%)까지 사용 (카드 혜택 수령)`,
-        step2: `2단계: ${formatWon(lowerHurdle)} 초과분은 ${lowerName} 명의 체크카드/현금영수증(30% 공제)으로 결제`
+        step1Title: `1단계: ${lowerName} 신용카드 결제 구간`,
+        step1: `• 💳 <strong>0원 ~ ${formatWon(lowerHurdle)}</strong> (총급여 25%까지): 공제율이 0%이므로 카드사 포인트/마일리지 혜택 챙기기`,
+        step2Title: `2단계: ${lowerName} 체크카드·현금영수증 집중 구간`,
+        step2: `• 💵 <strong>${formatWon(lowerHurdle)} 초과분</strong>: 30% 공제율이 적용되는 체크카드/현금영수증으로 결제하여 소득공제 혜택 극대화`
       };
     } else {
       const higherCheckNeeded = Math.round(higherCardLimit / 0.3);
@@ -275,19 +316,24 @@ const YearendTaxCalculator = (function() {
           badge: `${higherName} 집중 추천`,
           badgeColor: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
           detail: `${higherName}의 한계세율(${higherRate.label})이 ${lowerName}(${lowerRate.label})보다 ${rateDiff}%p 더 높아, 동일한 카드 공제를 받아도 환급액이 훨씬 큽니다.`,
-          step1: `1단계: ${higherName} 신용카드로 ${formatWon(higherHurdle)}(25%)까지 결제 (카드사 혜택 100% 챙기기)`,
-          step2: `2단계: ${formatWon(higherHurdle)} 초과분은 ${higherName} 체크카드/현금영수증(30% 공제)으로 결제`
+          step1Title: `1단계: ${higherName} 신용카드 결제 구간`,
+          step1: `• 💳 <strong>0원 ~ ${formatWon(higherHurdle)}</strong> (총급여 25%까지): 공제율이 0%이므로 카드사 포인트/마일리지 혜택 100% 챙기기`,
+          step2Title: `2단계: ${higherName} 체크카드·현금영수증 집중 구간`,
+          step2: `• 💵 <strong>${formatWon(higherHurdle)} 초과분</strong>: 30% 공제율이 적용되는 체크카드/현금영수증으로 결제하여 소득공제 한도(${formatWon(higherCardLimit)}) 전액 달성`
         };
       } else {
         const overflow = familyExpense - higherOptimumTotal;
+        const lowerHurdle = lowerSalary * 0.25;
         cardStrategy = {
           target: `1차 ${higherName} 한도 달성 후 ➡️ 2차 ${lowerName} 바톤 터치`,
           headline: `${higherName} 공제한도를 먼저 채운 뒤, 남은 소비는 ${lowerName} 명의로 전환하세요!`,
           badge: '부부 릴레이 분배 추천',
           badgeColor: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
-          detail: `${higherName}이 카드 소득공제 한도(${formatWon(higherCardLimit)})를 모두 채운 뒤 발생하는 초과 소비(${formatWon(overflow)})는 더 이상 공제되지 않습니다. 따라서 바톤을 넘겨 ${lowerName} 명의 카드로 전환해야 부부 합산 절세액이 극대화됩니다.`,
-          step1: `1차: ${higherName} 명의로 신용카드 ${formatWon(higherHurdle)} + 체크카드/현금 ${formatWon(higherCheckNeeded)} (한도 100% 달성)`,
-          step2: `2차: 초과 지출(${formatWon(overflow)})은 ${lowerName} 명의 카드(신용카드 ➡️ 체크카드)로 전환 결제`
+          detail: `${higherName}(세율 ${higherRate.rate}%)이 카드 소득공제 한도(${formatWon(higherCardLimit)})를 모두 채운 뒤 발생하는 초과 소비(${formatWon(overflow)})는 더 이상 소득공제 대상이 아닙니다. 따라서 바톤을 넘겨 ${lowerName}(세율 ${lowerRate.rate}%) 명의 카드로 전환 결제해야 부부 합산 절세액이 극대화됩니다.`,
+          step1Title: `1차: ${higherName} 명의 카드로 공제한도 100% 꽉 채우기`,
+          step1: `• 💳 <strong>신용카드 0원 ~ ${formatWon(higherHurdle)}</strong>: 총급여 25%까지는 공제율 0% 구간이므로 포인트/마일리지 챙기기<br>• 💵 <strong>체크카드/현금 +${formatWon(higherCheckNeeded)}</strong>: 25% 초과분은 30% 공제율 체크카드로 결제하여 소득공제 한도(${formatWon(higherCardLimit)}) 100% 전액 달성`,
+          step2Title: `2차: 남은 소비(${formatWon(overflow)})는 ${lowerName} 카드로 바톤 터치!`,
+          step2: `• 💡 ${higherName}의 한도가 끝났으므로 이제부터는 <strong>${lowerName} 명의 카드</strong>로 결제해야 추가 공제를 받습니다.<br>• 💳 ${lowerName} 신용카드로 <strong>${formatWon(lowerHurdle)}</strong>(총급여 25%)까지 사용 후, 초과 지출은 ${lowerName} 체크카드로 결제하세요.`
         };
       }
     }
@@ -920,8 +966,10 @@ const YearendTaxCalculator = (function() {
     }
     setInner('ytax-couple-card-headline', advice.cardStrategy.headline);
     setInner('ytax-couple-card-detail', advice.cardStrategy.detail);
-    setInner('ytax-couple-card-step1', advice.cardStrategy.step1);
-    setInner('ytax-couple-card-step2', advice.cardStrategy.step2);
+    setInner('ytax-couple-card-step1-title', advice.cardStrategy.step1Title || '1단계: 신용카드 결제 구간');
+    setHtml('ytax-couple-card-step1', advice.cardStrategy.step1);
+    setInner('ytax-couple-card-step2-title', advice.cardStrategy.step2Title || '2단계: 체크카드·현금영수증 집중 구간');
+    setHtml('ytax-couple-card-step2', advice.cardStrategy.step2);
 
     // Medical Advice
     setInner('ytax-couple-med-winner', advice.medicalAdvice.winner);
@@ -1029,11 +1077,17 @@ const YearendTaxCalculator = (function() {
     setInner('ytax-gr-saved-won', `최대 약 ${formatWon(gr.maxTaxSaved)} 절세`);
   }
 
-  function handleCoupleInputChange() {
+  function handleCoupleInputChange(el) {
+    if (el && el.classList && el.classList.contains('ytax-money-input')) {
+      formatInputWithCommas(el);
+    }
+
     const getNum = (id, fallback = 0) => {
-      const el = document.getElementById(id);
-      if (!el) return fallback;
-      const parsed = parseFloat(el.value);
+      const element = document.getElementById(id);
+      if (!element) return fallback;
+      const raw = (element.value || '').toString().replace(/[^0-9]/g, '');
+      if (raw === '') return fallback;
+      const parsed = parseInt(raw, 10);
       return isNaN(parsed) ? fallback : parsed;
     };
 
@@ -1060,10 +1114,10 @@ const YearendTaxCalculator = (function() {
 
     // Sync input values to Main Calculator DOM elements as well
     const setVal = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
+      const inputEl = document.getElementById(id);
+      if (inputEl) inputEl.value = val;
     };
-    setVal('ytax-input-salary', state.annualSalary);
+    setVal('ytax-input-salary', formatComma(state.annualSalary));
     setVal('ytax-input-children-youth', state.childrenYouthCount);
     setVal('ytax-input-children-infant', state.childrenInfantCount);
     setVal('ytax-input-children-adult', state.childrenAdultCount);
@@ -1079,22 +1133,30 @@ const YearendTaxCalculator = (function() {
       const cur = Number(state.annualSalary) || 0;
       state.annualSalary = Math.max(0, cur + amount);
       const el = document.getElementById('ytax-couple-input-salary');
-      if (el) el.value = state.annualSalary;
+      if (el) el.value = formatComma(state.annualSalary);
       const mainEl = document.getElementById('ytax-input-salary');
-      if (mainEl) mainEl.value = state.annualSalary;
+      if (mainEl) mainEl.value = formatComma(state.annualSalary);
     } else {
       const cur = Number(state.spouseSalary) || 0;
       state.spouseSalary = Math.max(0, cur + amount);
       const el = document.getElementById('ytax-couple-input-spouse-salary');
-      if (el) el.value = state.spouseSalary;
+      if (el) el.value = formatComma(state.spouseSalary);
     }
+    renderCoupleUI();
+  }
+
+  function addCoupleExpense(amount) {
+    const cur = Number(state.familyExpenseTotal) || 0;
+    state.familyExpenseTotal = Math.max(0, cur + amount);
+    const el = document.getElementById('ytax-couple-input-expense');
+    if (el) el.value = formatComma(state.familyExpenseTotal);
     renderCoupleUI();
   }
 
   function setGoldenRatioSalary(amount) {
     state.guideSalary = amount;
     const inp = document.getElementById('ytax-gr-input-salary');
-    if (inp) inp.value = amount;
+    if (inp) inp.value = formatComma(amount);
 
     // Visual button active toggle
     document.querySelectorAll('.ytax-gr-sal-btn').forEach(btn => {
@@ -1108,10 +1170,14 @@ const YearendTaxCalculator = (function() {
     renderGoldenRatioUI();
   }
 
-  function handleGoldenRatioChange() {
-    const el = document.getElementById('ytax-gr-input-salary');
-    if (el) {
-      const val = parseFloat(el.value) || 0;
+  function handleGoldenRatioChange(el) {
+    if (el && el.classList && el.classList.contains('ytax-money-input')) {
+      formatInputWithCommas(el);
+    }
+    const inp = document.getElementById('ytax-gr-input-salary');
+    if (inp) {
+      const raw = (inp.value || '').toString().replace(/[^0-9]/g, '');
+      const val = parseInt(raw, 10) || 0;
       state.guideSalary = val;
       renderGoldenRatioUI();
     }
@@ -1199,8 +1265,8 @@ const YearendTaxCalculator = (function() {
       if (el) el.checked = Boolean(val);
     };
 
-    setVal('ytax-input-salary', state.annualSalary);
-    setVal('ytax-input-prepaid', state.manualPaidTax);
+    setVal('ytax-input-salary', formatComma(state.annualSalary));
+    setVal('ytax-input-prepaid', formatComma(state.manualPaidTax));
     setVal('ytax-select-paidmethod', state.paidTaxMethod);
     setCheck('ytax-chk-spouse', state.hasSpouse);
     setVal('ytax-input-children-youth', state.childrenYouthCount);
@@ -1214,10 +1280,10 @@ const YearendTaxCalculator = (function() {
     setCheck('ytax-chk-femalehead', state.isFemaleHead);
 
     // Couple Tab Inputs
-    setVal('ytax-couple-input-salary', state.annualSalary);
-    setVal('ytax-couple-input-spouse-salary', state.spouseSalary);
-    setVal('ytax-couple-input-expense', state.familyExpenseTotal);
-    setVal('ytax-couple-input-medical', state.familyMedicalTotal);
+    setVal('ytax-couple-input-salary', formatComma(state.annualSalary));
+    setVal('ytax-couple-input-spouse-salary', formatComma(state.spouseSalary));
+    setVal('ytax-couple-input-expense', formatComma(state.familyExpenseTotal));
+    setVal('ytax-couple-input-medical', formatComma(state.familyMedicalTotal));
     setVal('ytax-couple-input-dep-youth', state.coupleDepYouth || state.childrenYouthCount);
     setVal('ytax-couple-input-dep-infant', state.coupleDepInfant || state.childrenInfantCount);
     setVal('ytax-couple-input-dep-adult', state.coupleDepAdult || state.childrenAdultCount);
@@ -1225,20 +1291,21 @@ const YearendTaxCalculator = (function() {
     setVal('ytax-couple-input-dep-elder-senior', state.coupleDepElderSenior || state.isSeniorElder);
     setVal('ytax-couple-input-dep-disabled', state.coupleDepDisabled || state.disabledCount);
 
-    setVal('ytax-input-creditcard', state.creditCard);
-    setVal('ytax-input-debitcard', state.debitCard);
-    setVal('ytax-input-markettransit', state.marketTransit);
-    setVal('ytax-input-housing', state.housingSavings);
-    setVal('ytax-input-rentloan', state.rentLoanRepay);
+    setVal('ytax-input-creditcard', formatComma(state.creditCard));
+    setVal('ytax-input-debitcard', formatComma(state.debitCard));
+    setVal('ytax-input-markettransit', formatComma(state.marketTransit));
+    setVal('ytax-input-housing', formatComma(state.housingSavings));
+    setVal('ytax-input-rentloan', formatComma(state.rentLoanRepay));
 
-    setVal('ytax-input-pensionsavings', state.pensionSavings);
-    setVal('ytax-input-irpsavings', state.irpSavings);
-    setVal('ytax-input-insurance', state.insurance);
-    setVal('ytax-input-medical', state.medical);
-    setVal('ytax-input-education', state.education);
-    setVal('ytax-input-hometown', state.donationLoveHometown);
-    setVal('ytax-input-donation', state.donationGeneral);
-    setVal('ytax-input-monthlyrent', state.monthlyRent);
+    setVal('ytax-input-pensionsavings', formatComma(state.pensionSavings));
+    setVal('ytax-input-irpsavings', formatComma(state.irpSavings));
+    setVal('ytax-input-insurance', formatComma(state.insurance));
+    setVal('ytax-input-medical', formatComma(state.medical));
+    setVal('ytax-input-education', formatComma(state.education));
+    setVal('ytax-input-hometown', formatComma(state.donationLoveHometown));
+    setVal('ytax-input-donation', formatComma(state.donationGeneral));
+    setVal('ytax-input-monthlyrent', formatComma(state.monthlyRent));
+    setVal('ytax-gr-input-salary', formatComma(state.guideSalary));
 
     // Toggle manual prepaid tax input container visibility
     const manualPrepaidBox = document.getElementById('ytax-manual-prepaid-box');
@@ -1253,7 +1320,9 @@ const YearendTaxCalculator = (function() {
     const getNum = (id, fallback = 0) => {
       const el = document.getElementById(id);
       if (!el) return fallback;
-      const parsed = parseFloat(el.value);
+      const raw = (el.value || '').toString().replace(/[^0-9]/g, '');
+      if (raw === '') return fallback;
+      const parsed = parseInt(raw, 10);
       return isNaN(parsed) ? fallback : parsed;
     };
     const getCheck = (id) => {
@@ -1293,6 +1362,7 @@ const YearendTaxCalculator = (function() {
       const el = document.getElementById(id);
       if (el) el.value = val;
     };
+    setCoupleVal('ytax-couple-input-salary', formatComma(state.annualSalary));
     setCoupleVal('ytax-couple-input-dep-youth', state.coupleDepYouth);
     setCoupleVal('ytax-couple-input-dep-infant', state.coupleDepInfant);
     setCoupleVal('ytax-couple-input-dep-adult', state.coupleDepAdult);
@@ -1316,7 +1386,10 @@ const YearendTaxCalculator = (function() {
     state.monthlyRent = getNum('ytax-input-monthlyrent', 0);
   }
 
-  function handleInputChange() {
+  function handleInputChange(el) {
+    if (el && el.classList && el.classList.contains('ytax-money-input')) {
+      formatInputWithCommas(el);
+    }
     syncStateFromForm();
     const manualPrepaidBox = document.getElementById('ytax-manual-prepaid-box');
     if (manualPrepaidBox) {
@@ -1330,7 +1403,9 @@ const YearendTaxCalculator = (function() {
     const cur = Number(state.annualSalary) || 0;
     state.annualSalary = Math.max(0, cur + amount);
     const el = document.getElementById('ytax-input-salary');
-    if (el) el.value = state.annualSalary;
+    if (el) el.value = formatComma(state.annualSalary);
+    const coupleEl = document.getElementById('ytax-couple-input-salary');
+    if (coupleEl) coupleEl.value = formatComma(state.annualSalary);
     updateUI();
   }
 
@@ -1406,6 +1481,14 @@ const YearendTaxCalculator = (function() {
       return;
     }
     isInitialized = true;
+
+    // Attach real-time comma formatting listener to all money inputs
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.classList && e.target.classList.contains('ytax-money-input')) {
+        formatInputWithCommas(e.target);
+      }
+    });
+
     syncFormFromState();
     updateUI();
   }
@@ -1422,6 +1505,7 @@ const YearendTaxCalculator = (function() {
     setGoldenRatioSalary,
     addSalary,
     addCoupleSalary,
+    addCoupleExpense,
     applyPreset,
     resetAll,
     copyResultToClipboard,

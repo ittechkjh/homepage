@@ -4285,7 +4285,7 @@
                   <span class="text-xs font-mono text-teal-400 font-bold" id="ytax-label-salary-won"></span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-input-salary" value="50000000" step="1000000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-sm sm:text-base text-white font-mono font-bold focus:border-teal-400 outline-none pr-12">
+                  <input type="text" inputmode="numeric" id="ytax-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-sm sm:text-base text-white font-mono font-bold focus:border-teal-400 outline-none pr-12">
                   <span class="absolute right-4 top-3.5 text-xs text-slate-400 font-bold">원</span>
                 </div>
                 <!-- Quick Salary Add Buttons -->
@@ -4300,7 +4300,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div>
                   <label for="ytax-select-paidmethod" class="block text-xs font-bold text-slate-300 mb-1.5">기납부세액 계산 방식</label>
-                  <select id="ytax-select-paidmethod" onchange="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-teal-400 outline-none">
+                  <select id="ytax-select-paidmethod" onchange="YearendTaxCalculator.handleInputChange(this)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-teal-400 outline-none">
                     <option value="auto">표준 100% 원천징수 (자동 추정)</option>
                     <option value="manual">원천징수영수증 금액 직접 입력</option>
                   </select>
@@ -4308,7 +4308,7 @@
                 <div id="ytax-manual-prepaid-box" class="hidden">
                   <label for="ytax-input-prepaid" class="block text-xs font-bold text-slate-300 mb-1.5">기납부세액 직접 입력 (소득세+지방세)</label>
                   <div class="relative">
-                    <input type="number" id="ytax-input-prepaid" value="2500000" step="50000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-teal-400 outline-none pr-8">
+                    <input type="text" inputmode="numeric" id="ytax-input-prepaid" value="2,500,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-teal-400 outline-none pr-8">
                     <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                   </div>
                 </div>
@@ -4466,7 +4466,7 @@
               <div>
                 <label for="ytax-input-creditcard" class="block text-xs font-bold text-slate-300 mb-1">신용카드 연간 사용액 (15%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-creditcard" value="12000000" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-creditcard" value="12,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4474,7 +4474,7 @@
               <div>
                 <label for="ytax-input-debitcard" class="block text-xs font-bold text-slate-300 mb-1">체크카드 / 현금영수증 (30%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-debitcard" value="8000000" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-debitcard" value="8,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4482,7 +4482,7 @@
               <div>
                 <label for="ytax-input-markettransit" class="block text-xs font-bold text-slate-300 mb-1">전통시장 / 대중교통 (40%~80%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-markettransit" value="1000000" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-markettransit" value="1,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4490,7 +4490,7 @@
               <div>
                 <label for="ytax-input-housing" class="block text-xs font-bold text-slate-300 mb-1">주택청약저축 납입액 (40% 공제)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-housing" value="1200000" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-housing" value="1,200,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4498,7 +4498,7 @@
               <div class="sm:col-span-2">
                 <label for="ytax-input-rentloan" class="block text-xs font-bold text-slate-300 mb-1">주택임차차입금(전세대출) 원리금 상환액 (40% 공제)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-rentloan" value="0" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-rentloan" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4523,7 +4523,7 @@
                   <span class="text-[10px] text-indigo-400">최대 600만원</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-input-pensionsavings" value="3000000" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-pensionsavings" value="3,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
                 </div>
                 <p class="text-[10px] text-slate-400 leading-tight">13.2%~16.5% 세액공제 혜택</p>
@@ -4536,7 +4536,7 @@
                   <span class="text-[10px] text-indigo-400">합산 최대 900만원</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-input-irpsavings" value="3000000" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-irpsavings" value="3,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
                 </div>
                 <p class="text-[10px] text-slate-400 leading-tight">연금저축과 합산 최대 900만원</p>
@@ -4546,7 +4546,7 @@
               <div>
                 <label for="ytax-input-insurance" class="block text-xs font-bold text-slate-300 mb-1">보장성 보험료 (한도 100만, 12%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-insurance" value="1000000" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-insurance" value="1,000,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4557,7 +4557,7 @@
                   의료비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(3%초과 15% · 70세이상/장애인 한도무제한)</span>
                 </label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-medical" value="1500000" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-medical" value="1,500,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-1">일반 700만 한도 / 65세이상 어르신·장애인은 무제한 전액 공제</p>
@@ -4569,7 +4569,7 @@
                   교육비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(15% · 초중고 300만 · 대학생 성인자녀 900만)</span>
                 </label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-education" value="0" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-education" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-1">취학전·초중고 인당 300만 / 대학생(성인) 인당 900만 한도 15%</p>
@@ -4579,7 +4579,7 @@
               <div>
                 <label for="ytax-input-monthlyrent" class="block text-xs font-bold text-slate-300 mb-1">연간 월세액 (총급여 7천만 이하 무주택, 15%~17%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-monthlyrent" value="0" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-monthlyrent" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4588,7 +4588,7 @@
               <div>
                 <label for="ytax-input-hometown" class="block text-xs font-bold text-slate-300 mb-1">고향사랑기부금 (10만원 100% 환급)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-hometown" value="100000" step="10000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-hometown" value="100,000" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4597,7 +4597,7 @@
               <div>
                 <label for="ytax-input-donation" class="block text-xs font-bold text-slate-300 mb-1">일반 기부금 (15%)</label>
                 <div class="relative">
-                  <input type="number" id="ytax-input-donation" value="0" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
+                  <input type="text" inputmode="numeric" id="ytax-input-donation" value="0" oninput="YearendTaxCalculator.handleInputChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
               </div>
@@ -4847,7 +4847,7 @@
                   <span class="text-xs font-mono font-bold text-teal-400" id="ytax-couple-p-salary-disp">50,000,000원</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-couple-input-salary" value="50000000" step="1000000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-teal-400 outline-none pr-10">
+                  <input type="text" inputmode="numeric" id="ytax-couple-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-teal-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -4867,7 +4867,7 @@
                   <span class="text-xs font-mono font-bold text-pink-400" id="ytax-couple-s-salary-disp">42,000,000원</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-couple-input-spouse-salary" value="42000000" step="1000000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-pink-400 outline-none pr-10">
+                  <input type="text" inputmode="numeric" id="ytax-couple-input-spouse-salary" value="42,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-pink-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -4897,8 +4897,13 @@
                   <span class="text-xs font-mono font-bold text-cyan-400">연간 지출</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-couple-input-expense" value="28000000" step="1000000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-cyan-400 outline-none pr-10">
+                  <input type="text" inputmode="numeric" id="ytax-couple-input-expense" value="28,000,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-cyan-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-cyan-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-cyan-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleExpense(-5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
                 </div>
                 <p class="text-[11px] text-slate-400">부부가 1년 동안 긁는 카드값(신용+체크+현금영수증)의 합계입니다.</p>
               </div>
@@ -4910,7 +4915,7 @@
                   <span class="text-xs font-mono font-bold text-indigo-400">병원비/약값</span>
                 </div>
                 <div class="relative">
-                  <input type="number" id="ytax-couple-input-medical" value="1800000" step="100000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-indigo-400 outline-none pr-10">
+                  <input type="text" inputmode="numeric" id="ytax-couple-input-medical" value="1,800,000" oninput="YearendTaxCalculator.handleCoupleInputChange(this)" class="ytax-money-input w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-indigo-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
                 </div>
                 <p class="text-[11px] text-slate-400">진료비, 시력교정용 안경/렌즈(50만 한도), 보청기, 산후조리원(200만) 포함</p>
@@ -5069,7 +5074,7 @@
                 <div class="p-3 bg-navy-950/80 rounded-2xl border border-navy-800 flex items-start gap-3">
                   <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black flex items-center justify-center shrink-0">1</span>
                   <div class="space-y-0.5 text-xs">
-                    <div class="font-bold text-white">1단계: 신용카드 결제 구간</div>
+                    <div class="font-bold text-white" id="ytax-couple-card-step1-title">1단계: 신용카드 결제 구간</div>
                     <div class="text-slate-300" id="ytax-couple-card-step1">본인 신용카드로 1,250만원(25%)까지 사용 (카드사 포인트/마일리지 챙기기)</div>
                   </div>
                 </div>
@@ -5077,7 +5082,7 @@
                 <div class="p-3 bg-navy-950/80 rounded-2xl border border-navy-800 flex items-start gap-3">
                   <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">2</span>
                   <div class="space-y-0.5 text-xs">
-                    <div class="font-bold text-white">2단계: 체크카드·현금영수증 집중 구간</div>
+                    <div class="font-bold text-white" id="ytax-couple-card-step2-title">2단계: 체크카드·현금영수증 집중 구간</div>
                     <div class="text-slate-300" id="ytax-couple-card-step2">1,250만원 초과분은 본인 명의 체크카드/현금영수증(30% 공제)으로 결제</div>
                   </div>
                 </div>
@@ -5211,7 +5216,7 @@
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto">
               <div class="relative flex-1 sm:w-48">
-                <input type="number" id="ytax-gr-input-salary" value="50000000" step="1000000" oninput="YearendTaxCalculator.handleGoldenRatioChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-white outline-none focus:border-amber-400 pr-8">
+                <input type="text" inputmode="numeric" id="ytax-gr-input-salary" value="50,000,000" oninput="YearendTaxCalculator.handleGoldenRatioChange(this)" class="ytax-money-input w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-white outline-none focus:border-amber-400 pr-8">
                 <span class="absolute right-3 top-2 text-xs text-slate-400">원</span>
               </div>
             </div>
