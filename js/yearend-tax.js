@@ -280,6 +280,13 @@ const YearendTaxCalculator = (function() {
 
     // 카드 소비 배분 전략
     let cardStrategy = {};
+    const higherCheckNeeded = Math.round(higherCardLimit / 0.3);
+    const higherOptimumTotal = higherHurdle + higherCheckNeeded;
+    const lowerCheckNeeded = Math.round(lowerCardLimit / 0.3);
+    const lowerOptimumTotal = lowerHurdle + lowerCheckNeeded;
+
+    let flowHtml = '';
+
     if (familyExpense < lowerHurdle) {
       cardStrategy = {
         target: '신용카드 혜택 중심',
@@ -292,8 +299,26 @@ const YearendTaxCalculator = (function() {
         step2Title: '2단계: 카드 외 다른 절세 금융상품 활용',
         step2: `• 💡 카드 공제는 0원이므로, <strong>연금저축/IRP(최대 16.5% 세액공제)</strong> 또는 주택청약종합저축으로 절세 혜택을 챙기시는 것을 적극 추천합니다.`
       };
+
+      flowHtml = `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-300">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="git-merge" class="w-4 h-4 text-amber-400"></i>
+              <span>[총 소비 흐름] 25% 문턱 미달 구간</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-normal">카드사 포인트/마일리지 집중</span>
+          </div>
+          <div class="p-2.5 bg-navy-900/90 rounded-xl border border-navy-800 text-[11px] text-slate-300 font-mono flex flex-wrap items-center justify-between gap-1">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">0원</span>
+            <span class="text-slate-400 text-[10px] sm:text-[11px]">── [혜택 신용카드 결제] ──▶</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${formatWon(familyExpense)}</span>
+            <span class="text-slate-400 text-[10px] sm:text-[11px]">── [25% 문턱 ${formatWon(lowerHurdle)} 미달] ──▶</span>
+            <span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-bold">공제 0원 (카드혜택 집중)</span>
+          </div>
+        </div>
+      `;
     } else if (familyExpense < higherHurdle) {
-      const lowerCheckNeeded = Math.round(lowerCardLimit / 0.3);
       cardStrategy = {
         target: `${lowerName} 명의 카드 집중 사용`,
         headline: `소득이 낮은 ${lowerName} 명의 카드로 몰아야 공제를 챙깁니다!`,
@@ -305,10 +330,46 @@ const YearendTaxCalculator = (function() {
         step2Title: `2단계: ${lowerName} 체크카드·현금영수증 집중 구간`,
         step2: `• 💵 <strong>${formatWon(lowerHurdle)} 초과분</strong>: 30% 공제율이 적용되는 체크카드/현금영수증으로 결제하여 소득공제 혜택 극대화`
       };
-    } else {
-      const higherCheckNeeded = Math.round(higherCardLimit / 0.3);
-      const higherOptimumTotal = higherHurdle + higherCheckNeeded;
 
+      flowHtml = `
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-300">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="git-merge" class="w-4 h-4 text-amber-400"></i>
+              <span>[총 소비 흐름] 문턱 낮은 ${lowerName} 명의 집중</span>
+            </span>
+            <span class="text-[10px] text-emerald-300 font-bold">${lowerName} 몰아주기</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div class="flex justify-between items-center text-[11px] font-bold text-amber-400 mb-1">
+                <span>1단계: 0원 ~ ${formatWon(lowerHurdle)}</span>
+                <span class="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px]">공제 0%</span>
+              </div>
+              <div class="font-bold text-white text-xs">${lowerName} 신용카드</div>
+              <p class="text-[10px] text-slate-300 mt-0.5 leading-snug">총급여 25% 문턱까지 포인트·마일리지 챙기기</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <div class="flex justify-between items-center text-[11px] font-bold text-emerald-400 mb-1">
+                <span>2단계: ${formatWon(lowerHurdle)} 초과분</span>
+                <span class="px-1.5 py-0.2 bg-emerald-500/20 rounded text-[10px]">공제 30%</span>
+              </div>
+              <div class="font-bold text-white text-xs">${lowerName} 체크카드 / 현금영수증</div>
+              <p class="text-[10px] text-slate-300 mt-0.5 leading-snug">30% 높은 공제율로 공제한도(${formatWon(lowerCardLimit)}) 채우기</p>
+            </div>
+          </div>
+          <div class="p-2.5 bg-navy-900/90 rounded-xl border border-navy-800 text-[11px] text-slate-300 font-mono flex flex-wrap items-center justify-between gap-1 overflow-x-auto">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">0원</span>
+            <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${lowerName} 신용] ──▶</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${formatWon(lowerHurdle)}</span>
+            <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${lowerName} 체크 30%] ──▶</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${formatWon(Math.min(familyExpense, lowerOptimumTotal))}</span>
+            <span class="text-slate-400 text-[10px] sm:text-[11px]">── [소득공제 달성] ──▶</span>
+            <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold">절세 완료</span>
+          </div>
+        </div>
+      `;
+    } else {
       if (familyExpense <= higherOptimumTotal) {
         cardStrategy = {
           target: `${higherName} 명의 카드 집중 사용`,
@@ -321,6 +382,45 @@ const YearendTaxCalculator = (function() {
           step2Title: `2단계: ${higherName} 체크카드·현금영수증 집중 구간`,
           step2: `• 💵 <strong>${formatWon(higherHurdle)} 초과분</strong>: 30% 공제율이 적용되는 체크카드/현금영수증으로 결제하여 소득공제 한도(${formatWon(higherCardLimit)}) 전액 달성`
         };
+
+        flowHtml = `
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-bold text-amber-300">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="git-merge" class="w-4 h-4 text-amber-400"></i>
+                <span>[총 소비 흐름] 고세율 ${higherName} 명의 카드 집중</span>
+              </span>
+              <span class="text-[10px] text-teal-300 font-bold">세율 차익 극대화</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <div class="flex justify-between items-center text-[11px] font-bold text-amber-400 mb-1">
+                  <span>1단계: 0원 ~ ${formatWon(higherHurdle)}</span>
+                  <span class="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px]">공제 0%</span>
+                </div>
+                <div class="font-bold text-white text-xs">${higherName} 신용카드</div>
+                <p class="text-[10px] text-slate-300 mt-0.5 leading-snug">총급여 25% 문턱까지 포인트·마일리지 챙기기</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                <div class="flex justify-between items-center text-[11px] font-bold text-emerald-400 mb-1">
+                  <span>2단계: ${formatWon(higherHurdle)} ~ ${formatWon(higherOptimumTotal)}</span>
+                  <span class="px-1.5 py-0.2 bg-emerald-500/20 rounded text-[10px]">공제 30%</span>
+                </div>
+                <div class="font-bold text-white text-xs">${higherName} 체크카드 / 현금영수증</div>
+                <p class="text-[10px] text-slate-300 mt-0.5 leading-snug">+${formatWon(higherCheckNeeded)} 결제로 한도(${formatWon(higherCardLimit)}) 꽉 채우기</p>
+              </div>
+            </div>
+            <div class="p-2.5 bg-navy-900/90 rounded-xl border border-navy-800 text-[11px] text-slate-300 font-mono flex flex-wrap items-center justify-between gap-1 overflow-x-auto">
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">0원</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${higherName} 신용카드] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${formatWon(higherHurdle)}</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${higherName} 체크카드] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${formatWon(higherOptimumTotal)}</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [한도 초과 시] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">${lowerName} 카드 전환</span>
+            </div>
+          </div>
+        `;
       } else {
         const overflow = familyExpense - higherOptimumTotal;
         const lowerHurdle = lowerSalary * 0.25;
@@ -330,13 +430,73 @@ const YearendTaxCalculator = (function() {
           badge: '부부 릴레이 분배 추천',
           badgeColor: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
           detail: `${higherName}(세율 ${higherRate.rate}%)이 카드 소득공제 한도(${formatWon(higherCardLimit)})를 모두 채운 뒤 발생하는 초과 소비(${formatWon(overflow)})는 더 이상 소득공제 대상이 아닙니다. 따라서 바톤을 넘겨 ${lowerName}(세율 ${lowerRate.rate}%) 명의 카드로 전환 결제해야 부부 합산 절세액이 극대화됩니다.`,
-          step1Title: `1차: ${higherName} 명의 카드로 공제한도 100% 꽉 채우기`,
-          step1: `• 💳 <strong>신용카드 0원 ~ ${formatWon(higherHurdle)}</strong>: 총급여 25%까지는 공제율 0% 구간이므로 포인트/마일리지 챙기기<br>• 💵 <strong>체크카드/현금 +${formatWon(higherCheckNeeded)}</strong>: 25% 초과분은 30% 공제율 체크카드로 결제하여 소득공제 한도(${formatWon(higherCardLimit)}) 100% 전액 달성`,
+          step1Title: `1차: ${higherName} 명의 카드로 공제한도 100% 꽉 채우기 (총 ${formatWon(higherOptimumTotal)})`,
+          step1: `• 💳 <strong>신용카드 0원 ~ ${formatWon(higherHurdle)}</strong>: 총급여 25%까지는 공제율 0% 구간이므로 포인트/마일리지 챙기기<br>• 💵 <strong>체크카드/현금 +${formatWon(higherCheckNeeded)}</strong>: 25% 초과분은 30% 공제율 체크카드로 결제하여 소득공제 한도(${formatWon(higherCardLimit)}) 100% 전액 달성 (총 ${formatWon(higherOptimumTotal)})`,
           step2Title: `2차: 남은 소비(${formatWon(overflow)})는 ${lowerName} 카드로 바톤 터치!`,
           step2: `• 💡 ${higherName}의 한도가 끝났으므로 이제부터는 <strong>${lowerName} 명의 카드</strong>로 결제해야 추가 공제를 받습니다.<br>• 💳 ${lowerName} 신용카드로 <strong>${formatWon(lowerHurdle)}</strong>(총급여 25%)까지 사용 후, 초과 지출은 ${lowerName} 체크카드로 결제하세요.`
         };
+
+        flowHtml = `
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-bold text-amber-300">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="git-merge" class="w-4 h-4 text-amber-400"></i>
+                <span>[총 소비 흐름도] ${higherName} 한도 달성 후 ➡️ ${lowerName} 바톤 터치</span>
+              </span>
+              <span class="text-[10px] text-emerald-300 font-bold">부부 릴레이 분배</span>
+            </div>
+
+            <!-- 3 Milestone Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center text-[11px] font-bold text-amber-400 mb-1">
+                    <span>1구간: 0원 ~ ${formatWon(higherHurdle)}</span>
+                    <span class="px-1.5 py-0.2 bg-amber-500/20 rounded text-[10px]">공제 0%</span>
+                  </div>
+                  <div class="font-bold text-white text-xs">${higherName} 신용카드</div>
+                </div>
+                <p class="text-[10px] text-slate-300 mt-1 leading-snug">총급여 25% 문턱까지 포인트·마일리지 챙기기</p>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center text-[11px] font-bold text-emerald-400 mb-1">
+                    <span>2구간: ${formatWon(higherHurdle)} ~ ${formatWon(higherOptimumTotal)}</span>
+                    <span class="px-1.5 py-0.2 bg-emerald-500/20 rounded text-[10px]">공제 30%</span>
+                  </div>
+                  <div class="font-bold text-white text-xs">${higherName} 체크카드</div>
+                </div>
+                <p class="text-[10px] text-slate-300 mt-1 leading-snug">+${formatWon(higherCheckNeeded)} 결제로 한도(${formatWon(higherCardLimit)}) 100% 채움</p>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center text-[11px] font-bold text-cyan-400 mb-1">
+                    <span>3구간: ${formatWon(higherOptimumTotal)} 초과~</span>
+                    <span class="px-1.5 py-0.2 bg-cyan-500/20 rounded text-[10px]">바톤 터치!</span>
+                  </div>
+                  <div class="font-bold text-white text-xs">${lowerName} 카드로 전환</div>
+                </div>
+                <p class="text-[10px] text-slate-300 mt-1 leading-snug">${higherName} 한도 소진 후 남은 지출은 ${lowerName} 명의 결제</p>
+              </div>
+            </div>
+
+            <!-- Linear Timeline Flow Bar -->
+            <div class="p-2.5 bg-navy-900/90 rounded-xl border border-navy-800 text-[11px] text-slate-300 font-mono flex flex-wrap items-center justify-between gap-1 overflow-x-auto">
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">0원</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${higherName} 신용카드] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${formatWon(higherHurdle)}</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${higherName} 체크카드] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${formatWon(higherOptimumTotal)}</span>
+              <span class="text-slate-400 text-[10px] sm:text-[11px]">── [${lowerName} 카드로 전환!] ──▶</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">그 이후</span>
+            </div>
+          </div>
+        `;
       }
     }
+    cardStrategy.flowHtml = flowHtml;
 
     // 의료비 몰아주기 판정
     let medicalAdvice = {};
@@ -966,6 +1126,7 @@ const YearendTaxCalculator = (function() {
     }
     setInner('ytax-couple-card-headline', advice.cardStrategy.headline);
     setInner('ytax-couple-card-detail', advice.cardStrategy.detail);
+    setHtml('ytax-couple-card-flow', advice.cardStrategy.flowHtml);
     setInner('ytax-couple-card-step1-title', advice.cardStrategy.step1Title || '1단계: 신용카드 결제 구간');
     setHtml('ytax-couple-card-step1', advice.cardStrategy.step1);
     setInner('ytax-couple-card-step2-title', advice.cardStrategy.step2Title || '2단계: 체크카드·현금영수증 집중 구간');
@@ -1051,6 +1212,10 @@ const YearendTaxCalculator = (function() {
       } else {
         calcNoteEl.innerHTML = `<span>💡 자녀 및 부양가족 수를 변경하시면 공제액과 최적 부부 배정 결과가 즉시 재계산됩니다.</span>`;
       }
+    }
+
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
     }
   }
 
