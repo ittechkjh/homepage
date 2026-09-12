@@ -93,6 +93,8 @@
     .prose-content ul, .prose-content ol { margin-left: 1.25rem; margin-bottom: 1.25rem; }
     .prose-content li { margin-bottom: 0.4rem; line-height: 1.7; color: #cbd5e1; font-size: 0.95rem; }
     .prose-content strong { color: #f8fafc; }
+    .prose-content > :first-child { margin-top: 0 !important; }
+    .prose-content > :last-child { margin-bottom: 0 !important; }
     .callout-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px 20px; margin: 18px 0; }
 
     /* Light Theme Overrides */
@@ -181,10 +183,10 @@
   </div>
 
   <!-- Main Container -->
-  <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
+  <main class="max-w-4xl mx-auto px-4 py-5 sm:py-6 flex-1 w-full space-y-4">
 
     <!-- Top Article Header -->
-    <div class="article-header-box space-y-3 pb-6 border-b border-navy-800">
+    <div class="article-header-box space-y-2 pb-4 border-b border-navy-800">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-bold">💵 실현손익</span>
         <span class="meta-item text-xs text-slate-400 flex items-center gap-1 font-mono"><i data-lucide="calendar" class="w-3 h-3"></i> 2026-09-09</span>
@@ -195,7 +197,7 @@
     </div>
 
     <!-- AdSense Slot 1: Top Banner -->
-    <div class="my-4">
+    <div class="ad-slot-header">
       <ins class="adsbygoogle block"
            style="display:block"
            data-ad-client="ca-pub-8506585033551011"
@@ -206,12 +208,12 @@
     </div>
 
     <!-- Article Content -->
-    <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+    <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
       <p>지난 하락장에 고점에서 무리하게 진입했다가 -38%까지 물렸던 종목이 있었습니다. 무작정 기다리기에는 기회비용이 너무 크고, 막상 추가 매수를 하려니 얼마를 넣어야 평단가가 얼마나 떨어지는지 감이 안 잡혔습니다.</p><p>여기 있는 <strong>[물타기 평단가 & 탈출 반등률 계산기]</strong>를 켜서 1차, 2차 추가 매수 금액별 필요 반등률을 시뮬레이션해 보았습니다.</p><ul><li><strong>원래 평단:</strong> 4,250원 (진입 비중 40%)</li><li><strong>1차 물타기:</strong> 2,650원 지지 확인 후 30% 추가 매수 &rarr; 평단 3,420원으로 급락 (-22%로 완화)</li><li><strong>2차 물타기:</strong> 2,800원 돌파 시 30% 추가 투입 &rarr; 최종 평단 3,080원 완성</li></ul><p>결과적으로 전고점(4,250원)까지 안 가고 3,210원 반등 파동에서 전량 매도하여 수수료 제하고 <strong>+4.2% 약익절로 깔끔하게 현금화</strong>했습니다. 무지성 물타기가 아니라 수치화된 탈출 플랜의 승리였습니다!</p>
     </article>
 
     <!-- AdSense Slot 2: Bottom In-Article -->
-    <div class="my-6">
+    <div class="ad-slot-bottom">
       <ins class="adsbygoogle block"
            style="display:block; text-align:center;"
            data-ad-layout="in-article"
@@ -222,7 +224,7 @@
     </div>
 
     <!-- Interactive CTA Card -->
-    <div class="cta-card p-6 rounded-3xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="cta-card p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="space-y-1 text-center sm:text-left">
         <h3 class="text-lg font-black text-white">직접 내 자산으로 테스트해 보세요</h3>
         <p class="text-xs text-slate-300">서버 전송 0%! 브라우저 안에서 1초 만에 완료되는 안전한 로컬 분석기</p>
@@ -261,7 +263,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-navy-950 border-t border-navy-800 py-8 text-xs text-slate-500 mt-auto transition">
+  <footer class="bg-navy-950 border-t border-navy-800 py-6 text-xs text-slate-500 mt-auto transition">
     <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
       <div class="space-y-1">
         <div class="footer-brand font-bold text-slate-400">CrytoPnL — 대한민국 1등 가상자산 퀀트 &amp; 회계 분석 플랫폼</div>

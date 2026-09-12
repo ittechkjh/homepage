@@ -93,6 +93,8 @@
     .prose-content ul, .prose-content ol { margin-left: 1.25rem; margin-bottom: 1.25rem; }
     .prose-content li { margin-bottom: 0.4rem; line-height: 1.7; color: #cbd5e1; font-size: 0.95rem; }
     .prose-content strong { color: #f8fafc; }
+    .prose-content > :first-child { margin-top: 0 !important; }
+    .prose-content > :last-child { margin-bottom: 0 !important; }
     .callout-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px 20px; margin: 18px 0; }
 
     /* Light Theme Overrides */
@@ -181,10 +183,10 @@
   </div>
 
   <!-- Main Container -->
-  <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
+  <main class="max-w-4xl mx-auto px-4 py-5 sm:py-6 flex-1 w-full space-y-4">
 
     <!-- Top Article Header -->
-    <div class="article-header-box space-y-3 pb-6 border-b border-navy-800">
+    <div class="article-header-box space-y-2 pb-4 border-b border-navy-800">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-bold">가상자산 세금 실전</span>
         <span class="meta-item text-xs text-slate-400 flex items-center gap-1 font-mono"><i data-lucide="calendar" class="w-3 h-3"></i> 2026-09-13</span>
@@ -195,7 +197,7 @@
     </div>
 
     <!-- AdSense Slot 1: Top Banner -->
-    <div class="my-4">
+    <div class="ad-slot-header">
       <ins class="adsbygoogle block"
            style="display:block"
            data-ad-client="ca-pub-8506585033551011"
@@ -206,12 +208,12 @@
     </div>
 
     <!-- Article Content -->
-    <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+    <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
       <h2>1. 가상자산 소득세 과세 체계 개요</h2><p>가상자산 양도소득세는 1년(1월 1일 ~ 12월 31일) 동안 발생한 총 매도금액에서 취득가액과 부대비용(거래수수료)을 공제한 뒤, 연간 기본공제액을 뺀 금액에 대해 <strong>22%(소득세 20% + 지방소득세 2%)</strong>를 과세하는 분리과세 제도입니다.</p><div class="callout-box"><h3 class="text-emerald-400 font-bold mb-2">💡 양도소득세 산출 공식</h3><p class="text-sm font-mono text-slate-200">• 과세표준 = 연간 총 매도액 - (총 취득원가 + 거래수수료) - 기본공제액<br>• 최종 납부세액 = 과세표준 × 22% (과세표준 ≤ 0인 경우 0원)</p></div><h2>2. 합법적 3대 절세 전략 (손익통산 활용)</h2><ol class="space-y-2 list-decimal text-sm text-slate-200"><li><strong>연말 손익통산 매매:</strong> 수익이 많이 난 해에 마이너스 수익률로 물려있는 코인이 있다면, 12월 31일 이전에 매도하여 실현 손실을 확정지으면 당해 연도 과세표준을 크게 낮출 수 있습니다.</li><li><strong>필요경비 증빙:</strong> 거래 수수료와 출금 수수료도 필요경비로 차감되므로, 엑셀 거래원장을 누락 없이 보관해야 합니다.</li><li><strong>증여 공제 활용:</strong> 배우자(6억원) 또는 직계존비속(5천만원) 증여 재산공제를 합법적으로 활용하여 취득가액을 높이는 전략도 고려할 수 있습니다.</li></ol>
     </article>
 
     <!-- AdSense Slot 2: Bottom In-Article -->
-    <div class="my-6">
+    <div class="ad-slot-bottom">
       <ins class="adsbygoogle block"
            style="display:block; text-align:center;"
            data-ad-layout="in-article"
@@ -222,7 +224,7 @@
     </div>
 
     <!-- Interactive CTA Card -->
-    <div class="cta-card p-6 rounded-3xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="cta-card p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="space-y-1 text-center sm:text-left">
         <h3 class="text-lg font-black text-white">직접 내 자산으로 테스트해 보세요</h3>
         <p class="text-xs text-slate-300">서버 전송 0%! 브라우저 안에서 1초 만에 완료되는 안전한 로컬 분석기</p>
@@ -261,7 +263,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-navy-950 border-t border-navy-800 py-8 text-xs text-slate-500 mt-auto transition">
+  <footer class="bg-navy-950 border-t border-navy-800 py-6 text-xs text-slate-500 mt-auto transition">
     <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
       <div class="space-y-1">
         <div class="footer-brand font-bold text-slate-400">CrytoPnL — 대한민국 1등 가상자산 퀀트 &amp; 회계 분석 플랫폼</div>
