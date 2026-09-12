@@ -1,15 +1,17 @@
 name: Generate Daily Crypto Market Report
 
 on:
-  schedule:
-    - cron: '50 19 * * *' # 04:50 KST (19:50 UTC) - Morning market report
-    - cron: '10 0 * * *'  # 09:10 KST (00:10 UTC) - Morning perspective report (09:10 KST)
-    - cron: '25 0 * * *'  # 09:25 KST (00:25 UTC) - Morning backup retry (15m later)
-    - cron: '10 8 * * *'  # 17:10 KST (08:10 UTC) - Afternoon perspective report (17:10 KST)
-    - cron: '25 8 * * *'  # 17:25 KST (08:25 UTC) - Afternoon backup retry (15m later)
-    - cron: '10 12 * * *' # 21:10 KST (12:10 UTC) - Night perspective report (21:10 KST)
-    - cron: '25 12 * * *' # 21:25 KST (12:25 UTC) - Night backup retry (15m later)
-  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+  workflow_dispatch: # Allows manual trigger anytime from UI or GitHub Actions tab
+    inputs:
+      report_type:
+        description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - perspective
+          - market
 
 permissions:
   contents: write
@@ -27,9 +29,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Generate daily 08:00 KST market report
+      - name: Generate crypto market and perspective report
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
         run: node scripts/generate-daily-market-report.js
 
       - name: Commit and push if changed

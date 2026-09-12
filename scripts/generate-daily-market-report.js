@@ -1699,7 +1699,8 @@ async function buildDailyPerspectiveReport(targetDate = null) {
 
 // Main execution
 async function main() {
-  console.log('[Daily Report Generator] Starting daily market report build...');
+  const reportType = (process.env.REPORT_TYPE || process.argv[2] || 'all').toLowerCase().trim();
+  console.log(`[Daily Report Generator] Starting build for report type: [${reportType}]...`);
   let existingReports = [];
   try {
     if (fs.existsSync(reportOutputFile)) {
@@ -1711,25 +1712,36 @@ async function main() {
     console.warn('Could not read existing reports file, initializing fresh:', e.message);
   }
 
-  const todayReport = await buildDailyMarketReport();
-  const todayPerspective = await buildDailyPerspectiveReport();
-  
-  // Upsert today's reports:
-  // - Replace today's morning report if matching
-  // - Replace today's perspective report matching this exact slot
-  // - Clean up legacy un-suffixed perspective id if present
+  const toAdd = [];
+
+  // Generate perspective if requested
+  if (reportType === 'all' || reportType === 'perspective') {
+    const todayPerspective = await buildDailyPerspectiveReport();
+    toAdd.push(todayPerspective);
+  }
+
+  // Generate morning market report if requested
+  if (reportType === 'all' || reportType === 'market') {
+    const todayReport = await buildDailyMarketReport();
+    toAdd.push(todayReport);
+  }
+
+  const idsToAdd = toAdd.map(item => item.id);
+
+  // Upsert new reports:
+  // - Replace reports with matching id
+  // - Clean up legacy un-suffixed perspective id if adding today's perspective
   const filtered = existingReports.filter(r => {
-    if (r.id === todayReport.id) return false;
-    if (r.id === todayPerspective.id) return false;
-    if (todayPerspective.id.endsWith('-09') && r.id === todayPerspective.id.replace('-09', '')) return false;
+    if (idsToAdd.includes(r.id)) return false;
+    if (idsToAdd.some(id => id.endsWith('-09') && r.id === id.replace('-09', ''))) return false;
     return true;
   });
 
-  const updatedReports = [todayPerspective, todayReport, ...filtered].slice(0, 50); // Keep last 50 reports
+  const updatedReports = [...toAdd, ...filtered].slice(0, 50); // Keep last 50 reports
 
   const payload = {
     lastUpdated: new Date().toISOString(),
-    generatorVersion: '2.2.0-thrice-daily-perspective',
+    generatorVersion: '2.3.0-selective-manual-dispatch',
     totalReports: updatedReports.length,
     reports: updatedReports
   };

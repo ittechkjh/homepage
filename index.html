@@ -1987,9 +1987,9 @@
           </div>
 
           <div class="flex items-center gap-3 flex-wrap">
-            <button onclick="openManualReportModal()" class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-950/40 transition flex items-center gap-2 shrink-0 transform hover:-translate-y-0.5 cursor-pointer" title="AI 차트 관점 및 시장 분석 리포트를 지금 즉시 수동 생성합니다.">
+            <button id="btn-manual-report-trigger" onclick="openManualReportModal()" class="hidden px-5 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl shadow-purple-950/40 transition items-center gap-2 shrink-0 transform hover:-translate-y-0.5 cursor-pointer" title="관리자 전용: AI 차트 관점 및 시장 분석 리포트를 수동 생성합니다.">
               <i data-lucide="zap" class="w-4 h-4 text-amber-300"></i>
-              <span>⚡ AI 관점 즉시 생성</span>
+              <span>⚡ AI 리포트 즉시 생성 (관리자)</span>
             </button>
             <button onclick="showForumWriteView()" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-sm shadow-xl shadow-cyan-500/25 transition flex items-center gap-2.5 shrink-0 transform hover:-translate-y-0.5">
               <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -7408,9 +7408,38 @@
         </div>
         <div>
           <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-            <span>⚡ AI 차트 관점 수동 생성</span>
+            <span>⚡ AI 리포트 수동 생성</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold">관리자 전용</span>
           </h3>
-          <p class="text-xs text-slate-400">GitHub Actions 퀀트 엔진을 즉시 실행하여 새 글을 발행합니다.</p>
+          <p class="text-xs text-slate-400">정기 스케줄 없이 관리자가 원할 때 즉시 퀀트 분석 글을 발행합니다.</p>
+        </div>
+      </div>
+
+      <!-- Report Type Selection -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-300">발행할 게시글 유형 선택</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-purple-500/40 hover:border-purple-500/70 cursor-pointer transition">
+            <input type="radio" name="manual-report-type" value="all" checked class="text-purple-600 focus:ring-purple-500">
+            <div>
+              <div class="font-black text-white text-xs">⚡ 전체 발행</div>
+              <div class="text-[10px] text-slate-400 font-normal">관점 + 시황 둘 다</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
+            <input type="radio" name="manual-report-type" value="perspective" class="text-purple-600 focus:ring-purple-500">
+            <div>
+              <div class="font-black text-white text-xs">🎯 차트 관점</div>
+              <div class="text-[10px] text-slate-400 font-normal">4H 캔들 파동/패턴</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
+            <input type="radio" name="manual-report-type" value="market" class="text-purple-600 focus:ring-purple-500">
+            <div>
+              <div class="font-black text-white text-xs">📊 시장 분위기</div>
+              <div class="text-[10px] text-slate-400 font-normal">온체인/시황 브리핑</div>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -7419,14 +7448,14 @@
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <span class="text-cyan-400 font-bold flex items-center gap-1.5">
             <i data-lucide="activity" class="w-4 h-4"></i>
-            <span>실시간 4H 캔들 파동/패턴 분석</span>
+            <span>실시간 4H 캔들 &amp; 글로벌 마켓 분석</span>
           </span>
           <span id="manual-report-target-slot" class="px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 font-bold text-[11px] border border-purple-500/30">
             자동 감지 중...
           </span>
         </div>
         <p class="text-slate-400 leading-relaxed">
-          버튼을 누르면 바이낸스 4시간봉 실시간 캔들을 수집하고, Gemini AI가 피보나치·하모닉·엘리엇 파동을 종합 분석하여 <strong class="text-purple-300">🎯 차트 관점</strong>에 새 글을 즉시 등록합니다. (약 35초 소요)
+          버튼을 누르면 바이낸스·업비트 실시간 데이터를 수집하고, Gemini AI가 피보나치·하모닉·엘리엇 파동 및 거시지표를 분석하여 게시판에 새 글을 즉시 등록합니다. (약 35초 소요)
         </p>
       </div>
 

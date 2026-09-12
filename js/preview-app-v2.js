@@ -272,6 +272,17 @@ function updateAdminNavVisibility() {
       mNavAdmin.classList.remove('flex');
     }
   }
+
+  const btnManualReport = document.getElementById('btn-manual-report-trigger');
+  if (btnManualReport) {
+    if (isAuth) {
+      btnManualReport.classList.remove('hidden');
+      btnManualReport.classList.add('flex');
+    } else {
+      btnManualReport.classList.add('hidden');
+      btnManualReport.classList.remove('flex');
+    }
+  }
 }
 window.updateAdminNavVisibility = updateAdminNavVisibility;
 
@@ -2250,6 +2261,20 @@ window.loadDailyMarketReports = loadDailyMarketReports;
 // Manual AI Market Report Trigger Modal (GitHub Actions Integration)
 // ==========================================
 function openManualReportModal() {
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
+  let isLocalAdmin = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+    if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
+      isLocalAdmin = true;
+    }
+  } catch(e) {}
+  const isAuth = isSessionAuth || isLocalAdmin || (typeof isAdmin === 'function' && isAdmin());
+  if (!isAuth) {
+    alert('관리자만 접근할 수 있는 기능입니다.');
+    return;
+  }
+
   const modal = document.getElementById('modal-manual-report');
   if (!modal) return;
   modal.classList.remove('hidden');
@@ -2276,13 +2301,13 @@ function openManualReportModal() {
   // Detect current session
   const now = new Date();
   const kstHours = (now.getUTCHours() + 9) % 24;
-  let sessionName = '야간 관점 (21:00)';
+  let sessionName = '야간 세션 (21:00)';
   if (kstHours >= 20 || kstHours < 2) {
-    sessionName = '야간 관점 (21:00) [미국 증시 개장/파생 변동성]';
+    sessionName = '야간 세션 (21:00) [미국 증시 개장/파생 변동성]';
   } else if (kstHours >= 15) {
-    sessionName = '오후 관점 (17:00) [유럽 런던장 개장 세션]';
+    sessionName = '오후 세션 (17:00) [유럽 런던장 개장 세션]';
   } else {
-    sessionName = '오전 관점 (09:00) [아시아장/일봉 마감 세션]';
+    sessionName = '오전 세션 (09:00) [아시아장/일봉 마감 세션]';
   }
 
   const targetBadge = document.getElementById('manual-report-target-slot');
@@ -2317,6 +2342,20 @@ window.toggleReportTokenVisibility = toggleReportTokenVisibility;
 
 let _manualReportTimer = null;
 async function executeManualReportTrigger() {
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
+  let isLocalAdmin = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+    if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
+      isLocalAdmin = true;
+    }
+  } catch(e) {}
+  const isAuth = isSessionAuth || isLocalAdmin || (typeof isAdmin === 'function' && isAdmin());
+  if (!isAuth) {
+    alert('관리자만 실행할 수 있습니다.');
+    return;
+  }
+
   const tokenInput = document.getElementById('manual-report-token');
   const saveCheck = document.getElementById('manual-report-save-token');
   const statusBox = document.getElementById('manual-report-status-box');
@@ -2327,10 +2366,14 @@ async function executeManualReportTrigger() {
 
   const token = tokenInput ? tokenInput.value.trim() : '';
   if (!token) {
-    alert('GitHub Personal Access Token (PAT)을 입력해 주세요.\\n토큰이 없으시면 상단의 [토큰 발급하기] 링크를 클릭하여 생성할 수 있습니다.');
+    alert('GitHub Personal Access Token (PAT)을 입력해 주세요.\n토큰이 없으시면 상단의 [토큰 발급하기] 링크를 클릭하여 생성할 수 있습니다.');
     if (tokenInput) tokenInput.focus();
     return;
   }
+
+  // Selected report type
+  const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
+  const selectedType = typeRadio ? typeRadio.value : 'all';
 
   if (saveCheck && saveCheck.checked) {
     localStorage.setItem('crytopnl_admin_pat', token);
@@ -2363,17 +2406,23 @@ async function executeManualReportTrigger() {
         'Authorization': `Bearer ${token}`,
         'X-GitHub-Api-Version': '2022-11-28'
       },
-      body: JSON.stringify({ ref: 'main' })
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          report_type: selectedType
+        }
+      })
     });
 
     if (res.status === 204) {
       // Successfully triggered!
       let secondsLeft = 35;
+      const typeDesc = selectedType === 'perspective' ? '4H 캔들과 엘리엇/하모닉 파동을 분석' : (selectedType === 'market' ? '거시지표 및 온체인 시황 데이터를 분석' : '4H 차트 관점 및 시장 분위기를 종합 분석');
       if (statusTitle) {
         statusTitle.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span class="text-emerald-300">GitHub Actions 실행 시작!</span>';
       }
       if (statusDesc) {
-        statusDesc.innerHTML = `AI 퀀트 엔진이 실시간 4H 캔들과 엘리엇/하모닉 파동을 분석 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${secondsLeft}초 후 새 글이 자동 반영됩니다...</span>`;
+        statusDesc.innerHTML = `AI 퀀트 엔진이 ${typeDesc} 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${secondsLeft}초 후 새 글이 자동 반영됩니다...</span>`;
       }
       if (runBtn) {
         runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${secondsLeft}s)</span>`;
@@ -2389,17 +2438,17 @@ async function executeManualReportTrigger() {
           runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${secondsLeft}s)</span>`;
         }
         if (statusDesc) {
-          statusDesc.innerHTML = `AI 퀀트 엔진이 실시간 4H 캔들과 엘리엇/하모닉 파동을 분석 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${Math.max(1, secondsLeft)}초 후 새 글이 자동 반영됩니다...</span>`;
+          statusDesc.innerHTML = `AI 퀀트 엔진이 ${typeDesc} 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${Math.max(1, secondsLeft)}초 후 새 글이 자동 반영됩니다...</span>`;
         }
 
         if (secondsLeft <= 0) {
           clearInterval(_manualReportTimer);
           if (progressBar) progressBar.style.width = '100%';
           if (statusTitle) {
-            statusTitle.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> <span class="text-cyan-300">새 관점 리포트 발행 완료!</span>';
+            statusTitle.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> <span class="text-cyan-300">새 리포트 발행 완료!</span>';
           }
           if (statusDesc) {
-            statusDesc.textContent = '최신 리포트를 불러와 게시판을 갱신합니다. 차트 관점 탭으로 이동합니다...';
+            statusDesc.textContent = '최신 리포트를 불러와 게시판을 갱신합니다...';
           }
           if (typeof lucide !== 'undefined') lucide.createIcons();
 
@@ -2407,12 +2456,19 @@ async function executeManualReportTrigger() {
             await loadDailyMarketReports(true);
           }
           if (typeof filterForum === 'function') {
-            filterForum('perspective');
+            if (selectedType === 'perspective') {
+              filterForum('perspective');
+            } else if (selectedType === 'market') {
+              filterForum('altcoin');
+            } else {
+              filterForum('all');
+            }
           }
 
           setTimeout(() => {
             closeManualReportModal();
-            alert('🎉 최신 AI 차트 관점 리포트가 성공적으로 발행되어 게시판에 등록되었습니다!');
+            const typeLabel = selectedType === 'perspective' ? 'AI 차트 관점 리포트' : (selectedType === 'market' ? 'AI 시장 분위기 리포트' : 'AI 시장 리포트 & 차트 관점');
+            alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
           }, 1500);
         }
       }, 1000);
@@ -5684,6 +5740,7 @@ function switchTab(tabId, updateHash = true) {
   if (tabId === 'forum') {
     if (typeof loadDailyMarketReports === 'function') loadDailyMarketReports(true);
     showForumListView();
+    updateAdminNavVisibility();
   }
 
   if (tabId === 'chat' && typeof renderChatMessages === 'function') {
