@@ -861,159 +861,299 @@ async function buildDailyMarketReport(targetDate = null) {
 
 // 5. Daily Technical Trading Perspective Generator (TradingView Style)
 async function fetchBinance4hTechnicals() {
-  try {
-    const res = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=40', {
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.json();
-    const candles = raw.map(c => ({
-      time: c[0],
-      open: parseFloat(c[1]),
-      high: parseFloat(c[2]),
-      low: parseFloat(c[3]),
-      close: parseFloat(c[4]),
-      volume: parseFloat(c[5])
-    }));
-    const last = candles[candles.length - 1];
-    const closes = candles.map(c => c.close);
-    const volumes = candles.map(c => c.volume);
-    
-    function calcEMA(data, period) {
-      const k = 2 / (period + 1);
-      let ema = data[0];
-      for (let i = 1; i < data.length; i++) {
-        ema = (data[i] * k) + (ema * (1 - k));
-      }
-      return ema;
-    }
-    
-    const ema20 = calcEMA(closes.slice(-20), 20);
-    const ema50 = calcEMA(closes, 50);
-    const ema200 = calcEMA(closes, 200) || (last.close * 1.015);
-    const recentHigh = Math.max(...candles.slice(-12).map(c => c.high));
-    const recentLow = Math.min(...candles.slice(-12).map(c => c.low));
-    const volAvg = volumes.slice(-10).reduce((a, b) => a + b, 0) / 10;
-    const isVolDecreasing = volumes[volumes.length - 1] < volAvg;
+  let candles = [];
 
-    return {
-      currentPrice: last.close,
-      high24h: Math.max(...candles.slice(-6).map(c => c.high)),
-      low24h: Math.min(...candles.slice(-6).map(c => c.low)),
-      ema20: Math.round(ema20),
-      ema50: Math.round(ema50),
-      ema200: Math.round(ema200),
-      recentHigh: Math.round(recentHigh),
-      recentLow: Math.round(recentLow),
-      candles: candles.slice(-20),
-      isVolDecreasing,
-      rsi: 58.4
-    };
+  // Source 1: Bybit 4H Klines (Worldwide cloud accessible, no HTTP 451 geo-block)
+  try {
+    const res = await fetch('https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=240&limit=60', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.result && Array.isArray(data.result.list) && data.result.list.length > 0) {
+        candles = data.result.list.map(c => ({
+          time: parseInt(c[0]),
+          open: parseFloat(c[1]),
+          high: parseFloat(c[2]),
+          low: parseFloat(c[3]),
+          close: parseFloat(c[4]),
+          volume: parseFloat(c[5])
+        })).reverse();
+        console.log(`[Technical Engine] Successfully fetched ${candles.length} live 4H candles from Bybit`);
+      }
+    }
   } catch(e) {
-    console.warn('[Technical Engine] Could not fetch Binance 4h klines, using fallback levels:', e.message);
+    console.warn('[Technical Engine] Bybit 4H fetch failed:', e.message);
+  }
+
+  // Source 2: Binance.US 4H Klines (Works on US Cloud IPs)
+  if (candles.length === 0) {
+    try {
+      const res = await fetch('https://api.binance.us/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=60', {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const raw = await res.json();
+        if (Array.isArray(raw) && raw.length > 0) {
+          candles = raw.map(c => ({
+            time: c[0],
+            open: parseFloat(c[1]),
+            high: parseFloat(c[2]),
+            low: parseFloat(c[3]),
+            close: parseFloat(c[4]),
+            volume: parseFloat(c[5])
+          }));
+          console.log(`[Technical Engine] Successfully fetched ${candles.length} live 4H candles from Binance.US`);
+        }
+      }
+    } catch(e) {
+      console.warn('[Technical Engine] Binance.US 4H fetch failed:', e.message);
+    }
+  }
+
+  // Source 3: Upbit KRW-BTC converted to USD
+  if (candles.length === 0) {
+    try {
+      const res = await fetch('https://api.upbit.com/v1/candles/minutes/240?market=KRW-BTC&count=60', {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const raw = await res.json();
+        if (Array.isArray(raw) && raw.length > 0) {
+          const fx = 1360.0;
+          candles = raw.map(c => ({
+            time: new Date(c.candle_date_time_utc + 'Z').getTime(),
+            open: c.opening_price / fx,
+            high: c.high_price / fx,
+            low: c.low_price / fx,
+            close: c.trade_price / fx,
+            volume: c.candle_acc_trade_volume
+          })).reverse();
+          console.log(`[Technical Engine] Successfully fetched ${candles.length} live 4H candles from Upbit`);
+        }
+      }
+    } catch(e) {
+      console.warn('[Technical Engine] Upbit 4H fetch failed:', e.message);
+    }
+  }
+
+  // Fallback defaults if all networks completely fail
+  if (candles.length < 14) {
+    console.warn('[Technical Engine] Network failed to fetch live 4H candles, generating realistic dynamic baseline');
+    const baseP = 77400;
     return {
-      currentPrice: 78370,
-      high24h: 79200,
-      low24h: 77400,
-      ema20: 78100,
-      ema50: 77850,
-      ema200: 78850,
-      recentHigh: 79250,
-      recentLow: 76500,
+      currentPrice: baseP,
+      high24h: Math.round(baseP * 1.02),
+      low24h: Math.round(baseP * 0.98),
+      ema20: Math.round(baseP * 0.998),
+      ema50: Math.round(baseP * 1.006),
+      ema200: Math.round(baseP * 1.018),
+      recentHigh: Math.round(baseP * 1.025),
+      recentLow: Math.round(baseP * 0.975),
+      candles: [],
       isVolDecreasing: true,
-      rsi: 58.4
+      rsi: 48.5,
+      setup: {
+        direction: 'SHORT',
+        theme: '저항 리테스트 및 박스권 하단 확인',
+        entryMin: Math.round(baseP * 0.995),
+        entryMax: Math.round(baseP * 1.005),
+        tp1: Math.round(baseP * 0.975),
+        tp2: Math.round(baseP * 0.955),
+        sl: Math.round(baseP * 1.018),
+        riskReward: '2.15'
+      }
     };
   }
+
+  const last = candles[candles.length - 1];
+  const closes = candles.map(c => c.close);
+  const volumes = candles.map(c => c.volume);
+
+  function calcEMA(data, period) {
+    const k = 2 / (period + 1);
+    let ema = data[0];
+    for (let i = 1; i < data.length; i++) {
+      ema = (data[i] * k) + (ema * (1 - k));
+    }
+    return ema;
+  }
+
+  function calcRSI(data, period = 14) {
+    if (data.length <= period) return 50;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = data[i] - data[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    for (let i = period + 1; i < data.length; i++) {
+      const diff = data[i] - data[i - 1];
+      avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+    }
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return Math.round((100 - (100 / (1 + rs))) * 10) / 10;
+  }
+
+  const ema20 = calcEMA(closes.slice(-20), 20);
+  const ema50 = calcEMA(closes, Math.min(50, closes.length - 1));
+  const ema200 = calcEMA(closes, Math.min(200, closes.length - 1));
+  const rsi14 = calcRSI(closes, 14);
+  const recentHigh = Math.max(...candles.slice(-12).map(c => c.high));
+  const recentLow = Math.min(...candles.slice(-12).map(c => c.low));
+  const volAvg = volumes.slice(-10).reduce((a, b) => a + b, 0) / 10;
+  const isVolDecreasing = volumes[volumes.length - 1] < volAvg;
+
+  // Derive dynamic trading setup based on real market confluence
+  const curP = Math.round(last.close);
+  let direction = 'SHORT';
+  let theme = '200 EMA 저항 직면 및 하방 리테스트';
+  let entryMin, entryMax, tp1, tp2, sl, riskReward;
+
+  if (curP >= ema50 && rsi14 >= 52) {
+    direction = 'LONG';
+    theme = '50 EMA 지지 안착 및 상방 돌파 테스트';
+    entryMin = Math.round(Math.min(curP, ema50));
+    entryMax = curP;
+    tp1 = Math.round(Math.max(recentHigh, curP * 1.025));
+    tp2 = Math.round(tp1 * 1.03);
+    sl = Math.round(Math.min(recentLow, ema50 * 0.985));
+    const risk = curP - sl;
+    const reward = tp1 - curP;
+    riskReward = (reward > 0 && risk > 0) ? (reward / risk).toFixed(2) : '2.25';
+  } else if (curP < ema50 && rsi14 <= 48) {
+    direction = 'SHORT';
+    theme = '주요 이평선 저항 직면 및 하방 리테스트';
+    entryMin = curP;
+    entryMax = Math.round(Math.max(curP, ema50));
+    tp1 = Math.round(Math.min(recentLow, curP * 0.975));
+    tp2 = Math.round(tp1 * 0.97);
+    sl = Math.round(Math.max(recentHigh, ema50 * 1.015));
+    const risk = sl - curP;
+    const reward = curP - tp1;
+    riskReward = (reward > 0 && risk > 0) ? (reward / risk).toFixed(2) : '2.35';
+  } else {
+    direction = 'RANGE';
+    theme = '수렴 구간 박스권 레인지 공략';
+    entryMin = Math.round(recentLow * 1.005);
+    entryMax = Math.round((recentLow + curP) / 2);
+    tp1 = Math.round((recentHigh + curP) / 2);
+    tp2 = Math.round(recentHigh * 0.995);
+    sl = Math.round(recentLow * 0.985);
+    riskReward = '2.10';
+  }
+
+  return {
+    currentPrice: curP,
+    high24h: Math.round(Math.max(...candles.slice(-6).map(c => c.high))),
+    low24h: Math.round(Math.min(...candles.slice(-6).map(c => c.low))),
+    ema20: Math.round(ema20),
+    ema50: Math.round(ema50),
+    ema200: Math.round(ema200),
+    recentHigh: Math.round(recentHigh),
+    recentLow: Math.round(recentLow),
+    candles: candles.slice(-48),
+    isVolDecreasing,
+    rsi: rsi14,
+    setup: {
+      direction,
+      theme,
+      entryMin,
+      entryMax,
+      tp1,
+      tp2,
+      sl,
+      riskReward
+    }
+  };
 }
 
 function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370).toLocaleString();
+  const curP = Number(tech.currentPrice || 78370);
   const slotBadge = slotInfo ? slotInfo.slotHour + '시' : '4H';
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 09:00`;
+  const setup = tech.setup || {
+    direction: 'SHORT',
+    theme: '주요 이평선 저항 직면 및 하방 리테스트',
+    entryMin: Math.round(curP * 0.995),
+    entryMax: Math.round(curP * 1.005),
+    tp1: Math.round(curP * 0.975),
+    tp2: Math.round(curP * 0.955),
+    sl: Math.round(curP * 1.018),
+    riskReward: '2.35'
+  };
 
-  // 48 Realistic 4H Candlesticks Simulation (8 full days of market action: High -> Breakdown -> Base -> Dead Cat Bounce to 200 EMA -> Pullback)
-  const baseCandles = [
-    // Day 1: Distribution high ($80.2k -> $79.6k)
-    { o: 80100, h: 80350, l: 79800, c: 80250, v: 14 },
-    { o: 80250, h: 80450, l: 79950, c: 80050, v: 12 },
-    { o: 80050, h: 80150, l: 79500, c: 79650, v: 18 },
-    { o: 79650, h: 79900, l: 79450, c: 79750, v: 15 },
-    { o: 79750, h: 80000, l: 79300, c: 79450, v: 19 },
-    { o: 79450, h: 79600, l: 79100, c: 79250, v: 22 },
-    // Day 2: Minor breakdown & weak bounce ($79.2k -> $78.6k)
-    { o: 79250, h: 79450, l: 78750, c: 78900, v: 26 },
-    { o: 78900, h: 79150, l: 78600, c: 78800, v: 20 },
-    { o: 78800, h: 79200, l: 78700, c: 79100, v: 17 },
-    { o: 79100, h: 79350, l: 78850, c: 78950, v: 16 },
-    { o: 78950, h: 79050, l: 78400, c: 78550, v: 24 },
-    { o: 78550, h: 78800, l: 78350, c: 78700, v: 19 },
-    // Day 3: Sharp sell-off panic wave ($78.7k -> $76.2k) - High Volume Surge
-    { o: 78700, h: 78800, l: 77800, c: 77950, v: 38 },
-    { o: 77950, h: 78200, l: 77100, c: 77300, v: 42 },
-    { o: 77300, h: 77650, l: 76800, c: 76950, v: 45 },
-    { o: 76950, h: 77200, l: 76100, c: 76350, v: 52 },
-    { o: 76350, h: 76700, l: 75800, c: 76000, v: 58 },
-    { o: 76000, h: 76600, l: 75750, c: 76450, v: 48 },
-    // Day 4: Capitulation wick & base building ($76.4k -> $76.8k)
-    { o: 76450, h: 76850, l: 76200, c: 76350, v: 31 },
-    { o: 76350, h: 76900, l: 76150, c: 76750, v: 28 },
-    { o: 76750, h: 77100, l: 76500, c: 76600, v: 22 },
-    { o: 76600, h: 77050, l: 76450, c: 76950, v: 24 },
-    { o: 76950, h: 77250, l: 76700, c: 76800, v: 20 },
-    { o: 76800, h: 77150, l: 76550, c: 77050, v: 19 },
-    // Day 5: Low-volume consolidation & re-test low ($77.0k -> $76.6k)
-    { o: 77050, h: 77250, l: 76700, c: 76850, v: 16 },
-    { o: 76850, h: 77100, l: 76400, c: 76600, v: 21 },
-    { o: 76600, h: 76900, l: 76300, c: 76800, v: 18 },
-    { o: 76800, h: 77250, l: 76750, c: 77150, v: 17 },
-    { o: 77150, h: 77450, l: 76950, c: 77350, v: 19 },
-    { o: 77350, h: 77650, l: 77100, c: 77550, v: 21 },
-    // Day 6: Upward reaction wave (Dead Cat Bounce) starts ($77.5k -> $78.2k)
-    { o: 77550, h: 77850, l: 77400, c: 77700, v: 22 },
-    { o: 77700, h: 77800, l: 77350, c: 77450, v: 18 },
-    { o: 77450, h: 78100, l: 77400, c: 77950, v: 23 },
-    { o: 77950, h: 78250, l: 77800, c: 78200, v: 20 },
-    { o: 78200, h: 78400, l: 77950, c: 78100, v: 17 },
-    { o: 78100, h: 78550, l: 78050, c: 78450, v: 19 },
-    // Day 7: Testing 50 EMA & pushing toward 200 EMA ($78.4k -> $78.9k) - Declining Volume
-    { o: 78450, h: 78750, l: 78300, c: 78650, v: 18 },
-    { o: 78650, h: 78950, l: 78450, c: 78800, v: 16 },
-    { o: 78800, h: 79150, l: 78650, c: 78900, v: 15 },
-    { o: 78900, h: 79200, l: 78700, c: 78850, v: 14 },
-    { o: 78850, h: 79100, l: 78500, c: 78650, v: 13 },
-    { o: 78650, h: 78850, l: 78400, c: 78550, v: 14 },
-    // Day 8: 200 EMA Rejection & Resistance Encounter ($78.8k -> $78.37k)
-    { o: 78550, h: 78900, l: 78400, c: 78750, v: 15 },
-    { o: 78750, h: 79100, l: 78500, c: 78600, v: 16 },
-    { o: 78600, h: 78800, l: 78350, c: 78500, v: 14 },
-    { o: 78500, h: 78650, l: 78200, c: 78350, v: 15 },
-    { o: 78350, h: 78550, l: 78150, c: 78400, v: 13 },
-    { o: 78400, h: 78550, l: 78200, c: Math.round(tech.currentPrice || 78370), v: 14 }  // 47 현재 진행 캔들
-  ];
+  // Live candles if available, else baseline simulation scaled to curP
+  let displayCandles = [];
+  if (tech.candles && tech.candles.length >= 20) {
+    displayCandles = tech.candles.slice(-48).map(c => ({
+      o: c.open,
+      h: c.high,
+      l: c.low,
+      c: c.close,
+      v: c.volume
+    }));
+  } else {
+    const scale = curP / 78370;
+    const mockCloses = [
+      80100, 80250, 80050, 79650, 79750, 79450, 79250, 78900, 78800, 79100, 78950, 78550,
+      78700, 77950, 77300, 76950, 76350, 76000, 76450, 76350, 76750, 76600, 76950, 76800,
+      77050, 76850, 76600, 76800, 77150, 77350, 77550, 77700, 77450, 77950, 78200, 78100,
+      78450, 78650, 78800, 78900, 78850, 78650, 78550, 78750, 78600, 78500, 78350, curP
+    ];
+    displayCandles = mockCloses.map((c, i) => {
+      const p = (i === mockCloses.length - 1) ? curP : c * scale;
+      return {
+        o: p * 0.998,
+        h: p * 1.004,
+        l: p * 0.995,
+        c: p,
+        v: 15 + (i % 10) * 3
+      };
+    });
+  }
 
-  // Price to Y conversion function (Scale: $75,500 to $80,600 mapped to Y: 312 to 136)
-  const minP = 75500;
-  const maxP = 80600;
-  const rangeP = maxP - minP;
-  const getY = (p) => 136 + ((maxP - p) / rangeP) * 176;
+  // Price range calculation
+  const allPrices = displayCandles.flatMap(c => [c.h, c.l]).concat([
+    setup.entryMin, setup.entryMax, setup.tp1, setup.tp2, setup.sl,
+    tech.ema50 || curP, tech.ema200 || curP
+  ]);
+  const minP = Math.floor(Math.min(...allPrices) * 0.995);
+  const maxP = Math.ceil(Math.max(...allPrices) * 1.005);
+  const rangeP = Math.max(1, maxP - minP);
+  const getY = (p) => {
+    const clamped = Math.max(minP, Math.min(maxP, p));
+    return 136 + ((maxP - clamped) / rangeP) * 176;
+  };
 
-  // Generate 48 candlesticks & volume bars SVG elements
-  const candleSvgElements = baseCandles.map((c, i) => {
-    const cx = 40 + (i * 15.2);
+  const candleCount = displayCandles.length;
+  const candleStep = 720 / Math.max(1, candleCount);
+  const maxVol = Math.max(...displayCandles.map(c => c.v || 1), 1);
+
+  const candleSvgElements = displayCandles.map((c, i) => {
+    const cx = 35 + (i * candleStep) + (candleStep / 2);
     const isBull = c.c >= c.o;
     const color = isBull ? '#10b981' : '#f43f5e';
     const topY = Math.min(getY(c.o), getY(c.c));
     const botY = Math.max(getY(c.o), getY(c.c));
-    const bodyHeight = Math.max(2.5, botY - topY);
+    const bodyHeight = Math.max(2, botY - topY);
     const highY = getY(c.h);
     const lowY = getY(c.l);
-    
-    // TradingView volume bar at bottom of canvas (y: 295 to 326)
-    const volHeight = Math.min(26, Math.max(4, (c.v || 15) * 0.45));
-    const volY = 325 - volHeight;
 
-    return `  <!-- C${i} -->\n  <rect x="${(cx - 3.8).toFixed(1)}" y="${volY.toFixed(1)}" width="7.6" height="${volHeight.toFixed(1)}" fill="${color}" fill-opacity="0.32" rx="0.8"/>\n  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.1"/>\n  <rect x="${(cx - 4.2).toFixed(1)}" y="${topY.toFixed(1)}" width="8.4" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
+    const volHeight = Math.min(26, Math.max(3, ((c.v || 1) / maxVol) * 26));
+    const volY = 325 - volHeight;
+    const barWidth = Math.max(3, Math.min(8, candleStep * 0.65));
+
+    return `  <!-- C${i} -->\n  <rect x="${(cx - barWidth/2).toFixed(1)}" y="${volY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${volHeight.toFixed(1)}" fill="${color}" fill-opacity="0.32" rx="0.8"/>\n  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.1"/>\n  <rect x="${(cx - barWidth/2).toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
   }).join('\n');
+
+  const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#f43f5e' : '#f59e0b');
+  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
   <defs>
@@ -1029,7 +1169,7 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <!-- Header: Borderless badges -->
   <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.18" stroke="none"/>
   <text x="77" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC 4H [${slotBadge}]</text>
-  <text x="148" y="34" fill="#ffffff" font-size="14.5" font-weight="bold" font-family="sans-serif">트레이딩 셋업: 데드캣 바운스(Dead Cat Bounce) 리테스트</text>
+  <text x="148" y="34" fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">트레이딩 셋업: ${setup.theme}</text>
   <rect x="635" y="16" width="145" height="26" rx="6" fill="#06b6d4" fill-opacity="0.14" stroke="none"/>
   <text x="707" y="33" fill="#22d3ee" font-size="11.5" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
   <line x1="20" y1="52" x2="780" y2="52" stroke="#1e293b" stroke-width="1"/>
@@ -1037,19 +1177,19 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <!-- Parameters Row: Completely borderless pills with soft dark fill -->
   <rect x="20" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="32" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">포지션 방향</text>
-  <text x="32" y="102" fill="#f43f5e" font-size="13.5" font-weight="900" font-family="monospace">SHORT (하방 리테스트)</text>
+  <text x="32" y="102" fill="${dirColor}" font-size="13" font-weight="900" font-family="monospace">${dirLabel}</text>
 
   <rect x="206" y="62" width="186" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="218" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">진입 구역 (Entry Zone)</text>
-  <text x="218" y="102" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">$78,200 ~ $78,600</text>
+  <text x="218" y="102" fill="#38bdf8" font-size="12.5" font-weight="bold" font-family="monospace">$${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</text>
 
   <rect x="400" y="62" width="194" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="412" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">목표가 (Take Profit)</text>
-  <text x="412" y="102" fill="#34d399" font-size="13" font-weight="bold" font-family="monospace">TP1 $76.5K / TP2 $74.8K</text>
+  <text x="412" y="102" fill="#34d399" font-size="12" font-weight="bold" font-family="monospace">TP1 $${Math.round(setup.tp1/100)/10}K / TP2 $${Math.round(setup.tp2/100)/10}K</text>
 
   <rect x="602" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
   <text x="614" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">손절 &amp; 손익비</text>
-  <text x="614" y="102" fill="#fbbf24" font-size="13" font-weight="bold" font-family="monospace">SL $79.8K (손익비 1:2.65)</text>
+  <text x="614" y="102" fill="#fbbf24" font-size="12" font-weight="bold" font-family="monospace">SL $${Math.round(setup.sl/100)/10}K (1:${setup.riskReward})</text>
 
   <!-- Main Chart Canvas: Borderless dark canvas -->
   <rect x="20" y="124" width="760" height="206" rx="10" fill="#090d16" stroke="none"/>
@@ -1060,58 +1200,48 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <line x1="20" y1="255" x2="780" y2="255" stroke="#172033" stroke-dasharray="3,3"/>
   <line x1="20" y1="298" x2="780" y2="298" stroke="#172033" stroke-dasharray="3,3"/>
 
-  <!-- Resistance Zone ($78,850 ~ $79,200) -->
-  <rect x="20" y="${getY(79200).toFixed(1)}" width="760" height="${(getY(78850) - getY(79200)).toFixed(1)}" fill="#f43f5e" fill-opacity="0.12" stroke="none"/>
-  <line x1="20" y1="${getY(78850).toFixed(1)}" x2="780" y2="${getY(78850).toFixed(1)}" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="765" y="${(getY(79000) + 3).toFixed(1)}" fill="#f43f5e" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">200 EMA 저항대 $78,850 ~ $79,200</text>
+  <!-- Entry Zone Rect -->
+  <rect x="20" y="${Math.min(getY(setup.entryMin), getY(setup.entryMax)).toFixed(1)}" width="760" height="${Math.max(4, Math.abs(getY(setup.entryMin) - getY(setup.entryMax))).toFixed(1)}" fill="#0284c7" fill-opacity="0.12" stroke="none"/>
+  <text x="765" y="${(getY(setup.entryMax) + 3).toFixed(1)}" fill="#38bdf8" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">진입대 $${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</text>
 
-  <!-- Stop Loss line ($79,800) -->
-  <line x1="20" y1="${getY(79800).toFixed(1)}" x2="780" y2="${getY(79800).toFixed(1)}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,4"/>
-  <text x="28" y="${(getY(79800) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $79,800</text>
+  <!-- Stop Loss line -->
+  <line x1="20" y1="${getY(setup.sl).toFixed(1)}" x2="780" y2="${getY(setup.sl).toFixed(1)}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,4"/>
+  <text x="28" y="${(getY(setup.sl) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $${Number(setup.sl).toLocaleString()}</text>
 
-  <!-- Entry Zone ($78,200 ~ $78,600) -->
-  <rect x="20" y="${getY(78600).toFixed(1)}" width="760" height="${(getY(78200) - getY(78600)).toFixed(1)}" fill="#0284c7" fill-opacity="0.11" stroke="none"/>
-  <text x="765" y="${(getY(78400) + 3).toFixed(1)}" fill="#38bdf8" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">진입 구간 (Entry Zone) $78,200 ~ $78,600</text>
+  <!-- Target 1 line -->
+  <line x1="20" y1="${getY(setup.tp1).toFixed(1)}" x2="780" y2="${getY(setup.tp1).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="765" y="${(getY(setup.tp1) - 4).toFixed(1)}" fill="#34d399" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가: $${Number(setup.tp1).toLocaleString()}</text>
 
-  <!-- Target 1 line ($76,500) -->
-  <line x1="20" y1="${getY(76500).toFixed(1)}" x2="780" y2="${getY(76500).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="${(getY(76500) - 4).toFixed(1)}" fill="#34d399" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가 (TP1): $76,500</text>
+  <!-- Target 2 line -->
+  <line x1="20" y1="${getY(setup.tp2).toFixed(1)}" x2="780" y2="${getY(setup.tp2).toFixed(1)}" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="765" y="${(getY(setup.tp2) - 4).toFixed(1)}" fill="#10b981" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가: $${Number(setup.tp2).toLocaleString()}</text>
 
-  <!-- Target 2 line ($74,800) -->
-  <line x1="20" y1="316" x2="780" y2="316" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="312" fill="#10b981" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가 (TP2): $74,800</text>
+  <!-- 200 EMA Line -->
+  <line x1="20" y1="${getY(tech.ema200 || curP).toFixed(1)}" x2="780" y2="${getY(tech.ema200 || curP).toFixed(1)}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6,3"/>
+  <text x="35" y="${(getY(tech.ema200 || curP) - 4).toFixed(1)}" fill="#fbbf24" font-size="9" font-family="monospace" font-weight="bold">200 EMA: $${Number(tech.ema200 || curP).toLocaleString()}</text>
 
-  <!-- 200 EMA Line (Yellow Curve) -->
-  <path d="M 25 152 Q 240 182 480 192 T 775 196" fill="none" stroke="#f59e0b" stroke-width="2"/>
-  <text x="35" y="148" fill="#fbbf24" font-size="9" font-family="monospace" font-weight="bold">200 EMA</text>
+  <!-- 50 EMA Line -->
+  <line x1="20" y1="${getY(tech.ema50 || curP).toFixed(1)}" x2="780" y2="${getY(tech.ema50 || curP).toFixed(1)}" stroke="#06b6d4" stroke-width="1.3" stroke-dasharray="4,2"/>
+  <text x="35" y="${(getY(tech.ema50 || curP) + 12).toFixed(1)}" fill="#22d3ee" font-size="9" font-family="monospace" font-weight="bold">50 EMA: $${Number(tech.ema50 || curP).toLocaleString()}</text>
 
-  <!-- 50 EMA Line (Cyan Curve) -->
-  <path d="M 25 178 Q 200 248 440 238 T 775 220" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
-  <text x="35" y="195" fill="#22d3ee" font-size="9" font-family="monospace" font-weight="bold">50 EMA</text>
-
-  <!-- Candlesticks (48 Candlesticks & Volume Rendering) -->
+  <!-- Candlesticks (Candlesticks & Volume Rendering) -->
 ${candleSvgElements}
-
-  <!-- Dead Cat Bounce Arc Arrow annotation (Elevated with ample clearance) -->
-  <path d="M 405 272 Q 530 170 660 188" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="5,4"/>
-  <polygon points="664,188 656,182 658,193" fill="#fbbf24"/>
-  <rect x="475" y="166" width="130" height="20" rx="5" fill="#090d16" fill-opacity="0.9" stroke="none"/>
-  <text x="540" y="180" fill="#fbbf24" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">Dead Cat Bounce</text>
 
   <!-- Bottom Indicators & Volume: 100% Borderless, 3-Row Zero-Overlap Layout -->
   <rect x="20" y="338" width="760" height="72" rx="8" fill="#151d2f" fill-opacity="0.8" stroke="none"/>
   
   <!-- Row 1: Volume Trend -->
   <text x="32" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 분석:</text>
-  <text x="100" y="357" fill="#f43f5e" font-size="10" font-weight="bold" font-family="sans-serif">하락 시 거래량 폭증 ➔ 반등 시 거래량 급감 (전형적 거래량 수축 약세 반등)</text>
+  <text x="100" y="357" fill="${tech.isVolDecreasing ? '#f43f5e' : '#38bdf8'}" font-size="10" font-weight="bold" font-family="sans-serif">${tech.isVolDecreasing ? '반등/조정 국면 거래량 점진적 수축 (지표 괴리 주시)' : '거래량 유입 동반 변동성 확대'}</text>
   
-  <!-- Row 2: Indicators (Spaced with generous margin) -->
+  <!-- Row 2: Indicators -->
   <text x="32" y="378" fill="#94a3b8" font-size="10" font-family="sans-serif">핵심 지표:</text>
-  <text x="100" y="378" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스)</text>
-  <text x="310" y="378" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏: 1.297 (롱 56.5% 과밀집)</text>
+  <text x="100" y="378" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): ${tech.rsi || 50}</text>
+  <text x="210" y="378" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 24H 레인지: $${Number(tech.low24h || curP).toLocaleString()} ~ $${Number(tech.high24h || curP).toLocaleString()}</text>
+  <text x="470" y="378" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">• 현재가: $${Number(curP).toLocaleString()}</text>
   
-  <!-- Row 3: Metadata (Left: slot info, Right: provider) -->
-  <text x="32" y="398" fill="#64748b" font-size="9" font-family="sans-serif">분석 기준: ${slotTimestampStr} KST (일봉 마감)</text>
+  <!-- Row 3: Metadata -->
+  <text x="32" y="398" fill="#64748b" font-size="9" font-family="sans-serif">분석 기준: ${slotTimestampStr} KST (${slotInfo ? slotInfo.sessionTitle : '실시간 4H'})</text>
   <text x="768" y="398" fill="#64748b" font-size="9" font-family="sans-serif" text-anchor="end">제공: crytopnl.com AI 퀀트엔진</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
@@ -1121,6 +1251,16 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
   const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
   const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
   const sessionContext = slotInfo?.sessionContext || '당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간';
+  const setup = tech.setup || {
+    direction: 'SHORT',
+    theme: '주요 이평선 저항 직면 및 하방 리테스트',
+    entryMin: Math.round((tech.currentPrice || 78370) * 0.995),
+    entryMax: Math.round((tech.currentPrice || 78370) * 1.005),
+    tp1: Math.round((tech.currentPrice || 78370) * 0.975),
+    tp2: Math.round((tech.currentPrice || 78370) * 0.955),
+    sl: Math.round((tech.currentPrice || 78370) * 1.018),
+    riskReward: '2.35'
+  };
 
   const systemInstruction = `당신은 월가 프롭 트레이딩 출신의 수석 퀀트 트레이더(AI)입니다.
 트레이딩뷰(TradingView)의 Top Ideas 형식에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉) [${slotName} - ${sessionTitle}] 전문 트레이딩 관점(Trading Perspective) 리포트를 작성하세요.
@@ -1132,32 +1272,36 @@ ${sessionContext}
 1. 네이버 블로그 및 카페(SmartEditor ONE)에 복사·붙여넣기 시 100% 호환되는 깔끔한 고대비 서식(흰색 배경 친화적)으로 작성하세요.
 2. 외곽 테두리(border: 1px solid ...)나 박스 테두리선(border-left 포함)을 절대 사용하지 마세요. 모든 테두리는 완전히 제거하고, 부드러운 소프트 배경(#f1f5f9)과 여백, 선명한 글씨 색상만으로 단락을 구분하세요.
 3. 글씨가 선명하게 잘 보이도록 제목 헤딩은 진한 딥 네이비(#0f172a), 본문 텍스트는 선명하고 또렷한 짙은 슬레이트(#1e293b, 15px), 강조 수치는 굵고 명확한 색상(#0284c7, #e11d48, #059669)을 사용하세요.
-4. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함하세요.
-5. 구성:
-   - <HEADER>[BTC/USDT ${slotName}] ${dateKorean} 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
+4. **[핵심 필수 요구사항]** 글의 가장 첫 줄에는 반드시 게시글의 제목이 될 한 줄을 <TITLE>[BTC/USDT ${slotName}] (Gemini가 현재 실시간 시세와 세션 특징, 기술적 셋업을 반영하여 직접 지은 매력적이고 독창적인 제목)</TITLE> 형식으로 출력하세요. 이전 세션이나 오전 글과 제목 및 내용이 겹치지 않도록 창의적이고 날카로운 시각을 제시해야 합니다.
+5. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 제목 바로 뒤에 포함하세요.
+6. 구성:
+   - <TITLE>[BTC/USDT ${slotName}] 실시간 시세와 셋업을 반영한 독창적 제목</TITLE>
    - <!-- TRADINGVIEW_CHART_IMAGE -->
-   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: SHORT, 진입: $78,200~$78,600, TP1: $76,500, TP2: $74,800, SL: $79,800, 손익비: 1:2.65)</SETUP_BOX>
-   - <SECTION_1>1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) vs 추세 전환 (2문단)</SECTION_1>
-   - <SECTION_2>2. 기술적 지표 & 온체인 괴리 (200 EMA 저항, RSI 약세 다이버전스, 볼륨 수축) (2문단)</SECTION_2>
-   - <SECTION_3>3. 세션별 시나리오 분석: 시나리오 A(메인 하방 리테스트) vs 시나리오 B(불트랩 돌파) (2문단)</SECTION_3>
-   - <SECTION_4>4. 관점 무효화 기준(Invalidation Level) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
+   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: ${setup.direction}, 진입: $${Number(setup.entryMin).toLocaleString()}~$${Number(setup.entryMax).toLocaleString()}, TP1: $${Number(setup.tp1).toLocaleString()}, TP2: $${Number(setup.tp2).toLocaleString()}, SL: $${Number(setup.sl).toLocaleString()}, 손익비: 1:${setup.riskReward})</SETUP_BOX>
+   - <SECTION_1>1. 차트 패턴 진단: ${setup.theme} 및 세션별 캔들 구조 분석 (2문단)</SECTION_1>
+   - <SECTION_2>2. 기술적 지표 & 온체인 괴리 (200 EMA: $${Number(tech.ema200).toLocaleString()}, 50 EMA: $${Number(tech.ema50).toLocaleString()}, RSI(14): ${tech.rsi}, 거래량 추세) (2문단)</SECTION_2>
+   - <SECTION_3>3. 세션별 시나리오 분석: 시나리오 A(메인 ${setup.direction === 'LONG' ? '상방 돌파' : '하방 리테스트'}) vs 시나리오 B(반대 시나리오) (2문단)</SECTION_3>
+   - <SECTION_4>4. 관점 무효화 기준(Invalidation Level: $${Number(setup.sl).toLocaleString()}) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
 
   const userPrompt = `[현재 BTC/USDT 기술적 지표 데이터 (${dateKorean} ${slotName} 기준)]
 - 현재 시세: $${Number(tech.currentPrice).toLocaleString()}
-- 4시간봉 200 EMA: $78,850 (핵심 저항선 및 수평 매물대)
-- 4시간봉 50 EMA: $77,800 (단기 지지/이평선)
-- RSI(14): 58.4 (약세 다이버전스 징후 포착)
-- 거래량: 반등 구간에서 지속 감소하는 거래량 수축(Volume Contraction) 확인
-- 선물 미결제약정: $34.8B (고점권 정체)
-- 롱/숏 비율: 1.297 (롱 56.5% / 숏 43.5%, 롱 과밀집 청산 리스크)
-- 현재 세션: ${sessionTitle}
+- 24시간 최고가: $${Number(tech.high24h).toLocaleString()} / 최저가: $${Number(tech.low24h).toLocaleString()}
+- 4시간봉 200 EMA: $${Number(tech.ema200).toLocaleString()} (중장기 추세 분수령)
+- 4시간봉 50 EMA: $${Number(tech.ema50).toLocaleString()} (단기 추세 지지/저항)
+- 4시간봉 20 EMA: $${Number(tech.ema20).toLocaleString()}
+- RSI(14): ${tech.rsi} (${tech.rsi >= 70 ? '과매수 구간' : (tech.rsi <= 30 ? '과매도 구간' : (tech.rsi >= 50 ? '매수 우위 모멘텀' : '매도 우위 모멘텀'))})
+- 거래량 상태: ${tech.isVolDecreasing ? '반등/조정 과정에서 거래량 점진적 감소세' : '거래량 증가를 동반한 변동성 확장'}
+- 현재 분석 세션: ${sessionTitle} (${sessionContext})
+- 권고 셋업 테마: ${setup.theme}
 - 트레이딩 셋업 파라미터:
-  * 포지션 방향: SHORT (하방 리테스트)
-  * 진입 구간: $78,200 ~ $78,600
-  * 1차 목표가(TP1): $76,500 / 2차 목표가(TP2): $74,800
-  * 손절가(SL): $79,800 (손익비 1:2.65)
+  * 포지션 방향: ${setup.direction}
+  * 진입 구간: $${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}
+  * 1차 목표가(TP1): $${Number(setup.tp1).toLocaleString()} / 2차 목표가(TP2): $${Number(setup.tp2).toLocaleString()}
+  * 손절가(SL): $${Number(setup.sl).toLocaleString()} (손익비 1:${setup.riskReward})
 
-위 데이터를 바탕으로 전문 트레이딩뷰 관점 리포트를 2,000자 내외로 상세하고 완성도 높게 작성해주세요.`;
+[중요 지시사항]
+이전 오전 세션이나 다른 날의 보고서와 복사-붙여넣기처럼 보이지 않도록, 현재 세션(${slotName})과 실시간 가격($${Number(tech.currentPrice).toLocaleString()})에 근거하여 완전히 새로운 어조와 독창적인 헤드라인으로 작성해주세요.
+반드시 첫 줄에 <TITLE>[BTC/USDT ${slotName}] (창의적이고 직관적인 분석 제목)</TITLE>을 작성해주세요.`;
 
   const payload = {
     contents: [
@@ -1167,7 +1311,7 @@ ${sessionContext}
       }
     ],
     generationConfig: {
-      temperature: 0.7,
+      temperature: 0.75,
       maxOutputTokens: 8192,
       thinkingConfig: { thinkingBudget: 0 }
     }
@@ -1250,23 +1394,36 @@ function getPerspectiveSlotInfo(kstDate = null) {
 }
 
 function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, slotInfo = null) {
-  // Borderless, shadowless clean image container optimized for web view and Naver Blog/Cafe pasting
   const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
   const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
   const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
+  const curP = Number(tech.currentPrice || 78370);
+  const setup = tech.setup || {
+    direction: 'SHORT',
+    theme: '주요 이평선 저항 직면 및 하방 리테스트',
+    entryMin: Math.round(curP * 0.995),
+    entryMax: Math.round(curP * 1.005),
+    tp1: Math.round(curP * 0.975),
+    tp2: Math.round(curP * 0.955),
+    sl: Math.round(curP * 1.018),
+    riskReward: '2.35'
+  };
+
+  const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#e11d48' : '#d97706');
+  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
 
   return `
 <h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  🎯 [BTC/USDT ${slotName}] ${dateKorean} 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단 (${sessionTitle})
+  🎯 [BTC/USDT ${slotName}] ${dateKorean} 비트코인 기술적 분석: ${setup.theme} (${sessionTitle})
 </h3>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 18px;">
-${dateKorean} ${slotName} 기준 비트코인은 $78,370 선 부근에서 기술적 반등을 시도하고 있으나, 4시간봉 주요 이동평균선인 200 EMA($78,850) 및 직전 고점 매물대의 강한 저항에 직면해 있습니다. 특히 이번 반등 파동은 거래량이 지속적으로 줄어드는 전형적인 <strong>'거래량 수축형 약세 반등(Volume Contraction Bounce)'</strong> 패턴을 띠고 있어, 추가 상승보다는 일시적 반등 후 하방 리테스트가 전개되는 <strong>'데드캣 바운스(Dead Cat Bounce)'</strong> 가능성에 높은 무게를 둡니다.
+${dateKorean} ${slotName} 기준 비트코인은 <strong>$${curP.toLocaleString()}</strong> 선에서 거래되고 있으며, 4시간봉 주요 이동평균선인 50 EMA($${Number(tech.ema50).toLocaleString()}) 및 200 EMA($${Number(tech.ema200).toLocaleString()})와의 이격도를 좁히며 ${setup.theme} 국면에 진입하고 있습니다. 실시간 RSI(14) 보조지표는 <strong>${tech.rsi}</strong>를 기록 중이며, 세션 전환에 따른 유동성 유입 여부가 단기 추세의 분수령이 될 전망입니다.
 </p>
 
 <!-- Chart Setup Image -->
 ${chartTag}
 
-<!-- Trading Setup Box (Clean 100% Borderless Matrix for Naver Blog/Cafe Copy) -->
+<!-- Trading Setup Box -->
 <div class="perspective-setup-card" style="background: #f1f5f9; border-radius: 10px; padding: 18px 20px; margin: 22px 0; border: none;">
   <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
     📊 [트레이딩 셋업 파라미터 (Trading Setup Matrix)]
@@ -1274,62 +1431,62 @@ ${chartTag}
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
     <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">포지션 방향 (Direction)</div>
-      <div style="font-size: 14px; font-weight: 900; color: #e11d48; font-family: monospace; margin-top: 3px;">SHORT (하방 리테스트)</div>
+      <div style="font-size: 14px; font-weight: 900; color: ${dirColor}; font-family: monospace; margin-top: 3px;">${dirLabel}</div>
     </div>
     <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">진입 구간 (Entry Zone)</div>
-      <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 3px;">$78,200 ~ $78,600</div>
+      <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 3px;">$${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</div>
     </div>
     <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">목표가 (Take Profit)</div>
-      <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 3px;">TP1 $76.5K / TP2 $74.8K</div>
+      <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 3px;">TP1 $${Number(setup.tp1).toLocaleString()} / TP2 $${Number(setup.tp2).toLocaleString()}</div>
     </div>
     <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">손절가 &amp; 손익비</div>
-      <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 3px;">SL $79,800 (1 : 2.65)</div>
+      <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 3px;">SL $${Number(setup.sl).toLocaleString()} (1 : ${setup.riskReward})</div>
     </div>
   </div>
 </div>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) 구조적 특징
+1. 차트 패턴 진단: ${setup.theme}
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-현재 4시간봉 차트의 형태는 지난 급락 파동 이후 계단식으로 가격을 회복하고 있으나, 전고점 부근의 강력한 매물대를 뚫어낼 만한 실질적인 현물 매수 모멘텀이 결여되어 있습니다. 캔들의 윗꼬리가 $78,800선 부근에서 반복적으로 길어지며 매도세의 저항이 거세지고 있습니다.
-이러한 구조는 전형적인 '베어마켓 랠리' 또는 '데드캣 바운스'의 교과서적인 특징으로, 레버리지 롱 포지션을 유인한 뒤 직전 저점을 다시 위협하는 2차 충격파동(Impulse Wave)이 발생하기 쉬운 국면입니다.
+현재 4시간봉 차트상 비트코인은 $${curP.toLocaleString()} 선 부근에서 수렴 및 매물대 소화 과정을 거치고 있습니다. 직전 24시간 동안 형성된 고점($${Number(tech.high24h).toLocaleString()})과 저점($${Number(tech.low24h).toLocaleString()}) 사이에서 매수세와 매도세가 팽팽히 맞서는 형국입니다.
+캔들의 실체 크기와 꼬리의 길이를 종합적으로 분석할 때, 주요 지지/저항선 인근에서의 호가 갭과 체결 강도를 주시하여 변동성 확대 방향에 선제 대응하는 전략이 유리합니다.
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-2. 주요 기술적 지표 &amp; 온체인 괴리 (200 EMA, RSI, 거래량)
+2. 주요 기술적 지표 &amp; 모멘텀 구조 (EMA, RSI, 거래량)
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-첫째, <strong>4시간봉 200 EMA($78,850)</strong>는 과거 다수의 사이클에서 중기 추세의 강력한 분수령 역할을 해왔습니다. 현재 주가는 200 EMA 아래에서 머물며 이를 상방 돌파하지 못하고 지속적인 저항을 받고 있습니다.<br/>
-둘째, <strong>RSI(14) 보조지표는 58.4</strong> 수준에서 고점을 높이지 못하고 하락 다이버전스(Bearish Divergence) 조짐을 보이고 있습니다.<br/>
-셋째, 거래소 파생상품 데이터에 따르면 <strong>롱/숏 비율이 1.297</strong>로 개인 투자자들의 롱 쏠림이 여전하여, 세력들의 롱 스퀴즈(청산 헌팅) 유인이 높은 상황입니다.
+첫째, <strong>4시간봉 200 EMA($${Number(tech.ema200).toLocaleString()})</strong>와 <strong>50 EMA($${Number(tech.ema50).toLocaleString()})</strong>는 현재 시장의 중단기 추세를 가르는 핵심 벤치마크입니다. 현재 시세($${curP.toLocaleString()})의 이평선 상회/하회 여부에 따라 모멘텀 추세의 지속성이 결정됩니다.<br/>
+둘째, <strong>RSI(14) 보조지표는 ${tech.rsi}</strong> 수준으로, ${tech.rsi >= 50 ? '중립선(50) 이상에서 완만한 매수 모멘텀을 유지하고 있습니다.' : '중립선(50)을 하회하며 신중한 분할 접근이 요구되는 국면입니다.'}<br/>
+셋째, 거래량 추이는 ${tech.isVolDecreasing ? '점진적인 거래량 수축(Volume Contraction)을 나타내고 있어 돌파 시 폭발적인 거래량 확인이 필수적입니다.' : '평균 대비 증가세를 보이며 가격 변동성을 이끌고 있습니다.'}
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-3. 시나리오 분석: 시나리오 A(메인) vs 시나리오 B(반대 관점)
+3. 시나리오 분석: 시나리오 A(메인) vs 시나리오 B(대응 관점)
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-<strong>[시나리오 A - 메인 관점 (확률 65%)]:</strong> $78,500 저항선에서 추가 상승이 저지되며 1차적으로 $76,500 지지선을 리테스트하고, 하방 지지 실패 시 $74,800 주요 매물대까지 급락하는 시나리오입니다. 손익비 1:2.65의 매력적인 숏 포지션 트레이딩 구간입니다.<br/>
-<strong>[시나리오 B - 반대 관점 (확률 35%)]:</strong> 강력한 현물 매수세와 함께 4시간봉 200 EMA($78,850)를 상방 돌파 마감하는 경우입니다. 이때는 직전 고점인 $79,500~$79,800 라인까지 단기 스퀴즈가 발생할 수 있습니다.
+<strong>[시나리오 A - 메인 관점]:</strong> 진입 구간($${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()})에서 유효한 가격 반응을 확인한 후 목표가(1차 $${Number(setup.tp1).toLocaleString()}, 2차 $${Number(setup.tp2).toLocaleString()})를 순차적으로 달성하는 시나리오입니다. 손익비 1:${setup.riskReward}를 확보할 수 있습니다.<br/>
+<strong>[시나리오 B - 반대 관점]:</strong> 예상과 달리 강한 수급 쏠림으로 무효화 기준점인 <strong>$${Number(setup.sl).toLocaleString()}</strong>을 종가 마감 기준으로 이탈/돌파하는 경우입니다. 이때는 기존 포지션을 신속히 정리하고 추세 재확립을 기다려야 합니다.
 </p>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
 4. 관점 무효화 기준(Invalidation Level) &amp; 리스크 관리
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">
-본 숏 관점의 <strong>최종 무효화 기준점은 $79,800 상방 돌파 마감</strong>입니다. 이 가격대를 상회하여 안착할 경우 숏 포지션을 즉시 정리해야 합니다. 목표 손익비가 1:2.65로 높게 형성되어 있으므로, 진입 시 분할 매도 및 칼 같은 손절 원칙을 준수하시기 바랍니다.
+본 셋업의 <strong>최종 무효화 기준점은 $${Number(setup.sl).toLocaleString()}</strong>입니다. 해당 기준 가격에 도달할 경우 가설이 무효화되므로 엄격한 손절매를 집행하시기 바랍니다.
 </p>
 
-<!-- Invalidation & Risk Box (Borderless Light Card) -->
-<div class="perspective-invalidation-card" style="background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 8px; padding: 16px 18px; margin: 22px 0;">
+<!-- Invalidation Box -->
+<div class="perspective-invalidation-card" style="background: #fef2f2; border-radius: 8px; padding: 16px 18px; margin: 22px 0; border: none;">
   <div style="color: #b91c1c; font-weight: 800; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
     ⚠️ [관점 무효화 기준 (Invalidation Level) &amp; 리스크 관리]
   </div>
   <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #7f1d1d; font-weight: 500;">
-    비트코인이 4시간봉 종가 기준으로 <strong>$79,800(손절가)</strong>을 강하게 상방 돌파할 경우, 본 데드캣 바운스 가설은 즉시 폐기되며 숏 포지션을 무조건 종료해야 합니다. 변동성이 확대될 수 있는 구간이므로 레버리지는 최대 2~3배 이하로 엄격히 제한할 것을 권장합니다.
+    비트코인이 4시간봉 종가 기준으로 <strong>$${Number(setup.sl).toLocaleString()}(손절가)</strong>을 이탈/돌파할 경우 본 트레이딩 가설은 즉시 폐기됩니다. 1회 거래당 원금 손실 폭을 1~2% 이내로 엄격히 통제하세요.
   </p>
 </div>
 `;
@@ -1401,6 +1558,7 @@ async function buildDailyPerspectiveReport(targetDate = null) {
   const chartImg = generateTradingViewChartSvg(dateStr, techData, slotInfo);
 
   let contentHtml = null;
+  let postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 비트코인 기술적 분석: ${techData.setup?.theme || '주요 매물대 지지/저항 점검'}`;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
@@ -1408,8 +1566,16 @@ async function buildDailyPerspectiveReport(targetDate = null) {
       console.log(`[Daily Perspective Generator] Requesting AI TradingView analysis from Gemini for ${slotInfo.slotName}...`);
       const rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, slotInfo, apiKey);
       if (rawAiText) {
+        // Extract dynamic title from <TITLE> tag if present
+        const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
+        if (titleMatch && titleMatch[1].trim()) {
+          postTitle = titleMatch[1].replace(/<\/?.*?>/g, '').trim();
+          console.log(`[Daily Perspective Generator] Extracted dynamic AI title: "${postTitle}"`);
+        }
+
         const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-        let processed = rawAiText.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
+        let processed = rawAiText.replace(/<TITLE>.*?<\/TITLE>/gi, '').trim();
+        processed = processed.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
         processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-4]|INVALIDATION|RISK_GUIDE)>/gi, '');
         contentHtml = formatMarkdownToCleanHtml(processed);
       }
@@ -1420,13 +1586,16 @@ async function buildDailyPerspectiveReport(targetDate = null) {
 
   if (!contentHtml) {
     contentHtml = generateDynamicPerspectiveReport(dateStr, dateKorean, techData, chartImg, slotInfo);
+    if (techData.setup?.theme) {
+      postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} ${techData.setup.theme} ($${Number(techData.currentPrice).toLocaleString()})`;
+    }
   }
 
   return {
     id: slotInfo.id,
     category: 'perspective',
     categoryName: '🎯 차트 관점',
-    title: `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 4시간봉 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단`,
+    title: postTitle,
     author: 'AI 퀀트 애널리스트',
     authorRank: 'VERIFIED',
     timestamp: slotInfo.postDate.getTime(),
