@@ -2246,6 +2246,219 @@ async function loadDailyMarketReports(force = false) {
 }
 window.loadDailyMarketReports = loadDailyMarketReports;
 
+// ==========================================
+// Manual AI Market Report Trigger Modal (GitHub Actions Integration)
+// ==========================================
+function openManualReportModal() {
+  const modal = document.getElementById('modal-manual-report');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const tokenInput = document.getElementById('manual-report-token');
+  const saveCheck = document.getElementById('manual-report-save-token');
+  const statusBox = document.getElementById('manual-report-status-box');
+  const runBtn = document.getElementById('manual-report-run-btn');
+
+  if (statusBox) statusBox.classList.add('hidden');
+  if (runBtn) {
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>지금 즉시 실행하기</span>';
+  }
+
+  const savedToken = localStorage.getItem('crytopnl_admin_pat') || '';
+  if (tokenInput) {
+    tokenInput.value = savedToken;
+  }
+  if (saveCheck) {
+    saveCheck.checked = true;
+  }
+
+  // Detect current session
+  const now = new Date();
+  const kstHours = (now.getUTCHours() + 9) % 24;
+  let sessionName = '야간 관점 (21:00)';
+  if (kstHours >= 20 || kstHours < 2) {
+    sessionName = '야간 관점 (21:00) [미국 증시 개장/파생 변동성]';
+  } else if (kstHours >= 15) {
+    sessionName = '오후 관점 (17:00) [유럽 런던장 개장 세션]';
+  } else {
+    sessionName = '오전 관점 (09:00) [아시아장/일봉 마감 세션]';
+  }
+
+  const targetBadge = document.getElementById('manual-report-target-slot');
+  if (targetBadge) {
+    targetBadge.textContent = sessionName;
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.openManualReportModal = openManualReportModal;
+
+function closeManualReportModal() {
+  const modal = document.getElementById('modal-manual-report');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeManualReportModal = closeManualReportModal;
+
+function toggleReportTokenVisibility() {
+  const input = document.getElementById('manual-report-token');
+  const icon = document.getElementById('token-eye-icon');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    if (icon) icon.setAttribute('data-lucide', 'eye');
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.toggleReportTokenVisibility = toggleReportTokenVisibility;
+
+let _manualReportTimer = null;
+async function executeManualReportTrigger() {
+  const tokenInput = document.getElementById('manual-report-token');
+  const saveCheck = document.getElementById('manual-report-save-token');
+  const statusBox = document.getElementById('manual-report-status-box');
+  const statusTitle = document.getElementById('manual-report-status-title');
+  const statusDesc = document.getElementById('manual-report-status-desc');
+  const progressBar = document.getElementById('manual-report-progress-bar');
+  const runBtn = document.getElementById('manual-report-run-btn');
+
+  const token = tokenInput ? tokenInput.value.trim() : '';
+  if (!token) {
+    alert('GitHub Personal Access Token (PAT)을 입력해 주세요.\\n토큰이 없으시면 상단의 [토큰 발급하기] 링크를 클릭하여 생성할 수 있습니다.');
+    if (tokenInput) tokenInput.focus();
+    return;
+  }
+
+  if (saveCheck && saveCheck.checked) {
+    localStorage.setItem('crytopnl_admin_pat', token);
+  } else {
+    localStorage.removeItem('crytopnl_admin_pat');
+  }
+
+  // UI state: Running
+  if (runBtn) {
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> <span>트리거 요청 중...</span>';
+  }
+  if (statusBox) statusBox.classList.remove('hidden');
+  if (statusTitle) {
+    statusTitle.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-purple-400"></i> <span>GitHub Actions에 실행 신호 전송 중...</span>';
+  }
+  if (statusDesc) {
+    statusDesc.textContent = 'GitHub API에 workflow_dispatch 요청을 전달하고 있습니다...';
+  }
+  if (progressBar) {
+    progressBar.style.width = '15%';
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  try {
+    const res = await fetch('https://api.github.com/repos/ittechkjh/homepage/actions/workflows/daily-market-report.yml/dispatches', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28'
+      },
+      body: JSON.stringify({ ref: 'main' })
+    });
+
+    if (res.status === 204) {
+      // Successfully triggered!
+      let secondsLeft = 35;
+      if (statusTitle) {
+        statusTitle.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span class="text-emerald-300">GitHub Actions 실행 시작!</span>';
+      }
+      if (statusDesc) {
+        statusDesc.innerHTML = `AI 퀀트 엔진이 실시간 4H 캔들과 엘리엇/하모닉 파동을 분석 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${secondsLeft}초 후 새 글이 자동 반영됩니다...</span>`;
+      }
+      if (runBtn) {
+        runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${secondsLeft}s)</span>`;
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      clearInterval(_manualReportTimer);
+      _manualReportTimer = setInterval(async () => {
+        secondsLeft--;
+        const pct = Math.min(95, Math.round(((35 - secondsLeft) / 35) * 85 + 15));
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (runBtn) {
+          runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${secondsLeft}s)</span>`;
+        }
+        if (statusDesc) {
+          statusDesc.innerHTML = `AI 퀀트 엔진이 실시간 4H 캔들과 엘리엇/하모닉 파동을 분석 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${Math.max(1, secondsLeft)}초 후 새 글이 자동 반영됩니다...</span>`;
+        }
+
+        if (secondsLeft <= 0) {
+          clearInterval(_manualReportTimer);
+          if (progressBar) progressBar.style.width = '100%';
+          if (statusTitle) {
+            statusTitle.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> <span class="text-cyan-300">새 관점 리포트 발행 완료!</span>';
+          }
+          if (statusDesc) {
+            statusDesc.textContent = '최신 리포트를 불러와 게시판을 갱신합니다. 차트 관점 탭으로 이동합니다...';
+          }
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+
+          if (typeof loadDailyMarketReports === 'function') {
+            await loadDailyMarketReports(true);
+          }
+          if (typeof filterForum === 'function') {
+            filterForum('perspective');
+          }
+
+          setTimeout(() => {
+            closeManualReportModal();
+            alert('🎉 최신 AI 차트 관점 리포트가 성공적으로 발행되어 게시판에 등록되었습니다!');
+          }, 1500);
+        }
+      }, 1000);
+
+    } else if (res.status === 401 || res.status === 403) {
+      if (statusTitle) {
+        statusTitle.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> <span class="text-rose-400">토큰 인증 실패 (HTTP ' + res.status + ')</span>';
+      }
+      if (statusDesc) {
+        statusDesc.textContent = 'GitHub 토큰이 올바르지 않거나 repo, workflow 권한이 없습니다. 토큰을 다시 확인해주세요.';
+      }
+      if (runBtn) {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>다시 시도하기</span>';
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    } else {
+      const errText = await res.text().catch(() => '');
+      if (statusTitle) {
+        statusTitle.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i> <span class="text-rose-400">호출 실패 (HTTP ' + res.status + ')</span>';
+      }
+      if (statusDesc) {
+        statusDesc.textContent = errText || '알 수 없는 오류가 발생했습니다.';
+      }
+      if (runBtn) {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>다시 시도하기</span>';
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  } catch(e) {
+    if (statusTitle) {
+      statusTitle.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i> <span class="text-rose-400">네트워크 오류</span>';
+    }
+    if (statusDesc) {
+      statusDesc.textContent = e.message;
+    }
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>다시 시도하기</span>';
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+window.executeManualReportTrigger = executeManualReportTrigger;
+
 function saveStoredPosts(posts) {
   const deletedIds = getDeletedPostIds();
   const cleanPosts = (posts || []).filter(p => {
