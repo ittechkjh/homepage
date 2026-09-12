@@ -2,10 +2,12 @@ name: Generate Daily Crypto Market Report
 
 on:
   schedule:
-    - cron: '0 20 * * *' # 05:00 KST (20:00 UTC) - Morning report & 09:00 perspective pre-generation
-    - cron: '0 0 * * *'  # 09:00 KST (00:00 UTC) - Morning session perspective update
-    - cron: '0 8 * * *'  # 17:00 KST (08:00 UTC) - Afternoon session perspective update (17:00)
-    - cron: '0 12 * * *' # 21:00 KST (12:00 UTC) - Night session perspective update (21:00)
+    - cron: '50 19 * * *' # 04:50 KST (19:50 UTC) - Morning report & 09:00 perspective pre-generation
+    - cron: '55 23 * * *' # 08:55 KST (23:55 UTC) - Morning session perspective update (ready for 09:00 KST)
+    - cron: '55 7 * * *'  # 16:55 KST (07:55 UTC) - Afternoon session perspective update (ready for 17:00 KST)
+    - cron: '15 8 * * *'  # 17:15 KST (08:15 UTC) - Afternoon backup retry (prevents GitHub delay drops)
+    - cron: '55 11 * * *' # 20:55 KST (11:55 UTC) - Night session perspective update (ready for 21:00 KST)
+    - cron: '15 12 * * *' # 21:15 KST (12:15 UTC) - Night backup retry (prevents GitHub delay drops)
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 permissions:
@@ -22,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Generate daily 08:00 KST market report
         env:
