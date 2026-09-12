@@ -587,12 +587,12 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
     ],
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 3500
+      maxOutputTokens: 4500
     }
   };
 
-  // Try gemini-3.6-flash first, fallback to gemini-3.5-flash and gemini-flash-latest
-  const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  // gemini-3.5-flash is confirmed stable and fast, with fallbacks to 3.6-flash and flash-latest
+  const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest'];
   for (const model of models) {
     try {
       console.log(`[Gemini AI] Calling ${model}...`);
@@ -605,14 +605,20 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
       });
       if (res.ok) {
         const data = await res.json();
-        const parts = data.candidates?.[0]?.content?.parts || [];
+        const candidate = data.candidates?.[0];
+        const finishReason = candidate?.finishReason || 'UNKNOWN';
+        const parts = candidate?.content?.parts || [];
         const text = parts.map(p => p.text || '').join('').trim();
+        console.log(`[Gemini AI] ${model} finishReason: ${finishReason}, parts: ${parts.length}, text length: ${text.length}`);
         if (text && text.length > 500) {
           console.log(`[Gemini AI] Successfully generated report with ${model} (${text.length} chars)`);
           return text;
+        } else {
+          console.warn(`[Gemini AI] ${model} text length (${text.length}) is below 500 characters.`);
         }
       } else {
-        console.warn(`[Gemini AI] ${model} responded with HTTP ${res.status}`);
+        const errBody = await res.text().catch(() => '');
+        console.warn(`[Gemini AI] ${model} responded with HTTP ${res.status}: ${errBody.slice(0, 150)}`);
       }
     } catch (err) {
       console.warn(`[Gemini AI] Error calling ${model}:`, err.message);
