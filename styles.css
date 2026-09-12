@@ -958,4 +958,18 @@ html.theme-light #cafe-post-content hr {
   border-top: 1px solid #e2e8f0 !important;
 }
 
+/* Yearend Tax Card Accordion Styles */
+.ytax-card-details summary::-webkit-details-marker {
+  display: none;
+}
+.ytax-card-details summary {
+  list-style: none;
+}
+.ytax-card-details[open] .ytax-chevron {
+  transform: rotate(180deg);
+}
+.ytax-chevron {
+  transition: transform 0.2s ease-in-out;
+}
+
 
