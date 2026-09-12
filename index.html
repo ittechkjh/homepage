@@ -6221,9 +6221,18 @@
               <span class="block text-[10px] text-slate-400 font-semibold">등록 정책</span>
               <span id="policy-result-count" class="text-xl font-black text-emerald-400 font-mono">14</span>
             </div>
-            <div class="px-3 py-1 text-center">
+            <div class="px-3 py-1 text-center border-r border-navy-800">
               <span class="block text-[10px] text-slate-400 font-semibold">최대 감면율</span>
               <span class="text-xl font-black text-cyan-400 font-mono">100%</span>
+            </div>
+            <div class="px-3 py-1 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="block text-[10px] text-slate-400 font-semibold">최근 업데이트</span>
+                <button type="button" onclick="PolicyHub.refresh()" class="text-slate-400 hover:text-emerald-400 transition" title="정책 데이터 새로고침">
+                  <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+              <span id="policy-last-updated" class="text-xs sm:text-sm font-bold text-emerald-300 font-mono">확인 중...</span>
             </div>
           </div>
         </div>

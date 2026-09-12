@@ -2,7 +2,7 @@ name: Update Government Policy Data
 
 on:
   schedule:
-    - cron: '0 19 * * *' # Every day at 04:00 KST (19:00 UTC)
+    - cron: '18 19 * * *' # Every day at 04:18 KST (19:18 UTC, off-peak minute to bypass GitHub queue delays)
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 permissions:
@@ -11,6 +11,7 @@ permissions:
 jobs:
   update-policies:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository

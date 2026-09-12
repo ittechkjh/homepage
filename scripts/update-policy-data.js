@@ -148,7 +148,7 @@ const CURATED_POLICIES = [
 
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const req = https.get(url, { timeout: 15000 }, (res) => {
       if (res.statusCode < 200 || res.statusCode >= 300) {
         return reject(new Error(`Status ${res.statusCode}: ${res.statusMessage}`));
       }
@@ -162,7 +162,11 @@ function fetchJson(url) {
           reject(e);
         }
       });
-    }).on('error', reject);
+    });
+    req.on('timeout', () => {
+      req.destroy(new Error('Request timed out after 15s'));
+    });
+    req.on('error', reject);
   });
 }
 

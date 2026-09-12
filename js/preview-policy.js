@@ -319,8 +319,24 @@
     car: 'all'
   };
 
-  async function loadRemotePolicies() {
-    if (isFetchingRemote) return;
+  function formatKoreanDateTime(isoStr) {
+    if (!isoStr) return '';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}.${month}.${day} ${hours}:${minutes}`;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async function loadRemotePolicies(force = false) {
+    if (isFetchingRemote && !force) return;
     isFetchingRemote = true;
     try {
       const res = await fetch('data/policy-data.json?v=' + Date.now());
@@ -349,14 +365,27 @@
           activePolicyList = merged;
           renderPolicyGrid();
 
+          const formattedDate = formatKoreanDateTime(json.updatedAt);
+          const updatedEl = document.getElementById('policy-last-updated');
+          if (updatedEl && formattedDate) {
+            updatedEl.innerText = formattedDate;
+          }
+
           const liveBadge = document.getElementById('policy-live-badge');
           if (liveBadge) {
-            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> <span>정부24 공공데이터 자동 연동 (${activePolicyList.length}건)</span>`;
+            const timeTag = formattedDate ? `<span class="hidden sm:inline text-emerald-300/80 text-[11px] font-normal ml-1">· 최근 갱신: ${formattedDate}</span>` : '';
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> <span>정부24 공공데이터 자동 연동 (${activePolicyList.length}건)</span>${timeTag}`;
+          }
+
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (e) {}
           }
         }
       }
     } catch (e) {
       console.warn('Fallback to local curated policies:', e);
+      const updatedEl = document.getElementById('policy-last-updated');
+      if (updatedEl) updatedEl.innerText = '로컬 큐레이션';
     } finally {
       isFetchingRemote = false;
     }
@@ -632,6 +661,9 @@
     init: function () {
       renderPolicyGrid();
       loadRemotePolicies();
+    },
+    refresh: function () {
+      loadRemotePolicies(true);
     },
     loadMore,
     filterCategory,
