@@ -2,7 +2,10 @@ name: Generate Daily Crypto Market Report
 
 on:
   schedule:
-    - cron: '0 20 * * *' # Every day at 05:00 KST (20:00 UTC)
+    - cron: '0 20 * * *' # 05:00 KST (20:00 UTC) - Morning report & 09:00 perspective pre-generation
+    - cron: '0 0 * * *'  # 09:00 KST (00:00 UTC) - Morning session perspective update
+    - cron: '0 8 * * *'  # 17:00 KST (08:00 UTC) - Afternoon session perspective update (17:00)
+    - cron: '0 12 * * *' # 21:00 KST (12:00 UTC) - Night session perspective update (21:00)
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 permissions:

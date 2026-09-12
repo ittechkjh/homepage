@@ -926,8 +926,10 @@ async function fetchBinance4hTechnicals() {
   }
 }
 
-function generateTradingViewChartSvg(dateStr, tech) {
+function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   const curP = Number(tech.currentPrice || 78370).toLocaleString();
+  const slotBadge = slotInfo ? slotInfo.slotHour + '시' : '4H';
+  const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 09:00`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
   <defs>
     <linearGradient id="bg_chart" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -939,9 +941,9 @@ function generateTradingViewChartSvg(dateStr, tech) {
   <rect width="800" height="420" rx="16" fill="url(#bg_chart)" stroke="#6366f1" stroke-width="1.5" stroke-opacity="0.35"/>
   
   <!-- Header -->
-  <rect x="20" y="16" width="110" height="26" rx="6" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
-  <text x="75" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC/USDT 4H</text>
-  <text x="145" y="34" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">트레이딩 셋업: 데드캣 바운스(Dead Cat Bounce) 리테스트</text>
+  <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
+  <text x="77" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC 4H [${slotBadge}]</text>
+  <text x="150" y="34" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">트레이딩 셋업: 데드캣 바운스(Dead Cat Bounce) 리테스트</text>
   <rect x="630" y="16" width="150" height="26" rx="6" fill="#06b6d4" fill-opacity="0.12" stroke="#06b6d4" stroke-opacity="0.35"/>
   <text x="705" y="33" fill="#22d3ee" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
   <line x1="20" y1="52" x2="780" y2="52" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
@@ -1042,14 +1044,21 @@ function generateTradingViewChartSvg(dateStr, tech) {
   <text x="35" y="390" fill="#94a3b8" font-size="10" font-family="sans-serif">기술적 보조지표:</text>
   <text x="135" y="390" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스 징후)</text>
   <text x="375" y="390" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏비율: 1.297 (롱 과밀집 청산 리스크)</text>
-  <text x="770" y="390" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="end">기준: ${dateStr} 08:30 KST • crytopnl.com</text>
+  <text x="770" y="390" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="end">기준: ${slotTimestampStr} KST • crytopnl.com</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
 
-async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, apiKey) {
+async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, apiKey) {
+  const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
+  const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
+  const sessionContext = slotInfo?.sessionContext || '당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간';
+
   const systemInstruction = `당신은 월가 프롭 트레이딩 출신의 수석 퀀트 트레이더(AI)입니다.
-트레이딩뷰(TradingView)의 Top Ideas 형식에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉)에 대한 전문 트레이딩 관점(Trading Perspective) 리포트를 작성하세요.
+트레이딩뷰(TradingView)의 Top Ideas 형식에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉) [${slotName} - ${sessionTitle}] 전문 트레이딩 관점(Trading Perspective) 리포트를 작성하세요.
+
+[세션 특화 배경]
+${sessionContext}
 
 [필수 요구사항]
 1. 트레이딩뷰 전문 애널리스트 톤앤매너: 군더더기 없이 객관적이고 날카로운 기술적 분석 제공
@@ -1057,15 +1066,15 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, apiKey) {
 3. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함
 4. 다크 테마 HTML 서식: #f8fafc(텍스트), #22d3ee(강조), #f43f5e(약세/손절), #10b981(목표가/강세), #a855f7(지표) 스타일 적용
 5. 구성:
-   - <HEADER>[BTC/USDT 관점] 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
+   - <HEADER>[BTC/USDT ${slotName}] 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
    - <!-- TRADINGVIEW_CHART_IMAGE -->
    - <SETUP_BOX>트레이딩 셋업 카드 (포지션: SHORT, 진입: $78,200~$78,600, TP1: $76,500, TP2: $74,800, SL: $79,800, 손익비: 1:2.65)</SETUP_BOX>
    - <SECTION_1>1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) vs 추세 전환 (2문단)</SECTION_1>
    - <SECTION_2>2. 기술적 지표 & 온체인 괴리 (200 EMA 저항, RSI 약세 다이버전스, 볼륨 수축) (2문단)</SECTION_2>
-   - <SECTION_3>3. 시나리오 분석: 시나리오 A(메인 하방 리테스트) vs 시나리오 B(불트랩 돌파) (2문단)</SECTION_3>
+   - <SECTION_3>3. 세션별 시나리오 분석: 시나리오 A(메인 하방 리테스트) vs 시나리오 B(불트랩 돌파) (2문단)</SECTION_3>
    - <SECTION_4>4. 관점 무효화 기준(Invalidation Level) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
 
-  const userPrompt = `[현재 BTC/USDT 기술적 지표 데이터 (${dateKorean} 기준)]
+  const userPrompt = `[현재 BTC/USDT 기술적 지표 데이터 (${dateKorean} ${slotName} 기준)]
 - 현재 시세: $${Number(tech.currentPrice).toLocaleString()}
 - 4시간봉 200 EMA: $78,850 (핵심 저항선 및 수평 매물대)
 - 4시간봉 50 EMA: $77,800 (단기 지지/이평선)
@@ -1073,6 +1082,7 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, apiKey) {
 - 거래량: 반등 구간에서 지속 감소하는 거래량 수축(Volume Contraction) 확인
 - 선물 미결제약정: $34.8B (고점권 정체)
 - 롱/숏 비율: 1.297 (롱 56.5% / 숏 43.5%, 롱 과밀집 청산 리스크)
+- 현재 세션: ${sessionTitle}
 - 트레이딩 셋업 파라미터:
   * 포지션 방향: SHORT (하방 리테스트)
   * 진입 구간: $78,200 ~ $78,600
@@ -1123,15 +1133,65 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, apiKey) {
   return null;
 }
 
-function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg) {
+function getPerspectiveSlotInfo(kstDate = null) {
+  const kst = kstDate || getKSTDate();
+  const hour = kst.getHours();
+  const year = kst.getFullYear();
+  const month = String(kst.getMonth() + 1).padStart(2, '0');
+  const day = String(kst.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${month}-${day}`;
+  const dateKey = `${year}${month}${day}`;
+
+  if (hour >= 20) {
+    // 20:00 ~ 23:59: 21:00 야간 세션 (미국 증시 개장/야간 파생상품 변동성)
+    return {
+      slot: '21',
+      slotHour: 21,
+      slotName: '야간 관점 (21:00)',
+      sessionTitle: '야간 미국 증시 개장 및 파생시장 변동성',
+      sessionContext: '미국 정규 주식/파생시장 개장 시간대로 글로벌 기관 주문 및 레버리지 청산 변동성이 급증하는 구간',
+      id: `perspective-${dateKey}-21`,
+      timeStr: `${dateStr} 21:00`,
+      postDate: new Date(`${dateStr}T21:00:00+09:00`)
+    };
+  } else if (hour >= 15) {
+    // 15:00 ~ 19:59: 17:00 오후 세션 (유럽 런던장 개장)
+    return {
+      slot: '17',
+      slotHour: 17,
+      slotName: '오후 관점 (17:00)',
+      sessionTitle: '오후 유럽 런던장 개장 및 추세 중간 점검',
+      sessionContext: '런던 금융시장 개장에 맞춰 유럽발 기관 유동성이 공급되며 아시아 세션의 추세 돌파 또는 지지 안착을 시험하는 구간',
+      id: `perspective-${dateKey}-17`,
+      timeStr: `${dateStr} 17:00`,
+      postDate: new Date(`${dateStr}T17:00:00+09:00`)
+    };
+  } else {
+    // 00:00 ~ 14:59: 09:00 오전 세션 (아시아장/일봉 마감)
+    return {
+      slot: '09',
+      slotHour: 9,
+      slotName: '오전 관점 (09:00)',
+      sessionTitle: '오전 일봉 마감 및 아시아장 개장 분석',
+      sessionContext: '글로벌 암호화폐 일봉 캔들이 마감되고 아시아 시장이 본격 개장하는 시간대로 당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간',
+      id: `perspective-${dateKey}-09`,
+      timeStr: `${dateStr} 09:00`,
+      postDate: new Date(`${dateStr}T09:00:00+09:00`)
+    };
+  }
+}
+
+function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, slotInfo = null) {
   const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
+  const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
+  const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
 
   return `
 <h3 style="font-size: 16px; font-weight: 700; color: #a855f7; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-  🎯 [BTC/USDT 4H 관점] 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단
+  🎯 [BTC/USDT ${slotName}] 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단 (${sessionTitle})
 </h3>
 <p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
-${dateKorean} 기준 비트코인은 단기 급락 이후 $78,370 선까지 기술적 반등을 시도하고 있으나, 4시간봉 주요 이동평균선인 200 EMA($78,850) 및 직전 고점 매물대의 강한 저항에 직면해 있습니다. 특히 이번 반등 파동은 거래량이 지속적으로 줄어드는 전형적인 <strong>'거래량 수축형 약세 반등(Volume Contraction Bounce)'</strong> 패턴을 띠고 있어, 추가 상승보다는 일시적 반등 후 하방 리테스트가 전개되는 <strong>'데드캣 바운스(Dead Cat Bounce)'</strong> 가능성에 높은 무게를 둡니다.
+${dateKorean} ${slotName} 기준 비트코인은 $78,370 선 부근에서 기술적 반등을 시도하고 있으나, 4시간봉 주요 이동평균선인 200 EMA($78,850) 및 직전 고점 매물대의 강한 저항에 직면해 있습니다. 특히 이번 반등 파동은 거래량이 지속적으로 줄어드는 전형적인 <strong>'거래량 수축형 약세 반등(Volume Contraction Bounce)'</strong> 패턴을 띠고 있어, 추가 상승보다는 일시적 반등 후 하방 리테스트가 전개되는 <strong>'데드캣 바운스(Dead Cat Bounce)'</strong> 가능성에 높은 무게를 둡니다.
 </p>
 
 <!-- Chart Setup Image -->
@@ -1198,24 +1258,24 @@ ${chartTag}
 `;
 }
 
-// Master technical trading perspective generator
+// Master technical trading perspective generator (supports 3 daily slots: 09:00, 17:00, 21:00)
 async function buildDailyPerspectiveReport(targetDate = null) {
   const kst = targetDate ? new Date(targetDate) : getKSTDate();
   const dateStr = formatDateString(kst);
   const dateKorean = formatDateKorean(kst);
-  const reportId = `perspective-${dateStr.replace(/-/g, '')}`;
+  const slotInfo = getPerspectiveSlotInfo(kst);
 
-  console.log(`[Daily Perspective Generator] Analyzing 4H Technicals for ${dateStr}...`);
+  console.log(`[Daily Perspective Generator] Analyzing 4H Technicals for ${slotInfo.timeStr} [${slotInfo.slotName}]...`);
   const techData = await fetchBinance4hTechnicals();
-  const chartImg = generateTradingViewChartSvg(dateStr, techData);
+  const chartImg = generateTradingViewChartSvg(dateStr, techData, slotInfo);
 
   let contentHtml = null;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
     try {
-      console.log('[Daily Perspective Generator] Requesting AI TradingView analysis from Gemini...');
-      const rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, apiKey);
+      console.log(`[Daily Perspective Generator] Requesting AI TradingView analysis from Gemini for ${slotInfo.slotName}...`);
+      const rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, slotInfo, apiKey);
       if (rawAiText) {
         const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
         let processed = rawAiText.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
@@ -1228,19 +1288,18 @@ async function buildDailyPerspectiveReport(targetDate = null) {
   }
 
   if (!contentHtml) {
-    contentHtml = generateDynamicPerspectiveReport(dateStr, dateKorean, techData, chartImg);
+    contentHtml = generateDynamicPerspectiveReport(dateStr, dateKorean, techData, chartImg, slotInfo);
   }
 
-  const postDate = new Date(`${dateStr}T08:30:00+09:00`);
   return {
-    id: reportId,
+    id: slotInfo.id,
     category: 'perspective',
     categoryName: '🎯 차트 관점',
-    title: `[BTC/USDT 관점] 4시간봉 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단`,
+    title: `[BTC/USDT ${slotInfo.slotName}] 4시간봉 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단`,
     author: 'AI 퀀트 애널리스트',
     authorRank: 'VERIFIED',
-    timestamp: postDate.getTime(),
-    time: `${dateStr} 08:30`,
+    timestamp: slotInfo.postDate.getTime(),
+    time: slotInfo.timeStr,
     views: 1,
     upvotes: 0,
     isNotice: false,
@@ -1267,13 +1326,22 @@ async function main() {
   const todayReport = await buildDailyMarketReport();
   const todayPerspective = await buildDailyPerspectiveReport();
   
-  // Upsert today's reports (both morning report and trading perspective)
-  const filtered = existingReports.filter(r => r.id !== todayReport.id && r.id !== todayPerspective.id);
-  const updatedReports = [todayPerspective, todayReport, ...filtered].slice(0, 40); // Keep last 40 daily reports
+  // Upsert today's reports:
+  // - Replace today's morning report if matching
+  // - Replace today's perspective report matching this exact slot
+  // - Clean up legacy un-suffixed perspective id if present
+  const filtered = existingReports.filter(r => {
+    if (r.id === todayReport.id) return false;
+    if (r.id === todayPerspective.id) return false;
+    if (todayPerspective.id.endsWith('-09') && r.id === todayPerspective.id.replace('-09', '')) return false;
+    return true;
+  });
+
+  const updatedReports = [todayPerspective, todayReport, ...filtered].slice(0, 50); // Keep last 50 reports
 
   const payload = {
     lastUpdated: new Date().toISOString(),
-    generatorVersion: '2.1.0-trading-perspective-enabled',
+    generatorVersion: '2.2.0-thrice-daily-perspective',
     totalReports: updatedReports.length,
     reports: updatedReports
   };

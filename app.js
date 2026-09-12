@@ -2026,7 +2026,7 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
-  if (category === 'altcoin' && typeof loadDailyMarketReports === 'function') {
+  if ((category === 'altcoin' || category === 'perspective') && typeof loadDailyMarketReports === 'function') {
     loadDailyMarketReports(true);
   }
   renderForumPosts();

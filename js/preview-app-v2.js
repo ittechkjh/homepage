@@ -2250,7 +2250,7 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
-  if (category === 'altcoin' && typeof loadDailyMarketReports === 'function') {
+  if ((category === 'altcoin' || category === 'perspective') && typeof loadDailyMarketReports === 'function') {
     loadDailyMarketReports(true);
   }
   renderForumPosts();
@@ -2353,6 +2353,7 @@ function renderForumPosts() {
     return `
       <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal('${post.id}')">
         <div class="flex-1 space-y-2">
+          <div class="flex items-center gap-2 flex-wrap">
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
             ${post.category === 'perspective' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">🎯 차트 관점</span>' : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '📊 시장 분위기' : post.categoryName)}</span>`}
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
