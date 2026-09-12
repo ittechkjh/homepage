@@ -140,7 +140,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260912_06">
+  <link rel="stylesheet" href="styles.css?v=20260912_07">
   <link rel="stylesheet" href="css/analyzer.css?v=20260907_02">
 
   <style>
@@ -1205,47 +1205,47 @@
       </a>
 
       <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-0.5 lg:gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink min-w-0 overflow-x-auto no-scrollbar">
-        <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="trending-up" class="w-4 h-4"></i> 시세
+      <nav class="hidden md:flex items-center gap-0.5 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink min-w-0 overflow-x-auto no-scrollbar">
+        <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 시세
         </button>
-        <button onclick="switchTab('onchain')" id="nav-onchain" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-cyan-300 hover:text-cyan-100">
-          <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+        <button onclick="switchTab('onchain')" id="nav-onchain" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-cyan-300 hover:text-cyan-100">
+          <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
           <span>온체인·고래</span>
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
         </button>
-        <button onclick="switchTab('patterns')" id="nav-patterns" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-400 hover:text-emerald-200">
-          <i data-lucide="scan" class="w-4 h-4 text-emerald-400"></i>
+        <button onclick="switchTab('patterns')" id="nav-patterns" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-emerald-400 hover:text-emerald-200">
+          <i data-lucide="scan" class="w-3.5 h-3.5 text-emerald-400"></i>
           <span>차트패턴</span>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
         </button>
-        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="messages-square" class="w-4 h-4"></i> 포럼·커뮤니티
+        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0">
+          <i data-lucide="messages-square" class="w-3.5 h-3.5"></i> 포럼
         </button>
-        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab active px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
-          <i data-lucide="calculator" class="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform"></i>
-          <span>손익 분석기</span>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab active px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
+          <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
+          <span>손익분석</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
-        <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i> 계산기 5종</button>
-        <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-teal-300 hover:text-teal-100 border border-teal-500/30 bg-teal-500/10 hover:border-teal-400 group shadow-sm">
-          <i data-lucide="receipt" class="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform"></i>
+        <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-3.5 h-3.5 text-amber-400"></i> 계산기</button>
+        <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-teal-300 hover:text-teal-100 border border-teal-500/30 bg-teal-500/10 hover:border-teal-400 group shadow-sm">
+          <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400 group-hover:scale-110 transition-transform"></i>
           <span>연말정산 팁</span>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
         </button>
-        <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-extrabold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 group shadow-sm">
-          <i data-lucide="landmark" class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform"></i>
-          <span>🏛️ 정책 혜택</span>
-          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
+        <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-teal-400 group shadow-sm">
+          <i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform"></i>
+          <span>정책혜택</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
         </button>
-        <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <i data-lucide="newspaper" class="w-4 h-4"></i> 속보
+        <button onclick="switchTab('news')" id="nav-news" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0">
+          <i data-lucide="newspaper" class="w-3.5 h-3.5"></i> 속보
         </button>
-        <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100">
-          <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i> 코인 일정
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400"></i> 일정
         </button>
-        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition items-center gap-1.5 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
-          <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> 관리자
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab hidden px-2.5 py-1.5 rounded-lg text-xs font-bold transition items-center gap-1 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i> 관리자
           <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
         </button>
       </nav>
