@@ -2047,9 +2047,62 @@ async function loadDailyMarketReports(force = false) {
 window.loadDailyMarketReports = loadDailyMarketReports;
 
 // ==========================================
-// Manual AI Market Report Trigger Modal (GitHub Actions Integration)
+// Manual AI Market Report Trigger Modal (GitHub Actions & Firebase Firestore Integration)
 // ==========================================
-function openManualReportModal() {
+async function saveReportTokenToDatabase() {
+  const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
+  let isLocalAdmin = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || '{}');
+    if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
+      isLocalAdmin = true;
+    }
+  } catch(e) {}
+  const isAuth = isSessionAuth || isLocalAdmin || (typeof isAdmin === 'function' && isAdmin());
+  if (!isAuth) {
+    alert('관리자만 저장할 수 있습니다.');
+    return;
+  }
+
+  const tokenInput = document.getElementById('manual-report-token');
+  const token = tokenInput ? tokenInput.value.trim() : '';
+  if (!token) {
+    alert('저장할 GitHub PAT 토큰을 입력해주세요.');
+    if (tokenInput) tokenInput.focus();
+    return;
+  }
+
+  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!firestore) {
+    alert('Firebase 데이터베이스 연결을 찾을 수 없습니다.');
+    return;
+  }
+
+  try {
+    await firestore.collection('system_config').doc('admin_settings').set({
+      githubPat: token,
+      githubPatUpdatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    // Clean up browser storage
+    localStorage.removeItem('crytopnl_admin_pat');
+    localStorage.removeItem('coinhub_admin_pat');
+    localStorage.removeItem('cryptopnl_admin_pat');
+
+    const dbStatus = document.getElementById('manual-report-db-status');
+    if (dbStatus) {
+      dbStatus.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i> <span class="text-emerald-400 font-bold">DB 저장 완료</span>';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    alert('🎉 GitHub PAT 토큰이 Firebase 데이터베이스에 안전하게 저장되었습니다!\n(브라우저 로컬 저장소에는 일체 저장되지 않습니다)');
+  } catch(e) {
+    console.error('Failed to save PAT to Firestore:', e);
+    alert('데이터베이스 저장 중 오류가 발생했습니다: ' + e.message);
+  }
+}
+window.saveReportTokenToDatabase = saveReportTokenToDatabase;
+
+async function openManualReportModal() {
   const isSessionAuth = sessionStorage.getItem('coinhub_admin_authenticated') === '1' || sessionStorage.getItem('crytopnl_admin_authenticated') === '1';
   let isLocalAdmin = false;
   try {
@@ -2069,9 +2122,9 @@ function openManualReportModal() {
   modal.classList.remove('hidden');
 
   const tokenInput = document.getElementById('manual-report-token');
-  const saveCheck = document.getElementById('manual-report-save-token');
   const statusBox = document.getElementById('manual-report-status-box');
   const runBtn = document.getElementById('manual-report-run-btn');
+  const dbStatus = document.getElementById('manual-report-db-status');
 
   if (statusBox) statusBox.classList.add('hidden');
   if (runBtn) {
@@ -2079,12 +2132,58 @@ function openManualReportModal() {
     runBtn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>지금 즉시 실행하기</span>';
   }
 
-  const savedToken = localStorage.getItem('crytopnl_admin_pat') || '';
-  if (tokenInput) {
-    tokenInput.value = savedToken;
+  // Remove any legacy tokens from local browser storage
+  const legacyLocalToken = localStorage.getItem('crytopnl_admin_pat') || localStorage.getItem('coinhub_admin_pat') || '';
+  localStorage.removeItem('crytopnl_admin_pat');
+  localStorage.removeItem('coinhub_admin_pat');
+  localStorage.removeItem('cryptopnl_admin_pat');
+
+  if (tokenInput && !tokenInput.value) {
+    tokenInput.placeholder = 'Firebase DB에서 토큰 로딩 중...';
   }
-  if (saveCheck) {
-    saveCheck.checked = true;
+  if (dbStatus) {
+    dbStatus.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin text-cyan-400"></i> <span>DB 조회 중...</span>';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // Fetch token directly from Firebase Firestore system_config/admin_settings
+  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestore) {
+    try {
+      const doc = await firestore.collection('system_config').doc('admin_settings').get();
+      let dbPat = (doc.exists && doc.data()) ? doc.data().githubPat : null;
+
+      // Migrate legacy token to DB if DB is empty but browser had one
+      if (!dbPat && legacyLocalToken) {
+        dbPat = legacyLocalToken;
+        await firestore.collection('system_config').doc('admin_settings').set({
+          githubPat: legacyLocalToken,
+          githubPatUpdatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
+
+      if (dbPat) {
+        if (tokenInput) {
+          tokenInput.value = dbPat;
+          tokenInput.placeholder = 'ghp_로 시작하는 토큰이 등록되어 있습니다';
+        }
+        if (dbStatus) {
+          dbStatus.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i> <span class="text-emerald-400 font-bold">DB 연동됨</span>';
+        }
+      } else {
+        if (tokenInput) {
+          tokenInput.placeholder = 'ghp_로 시작하는 토큰을 입력 후 [DB저장]을 누르세요';
+        }
+        if (dbStatus) {
+          dbStatus.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-amber-400"></i> <span class="text-amber-400">DB 미등록</span>';
+        }
+      }
+    } catch(e) {
+      console.warn('Could not load githubPat from DB:', e);
+      if (dbStatus) {
+        dbStatus.innerHTML = '<i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400"></i> <span class="text-rose-400">DB 조회 실패</span>';
+      }
+    }
   }
 
   // Detect current session
@@ -2146,29 +2245,48 @@ async function executeManualReportTrigger() {
   }
 
   const tokenInput = document.getElementById('manual-report-token');
-  const saveCheck = document.getElementById('manual-report-save-token');
   const statusBox = document.getElementById('manual-report-status-box');
   const statusTitle = document.getElementById('manual-report-status-title');
   const statusDesc = document.getElementById('manual-report-status-desc');
   const progressBar = document.getElementById('manual-report-progress-bar');
   const runBtn = document.getElementById('manual-report-run-btn');
 
-  const token = tokenInput ? tokenInput.value.trim() : '';
+  let token = tokenInput ? tokenInput.value.trim() : '';
+
+  // If token input is empty, try to fetch from Firebase DB
+  const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!token && firestore) {
+    try {
+      const doc = await firestore.collection('system_config').doc('admin_settings').get();
+      if (doc.exists && doc.data() && doc.data().githubPat) {
+        token = doc.data().githubPat.trim();
+        if (tokenInput) tokenInput.value = token;
+      }
+    } catch(e) {}
+  }
+
   if (!token) {
-    alert('GitHub Personal Access Token (PAT)을 입력해 주세요.\n토큰이 없으시면 상단의 [토큰 발급하기] 링크를 클릭하여 생성할 수 있습니다.');
+    alert('GitHub Personal Access Token (PAT)을 입력해 주세요.\n입력 후 [DB저장]을 누르시면 Firebase 데이터베이스에 안전하게 보관됩니다.');
     if (tokenInput) tokenInput.focus();
     return;
   }
 
+  // If token was entered/modified, automatically persist to Firebase DB (merge)
+  if (firestore && token) {
+    firestore.collection('system_config').doc('admin_settings').set({
+      githubPat: token,
+      githubPatUpdatedAt: new Date().toISOString()
+    }, { merge: true }).catch(err => console.warn('Silent save githubPat error:', err));
+  }
+
+  // Ensure browser storage is cleared of token
+  localStorage.removeItem('crytopnl_admin_pat');
+  localStorage.removeItem('coinhub_admin_pat');
+  localStorage.removeItem('cryptopnl_admin_pat');
+
   // Selected report type
   const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
   const selectedType = typeRadio ? typeRadio.value : 'all';
-
-  if (saveCheck && saveCheck.checked) {
-    localStorage.setItem('crytopnl_admin_pat', token);
-  } else {
-    localStorage.removeItem('crytopnl_admin_pat');
-  }
 
   // UI state: Running
   if (runBtn) {
