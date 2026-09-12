@@ -140,7 +140,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260912_05">
+  <link rel="stylesheet" href="styles.css?v=20260912_06">
   <link rel="stylesheet" href="css/analyzer.css?v=20260907_02">
 
   <style>
@@ -1189,23 +1189,23 @@
 
   <!-- Main Navigation Header -->
   <header class="bg-navy-900/80 backdrop-blur-md border-b border-navy-800/80 sticky top-[37px] z-30">
-    <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="w-full max-w-[1600px] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-2">
       <!-- Logo -->
-      <a href="#/market" onclick="event.preventDefault(); switchTab('market')" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-          <i data-lucide="coins" class="w-6 h-6 text-white"></i>
+      <a href="#/market" onclick="event.preventDefault(); switchTab('market')" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <i data-lucide="coins" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <span class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-cyan-400">CrytoPnL</span>
+            <span class="font-extrabold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-cyan-400">CrytoPnL</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">PRO</span>
           </div>
-          <p class="text-[10px] text-slate-400 tracking-wider">CRYPTO COMMUNITY PLATFORM</p>
+          <p class="text-[9px] sm:text-[10px] text-slate-400 tracking-wider">CRYPTO COMMUNITY PLATFORM</p>
         </div>
       </a>
 
       <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink-0 max-w-full overflow-x-auto no-scrollbar">
+      <nav class="hidden md:flex items-center gap-0.5 lg:gap-1 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink min-w-0 overflow-x-auto no-scrollbar">
         <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <i data-lucide="trending-up" class="w-4 h-4"></i> 시세
         </button>
