@@ -1396,6 +1396,265 @@ const YearendTaxCalculator = (function() {
     }
   }
 
+  // 맞벌이 절세 진단서 고해상도 이미지 생성 & 다운로드/공유
+  function saveCoupleReportAsImage() {
+    const pSalary = Math.max(0, Number(state.annualSalary) || 0);
+    const sSalary = Math.max(0, Number(state.spouseSalary) || 0);
+    const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
+    const familyMedical = Math.max(0, Number(state.familyMedicalTotal) || 0);
+    const depOptions = {
+      coupleDepYouth: state.coupleDepYouth,
+      coupleDepInfant: state.coupleDepInfant,
+      coupleDepAdult: state.coupleDepAdult,
+      coupleDepElderNormal: state.coupleDepElderNormal,
+      coupleDepElderSenior: state.coupleDepElderSenior,
+      coupleDepDisabled: state.coupleDepDisabled
+    };
+    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical, depOptions);
+
+    const canvas = document.createElement('canvas');
+    const scale = 2;
+    const w = 840;
+    const h = 1080;
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    const drawRoundRect = (x, y, width, height, radius, fill, stroke) => {
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(x, y, width, height, radius);
+      } else {
+        ctx.rect(x, y, width, height);
+      }
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    };
+
+    // 1. 배경 그래디언트
+    const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+    bgGrad.addColorStop(0, '#060b18');
+    bgGrad.addColorStop(0.5, '#0b132b');
+    bgGrad.addColorStop(1, '#060a17');
+    drawRoundRect(0, 0, w, h, 28, bgGrad, '#1e293b');
+
+    // 2. 상단 헤더
+    drawRoundRect(36, 36, 160, 26, 13, 'rgba(236, 72, 153, 0.15)', 'rgba(236, 72, 153, 0.4)');
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#f472b6';
+    ctx.fillText('Dual-Income AI Report', 48, 53);
+
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.textAlign = 'right';
+    ctx.fillText(`진단 일시: ${dateStr}`, w - 36, 53);
+    ctx.textAlign = 'left';
+
+    ctx.font = 'bold 24px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('맞벌이 부부 연말정산 최적 절세 진단서', 36, 92);
+
+    ctx.font = '12px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('CryptoPnL 스마트 연말정산 AI가 분석한 맞벌이 부부 최적 카드 & 인적공제 배분 가이드', 36, 114);
+
+    // 3. Section 1: 부부 소득 및 세율 비교
+    drawRoundRect(36, 135, w - 72, 135, 18, 'rgba(15, 23, 42, 0.8)', '#1e293b');
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('1. 부부 소득 및 적용세율 비교', 54, 160);
+
+    // Primary box
+    drawRoundRect(54, 172, 355, 82, 12, 'rgba(13, 148, 136, 0.12)', 'rgba(20, 184, 166, 0.35)');
+    ctx.font = 'bold 12px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#2dd4bf';
+    ctx.fillText(`본인: 연봉 ${formatWon(pSalary)}`, 68, 194);
+    ctx.font = 'bold 16px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`세율 ${advice.isPrimaryHigher ? advice.higherRate.label : advice.lowerRate.label}`, 68, 220);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(`카드 25% 문턱: ${formatWon(advice.pHurdle)}`, 68, 240);
+
+    // Spouse box
+    drawRoundRect(429, 172, 355, 82, 12, 'rgba(236, 72, 153, 0.12)', 'rgba(244, 114, 182, 0.35)');
+    ctx.font = 'bold 12px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#f472b6';
+    ctx.fillText(`배우자: 연봉 ${formatWon(sSalary)}`, 443, 194);
+    ctx.font = 'bold 16px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`세율 ${advice.isPrimaryHigher ? advice.lowerRate.label : advice.higherRate.label}`, 443, 220);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(`카드 25% 문턱: ${formatWon(advice.sHurdle)}`, 443, 240);
+
+    // 4. Section 2: 핵심 솔루션 - 누구 카드로 소비해야 할까?
+    drawRoundRect(36, 288, w - 72, 320, 20, 'rgba(120, 53, 15, 0.15)', 'rgba(245, 158, 11, 0.4)');
+    drawRoundRect(54, 306, 120, 24, 12, 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.5)');
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText('핵심 절세 로드맵', 66, 322);
+
+    ctx.font = 'bold 16px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('2. 💳 누구 카드로 얼마를 소비해야 할까?', 185, 324);
+
+    ctx.font = 'bold 14px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#fcd34d';
+    ctx.fillText(advice.cardStrategy.headline.slice(0, 48), 54, 355);
+
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`부부 합산 카드 지출: ${formatWon(familyExpense)} | 추천 전략: ${advice.cardStrategy.target}`, 54, 375);
+
+    // Visual Timeline Bar (Flowline)
+    drawRoundRect(54, 390, w - 108, 42, 10, '#0f172a', '#334155');
+    ctx.font = 'bold 11px monospace, Pretendard, sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    let flowText = `0원 ── [${advice.higherName} 신용] ──▶ ${formatWon(advice.higherHurdle)} ── [${advice.higherName} 체크] ──▶ ${formatWon(advice.higherHurdle + Math.round(advice.higherCardLimit / 0.3))} ── [${advice.lowerName} 전환] ──▶ 그 이후`;
+    if (familyExpense < advice.lowerHurdle) {
+      flowText = `0원 ── [혜택 신용카드] ──▶ ${formatWon(familyExpense)} ── [25% 문턱 미달] ──▶ 공제 0원 (카드사 혜택 집중)`;
+    } else if (familyExpense < advice.higherHurdle) {
+      flowText = `0원 ── [${advice.lowerName} 신용] ──▶ ${formatWon(advice.lowerHurdle)} ── [${advice.lowerName} 체크 30%] ──▶ 한도 달성 ──▶ 절세 완료`;
+    }
+    ctx.fillText(flowText, 66, 415);
+
+    // Step 1
+    drawRoundRect(54, 444, w - 108, 70, 12, 'rgba(15, 23, 42, 0.9)', '#1e293b');
+    drawRoundRect(68, 456, 22, 22, 11, 'rgba(245, 158, 11, 0.25)');
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText('1', 76, 471);
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(advice.cardStrategy.step1Title || '1단계: 신용카드 결제 구간', 100, 472);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    const s1Text = (advice.cardStrategy.step1 || '').replace(/<[^>]*>/g, '').replace(/•/g, '').trim();
+    ctx.fillText(s1Text.slice(0, 80), 100, 495);
+
+    // Step 2
+    drawRoundRect(54, 524, w - 108, 70, 12, 'rgba(15, 23, 42, 0.9)', '#1e293b');
+    drawRoundRect(68, 536, 22, 22, 11, 'rgba(16, 185, 129, 0.25)');
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#34d399';
+    ctx.fillText('2', 76, 551);
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(advice.cardStrategy.step2Title || '2단계: 체크카드·현금영수증 집중 구간', 100, 552);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    const s2Text = (advice.cardStrategy.step2 || '').replace(/<[^>]*>/g, '').replace(/•/g, '').trim();
+    ctx.fillText(s2Text.slice(0, 80), 100, 575);
+
+    // 5. Section 3: 의료비 & 부양가족
+    // Left: Medical
+    drawRoundRect(36, 626, 365, 210, 18, 'rgba(15, 23, 42, 0.8)', 'rgba(99, 102, 241, 0.35)');
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#818cf8';
+    ctx.fillText('3. 🏥 의료비 세액공제 (3% 역발상)', 54, 652);
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(advice.medicalAdvice.title.slice(0, 26), 54, 678);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`부부 합산 의료비: ${formatWon(familyMedical)}`, 54, 704);
+    ctx.fillText(`• 본인 3% 문턱: ${formatWon(advice.pMedHurdle)}`, 54, 724);
+    ctx.fillText(`• 배우자 3% 문턱: ${formatWon(advice.sMedHurdle)}`, 54, 744);
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#a5b4fc';
+    ctx.fillText(`👉 ${advice.medicalAdvice.winner} 명의 결제 시 환급액 극대화!`, 54, 774);
+
+    // Right: Dependents
+    drawRoundRect(419, 626, 385, 210, 18, 'rgba(15, 23, 42, 0.8)', 'rgba(20, 184, 166, 0.35)');
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#2dd4bf';
+    ctx.fillText('4. 👶 자녀 및 부양가족 인적공제 배정', 437, 652);
+    ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${advice.dependentAdvice.winner} 배정 강력 추천`, 437, 678);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• 청소년/미취학 자녀: 1인당 150만원 소득공제`, 437, 704);
+    ctx.fillText(`• 70세 이상 경로우대: 1인당 250만원 + 의료비 무제한`, 437, 724);
+    ctx.fillText(`• 장애인 부양가족: 1인당 350만원 + 의료비 무제한`, 437, 744);
+    ctx.font = 'bold 11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#5eead4';
+    ctx.fillText(`👉 고세율자 배정 시 ${advice.rateDiff > 0 ? `+${advice.rateDiff}%p 세율 이득` : '절세 극대화'}!`, 437, 774);
+
+    // 6. Section 4: Double Benefits
+    drawRoundRect(36, 854, w - 72, 106, 16, 'rgba(16, 185, 129, 0.1)', 'rgba(16, 185, 129, 0.3)');
+    ctx.font = 'bold 12px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#34d399';
+    ctx.fillText('💡 고향사랑기부금 & 연금계좌 부부 더블 혜택', 54, 878);
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('• 고향사랑기부금: 부부 각각 10만원씩 총 20만원 기부 시 20만원 전액 환급 + 6만원 답례품 순이익!', 54, 903);
+    ctx.fillText('• 연금저축/IRP: 총급여 5,500만원 이하 배우자 계좌에 먼저 납입 시 16.5% 우대 공제율 적용!', 54, 926);
+
+    // 7. Footer
+    ctx.font = '11px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.textAlign = 'center';
+    ctx.fillText('CryptoPnL 연말정산 최적화 센터 • https://cryptopnl.com/#/yearend-tax', w / 2, 995);
+    ctx.font = '10px Pretendard, -apple-system, sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText('※ 본 진단 결과는 세법 기준 추정치이며 실제 환급액은 회사 정산 내역에 따라 달라질 수 있습니다.', w / 2, 1018);
+    ctx.textAlign = 'left';
+
+    // Export Canvas to PNG Blob & File
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        alert('이미지 생성에 실패했습니다.');
+        return;
+      }
+
+      const filename = `CryptoPnL_맞벌이절세진단서_${dateStr}.png`;
+
+      // 1. Download file automatically
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+
+      // 2. Try copying image directly to clipboard
+      let clipboardSuccess = false;
+      if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        try {
+          const item = new ClipboardItem({ 'image/png': blob });
+          await navigator.clipboard.write([item]);
+          clipboardSuccess = true;
+        } catch (e) {
+          console.warn('Clipboard write failed:', e);
+        }
+      }
+
+      // 3. Try Mobile Web Share API if available
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+        try {
+          await navigator.share({
+            title: '맞벌이 부부 연말정산 최적 절세 진단서',
+            text: `[CryptoPnL] 맞벌이 부부 연말정산 절세 진단서입니다.`,
+            files: [new File([blob], filename, { type: 'image/png' })]
+          });
+          return;
+        } catch (e) {
+          // Fallback to alert below
+        }
+      }
+
+      if (clipboardSuccess) {
+        alert('🎉 맞벌이 절세 진단서 이미지가 저장되었습니다!\n\n클립보드에도 이미지가 복사되었으니, 카카오톡 채팅방에 바로 [붙여넣기(Ctrl+V)]하시면 이미지가 전송됩니다.');
+      } else {
+        alert('🎉 맞벌이 절세 진단서 이미지가 다운로드되었습니다!\n\n다운로드된 이미지를 카카오톡으로 공유해 보세요.');
+      }
+    }, 'image/png');
+  }
+
   function copyGoldenRatioToClipboard() {
     const salary = Math.max(0, Number(state.guideSalary) || 50000000);
     const gr = calcCardGoldenRatio(salary);
@@ -1675,6 +1934,7 @@ const YearendTaxCalculator = (function() {
     resetAll,
     copyResultToClipboard,
     copyCoupleAdviceToClipboard,
+    saveCoupleReportAsImage,
     copyGoldenRatioToClipboard
   };
 })();
