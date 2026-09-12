@@ -1931,6 +1931,30 @@ const YearendTaxCalculator = (function() {
     document.body.removeChild(ta);
   }
 
+  // Card Accordion Helpers (기본 모두 펼침)
+  function expandAllCards() {
+    document.querySelectorAll('#ytax-view-calculator details.ytax-card-details').forEach(el => {
+      el.open = true;
+    });
+    const btn = document.getElementById('ytax-toggle-cards-btn');
+    if (btn) {
+      const span = btn.querySelector('span');
+      if (span) span.textContent = '모두접기';
+    }
+  }
+
+  function toggleAllCards() {
+    const cards = document.querySelectorAll('#ytax-view-calculator details.ytax-card-details');
+    if (!cards.length) return;
+    const anyOpen = Array.from(cards).some(el => el.open);
+    cards.forEach(el => { el.open = !anyOpen; });
+    const btn = document.getElementById('ytax-toggle-cards-btn');
+    if (btn) {
+      const span = btn.querySelector('span');
+      if (span) span.textContent = !anyOpen ? '모두접기' : '모두펼치기';
+    }
+  }
+
   // Init
   let isInitialized = false;
   function init() {
@@ -1947,12 +1971,15 @@ const YearendTaxCalculator = (function() {
       }
     });
 
+    expandAllCards();
     syncFormFromState();
     updateUI();
   }
 
   return {
     init,
+    expandAllCards,
+    toggleAllCards,
     calculate,
     analyzeCouple,
     calcCardGoldenRatio,

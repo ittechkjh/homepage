@@ -4238,6 +4238,10 @@
               <button type="button" onclick="YearendTaxCalculator.resetAll()" class="px-2.5 py-1.5 rounded-lg bg-navy-900 hover:bg-rose-950/50 text-slate-400 hover:text-rose-300 border border-navy-700 text-xs font-semibold transition" title="초기화">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline"></i>
               </button>
+              <button type="button" onclick="YearendTaxCalculator.toggleAllCards()" id="ytax-toggle-cards-btn" class="px-2.5 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-800 text-teal-300 border border-teal-500/30 text-xs font-semibold transition flex items-center gap-1" title="모든 입력창 접기 / 펼치기">
+                <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 inline"></i>
+                <span class="text-[11px] hidden sm:inline">모두접기</span>
+              </button>
             </div>
           </div>
         </div>
@@ -4320,14 +4324,14 @@
           </details>
 
           <!-- Card 2: 인적공제 & 부양가족 (접이식 아코디언) -->
-          <details class="ytax-card-details bg-navy-900 border border-navy-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+          <details open class="ytax-card-details bg-navy-900 border border-navy-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
             <summary class="flex items-center justify-between pb-2.5 border-b border-navy-800/80 cursor-pointer select-none">
               <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
                 <span>2. 인적공제 (부양가족 설정)</span>
               </h3>
               <div class="flex items-center gap-2">
-                <span class="text-[10px] font-mono text-cyan-400">인당 150만 (클릭하여 펼치기)</span>
+                <span class="text-[10px] font-mono text-cyan-400">인당 150만</span>
                 <i data-lucide="chevron-down" class="ytax-chevron w-4 h-4 text-slate-400"></i>
               </div>
             </summary>
@@ -4500,14 +4504,14 @@
           </details>
 
           <!-- Card 4: 세액공제 (접이식 아코디언) -->
-          <details class="ytax-card-details bg-navy-900 border border-navy-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+          <details open class="ytax-card-details bg-navy-900 border border-navy-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
             <summary class="flex items-center justify-between pb-2.5 border-b border-navy-800/80 cursor-pointer select-none">
               <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <i data-lucide="piggy-bank" class="w-4 h-4 text-indigo-400"></i>
                 <span>4. 세액공제 (연금저축·IRP·의료비·월세)</span>
               </h3>
               <div class="flex items-center gap-2">
-                <span class="text-[10px] font-mono text-indigo-400">직접 세액 차감 (클릭하여 펼치기)</span>
+                <span class="text-[10px] font-mono text-indigo-400">직접 세액 차감</span>
                 <i data-lucide="chevron-down" class="ytax-chevron w-4 h-4 text-slate-400"></i>
               </div>
             </summary>
@@ -7222,7 +7226,7 @@
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
   <script src="js/tools-calculators.js?v=20260909_03"></script>
-  <script src="js/yearend-tax.js?v=20260912_02"></script>
+  <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260907_05"></script>
 
   <script src="js/admin.js?v=20260910_02"></script>
