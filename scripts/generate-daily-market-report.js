@@ -695,68 +695,68 @@ function generateDynamicQuantReport(dateStr, dateKorean, m, img1, img2, img3, im
     : '단기 거시 지표 공백기 속에서 무리한 고레버리지 추격 매수보다는 1.000 SOPR 지지선 및 LTH 락업 구간을 활용한 분할 매수 대응을 권장합니다.';
 
   return `
-<h3 style="font-size: 16px; font-weight: 700; color: #22d3ee; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
   📌 [모닝 브리핑] 30대 거시·온체인 핵심 지표 총괄 및 시장 종합 진단
 </h3>
-<p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, ${introEventSentence} 현재 비트코인은 업비트 ${m.upbitBtcKRW}, 해외 바이낸스 ${m.binanceBtcUSD} 선에서 안정적으로 거래 중입니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 투기적 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
 </p>
 
 <!-- Image 1: Macro & Sentiment Matrix (crytopnl.com) -->
 <div class="post-img-container text-center my-4">
-  <img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(14, 165, 233, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+  <img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #22d3ee; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 1. 국내외 프리미엄 및 파생상품 레버리지 동향
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-국내 김치프리미엄은 ${m.kimp}로 투기적 과열 없이 안정적인 수준입니다. 미국 기관의 현물 매수세를 나타내는 코인베이스 프리미엄은 ${m.cbPremium}의 완만한 플러스를 유지하며 월가 기관들의 꾸준한 분할 매집을 보여줍니다. 거래소별 상승 종목 비율은 업비트 ${m.upbitRatio}%, 빗썸 ${m.bithumbRatio}%로 비트코인 도미넌스(${m.btcDominance}%) 집중에 따른 알트코인 차별화 장세가 이어지고 있습니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
+국내 김치프리미엄은 ${m.kimp}로 투기적 과열 없이 안정적인 수준입니다. 미국 기관의 현물 매수세를 나타내는 코인베이스 프리미엄은 ${m.cbPremium}의 완만한 플러스를 유지하며 월가 기관들의 꾸준한 분할 매집을 보여줍니다. 거래소별 상승 종목 비율은 업비트 ${m.upbitRatio}%, 빗썸 ${m.bithumbRatio}%로 비트코인 도미넌스(${m.btcDominance}%) 집중에 따른 알트코인 차별화 장세가 이어지고 있습니다.<br/>
 선물 펀딩비는 ${m.fundingRate}%로 중립이며, 미결제약정(OI)은 ${m.openInterest}로 레버리지 청산 후 안정권입니다. 롱/숏 비율은 ${m.longShortRatio}로 롱 우세이며, 24시간 청산 규모는 ${m.liquidations}, 내재변동성(DVOL)은 ${m.dvol}로 급격한 변동성 리스크는 제한적입니다.
 </p>
 
 <!-- Image 3: Derivatives & Leverage Map (crytopnl.com) -->
 <div class="post-img-container text-center my-4">
-  <img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(139, 92, 246, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+  <img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #34d399; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 2. 온체인 원장 6대 핵심 지표 분석 (수익성 & 공급 쇼티지)
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-비트코인 MVRV Z-Score는 ${m.mvrv}로 역대 사이클 고점 대비 부담 없는 저평가 상승 구간입니다. 채굴자 수익성을 나타내는 Puell Multiple은 ${m.puell}로 반감기 이후 강제 매도 압력이 진정되었습니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
+비트코인 MVRV Z-Score는 ${m.mvrv}로 역대 사이클 고점 대비 부담 없는 저평가 상승 구간입니다. 채굴자 수익성을 나타내는 Puell Multiple은 ${m.puell}로 반감기 이후 강제 매도 압력이 진정되었습니다.<br/>
 소비 출력 이익 비율(SOPR)은 ${m.sopr}로 시장 참여자들의 완만한 수익 실현이 이뤄지고 있으며, 1.000선이 강력한 지지선 역할을 합니다. 일일 실현 손익은 ${m.realizedPnl}로 패닉셀 없는 건강한 손바뀜을 나타냅니다. 155일 이상 코인을 보유한 장기 보유자(LTH) 비중은 ${m.lthRatio}%(${m.lthAmount})로 거래소 공급 쇼티지가 지속되고 있으며, 스테이블코인 공급량은 ${m.stableSupply}(USDT ${m.usdtSupply})로 사상 최고 수준의 대기 매수세를 보유 중입니다. 스마트머니 순매수 점수는 ${m.smartMoneyScore}점으로 기관 축적 단계입니다.
 </p>
 
 <!-- Image 2: On-Chain Fundamentals (crytopnl.com) -->
 <div class="post-img-container text-center my-4">
-  <img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+  <img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #fbbf24; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 3. 거시 경제 유동성 및 전통 금융(TradFi) 지표
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 글로벌 M2 통화량은 108.5조 달러(+4.2%)로 유동성 확장 국면입니다. 미국 기준금리는 4.50% 인하 사이클이며, 연준 역레포 잔고는 2,450억 달러, 하이일드 스프레드는 3.25%로 신용 리스크가 낮습니다. 달러 인덱스(DXY)는 98.84로 약세를 지속해 위험자산에 우호적이며 원/달러 환율은 ${m.usdKrwRate}입니다. 나스닥(+0.65%), 반도체지수(+0.42%)의 반등과 VIX 15.72 안정세는 크립토 자금 유입을 뒷받침합니다.
 </p>
 
 <!-- Image 4: Macro & Calendar Timeline (crytopnl.com) -->
 <div class="post-img-container text-center my-4">
-  <img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(245, 158, 11, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+  <img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #f43f5e; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 4. 금일 주요 경제 일정 및 글로벌 속보 이슈
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 ${section4Content}
 </p>
 
-<div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
-  <div style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 6px;">
+<div class="morning-conclusion-card" style="background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 8px; padding: 18px 20px; margin: 24px 0;">
+  <div style="color: #0369a1; font-weight: 800; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
     💡 [종합 결론 및 트레이딩 전략 가이드]
   </div>
-  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
+  <p style="font-size: 14px; line-height: 1.8; margin: 0; color: #0c4a6e; font-weight: 500;">
     공포&탐욕 지수 ${m.fngScore}(${m.fngText}), LTH 비중 ${m.lthRatio}%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. ${conclusionAdvice}
   </p>
 </div>
@@ -765,10 +765,10 @@ ${section4Content}
 
 // Assemble Gemini AI HTML with 4 Branded Images
 function assembleGeminiHtml(rawText, img1, img2, img3, img4) {
-  const img1Tag = `<div class="post-img-container text-center my-4"><img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(14, 165, 233, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
-  const img2Tag = `<div class="post-img-container text-center my-4"><img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
-  const img3Tag = `<div class="post-img-container text-center my-4"><img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(139, 92, 246, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
-  const img4Tag = `<div class="post-img-container text-center my-4"><img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(245, 158, 11, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
+  const img1Tag = `<div class="post-img-container text-center my-4"><img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img2Tag = `<div class="post-img-container text-center my-4"><img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img3Tag = `<div class="post-img-container text-center my-4"><img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img4Tag = `<div class="post-img-container text-center my-4"><img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
 
   let processed = rawText;
   if (processed.includes('<!-- IMAGE_1 -->')) {
@@ -930,6 +930,59 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   const curP = Number(tech.currentPrice || 78370).toLocaleString();
   const slotBadge = slotInfo ? slotInfo.slotHour + '시' : '4H';
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 09:00`;
+
+  // 28 Realistic 4H Candlesticks Simulation (Drop from $80k -> Consolidate -> Dead Cat Bounce to 200 EMA -> Resistance)
+  const baseCandles = [
+    { o: 79800, h: 80150, l: 79200, c: 79350 }, // 0 음봉
+    { o: 79350, h: 79500, l: 78600, c: 78750 }, // 1 음봉
+    { o: 78750, h: 79000, l: 78400, c: 78900 }, // 2 양봉
+    { o: 78900, h: 79050, l: 77800, c: 77950 }, // 3 장대음봉
+    { o: 77950, h: 78200, l: 77100, c: 77250 }, // 4 음봉
+    { o: 77250, h: 77500, l: 76050, c: 76250 }, // 5 패닉셀 장대음봉
+    { o: 76250, h: 76850, l: 75950, c: 76600 }, // 6 롱테일 양봉 (하방 지지)
+    { o: 76600, h: 76950, l: 76350, c: 76450 }, // 7 음봉 도지
+    { o: 76450, h: 77100, l: 76400, c: 76900 }, // 8 양봉
+    { o: 76900, h: 77050, l: 76500, c: 76650 }, // 9 음봉
+    { o: 76650, h: 77150, l: 76550, c: 77050 }, // 10 양봉
+    { o: 77050, h: 77200, l: 76600, c: 76800 }, // 11 음봉
+    { o: 76800, h: 77350, l: 76750, c: 77250 }, // 12 양봉
+    { o: 77250, h: 77650, l: 77100, c: 77550 }, // 13 양봉
+    { o: 77550, h: 77850, l: 77400, c: 77700 }, // 14 양봉
+    { o: 77700, h: 77800, l: 77350, c: 77450 }, // 15 음봉 (숨고르기)
+    { o: 77450, h: 78100, l: 77400, c: 77950 }, // 16 양봉
+    { o: 77950, h: 78250, l: 77800, c: 78200 }, // 17 양봉
+    { o: 78200, h: 78400, l: 77950, c: 78100 }, // 18 음봉
+    { o: 78100, h: 78550, l: 78050, c: 78500 }, // 19 양봉 (50 EMA 상회)
+    { o: 78500, h: 78750, l: 78300, c: 78650 }, // 20 양봉
+    { o: 78650, h: 79150, l: 78550, c: 78800 }, // 21 윗꼬리 긴 양봉 (200 EMA 터치)
+    { o: 78800, h: 79100, l: 78450, c: 78550 }, // 22 윗꼬리 긴 음봉 (저항 확인)
+    { o: 78550, h: 78850, l: 78300, c: 78450 }, // 23 음봉
+    { o: 78450, h: 78700, l: 78200, c: 78350 }, // 24 음봉
+    { o: 78350, h: 78600, l: 78150, c: 78400 }, // 25 작은 도지
+    { o: 78400, h: 78550, l: 78100, c: 78250 }, // 26 음봉
+    { o: 78250, h: 78500, l: 78050, c: Math.round(tech.currentPrice || 78370) }  // 27 현재 진행 캔들
+  ];
+
+  // Price to Y conversion function (Scale: $75,800 to $80,200 mapped to Y: 320 to 134)
+  const minP = 75800;
+  const maxP = 80200;
+  const rangeP = maxP - minP;
+  const getY = (p) => 134 + ((maxP - p) / rangeP) * 186;
+
+  // Generate 28 candlesticks SVG strings
+  const candleSvgElements = baseCandles.map((c, i) => {
+    const cx = 50 + (i * 25.5);
+    const isBull = c.c >= c.o;
+    const color = isBull ? '#10b981' : '#f43f5e';
+    const topY = Math.min(getY(c.o), getY(c.c));
+    const botY = Math.max(getY(c.o), getY(c.c));
+    const bodyHeight = Math.max(3, botY - topY);
+    const highY = getY(c.h);
+    const lowY = getY(c.l);
+
+    return `  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.2"/>\n  <rect x="${(cx - 5.5).toFixed(1)}" y="${topY.toFixed(1)}" width="11" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
+  }).join('\n');
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
   <defs>
     <linearGradient id="bg_chart" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -938,7 +991,8 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
       <stop offset="100%" stop-color="#060910"/>
     </linearGradient>
   </defs>
-  <rect width="800" height="420" rx="16" fill="url(#bg_chart)" stroke="#6366f1" stroke-width="1.5" stroke-opacity="0.35"/>
+  <!-- Main Background without heavy outer border -->
+  <rect width="800" height="420" rx="14" fill="url(#bg_chart)" stroke="none"/>
   
   <!-- Header -->
   <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
@@ -966,85 +1020,67 @@ function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   <text x="617" y="102" fill="#fbbf24" font-size="13" font-weight="bold" font-family="monospace">SL $79.8K (손익비 1:2.65)</text>
 
   <!-- Main Chart Canvas -->
-  <rect x="20" y="124" width="760" height="210" rx="10" fill="#0b0e14" stroke="#1e293b" stroke-width="1"/>
+  <rect x="20" y="124" width="760" height="206" rx="10" fill="#0b0e14" stroke="#1e293b" stroke-width="1"/>
   
   <!-- Grid lines -->
   <line x1="20" y1="160" x2="780" y2="160" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="210" x2="780" y2="210" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="260" x2="780" y2="260" stroke="#1e293b" stroke-dasharray="3,3"/>
-  <line x1="20" y1="300" x2="780" y2="300" stroke="#1e293b" stroke-dasharray="3,3"/>
+  <line x1="20" y1="205" x2="780" y2="205" stroke="#1e293b" stroke-dasharray="3,3"/>
+  <line x1="20" y1="255" x2="780" y2="255" stroke="#1e293b" stroke-dasharray="3,3"/>
+  <line x1="20" y1="298" x2="780" y2="298" stroke="#1e293b" stroke-dasharray="3,3"/>
 
-  <!-- Resistance Zone -->
-  <rect x="22" y="130" width="756" height="30" fill="#f43f5e" fill-opacity="0.12"/>
-  <line x1="20" y1="130" x2="780" y2="130" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="770" y="145" fill="#f43f5e" font-size="10" font-family="monospace" text-anchor="end">200 EMA 저항대 $78,850 ~ $79,200</text>
+  <!-- Resistance Zone ($78,850 ~ $79,200) -->
+  <rect x="22" y="${getY(79200).toFixed(1)}" width="756" height="${(getY(78850) - getY(79200)).toFixed(1)}" fill="#f43f5e" fill-opacity="0.14"/>
+  <line x1="20" y1="${getY(78850).toFixed(1)}" x2="780" y2="${getY(78850).toFixed(1)}" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="770" y="${(getY(79000) + 3).toFixed(1)}" fill="#f43f5e" font-size="10" font-family="monospace" text-anchor="end">200 EMA 저항대 $78,850 ~ $79,200</text>
 
-  <!-- Stop Loss line -->
-  <line x1="20" y1="126" x2="780" y2="126" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4,4"/>
-  <text x="35" y="122" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $79,800</text>
+  <!-- Stop Loss line ($79,800) -->
+  <line x1="20" y1="${getY(79800).toFixed(1)}" x2="780" y2="${getY(79800).toFixed(1)}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <text x="35" y="${(getY(79800) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $79,800</text>
 
-  <!-- Entry Zone -->
-  <rect x="22" y="165" width="756" height="28" fill="#0284c7" fill-opacity="0.12"/>
-  <text x="770" y="182" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="end">진입 구간 (Entry Zone) $78,200 ~ $78,600</text>
+  <!-- Entry Zone ($78,200 ~ $78,600) -->
+  <rect x="22" y="${getY(78600).toFixed(1)}" width="756" height="${(getY(78200) - getY(78600)).toFixed(1)}" fill="#0284c7" fill-opacity="0.12"/>
+  <text x="770" y="${(getY(78400) + 3).toFixed(1)}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="end">진입 구간 (Entry Zone) $78,200 ~ $78,600</text>
 
-  <!-- Target 1 line -->
-  <line x1="20" y1="240" x2="780" y2="240" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="770" y="235" fill="#34d399" font-size="10" font-family="monospace" text-anchor="end">🎯 1차 목표가 (TP1): $76,500</text>
+  <!-- Target 1 line ($76,500) -->
+  <line x1="20" y1="${getY(76500).toFixed(1)}" x2="780" y2="${getY(76500).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="770" y="${(getY(76500) - 4).toFixed(1)}" fill="#34d399" font-size="10" font-family="monospace" text-anchor="end">🎯 1차 목표가 (TP1): $76,500</text>
 
-  <!-- Target 2 line -->
-  <line x1="20" y1="290" x2="780" y2="290" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="770" y="285" fill="#10b981" font-size="10" font-family="monospace" text-anchor="end">🎯 2차 목표가 (TP2): $74,800</text>
+  <!-- Target 2 line ($74,800 - simulated near lower boundary) -->
+  <line x1="20" y1="318" x2="780" y2="318" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="770" y="314" fill="#10b981" font-size="10" font-family="monospace" text-anchor="end">🎯 2차 목표가 (TP2): $74,800</text>
 
-  <!-- Candlesticks Simulation -->
-  <line x1="60" y1="135" x2="60" y2="220" stroke="#f43f5e" stroke-width="1.5"/>
-  <rect x="53" y="145" width="14" height="65" fill="#f43f5e" rx="2"/>
+  <!-- 200 EMA Line (Yellow Curve) -->
+  <path d="M 30 162 Q 220 170 420 180 T 770 183" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <text x="40" y="158" fill="#fbbf24" font-size="9" font-family="monospace">200 EMA</text>
 
-  <line x1="110" y1="190" x2="110" y2="260" stroke="#f43f5e" stroke-width="1.5"/>
-  <rect x="103" y="200" width="14" height="50" fill="#f43f5e" rx="2"/>
+  <!-- 50 EMA Line (Cyan Curve) -->
+  <path d="M 30 185 Q 200 240 400 225 T 770 208" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="40" y="200" fill="#22d3ee" font-size="9" font-family="monospace">50 EMA</text>
 
-  <line x1="160" y1="230" x2="160" y2="280" stroke="#10b981" stroke-width="1.5"/>
-  <rect x="153" y="235" width="14" height="25" fill="#10b981" rx="2"/>
-
-  <line x1="210" y1="215" x2="210" y2="255" stroke="#10b981" stroke-width="1.5"/>
-  <rect x="203" y="220" width="14" height="30" fill="#10b981" rx="2"/>
-
-  <line x1="260" y1="210" x2="260" y2="240" stroke="#f43f5e" stroke-width="1.5"/>
-  <rect x="253" y="215" width="14" height="18" fill="#f43f5e" rx="2"/>
-
-  <line x1="310" y1="195" x2="310" y2="230" stroke="#10b981" stroke-width="1.5"/>
-  <rect x="303" y="200" width="14" height="25" fill="#10b981" rx="2"/>
-
-  <line x1="360" y1="190" x2="360" y2="220" stroke="#10b981" stroke-width="1.5"/>
-  <rect x="353" y="195" width="14" height="20" fill="#10b981" rx="2"/>
-
-  <line x1="410" y1="170" x2="410" y2="205" stroke="#10b981" stroke-width="1.5"/>
-  <rect x="403" y="175" width="14" height="25" fill="#10b981" rx="2"/>
-
-  <line x1="460" y1="150" x2="460" y2="185" stroke="#f43f5e" stroke-width="1.5"/>
-  <rect x="453" y="165" width="14" height="15" fill="#f43f5e" rx="2"/>
+  <!-- Candlesticks (28 Candlesticks Rendering) -->
+${candleSvgElements}
 
   <!-- Dead Cat Bounce Arc Arrow annotation -->
-  <path d="M 200 240 Q 330 160 460 165" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,4"/>
-  <polygon points="463,165 455,160 457,170" fill="#fbbf24"/>
-  <text x="320" y="180" fill="#fbbf24" font-size="11" font-weight="bold" font-family="sans-serif">Dead Cat Bounce</text>
+  <path d="M 205 285 Q 390 175 585 183" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,4"/>
+  <polygon points="588,183 580,178 582,188" fill="#fbbf24"/>
+  <rect x="330" y="160" width="135" height="20" rx="4" fill="#0b0e14" fill-opacity="0.85" stroke="#fbbf24" stroke-width="0.8"/>
+  <text x="397" y="174" fill="#fbbf24" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">Dead Cat Bounce</text>
 
-  <!-- 200 EMA Line (Yellow) -->
-  <path d="M 30 145 Q 250 148 770 152" fill="none" stroke="#f59e0b" stroke-width="2"/>
-  <text x="45" y="142" fill="#fbbf24" font-size="9" font-family="monospace">200 EMA</text>
-
-  <!-- 50 EMA Line (Cyan) -->
-  <path d="M 30 195 Q 250 215 770 185" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
-  <text x="45" y="208" fill="#22d3ee" font-size="9" font-family="monospace">50 EMA</text>
-
-  <!-- Bottom Indicators & Volume -->
-  <rect x="20" y="344" width="760" height="60" rx="8" fill="#1e293b" fill-opacity="0.4" stroke="#334155" stroke-width="1"/>
-  <text x="35" y="365" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 추세 (Volume Trend):</text>
-  <text x="175" y="365" fill="#f43f5e" font-size="10" font-weight="bold" font-family="sans-serif">하락 시 거래량 폭증 ➔ 반등 시 거래량 급감 (전형적 약세 반등)</text>
+  <!-- Bottom Indicators & Volume (Clean 3-row layout to prevent ANY text overlap) -->
+  <rect x="20" y="338" width="760" height="72" rx="8" fill="#1e293b" fill-opacity="0.4" stroke="#334155" stroke-width="1"/>
   
-  <text x="35" y="390" fill="#94a3b8" font-size="10" font-family="sans-serif">기술적 보조지표:</text>
-  <text x="135" y="390" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스 징후)</text>
-  <text x="375" y="390" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏비율: 1.297 (롱 과밀집 청산 리스크)</text>
-  <text x="770" y="390" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="end">기준: ${slotTimestampStr} KST • crytopnl.com</text>
+  <!-- Row 1: Volume Trend -->
+  <text x="35" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량 추세:</text>
+  <text x="105" y="357" fill="#f43f5e" font-size="10" font-weight="bold" font-family="sans-serif">하락 시 거래량 폭증 ➔ 반등 시 거래량 급감 (전형적 약세 반등)</text>
+  
+  <!-- Row 2: Indicators (Clearly separated) -->
+  <text x="35" y="377" fill="#94a3b8" font-size="10" font-family="sans-serif">보조지표:</text>
+  <text x="85" y="377" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): 58.4 (하락 다이버전스)</text>
+  <text x="255" y="377" fill="#a78bfa" font-size="10" font-weight="bold" font-family="monospace">• 선물 롱숏: 1.297 (롱 56.5% 과밀집)</text>
+  
+  <!-- Row 3: Metadata (Timestamp & Attribution separated to left and right) -->
+  <text x="35" y="398" fill="#64748b" font-size="9" font-family="sans-serif">기준: ${slotTimestampStr} KST</text>
+  <text x="765" y="398" fill="#64748b" font-size="9" font-family="sans-serif" text-anchor="end">제공: crytopnl.com 기술적 퀀트엔진</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
@@ -1060,15 +1096,15 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 [세션 특화 배경]
 ${sessionContext}
 
-[필수 요구사항]
-1. 트레이딩뷰 전문 애널리스트 톤앤매너: 군더더기 없이 객관적이고 날카로운 기술적 분석 제공
-2. 명확한 트레이딩 파라미터(진입, 목표가, 손절가, 손익비) 제시
-3. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함
-4. 다크 테마 HTML 서식: #f8fafc(텍스트), #22d3ee(강조), #f43f5e(약세/손절), #10b981(목표가/강세), #a855f7(지표) 스타일 적용
+[필수 작성 규칙 및 네이버 블로그/카페 복사 최적화]
+1. 네이버 블로그 및 카페(SmartEditor ONE)에 복사·붙여넣기 시 100% 호환되는 깔끔한 고대비 서식(흰색 배경 친화적)으로 작성하세요.
+2. 외곽 테두리(border: 1px solid ...)와 답답한 다크 박스를 절대 사용하지 마세요. 테두리는 제거하고, 부드러운 배경(#f8fafc)과 심플한 왼쪽 포인트 선(border-left: 4px solid ...)만 사용하세요.
+3. 글씨가 선명하게 잘 보이도록 제목 헤딩은 진한 딥 네이비(#0f172a), 본문 텍스트는 선명하고 또렷한 짙은 슬레이트(#1e293b, 15px), 강조 수치는 굵고 명확한 색상(#0284c7, #e11d48, #059669)을 사용하세요.
+4. 차트 이미지 플레이스홀더 <!-- TRADINGVIEW_CHART_IMAGE --> 를 헤드라인 바로 뒤에 포함하세요.
 5. 구성:
    - <HEADER>[BTC/USDT ${slotName}] 헤드라인 및 핵심 가설 (데드캣 바운스 경계 및 200 EMA 저항 분석)</HEADER>
    - <!-- TRADINGVIEW_CHART_IMAGE -->
-   - <SETUP_BOX>트레이딩 셋업 카드 (포지션: SHORT, 진입: $78,200~$78,600, TP1: $76,500, TP2: $74,800, SL: $79,800, 손익비: 1:2.65)</SETUP_BOX>
+   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: SHORT, 진입: $78,200~$78,600, TP1: $76,500, TP2: $74,800, SL: $79,800, 손익비: 1:2.65)</SETUP_BOX>
    - <SECTION_1>1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) vs 추세 전환 (2문단)</SECTION_1>
    - <SECTION_2>2. 기술적 지표 & 온체인 괴리 (200 EMA 저항, RSI 약세 다이버전스, 볼륨 수축) (2문단)</SECTION_2>
    - <SECTION_3>3. 세션별 시나리오 분석: 시나리오 A(메인 하방 리테스트) vs 시나리오 B(불트랩 돌파) (2문단)</SECTION_3>
@@ -1182,76 +1218,78 @@ function getPerspectiveSlotInfo(kstDate = null) {
 }
 
 function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, slotInfo = null) {
-  const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
+  // Borderless, shadowless clean image container optimized for web view and Naver Blog/Cafe pasting
+  const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
   const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
   const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
 
   return `
-<h3 style="font-size: 16px; font-weight: 700; color: #a855f7; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+<h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
   🎯 [BTC/USDT ${slotName}] 데드캣 바운스(Dead Cat Bounce) 주의 구간: 200 EMA 저항과 거래량 괴리 진단 (${sessionTitle})
 </h3>
-<p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 18px;">
 ${dateKorean} ${slotName} 기준 비트코인은 $78,370 선 부근에서 기술적 반등을 시도하고 있으나, 4시간봉 주요 이동평균선인 200 EMA($78,850) 및 직전 고점 매물대의 강한 저항에 직면해 있습니다. 특히 이번 반등 파동은 거래량이 지속적으로 줄어드는 전형적인 <strong>'거래량 수축형 약세 반등(Volume Contraction Bounce)'</strong> 패턴을 띠고 있어, 추가 상승보다는 일시적 반등 후 하방 리테스트가 전개되는 <strong>'데드캣 바운스(Dead Cat Bounce)'</strong> 가능성에 높은 무게를 둡니다.
 </p>
 
 <!-- Chart Setup Image -->
 ${chartTag}
 
-<!-- Trading Setup Box -->
-<div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 14px; padding: 20px; margin: 22px 0;">
-  <div style="font-size: 13px; font-weight: 700; color: #a5b4fc; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
+<!-- Trading Setup Box (Clean Borderless Matrix for Naver Blog/Cafe Copy) -->
+<div class="perspective-setup-card" style="background: #f8fafc; border-left: 4px solid #0284c7; border-radius: 8px; padding: 18px 20px; margin: 22px 0;">
+  <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
     📊 [트레이딩 셋업 파라미터 (Trading Setup Matrix)]
   </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-    <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 10px; padding: 10px 12px;">
-      <div style="font-size: 11px; color: #fda4af;">전략 방향 (Direction)</div>
-      <div style="font-size: 14px; font-weight: 800; color: #f43f5e; font-family: monospace;">SHORT (하방 리테스트)</div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">포지션 방향 (Direction)</div>
+      <div style="font-size: 14px; font-weight: 900; color: #e11d48; font-family: monospace; margin-top: 3px;">SHORT (하방 리테스트)</div>
     </div>
-    <div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 10px; padding: 10px 12px;">
-      <div style="font-size: 11px; color: #7dd3fc;">진입 구간 (Entry Zone)</div>
-      <div style="font-size: 14px; font-weight: 800; color: #38bdf8; font-family: monospace;">$78,200 ~ $78,600</div>
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">진입 구간 (Entry Zone)</div>
+      <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 3px;">$78,200 ~ $78,600</div>
     </div>
-    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 10px 12px;">
-      <div style="font-size: 11px; color: #6ee7b7;">목표가 (Take Profit)</div>
-      <div style="font-size: 13px; font-weight: 800; color: #34d399; font-family: monospace;">TP1 $76.5K / TP2 $74.8K</div>
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">목표가 (Take Profit)</div>
+      <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 3px;">TP1 $76.5K / TP2 $74.8K</div>
     </div>
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 10px 12px;">
-      <div style="font-size: 11px; color: #fcd34d;">손절가 & 손익비</div>
-      <div style="font-size: 13px; font-weight: 800; color: #fbbf24; font-family: monospace;">SL $79,800 (1 : 2.65)</div>
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">손절가 &amp; 손익비</div>
+      <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 3px;">SL $79,800 (1 : 2.65)</div>
     </div>
   </div>
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #a855f7; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 1. 차트 패턴 진단: 데드캣 바운스(Dead Cat Bounce) 구조적 특징
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 현재 4시간봉 차트의 형태는 지난 급락 파동 이후 계단식으로 가격을 회복하고 있으나, 전고점 부근의 강력한 매물대를 뚫어낼 만한 실질적인 현물 매수 모멘텀이 결여되어 있습니다. 캔들의 윗꼬리가 $78,800선 부근에서 반복적으로 길어지며 매도세의 저항이 거세지고 있습니다.
 이러한 구조는 전형적인 '베어마켓 랠리' 또는 '데드캣 바운스'의 교과서적인 특징으로, 레버리지 롱 포지션을 유인한 뒤 직전 저점을 다시 위협하는 2차 충격파동(Impulse Wave)이 발생하기 쉬운 국면입니다.
 </p>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #38bdf8; padding-left: 8px;">
-2. 주요 기술적 지표 & 온체인 괴리 (200 EMA, RSI, 거래량)
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
+2. 주요 기술적 지표 &amp; 온체인 괴리 (200 EMA, RSI, 거래량)
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-첫째, <strong>4시간봉 200 EMA($78,850)</strong>는 과거 다수의 사이클에서 중기 추세의 강력한 분수령 역할을 해왔습니다. 현재 주가는 200 EMA 아래에서 머물며 이를 상방 돌파하지 못하고 지속적인 저항을 받고 있습니다.
-둘째, <strong>RSI(14) 보조지표는 58.4</strong> 수준에서 고점을 높이지 못하고 하락 다이버전스(Bearish Divergence) 조짐을 보이고 있습니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
+첫째, <strong>4시간봉 200 EMA($78,850)</strong>는 과거 다수의 사이클에서 중기 추세의 강력한 분수령 역할을 해왔습니다. 현재 주가는 200 EMA 아래에서 머물며 이를 상방 돌파하지 못하고 지속적인 저항을 받고 있습니다.<br/>
+둘째, <strong>RSI(14) 보조지표는 58.4</strong> 수준에서 고점을 높이지 못하고 하락 다이버전스(Bearish Divergence) 조짐을 보이고 있습니다.<br/>
 셋째, 거래소 파생상품 데이터에 따르면 <strong>롱/숏 비율이 1.297</strong>로 개인 투자자들의 롱 쏠림이 여전하여, 세력들의 롱 스퀴즈(청산 헌팅) 유인이 높은 상황입니다.
 </p>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #fbbf24; padding-left: 8px;">
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
 3. 시나리오 분석: 시나리오 A(메인) vs 시나리오 B(반대 관점)
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
+<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
 <strong>[시나리오 A - 메인 관점 (확률 65%)]:</strong> $78,500 저항선에서 추가 상승이 저지되며 1차적으로 $76,500 지지선을 리테스트하고, 하방 지지 실패 시 $74,800 주요 매물대까지 급락하는 시나리오입니다. 손익비 1:2.65의 매력적인 숏 포지션 트레이딩 구간입니다.<br/>
 <strong>[시나리오 B - 불트랩 돌파 관점 (확률 35%)]:</strong> 강력한 호재 속보와 함께 대량 거래량을 동반하여 200 EMA($78,850)를 단번에 뚫고 안착하는 경우입니다. 이 경우 $80,000 라운드넘버까지 추가 숏스퀴즈가 발생할 수 있습니다.
 </p>
 
-<div style="background: rgba(69, 10, 10, 0.7); border: 1px solid rgba(244, 63, 94, 0.5); border-left: 4px solid #f43f5e; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
-  <div style="color: #f43f5e; font-weight: 700; font-size: 13px; margin-bottom: 6px;">
-    ⚠️ [관점 무효화 기준 (Invalidation Level) & 리스크 관리]
+<!-- Invalidation & Risk Box (Borderless Light Card) -->
+<div class="perspective-invalidation-card" style="background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 8px; padding: 16px 18px; margin: 22px 0;">
+  <div style="color: #b91c1c; font-weight: 800; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+    ⚠️ [관점 무효화 기준 (Invalidation Level) &amp; 리스크 관리]
   </div>
-  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #fecdd3; font-weight: 500;">
+  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #7f1d1d; font-weight: 500;">
     비트코인이 4시간봉 종가 기준으로 <strong>$79,800(손절가)</strong>을 강하게 상방 돌파할 경우, 본 데드캣 바운스 가설은 즉시 폐기되며 숏 포지션을 무조건 종료해야 합니다. 변동성이 확대될 수 있는 구간이므로 레버리지는 최대 2~3배 이하로 엄격히 제한할 것을 권장합니다.
   </p>
 </div>
@@ -1277,7 +1315,7 @@ async function buildDailyPerspectiveReport(targetDate = null) {
       console.log(`[Daily Perspective Generator] Requesting AI TradingView analysis from Gemini for ${slotInfo.slotName}...`);
       const rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, slotInfo, apiKey);
       if (rawAiText) {
-        const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" /></div>`;
+        const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
         let processed = rawAiText.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
         processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-4]|INVALIDATION|RISK_GUIDE)>/gi, '');
         contentHtml = processed;

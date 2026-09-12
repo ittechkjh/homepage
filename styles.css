@@ -783,5 +783,98 @@ html.theme-light .community-subtab-guides.font-medium:hover {
   color: #0f172a !important;
 }
 
+/* 18. Forum Report Typography & Borderless Cards (Crystal Clear Readability) */
+#cafe-post-content h3 {
+  color: #38bdf8 !important;
+  font-weight: 800 !important;
+}
+#cafe-post-content h4 {
+  color: #f1f5f9 !important;
+  font-weight: 800 !important;
+  border-left: 4px solid #38bdf8 !important;
+}
+#cafe-post-content p {
+  color: #cbd5e1 !important;
+  font-size: 15px !important;
+  line-height: 1.8 !important;
+}
+#cafe-post-content strong {
+  color: #ffffff !important;
+}
+#cafe-post-content .post-img-container img {
+  border: none !important;
+  box-shadow: none !important;
+}
 
+/* Dark Mode Card Overrides */
+#cafe-post-content .perspective-setup-card {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: none !important;
+  border-left: 4px solid #38bdf8 !important;
+}
+#cafe-post-content .perspective-setup-card > div:first-child {
+  color: #f1f5f9 !important;
+}
+#cafe-post-content .perspective-setup-card [style*="background: #ffffff"] {
+  background: rgba(30, 41, 59, 0.85) !important;
+  box-shadow: none !important;
+}
+#cafe-post-content .perspective-invalidation-card {
+  background: rgba(69, 10, 10, 0.45) !important;
+  border: none !important;
+  border-left: 4px solid #f43f5e !important;
+}
+#cafe-post-content .perspective-invalidation-card p {
+  color: #fecdd3 !important;
+}
+#cafe-post-content .morning-conclusion-card {
+  background: rgba(8, 47, 73, 0.6) !important;
+  border: none !important;
+  border-left: 4px solid #38bdf8 !important;
+}
+#cafe-post-content .morning-conclusion-card p {
+  color: #e0f2fe !important;
+}
 
+/* Light Mode Typography & Cards */
+html.theme-light #cafe-post-content h3 {
+  color: #0284c7 !important;
+}
+html.theme-light #cafe-post-content h4 {
+  color: #0f172a !important;
+  border-left: 4px solid #0284c7 !important;
+}
+html.theme-light #cafe-post-content p {
+  color: #1e293b !important;
+}
+html.theme-light #cafe-post-content strong {
+  color: #0f172a !important;
+}
+html.theme-light #cafe-post-content .perspective-setup-card {
+  background: #f8fafc !important;
+  border: none !important;
+  border-left: 4px solid #0284c7 !important;
+}
+html.theme-light #cafe-post-content .perspective-setup-card > div:first-child {
+  color: #0f172a !important;
+}
+html.theme-light #cafe-post-content .perspective-setup-card [style*="background: #ffffff"] {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.theme-light #cafe-post-content .perspective-invalidation-card {
+  background: #fef2f2 !important;
+  border: none !important;
+  border-left: 4px solid #ef4444 !important;
+}
+html.theme-light #cafe-post-content .perspective-invalidation-card p {
+  color: #7f1d1d !important;
+}
+html.theme-light #cafe-post-content .morning-conclusion-card {
+  background: #f0f9ff !important;
+  border: none !important;
+  border-left: 4px solid #0284c7 !important;
+}
+html.theme-light #cafe-post-content .morning-conclusion-card p {
+  color: #0c4a6e !important;
+}

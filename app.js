@@ -2669,39 +2669,110 @@ async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
   // 1. Remove action buttons inside clone
   clone.querySelectorAll('.img-naver-actions').forEach(el => el.remove());
 
-  // 2. Fix conclusion/strategy callout box contrast for Naver light mode
-  clone.querySelectorAll('div').forEach(div => {
+  // 2. Remove all harsh borders & dark boxes across all elements (Naver Blog/Cafe borderless optimization)
+  clone.querySelectorAll('*').forEach(el => {
+    if (el.style) {
+      el.style.boxShadow = 'none';
+      if (el.style.border && (el.style.border.includes('rgba') || el.style.border.includes('solid 1px') || el.style.border.includes('1px solid'))) {
+        // Keep left accent bars, remove all other 4-sided borders
+        if (!el.style.borderLeft || el.style.borderLeft === el.style.border) {
+          el.style.border = 'none';
+        }
+      }
+    }
+  });
+
+  // 3. Format Trading Setup Cards for Naver Blog/Cafe (Clean borderless card)
+  clone.querySelectorAll('.perspective-setup-card, div').forEach(div => {
     if (div.classList.contains('post-img-container')) return;
-    if (div.innerText && div.innerText.includes('종합 결론 및 트레이딩 전략 가이드')) {
+    if (div.classList.contains('perspective-setup-card') || (div.innerText && div.innerText.includes('트레이딩 셋업 파라미터'))) {
       div.style.backgroundColor = '#f8fafc';
       div.style.background = '#f8fafc';
-      div.style.border = '1px solid #cbd5e1';
-      div.style.borderLeft = '5px solid #0284c7';
-      div.style.borderRadius = '10px';
+      div.style.border = 'none';
+      div.style.borderLeft = '4px solid #0284c7';
+      div.style.borderRadius = '8px';
+      div.style.padding = '18px 20px';
+      div.style.margin = '22px 0';
+      div.style.color = '#0f172a';
+
+      // Inner title
+      const titleEl = div.querySelector('div');
+      if (titleEl) {
+        titleEl.style.color = '#0f172a';
+        titleEl.style.fontSize = '15px';
+        titleEl.style.fontWeight = '800';
+        titleEl.style.marginBottom = '12px';
+      }
+
+      // Inner parameter sub-cards: clean white pills with zero border
+      div.querySelectorAll('div > div > div, .grid > div').forEach(sub => {
+        sub.style.backgroundColor = '#ffffff';
+        sub.style.background = '#ffffff';
+        sub.style.border = 'none';
+        sub.style.borderRadius = '6px';
+        sub.style.padding = '10px 12px';
+        sub.style.margin = '4px';
+      });
+    }
+
+    // 4. Format Invalidation & Risk Cards
+    if (div.classList.contains('perspective-invalidation-card') || (div.innerText && div.innerText.includes('관점 무효화 기준'))) {
+      div.style.backgroundColor = '#fef2f2';
+      div.style.background = '#fef2f2';
+      div.style.border = 'none';
+      div.style.borderLeft = '4px solid #ef4444';
+      div.style.borderRadius = '8px';
+      div.style.padding = '16px 18px';
+      div.style.margin = '22px 0';
+      div.style.color = '#7f1d1d';
+
+      const innerDiv = div.querySelector('div');
+      if (innerDiv) {
+        innerDiv.style.color = '#b91c1c';
+        innerDiv.style.fontSize = '14px';
+        innerDiv.style.fontWeight = '800';
+        innerDiv.style.marginBottom = '6px';
+      }
+      const innerP = div.querySelector('p');
+      if (innerP) {
+        innerP.style.color = '#7f1d1d';
+        innerP.style.fontSize = '14px';
+        innerP.style.lineHeight = '1.75';
+        innerP.style.margin = '0';
+      }
+    }
+
+    // 5. Fix conclusion/strategy callout box contrast for Naver light mode
+    if (div.classList.contains('morning-conclusion-card') || (div.innerText && div.innerText.includes('종합 결론 및 트레이딩 전략 가이드'))) {
+      div.style.backgroundColor = '#f0f9ff';
+      div.style.background = '#f0f9ff';
+      div.style.border = 'none';
+      div.style.borderLeft = '4px solid #0284c7';
+      div.style.borderRadius = '8px';
       div.style.padding = '18px 22px';
       div.style.margin = '24px 0';
-      div.style.color = '#0f172a';
+      div.style.color = '#0c4a6e';
 
       const innerDiv = div.querySelector('div');
       if (innerDiv) {
         innerDiv.style.color = '#0369a1';
-        innerDiv.style.fontSize = '16px';
-        innerDiv.style.fontWeight = 'bold';
+        innerDiv.style.fontSize = '15px';
+        innerDiv.style.fontWeight = '800';
         innerDiv.style.marginBottom = '8px';
       }
 
       const innerP = div.querySelector('p');
       if (innerP) {
-        innerP.style.color = '#1e293b';
+        innerP.style.color = '#0c4a6e';
         innerP.style.fontSize = '14px';
         innerP.style.lineHeight = '1.8';
         innerP.style.fontWeight = '500';
-        innerP.margin = '0';
+        innerP.style.margin = '0';
       }
     }
   });
 
-  // 3. Style Headings and Body text for crystal clear contrast
+  // 6. Style Headings and Body text for crystal clear contrast on Naver white background
   clone.querySelectorAll('p').forEach(p => {
     if (!p.closest('div[style*="border-left"]')) {
       p.style.color = '#1e293b';
@@ -2713,17 +2784,22 @@ async function copyPostForNaverBlog(targetPostId = null, triggerBtn = null) {
   clone.querySelectorAll('h3').forEach(h => {
     h.style.color = '#0284c7';
     h.style.fontSize = '20px';
-    h.style.fontWeight = 'bold';
+    h.style.fontWeight = '800';
     h.style.marginBottom = '14px';
+    h.style.lineHeight = '1.4';
   });
   clone.querySelectorAll('h4').forEach(h => {
     h.style.color = '#0f172a';
     h.style.fontSize = '17px';
-    h.style.fontWeight = 'bold';
+    h.style.fontWeight = '800';
     h.style.marginTop = '28px';
     h.style.marginBottom = '10px';
     h.style.paddingLeft = '10px';
+    h.style.border = 'none';
     h.style.borderLeft = '4px solid #0284c7';
+  });
+  clone.querySelectorAll('strong').forEach(s => {
+    if (!s.style.color) s.style.color = '#0f172a';
   });
 
   // 4. Transform image containers into clean photo guide cards

@@ -140,7 +140,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=20260910_02">
+  <link rel="stylesheet" href="styles.css?v=20260912_03">
   <link rel="stylesheet" href="css/analyzer.css?v=20260907_02">
 
   <style>
@@ -326,16 +326,31 @@
     }
     #cafe-write-content h3, #cafe-post-content h3 {
       font-size: 1.1rem !important;
-      font-weight: 600 !important;
+      font-weight: 700 !important;
       color: #38bdf8 !important;
       margin-top: 0.85rem !important;
       margin-bottom: 0.35rem !important;
+      line-height: 1.4 !important;
+    }
+    #cafe-write-content h4, #cafe-post-content h4 {
+      font-size: 1.05rem !important;
+      font-weight: 700 !important;
+      color: #f1f5f9 !important;
+      margin-top: 1.25rem !important;
+      margin-bottom: 0.5rem !important;
       line-height: 1.4 !important;
     }
     #cafe-write-content p, #cafe-post-content p {
       margin-bottom: 0.5rem !important;
       line-height: 1.75 !important;
     }
+    html.theme-light #cafe-post-content h1 { color: #0f172a !important; }
+    html.theme-light #cafe-post-content h2 { color: #0f172a !important; }
+    html.theme-light #cafe-post-content h3 { color: #0284c7 !important; }
+    html.theme-light #cafe-post-content h4 { color: #0f172a !important; border-left: 4px solid #0284c7 !important; }
+    html.theme-light #cafe-post-content p { color: #1e293b !important; }
+    html.theme-light #cafe-post-content strong { color: #0f172a !important; }
+    html.theme-light #cafe-post-content blockquote { color: #1e293b !important; background: #f0fdfa !important; border-left-color: #0891b2 !important; }
     #cafe-write-content blockquote, #cafe-post-content blockquote {
       border-left: 4px solid #06b6d4 !important;
       background: rgba(6, 182, 212, 0.08) !important;
@@ -5999,7 +6014,7 @@
   <script src="js/admin.js?v=20260910_02"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
-  <script src="js/preview-app-v2.js?v=20260912_02"></script>
+  <script src="js/preview-app-v2.js?v=20260912_03"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
