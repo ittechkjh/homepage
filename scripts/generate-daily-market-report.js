@@ -601,13 +601,14 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(30000)
+        signal: AbortSignal.timeout(90000)
       });
       if (res.ok) {
         const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const text = parts.map(p => p.text || '').join('').trim();
         if (text && text.length > 500) {
-          console.log(`[Gemini AI] Successfully generated report with ${model}`);
+          console.log(`[Gemini AI] Successfully generated report with ${model} (${text.length} chars)`);
           return text;
         }
       } else {
