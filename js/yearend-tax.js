@@ -199,7 +199,7 @@ const YearendTaxCalculator = (function() {
   }
 
   // 6. 맞벌이 부부 비교 및 절세 분석 로직
-  function analyzeCouple(pSalary, sSalary, familyExpense, familyMedical) {
+  function analyzeCouple(pSalary, sSalary, familyExpense, familyMedical, depOptions = {}) {
     const pEarnedDeduct = calcEarnedIncomeDeduction(pSalary);
     const sEarnedDeduct = calcEarnedIncomeDeduction(sSalary);
 
@@ -1037,10 +1037,10 @@ const YearendTaxCalculator = (function() {
       return isNaN(parsed) ? fallback : parsed;
     };
 
-    state.annualSalary = getNum('ytax-couple-input-salary', state.annualSalary);
-    state.spouseSalary = getNum('ytax-couple-input-spouse-salary', 42000000);
-    state.familyExpenseTotal = getNum('ytax-couple-input-expense', 28000000);
-    state.familyMedicalTotal = getNum('ytax-couple-input-medical', 1800000);
+    state.annualSalary = getNum('ytax-couple-input-salary', 0);
+    state.spouseSalary = getNum('ytax-couple-input-spouse-salary', 0);
+    state.familyExpenseTotal = getNum('ytax-couple-input-expense', 0);
+    state.familyMedicalTotal = getNum('ytax-couple-input-medical', 0);
 
     state.coupleDepYouth = getNum('ytax-couple-input-dep-youth', 0);
     state.coupleDepInfant = getNum('ytax-couple-input-dep-infant', 0);
@@ -1071,6 +1071,23 @@ const YearendTaxCalculator = (function() {
     setVal('ytax-input-senior-elders', state.isSeniorElder);
     setVal('ytax-input-disabled', state.disabledCount);
 
+    renderCoupleUI();
+  }
+
+  function addCoupleSalary(target, amount) {
+    if (target === 'primary') {
+      const cur = Number(state.annualSalary) || 0;
+      state.annualSalary = Math.max(0, cur + amount);
+      const el = document.getElementById('ytax-couple-input-salary');
+      if (el) el.value = state.annualSalary;
+      const mainEl = document.getElementById('ytax-input-salary');
+      if (mainEl) mainEl.value = state.annualSalary;
+    } else {
+      const cur = Number(state.spouseSalary) || 0;
+      state.spouseSalary = Math.max(0, cur + amount);
+      const el = document.getElementById('ytax-couple-input-spouse-salary');
+      if (el) el.value = state.spouseSalary;
+    }
     renderCoupleUI();
   }
 
@@ -1105,7 +1122,15 @@ const YearendTaxCalculator = (function() {
     const sSalary = Math.max(0, Number(state.spouseSalary) || 0);
     const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
     const familyMedical = Math.max(0, Number(state.familyMedicalTotal) || 0);
-    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical);
+    const depOptions = {
+      coupleDepYouth: state.coupleDepYouth,
+      coupleDepInfant: state.coupleDepInfant,
+      coupleDepAdult: state.coupleDepAdult,
+      coupleDepElderNormal: state.coupleDepElderNormal,
+      coupleDepElderSenior: state.coupleDepElderSenior,
+      coupleDepDisabled: state.coupleDepDisabled
+    };
+    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical, depOptions);
 
     const text = `[👫 2026 맞벌이 부부 연말정산 절세 & 카드 소비 진단 결과 - CrytoPnL]
 • 본인 총급여: ${formatWon(pSalary)} (세율 ${advice.isPrimaryHigher ? advice.higherRate.rate : advice.lowerRate.rate}%)
@@ -1189,6 +1214,10 @@ const YearendTaxCalculator = (function() {
     setCheck('ytax-chk-femalehead', state.isFemaleHead);
 
     // Couple Tab Inputs
+    setVal('ytax-couple-input-salary', state.annualSalary);
+    setVal('ytax-couple-input-spouse-salary', state.spouseSalary);
+    setVal('ytax-couple-input-expense', state.familyExpenseTotal);
+    setVal('ytax-couple-input-medical', state.familyMedicalTotal);
     setVal('ytax-couple-input-dep-youth', state.coupleDepYouth || state.childrenYouthCount);
     setVal('ytax-couple-input-dep-infant', state.coupleDepInfant || state.childrenInfantCount);
     setVal('ytax-couple-input-dep-adult', state.coupleDepAdult || state.childrenAdultCount);
@@ -1392,6 +1421,7 @@ const YearendTaxCalculator = (function() {
     handleGoldenRatioChange,
     setGoldenRatioSalary,
     addSalary,
+    addCoupleSalary,
     applyPreset,
     resetAll,
     copyResultToClipboard,

@@ -4850,6 +4850,11 @@
                   <input type="number" id="ytax-couple-input-salary" value="50000000" step="1000000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-teal-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
                 </div>
+                <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', 10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-teal-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', 5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-teal-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('primary', -5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
+                </div>
               </div>
 
               <!-- Spouse Income -->
@@ -4864,6 +4869,11 @@
                 <div class="relative">
                   <input type="number" id="ytax-couple-input-spouse-salary" value="42000000" step="1000000" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono font-bold focus:border-pink-400 outline-none pr-10">
                   <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">원</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', 10000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-pink-300 font-medium transition cursor-pointer">+1천만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', 5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-pink-300 font-medium transition cursor-pointer">+500만</button>
+                  <button type="button" onclick="YearendTaxCalculator.addCoupleSalary('spouse', -5000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-navy-700 text-[10px] text-slate-400 font-medium transition cursor-pointer">-500만</button>
                 </div>
               </div>
             </div>
