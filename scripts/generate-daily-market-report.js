@@ -591,8 +591,8 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
     }
   };
 
-  // Try gemini-2.0-flash first, fallback to gemini-1.5-flash
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+  // Try gemini-3.6-flash first, fallback to gemini-3.5-flash and gemini-flash-latest
+  const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   for (const model of models) {
     try {
       console.log(`[Gemini AI] Calling ${model}...`);
