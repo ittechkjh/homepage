@@ -886,3 +886,35 @@ html.theme-light #cafe-post-content .morning-conclusion-card p {
   border: none !important;
 }
 
+/* Post Content Paragraph & Heading Readability */
+#cafe-post-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  line-height: 1.85 !important;
+  word-break: keep-all !important;
+}
+#cafe-post-content p {
+  margin-top: 0 !important;
+  margin-bottom: 20px !important;
+  line-height: 1.85 !important;
+  color: #cbd5e1;
+}
+html.theme-light #cafe-post-content p {
+  color: #1e293b !important;
+}
+#cafe-post-content h1, #cafe-post-content h2, #cafe-post-content h3, #cafe-post-content h4, #cafe-post-content h5 {
+  margin-top: 30px !important;
+  margin-bottom: 14px !important;
+  line-height: 1.5 !important;
+  border: none !important;
+  border-left: none !important;
+}
+#cafe-post-content hr {
+  border: none !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.2) !important;
+  margin: 32px 0 !important;
+}
+html.theme-light #cafe-post-content hr {
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+

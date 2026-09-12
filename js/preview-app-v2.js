@@ -2469,7 +2469,69 @@ function showForumWriteView(editPostId = null, updateHistory = true) {
   if (typeof lucide !== 'undefined') lucide.createIcons();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-window.showForumWriteView = showForumWriteView;
+/**
+ * Converts markdown-style headings, dividers, lists, and line breaks into clean, well-spaced HTML
+ */
+function formatPostContent(content) {
+  if (!content) return '';
+  let str = String(content).trim();
+
+  // If already full HTML without raw markdown headers (### or ---)
+  const hasMarkdown = /^(#{1,6}\s+|---|\*\*\*|\*\s+\*\*)/m.test(str) || str.includes('### ') || str.includes('---');
+  if (!hasMarkdown) {
+    return str;
+  }
+
+  // Split by double newlines into distinct logical blocks
+  const blocks = str.split(/\n\s*\n/);
+  const formattedBlocks = blocks.map(block => {
+    let b = block.trim();
+    if (!b) return '';
+
+    // If block is an existing HTML block tag
+    if (b.startsWith('<div') || b.startsWith('<table') || b.startsWith('<svg') || b.startsWith('<p') || b.startsWith('<h') || b.startsWith('<ul') || b.startsWith('<ol')) {
+      return b;
+    }
+
+    // Horizontal rule
+    if (/^---$|^\*\*\*$/.test(b)) {
+      return '<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;" />';
+    }
+
+    // Headings
+    if (/^#\s+(.+)$/m.test(b)) {
+      return b.replace(/^#\s+(.+)$/gm, '<h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h2>');
+    }
+    if (/^##\s+(.+)$/m.test(b)) {
+      return b.replace(/^##\s+(.+)$/gm, '<h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h3>');
+    }
+    if (/^###\s+(.+)$/m.test(b)) {
+      return b.replace(/^###\s+(.+)$/gm, '<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 12px; line-height: 1.5;">$1</h4>');
+    }
+    if (/^####\s+(.+)$/m.test(b)) {
+      return b.replace(/^####\s+(.+)$/gm, '<h5 style="font-size: 15px; font-weight: 800; color: #0284c7; margin-top: 22px; margin-bottom: 10px; line-height: 1.5;">$1</h5>');
+    }
+
+    // Bullet list items (* or -)
+    if (/^[\*\-]\s+/m.test(b)) {
+      const items = b.split('\n').filter(Boolean);
+      const listHtml = items.map(it => {
+        const itemText = it.replace(/^[\*\-]\s+/, '').trim();
+        const boldParsed = itemText.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
+        return `<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;"><span style="color: #0284c7; font-weight: 800;">•</span><div>${boldParsed}</div></div>`;
+      }).join('');
+      return `<div style="margin: 14px 0 18px 0;">${listHtml}</div>`;
+    }
+
+    // Standard paragraph: parse inline bold & wrap in <p> with ample line-height and margin
+    let pContent = b.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
+    pContent = pContent.replace(/\n/g, '<br/>');
+    return `<p style="font-size: 15px; line-height: 1.85; margin-bottom: 18px; color: #1e293b; word-break: keep-all;">${pContent}</p>`;
+  });
+
+  return formattedBlocks.filter(Boolean).join('\n\n');
+}
+window.formatPostContent = formatPostContent;
 
 function openPostDetailModal(postId, updateHistory = true) {
   const listView = document.getElementById('forum-list-view');
@@ -2524,7 +2586,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
   if (viewsEl) viewsEl.innerText = post.views;
   if (contentEl) {
-    contentEl.innerHTML = post.content;
+    contentEl.innerHTML = formatPostContent(post.content);
     convertPostSvgImagesToPng(contentEl);
   }
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;

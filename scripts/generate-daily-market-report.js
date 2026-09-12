@@ -1335,6 +1335,60 @@ ${chartTag}
 `;
 }
 
+function formatMarkdownToCleanHtml(rawText) {
+  if (!rawText) return '';
+  let str = String(rawText).trim();
+
+  // Split by double line breaks into logical blocks
+  const blocks = str.split(/\n\s*\n/);
+  const formattedBlocks = blocks.map(block => {
+    let b = block.trim();
+    if (!b) return '';
+
+    // If block is an HTML container (div, table, img container, svg)
+    if (b.startsWith('<div') || b.startsWith('<table') || b.startsWith('<svg') || b.startsWith('<p') || b.startsWith('<h')) {
+      return b;
+    }
+
+    // Horizontal rule
+    if (/^---$|^\*\*\*$/.test(b)) {
+      return '<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;" />';
+    }
+
+    // Headings
+    if (/^#\s+(.+)$/m.test(b)) {
+      return b.replace(/^#\s+(.+)$/gm, '<h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h2>');
+    }
+    if (/^##\s+(.+)$/m.test(b)) {
+      return b.replace(/^##\s+(.+)$/gm, '<h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h3>');
+    }
+    if (/^###\s+(.+)$/m.test(b)) {
+      return b.replace(/^###\s+(.+)$/gm, '<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 12px; line-height: 1.5;">$1</h4>');
+    }
+    if (/^####\s+(.+)$/m.test(b)) {
+      return b.replace(/^####\s+(.+)$/gm, '<h5 style="font-size: 15px; font-weight: 800; color: #0284c7; margin-top: 22px; margin-bottom: 10px; line-height: 1.5;">$1</h5>');
+    }
+
+    // Bullet list items (* or -)
+    if (/^[\*\-]\s+/m.test(b)) {
+      const items = b.split('\n').filter(Boolean);
+      const listHtml = items.map(it => {
+        const itemText = it.replace(/^[\*\-]\s+/, '').trim();
+        const boldParsed = itemText.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
+        return `<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;"><span style="color: #0284c7; font-weight: 800;">•</span><div>${boldParsed}</div></div>`;
+      }).join('');
+      return `<div style="margin: 14px 0 18px 0;">${listHtml}</div>`;
+    }
+
+    // Standard paragraph with inline bold & break conversion
+    let pContent = b.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
+    pContent = pContent.replace(/\n/g, '<br/>');
+    return `<p style="font-size: 15px; line-height: 1.85; margin-bottom: 18px; color: #1e293b; word-break: keep-all;">${pContent}</p>`;
+  });
+
+  return formattedBlocks.filter(Boolean).join('\n\n');
+}
+
 // Master technical trading perspective generator (supports 3 daily slots: 09:00, 17:00, 21:00)
 async function buildDailyPerspectiveReport(targetDate = null) {
   const kst = targetDate ? new Date(targetDate) : getKSTDate();
@@ -1357,7 +1411,7 @@ async function buildDailyPerspectiveReport(targetDate = null) {
         const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
         let processed = rawAiText.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
         processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-4]|INVALIDATION|RISK_GUIDE)>/gi, '');
-        contentHtml = processed;
+        contentHtml = formatMarkdownToCleanHtml(processed);
       }
     } catch(e) {
       console.warn('[Daily Perspective Generator] AI synthesis failed, using dynamic quant perspective:', e.message);
