@@ -4142,6 +4142,58 @@ function handleCafeImageFileSelect(input) {
 }
 window.handleCafeImageFileSelect = handleCafeImageFileSelect;
 
+/**
+ * Triggers GitHub Actions repository_dispatch event to instantly build static HTML
+ * and update sitemap.xml for newly published forum posts.
+ */
+async function triggerStaticPageBuild(postId, postTitle) {
+  try {
+    let token = '';
+    const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+    if (firestore) {
+      try {
+        const doc = await firestore.collection('system_config').doc('admin_settings').get();
+        if (doc.exists && doc.data() && doc.data().githubPat) {
+          token = doc.data().githubPat.trim();
+        }
+      } catch (e) {}
+    }
+    if (!token) {
+      token = localStorage.getItem('crytopnl_admin_pat') || localStorage.getItem('coinhub_admin_pat');
+    }
+    if (!token) {
+      console.log('[triggerStaticPageBuild] No GitHub PAT found. Static build will run on next schedule.');
+      return;
+    }
+
+    const res = await fetch('https://api.github.com/repos/ittechkjh/homepage/dispatches', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28'
+      },
+      body: JSON.stringify({
+        event_type: 'forum_post_created',
+        client_payload: {
+          post_id: String(postId || ''),
+          post_title: String(postTitle || ''),
+          created_at: new Date().toISOString()
+        }
+      })
+    });
+
+    if (res.status === 204) {
+      console.log(`[triggerStaticPageBuild] Successfully triggered instant static page build for post #${postId}!`);
+    } else {
+      console.warn('[triggerStaticPageBuild] GitHub dispatch response status:', res.status);
+    }
+  } catch (err) {
+    console.warn('[triggerStaticPageBuild] Error triggering GitHub dispatch:', err);
+  }
+}
+window.triggerStaticPageBuild = triggerStaticPageBuild;
+
 function handleCafeSubmitPost(e) {
   if (e && e.preventDefault) e.preventDefault();
   const catSelect = document.getElementById('cafe-write-category');
@@ -4196,6 +4248,7 @@ function handleCafeSubmitPost(e) {
       if (typeof db !== 'undefined' && db) {
         db.collection('forum_posts').doc(post.id.toString()).set(post).catch(e => console.log(e));
       }
+      triggerStaticPageBuild(post.id, post.title);
       isCafeEditMode = false;
       const targetId = post.id;
       currentCafePostId = null;
@@ -4228,13 +4281,16 @@ function handleCafeSubmitPost(e) {
     db.collection('forum_posts').doc(newPost.id.toString()).set(newPost).catch(e => console.error('Firestore save error:', e));
   }
 
+  // Instantly trigger GitHub Actions static page builder
+  triggerStaticPageBuild(newPost.id, newPost.title);
+
   // Reset input form
   if (titleInput) titleInput.value = '';
   if (editor) editor.innerHTML = '';
   const noticeChk = document.getElementById('cafe-write-is-notice');
   if (noticeChk) noticeChk.checked = false;
 
-  alert('🎉 게시글이 성공적으로 등록되었습니다!');
+  alert('🎉 게시글이 성공적으로 등록되었습니다!\n구글 SEO용 웹문서 자동 생성 및 배포가 백그라운드에서 시작되었습니다.');
   if (typeof filterForum === 'function') {
     filterForum('all');
   }
