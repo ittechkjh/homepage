@@ -4326,64 +4326,126 @@
               <span class="text-[11px] font-mono text-cyan-400">기본 인당 150만원</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">본인 기본공제</div>
-                  <div class="text-[11px] text-slate-400">근로자 본인 (기본 적용)</div>
+            <!-- 인적공제 항목 리스트 (자녀 연령별, 부모님, 어르신, 장애인 세분화) -->
+            <div class="space-y-3">
+              <!-- 기본 본인 및 배우자 -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
+                  <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                      <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400"></i>
+                      <span>본인 기본공제</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">근로자 본인 (기본 자동적용)</div>
+                  </div>
+                  <span class="text-xs font-mono font-bold text-cyan-400">150만원</span>
                 </div>
-                <span class="text-xs font-mono font-bold text-cyan-400">150만원</span>
+
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
+                  <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                      <i data-lucide="heart" class="w-3.5 h-3.5 text-pink-400"></i>
+                      <span>배우자 기본공제</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">연간 소득금액 100만원 이하 (150만)</div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="ytax-chk-spouse" onchange="YearendTaxCalculator.handleInputChange()" class="sr-only peer">
+                    <div class="w-9 h-5 bg-navy-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                  </label>
+                </div>
               </div>
 
-              <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">배우자 기본공제</div>
-                  <div class="text-[11px] text-slate-400">연간 소득금액 100만원 이하</div>
+              <!-- 자녀 연령별 세분화 (청소년 vs 미취학 vs 성인자녀) -->
+              <div class="p-3.5 bg-navy-950/80 rounded-2xl border border-cyan-500/20 space-y-2.5">
+                <div class="flex items-center justify-between border-b border-navy-800 pb-1.5">
+                  <div class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                    <i data-lucide="baby" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>자녀 연령별 세분화 (청소년 · 미취학 · 성인 자녀)</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400">연령별 혜택 상이</span>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="ytax-chk-spouse" onchange="YearendTaxCalculator.handleInputChange()" class="sr-only peer">
-                  <div class="w-9 h-5 bg-navy-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
-                </label>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <!-- 청소년 / 초중고 자녀 (만 8세 ~ 20세) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-white">청소년·초중고</span>
+                      <input type="number" id="ytax-input-children-youth" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    </div>
+                    <div class="text-[10px] text-slate-400 leading-tight">만 8세~20세: 인당 150만 + 자녀세액공제(15만/35만/65만)</div>
+                  </div>
+
+                  <!-- 미취학 아동 자녀 (만 7세 이하) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-white">미취학 아동</span>
+                      <input type="number" id="ytax-input-children-infant" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    </div>
+                    <div class="text-[10px] text-slate-400 leading-tight">만 7세 이하: 인당 150만 기본공제 + 학원/유치원 교육비</div>
+                  </div>
+
+                  <!-- 성인 자녀 (만 20세 초과, 대학생 등) -->
+                  <div class="p-2.5 bg-navy-900 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-amber-300">성인 자녀(20세초과)</span>
+                      <input type="number" id="ytax-input-children-adult" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-950 border border-amber-500/40 rounded-lg py-0.5 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                    </div>
+                    <div class="text-[10px] text-amber-400/90 leading-tight">⚠️기본공제 불가! 대학생 등록금(900만 한도 15%) 및 카드 가능</div>
+                  </div>
+                </div>
               </div>
 
-              <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">20세 이하 자녀/부양가족</div>
-                  <div class="text-[11px] text-slate-400">인당 150만 + 자녀세액공제</div>
+              <!-- 부모님 및 어르신 (경로우대 노인) & 장애인 구분 -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- 60세~69세 부모님/직계존속 -->
+                <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-white">60세~69세 부모님</span>
+                    <input type="number" id="ytax-input-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-navy-700 rounded-lg py-0.5 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
+                  </div>
+                  <div class="text-[10px] text-slate-400 leading-tight">인당 150만원 소득공제 (연소득 100만 이하)</div>
                 </div>
-                <input type="number" id="ytax-input-children" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-16 bg-navy-900 border border-navy-700 rounded-xl px-2 py-1 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
-              </div>
 
-              <div class="p-3 bg-navy-950/60 rounded-2xl border border-navy-800/80 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">60세 이상 부모님/직계존속</div>
-                  <div class="text-[11px] text-slate-400">인당 150만원 소득공제</div>
+                <!-- 70세 이상 경로우대 노인 -->
+                <div class="p-3 bg-amber-950/20 rounded-2xl border border-amber-500/30 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-amber-300">70세이상 경로우대</span>
+                    <input type="number" id="ytax-input-senior-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-amber-500/40 rounded-lg py-0.5 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                  </div>
+                  <div class="text-[10px] text-slate-300 leading-tight"><strong>인당 250만</strong> (기본150+경로우대100) + <strong>의료비 무제한</strong></div>
                 </div>
-                <input type="number" id="ytax-input-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-16 bg-navy-900 border border-navy-700 rounded-xl px-2 py-1 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
+
+                <!-- 장애인 부양가족 (나이 제한 없음) -->
+                <div class="p-3 bg-emerald-950/20 rounded-2xl border border-emerald-500/30 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-emerald-300">장애인 (나이무관)</span>
+                    <input type="number" id="ytax-input-disabled" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-12 bg-navy-900 border border-emerald-500/40 rounded-lg py-0.5 text-xs text-center text-emerald-300 font-bold outline-none focus:border-emerald-400">
+                  </div>
+                  <div class="text-[10px] text-slate-300 leading-tight"><strong>인당 350만</strong> (기본150+장애인200) + <strong>의료비/특수교육비 무제한</strong></div>
+                </div>
               </div>
             </div>
 
-            <!-- 추가공제 접이식 토글 -->
+            <!-- 추가 특수공제 접이식 토글 (한부모, 부녀자) -->
             <details class="bg-navy-950/40 rounded-2xl border border-navy-800/60 p-3 text-xs">
               <summary class="font-bold text-slate-300 cursor-pointer select-none flex items-center justify-between">
-                <span>➕ 추가공제 항목 (70세이상 경로우대, 장애인, 한부모, 부녀자)</span>
+                <span>➕ 한부모 · 부녀자 추가공제 (해당 시 체크)</span>
                 <span class="text-[10px] text-cyan-400">열기/닫기</span>
               </summary>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 mt-2 border-t border-navy-800">
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-400">70세 이상 경로우대 (인당 100만):</span>
-                  <input type="number" id="ytax-input-senior-elders" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-14 bg-navy-900 border border-navy-700 rounded-lg p-1 text-center text-white">
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-400">장애인 공제 (인당 200만):</span>
-                  <input type="number" id="ytax-input-disabled" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleInputChange()" class="w-14 bg-navy-900 border border-navy-700 rounded-lg p-1 text-center text-white">
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-400">한부모 공제 (100만원):</span>
+                <div class="flex items-center justify-between p-2 bg-navy-900/60 rounded-xl">
+                  <div>
+                    <span class="text-white font-bold block">한부모 공제 (100만원)</span>
+                    <span class="text-[10px] text-slate-400">배우자 없이 20세 이하 자녀 양육</span>
+                  </div>
                   <input type="checkbox" id="ytax-chk-singleparent" onchange="YearendTaxCalculator.handleInputChange()" class="w-4 h-4 accent-cyan-500">
                 </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-400">부녀자 공제 (50만원, 종합소득 3천만 이하):</span>
+                <div class="flex items-center justify-between p-2 bg-navy-900/60 rounded-xl">
+                  <div>
+                    <span class="text-white font-bold block">부녀자 공제 (50만원)</span>
+                    <span class="text-[10px] text-slate-400">종합소득 3천만(총급여 4,500만) 이하 여성 세대주</span>
+                  </div>
                   <input type="checkbox" id="ytax-chk-femalehead" onchange="YearendTaxCalculator.handleInputChange()" class="w-4 h-4 accent-cyan-500">
                 </div>
               </div>
@@ -4491,20 +4553,26 @@
 
               <!-- 의료비 -->
               <div>
-                <label for="ytax-input-medical" class="block text-xs font-bold text-slate-300 mb-1">의료비 지출액 (총급여 3% 초과분 15%)</label>
+                <label for="ytax-input-medical" class="block text-xs font-bold text-slate-300 mb-1">
+                  의료비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(3%초과 15% · 70세이상/장애인 한도무제한)</span>
+                </label>
                 <div class="relative">
                   <input type="number" id="ytax-input-medical" value="1500000" step="100000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
+                <p class="text-[10px] text-slate-400 mt-1">일반 700만 한도 / 65세이상 어르신·장애인은 무제한 전액 공제</p>
               </div>
 
               <!-- 교육비 -->
               <div>
-                <label for="ytax-input-education" class="block text-xs font-bold text-slate-300 mb-1">교육비 지출액 (15%)</label>
+                <label for="ytax-input-education" class="block text-xs font-bold text-slate-300 mb-1">
+                  교육비 지출액 <span class="text-[10px] text-indigo-400 font-normal">(15% · 초중고 300만 · 대학생 성인자녀 900만)</span>
+                </label>
                 <div class="relative">
                   <input type="number" id="ytax-input-education" value="0" step="500000" oninput="YearendTaxCalculator.handleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-indigo-400 outline-none pr-8">
                   <span class="absolute right-3 top-2.5 text-xs text-slate-400">원</span>
                 </div>
+                <p class="text-[10px] text-slate-400 mt-1">취학전·초중고 인당 300만 / 대학생(성인) 인당 900만 한도 15%</p>
               </div>
 
               <!-- 월세액 -->
@@ -4837,6 +4905,53 @@
                 </div>
                 <p class="text-[11px] text-slate-400">진료비, 시력교정용 안경/렌즈(50만 한도), 보청기, 산후조리원(200만) 포함</p>
               </div>
+
+              <!-- Family Dependents (자녀, 어르신, 장애인 조건 입력) -->
+              <div class="p-3.5 bg-navy-950/70 rounded-2xl border border-teal-500/30 space-y-2.5">
+                <div class="flex justify-between items-center border-b border-navy-800 pb-1.5">
+                  <span class="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-teal-400"></i>
+                    <span>부부의 자녀 및 부양가족 조건</span>
+                  </span>
+                  <span class="text-[10px] text-slate-400">인적공제 최적 배정</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div class="p-2 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <span class="text-[11px] text-slate-300 block font-semibold">청소년 자녀</span>
+                    <input type="number" id="ytax-couple-input-dep-youth" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-lg p-1 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    <span class="text-[9px] text-slate-400 block text-center">만 8~20세 (150만)</span>
+                  </div>
+                  <div class="p-2 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <span class="text-[11px] text-slate-300 block font-semibold">미취학 아동</span>
+                    <input type="number" id="ytax-couple-input-dep-infant" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-lg p-1 text-xs text-center text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                    <span class="text-[9px] text-slate-400 block text-center">만 7세 이하 (150만)</span>
+                  </div>
+                  <div class="p-2 bg-navy-900 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                    <span class="text-[11px] text-amber-300 block font-semibold">성인 자녀</span>
+                    <input type="number" id="ytax-couple-input-dep-adult" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-amber-500/40 rounded-lg p-1 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                    <span class="text-[9px] text-amber-300/80 block text-center">만 20세초과 (등록금)</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-t border-navy-800/80">
+                  <div class="p-2 bg-navy-900 rounded-xl border border-navy-800 space-y-1">
+                    <span class="text-[11px] text-slate-300 block font-semibold">60~69세 부모</span>
+                    <input type="number" id="ytax-couple-input-dep-elder-normal" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-navy-700 rounded-lg p-1 text-xs text-center text-white font-bold outline-none focus:border-cyan-400">
+                    <span class="text-[9px] text-slate-400 block text-center">인당 150만</span>
+                  </div>
+                  <div class="p-2 bg-navy-900 rounded-xl border border-amber-500/30 space-y-1 bg-amber-950/10">
+                    <span class="text-[11px] text-amber-300 block font-semibold">70세이상 노인</span>
+                    <input type="number" id="ytax-couple-input-dep-elder-senior" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-amber-500/40 rounded-lg p-1 text-xs text-center text-amber-300 font-bold outline-none focus:border-amber-400">
+                    <span class="text-[9px] text-amber-300 block text-center">250만+의료비무제한</span>
+                  </div>
+                  <div class="p-2 bg-navy-900 rounded-xl border border-emerald-500/30 space-y-1 bg-emerald-950/10">
+                    <span class="text-[11px] text-emerald-300 block font-semibold">장애인 (나이무관)</span>
+                    <input type="number" id="ytax-couple-input-dep-disabled" min="0" max="10" value="0" oninput="YearendTaxCalculator.handleCoupleInputChange()" class="w-full bg-navy-950 border border-emerald-500/40 rounded-lg p-1 text-xs text-center text-emerald-300 font-bold outline-none focus:border-emerald-400">
+                    <span class="text-[9px] text-emerald-300 block text-center">350만+의료비무제한</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -4966,6 +5081,7 @@
               <div class="text-xs text-slate-300 leading-relaxed" id="ytax-couple-dep-desc">
                 기본 인적공제(1인당 150만원)는 소득공제이므로 한계세율이 높은 쪽에 넣어야 환급액이 큽니다.
               </div>
+              <div id="ytax-couple-dep-breakdown"></div>
             </div>
 
             <!-- Hometown Love Donation Double Benefit -->

@@ -24,12 +24,21 @@ const YearendTaxCalculator = (function() {
 
     // 2. 인적 공제
     hasSpouse: false,            // 배우자 공제 (연소득 100만 이하)
-    childrenCount: 0,            // 20세 이하 부양가족/자녀 수
-    eldersCount: 0,              // 60세 이상 부모님/직계존속 수
-    isSeniorElder: 0,            // 70세 이상 경로우대 추가인원
-    disabledCount: 0,            // 장애인 수
+    childrenYouthCount: 0,       // 청소년/초중고 자녀 (만 8세~20세: 기본공제 150만 + 자녀세액공제 + 교육비 300만 한도)
+    childrenInfantCount: 0,      // 미취학 아동 (만 7세 이하: 기본공제 150만 + 미취학 교육비 300만 한도)
+    childrenAdultCount: 0,       // 성인 자녀 (만 20세 초과: 기본공제 제외, 대학생 교육비 900만 + 카드합산 가능)
+    childrenCount: 0,            // (하위호환용 미성년 자녀 수)
+    eldersCount: 0,              // 60세~69세 부모님/직계존속 수 (1인당 150만 소득공제)
+    isSeniorElder: 0,            // 70세 이상 경로우대 어르신 수 (1인당 250만 + 의료비 한도 무제한)
+    disabledCount: 0,            // 장애인 부양가족 수 (1인당 350만 + 나이제한 없음 + 의료비/특수교육비 무제한)
     isSingleParent: false,       // 한부모 추가공제
     isFemaleHead: false,         // 부녀자 추가공제
+    coupleDepYouth: 0,           // 맞벌이 탭: 청소년 자녀 수
+    coupleDepInfant: 0,          // 맞벌이 탭: 미취학 아동 수
+    coupleDepAdult: 0,           // 맞벌이 탭: 성인 자녀 수
+    coupleDepElderNormal: 0,     // 맞벌이 탭: 60~69세 부모님 수
+    coupleDepElderSenior: 0,     // 맞벌이 탭: 70세 이상 경로우대 노인 수
+    coupleDepDisabled: 0,        // 맞벌이 탭: 장애인 부양가족 수
 
     // 3. 소득공제 (카드 및 주택)
     creditCard: 12000000,        // 신용카드 사용액
@@ -316,16 +325,56 @@ const YearendTaxCalculator = (function() {
       };
     }
 
-    // 부양가족 인적공제 판정
+    // 7. 부양가족 인적공제 상세 분석 (자녀/노인/장애인/성인자녀)
+    const youthCnt = Number(depOptions.coupleDepYouth ?? state.coupleDepYouth ?? state.childrenYouthCount) || 0;
+    const infantCnt = Number(depOptions.coupleDepInfant ?? state.coupleDepInfant ?? state.childrenInfantCount) || 0;
+    const adultCnt = Number(depOptions.coupleDepAdult ?? state.coupleDepAdult ?? state.childrenAdultCount) || 0;
+    const elderNormalCnt = Number(depOptions.coupleDepElderNormal ?? state.coupleDepElderNormal ?? state.eldersCount) || 0;
+    const elderSeniorCnt = Number(depOptions.coupleDepElderSenior ?? state.coupleDepElderSenior ?? state.isSeniorElder) || 0;
+    const disabledCnt = Number(depOptions.coupleDepDisabled ?? state.coupleDepDisabled ?? state.disabledCount) || 0;
+
+    const standardDepCount = youthCnt + infantCnt + elderNormalCnt;
+    const totalEligibleDep = standardDepCount + elderSeniorCnt + disabledCnt;
+    const totalDepDeduction = (standardDepCount * 1500000) + (elderSeniorCnt * 2500000) + (disabledCnt * 3500000);
+
+    let childCreditTotal = 0;
+    if (youthCnt === 1) childCreditTotal = 150000;
+    else if (youthCnt === 2) childCreditTotal = 350000;
+    else if (youthCnt >= 3) childCreditTotal = 350000 + (youthCnt - 2) * 300000;
+
+    const rateDiffPercent = Math.max(0, higherRate.fullRate - lowerRate.fullRate);
+    const totalExtraTaxSaved = Math.round(totalDepDeduction * (rateDiffPercent / 100));
+
     let dependentAdvice = {};
     if (rateDiff > 0) {
-      const extraRefundPerPerson = Math.round(1500000 * (higherRate.fullRate - lowerRate.fullRate) / 100);
+      const extraPerNormal = Math.round(1500000 * (rateDiffPercent / 100));
+      const extraPerSenior = Math.round(2500000 * (rateDiffPercent / 100));
+      const extraPerDisabled = Math.round(3500000 * (rateDiffPercent / 100));
+
+      let familySummaryText = '';
+      if (totalEligibleDep > 0) {
+        familySummaryText = `현재 부양가족(${totalEligibleDep}명)을 ${higherName}에게 배정하면 ${lowerName} 대비 총 <strong>약 ${formatWon(totalExtraTaxSaved)}</strong>의 세금을 추가 환급받습니다.`;
+      } else {
+        familySummaryText = `일반 부양가족 1인당 +${formatWon(extraPerNormal)}, 70세 이상 어르신 1인당 +${formatWon(extraPerSenior)}, 장애인 1인당 +${formatWon(extraPerDisabled)}을 더 돌려받습니다.`;
+      }
+
       dependentAdvice = {
         winner: higherName,
         title: `부양가족(자녀/부모님)은 무조건 세율 높은 ${higherName}에게 배정!`,
-        badge: `${higherName} 추천 (인당 +${formatWon(extraRefundPerPerson)})`,
+        badge: `${higherName} 배정 추천 (+${formatWon(totalExtraTaxSaved || extraPerNormal)})`,
         badgeColor: 'bg-teal-500/10 text-teal-300 border-teal-500/30',
-        desc: `기본 인적공제(1인당 150만원)는 소득공제이므로 한계세율이 높은 쪽에 넣어야 환급액이 큽니다. ${higherName}(세율 ${higherRate.fullRate}%)이 ${lowerName}(세율 ${lowerRate.fullRate}%)보다 부양가족 1인당 약 ${formatWon(extraRefundPerPerson)}을 더 돌려받습니다.`
+        desc: `기본 인적공제는 소득공제이므로 한계세율이 높은 쪽에 넣어야 환급액이 극대화됩니다. ${higherName}(세율 ${higherRate.fullRate}%)이 ${lowerName}(세율 ${lowerRate.fullRate}%)보다 세율이 ${rateDiff}%p 높아 ${familySummaryText}`,
+        extraPerNormal,
+        extraPerSenior,
+        extraPerDisabled,
+        totalExtraTaxSaved,
+        totalEligibleDep,
+        youthCnt,
+        infantCnt,
+        adultCnt,
+        elderSeniorCnt,
+        disabledCnt,
+        childCreditTotal
       };
     } else {
       dependentAdvice = {
@@ -333,7 +382,18 @@ const YearendTaxCalculator = (function() {
         title: '부부의 소득세율 구간이 동일합니다.',
         badge: '양쪽 동일',
         badgeColor: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
-        desc: '두 분 모두 동일한 과세표준 세율 구간에 속해 있어 부양가족을 어느 쪽에 배정하셔도 절세 효과가 같습니다. 결정세액이 남아있는 쪽에 배분하세요.'
+        desc: '두 분 모두 동일한 과세표준 세율 구간에 속해 있어 부양가족을 어느 쪽에 배정하셔도 절세 효과가 같습니다. 결정세액이 남아있는 쪽에 배분하세요.',
+        extraPerNormal: 0,
+        extraPerSenior: 0,
+        extraPerDisabled: 0,
+        totalExtraTaxSaved: 0,
+        totalEligibleDep,
+        youthCnt,
+        infantCnt,
+        adultCnt,
+        elderSeniorCnt,
+        disabledCnt,
+        childCreditTotal
       };
     }
 
@@ -399,13 +459,29 @@ const YearendTaxCalculator = (function() {
     // 2. 인적공제
     let personalDeduction = 1500000; // 본인 150만원
     if (s.hasSpouse) personalDeduction += 1500000;
-    personalDeduction += (Number(s.childrenCount) || 0) * 1500000;
-    personalDeduction += (Number(s.eldersCount) || 0) * 1500000;
-    // 추가공제
-    personalDeduction += (Number(s.isSeniorElder) || 0) * 1000000; // 70세 이상
-    personalDeduction += (Number(s.disabledCount) || 0) * 2000000; // 장애인
-    if (s.isSingleParent) personalDeduction += 1000000; // 한부모
-    if (s.isFemaleHead && salary <= 45000000) personalDeduction += 500000; // 부녀자 (종합소득 3천만 이하)
+
+    // 자녀 인적공제: 청소년(만 8세~20세) + 미취학(만 7세 이하)
+    // * 주의: 만 20세 초과 성인 자녀는 소득세법상 기본인적공제 대상에서 제외됨! (단, 대학교육비/카드 공제는 가능)
+    const youthCnt = Number(s.childrenYouthCount) || 0;
+    const infantCnt = Number(s.childrenInfantCount) || 0;
+    const legacyChildCnt = Number(s.childrenCount) || 0;
+    const minorChildCnt = (youthCnt + infantCnt > 0) ? (youthCnt + infantCnt) : legacyChildCnt;
+    personalDeduction += minorChildCnt * 1500000;
+
+    // 60세~69세 부모님/직계존속 (1인당 150만원 소득공제)
+    const elderNormalCnt = Number(s.eldersCount) || 0;
+    personalDeduction += elderNormalCnt * 1500000;
+
+    // 70세 이상 경로우대 노인 (기본공제 150만 + 경로우대 추가 100만 = 1인당 총 250만원 소득공제)
+    const elderSeniorCnt = Number(s.isSeniorElder) || 0;
+    personalDeduction += elderSeniorCnt * 2500000;
+
+    // 장애인 부양가족 (기본공제 150만 + 장애인 추가 200만 = 1인당 총 350만원, 나이제한 면제)
+    const disabledCnt = Number(s.disabledCount) || 0;
+    personalDeduction += disabledCnt * 3500000;
+
+    if (s.isSingleParent) personalDeduction += 1000000; // 한부모 (100만원)
+    if (s.isFemaleHead && salary <= 45000000) personalDeduction += 500000; // 부녀자 (50만원, 종합소득 3천만 이하)
 
     // 3. 연금보험료 공제 (국민연금 4.5% 추정, 월 상한 590만원 반영)
     const nationalPension = Math.min(3186000, salary * 0.045);
@@ -445,12 +521,13 @@ const YearendTaxCalculator = (function() {
     // (1) 근로소득 세액공제
     const earnedIncomeTaxCredit = calcEarnedIncomeTaxCredit(calculatedTax, salary);
 
-    // (2) 자녀 세액공제 (2024~2026 세법: 1명 15만, 2명 35만, 3명 이상 35만 + 인당 30만)
+    // (2) 자녀 세액공제 (2024~2026 개정세법: 만 8세 이상 초중고/청소년 자녀에게 적용)
+    // 1명 15만, 2명 35만, 3명 이상 35만 + (n - 2) * 30만
+    const eligibleChildForCredit = (youthCnt > 0) ? youthCnt : (legacyChildCnt > 0 ? legacyChildCnt : 0);
     let childTaxCredit = 0;
-    const childCnt = Number(s.childrenCount) || 0;
-    if (childCnt === 1) childTaxCredit = 150000;
-    else if (childCnt === 2) childTaxCredit = 350000;
-    else if (childCnt >= 3) childTaxCredit = 350000 + (childCnt - 2) * 300000;
+    if (eligibleChildForCredit === 1) childTaxCredit = 150000;
+    else if (eligibleChildForCredit === 2) childTaxCredit = 350000;
+    else if (eligibleChildForCredit >= 3) childTaxCredit = 350000 + (eligibleChildForCredit - 2) * 300000;
 
     // (3) 연금계좌 세액공제 (연금저축 최대 600만, IRP 합산 최대 900만)
     const pSavings = Math.min(6000000, Number(s.pensionSavings) || 0);
@@ -462,15 +539,20 @@ const YearendTaxCalculator = (function() {
     // (4) 보장성 보험료 세액공제 (100만원 한도 * 12%)
     const insuranceTaxCredit = Math.min(1000000, Number(s.insurance) || 0) * 0.12;
 
-    // (5) 의료비 세액공제 (총급여 3% 초과 지출액의 15%, 한도 700만원)
+    // (5) 의료비 세액공제 (총급여 3% 초과 지출액의 15%)
+    // * 세법 특례: 본인, 65세 이상 어르신(elderSeniorCnt > 0), 장애인(disabledCnt > 0) 의료비는 700만원 한도 없이 무제한 전액 공제!
     const medicalThreshold = salary * 0.03;
     const medicalSpent = Number(s.medical) || 0;
     let medicalTaxCredit = 0;
     if (medicalSpent > medicalThreshold) {
-      medicalTaxCredit = Math.min(7000000, medicalSpent - medicalThreshold) * 0.15;
+      const medicalExcess = medicalSpent - medicalThreshold;
+      const hasUnlimitedMedical = (elderSeniorCnt > 0 || disabledCnt > 0);
+      const deductibleMedical = hasUnlimitedMedical ? medicalExcess : Math.min(7000000, medicalExcess);
+      medicalTaxCredit = deductibleMedical * 0.15;
     }
 
     // (6) 교육비 세액공제 (지출액의 15%)
+    // - 취학전/초중고 자녀 1인당 300만원 한도, 대학생(성인 자녀) 1인당 900만원 한도, 본인/장애인 전액 무제한
     const educationTaxCredit = (Number(s.education) || 0) * 0.15;
 
     // (7) 기부금 세액공제 (고향사랑기부금 10만원 전액 100/110 환급 + 일반 15%)
@@ -573,8 +655,13 @@ const YearendTaxCalculator = (function() {
       name: '사회초년생 (3,500만원)',
       annualSalary: 35000000,
       hasSpouse: false,
+      childrenYouthCount: 0,
+      childrenInfantCount: 0,
+      childrenAdultCount: 0,
       childrenCount: 0,
       eldersCount: 0,
+      isSeniorElder: 0,
+      disabledCount: 0,
       creditCard: 8000000,
       debitCard: 5000000,
       marketTransit: 600000,
@@ -589,8 +676,13 @@ const YearendTaxCalculator = (function() {
       name: '대리·과장급 1인가구 (5,500만원)',
       annualSalary: 55000000,
       hasSpouse: false,
+      childrenYouthCount: 0,
+      childrenInfantCount: 0,
+      childrenAdultCount: 0,
       childrenCount: 0,
       eldersCount: 0,
+      isSeniorElder: 0,
+      disabledCount: 0,
       creditCard: 14000000,
       debitCard: 9000000,
       marketTransit: 1200000,
@@ -605,8 +697,13 @@ const YearendTaxCalculator = (function() {
       name: '외벌이 4인가구 (7,000만원)',
       annualSalary: 70000000,
       hasSpouse: true,
+      childrenYouthCount: 1,
+      childrenInfantCount: 1,
+      childrenAdultCount: 0,
       childrenCount: 2,
       eldersCount: 0,
+      isSeniorElder: 0,
+      disabledCount: 0,
       creditCard: 18000000,
       debitCard: 12000000,
       marketTransit: 1500000,
@@ -621,8 +718,13 @@ const YearendTaxCalculator = (function() {
       name: '고소득 맞벌이 (1억원)',
       annualSalary: 100000000,
       hasSpouse: true,
+      childrenYouthCount: 1,
+      childrenInfantCount: 0,
+      childrenAdultCount: 0,
       childrenCount: 1,
-      eldersCount: 1,
+      eldersCount: 0,
+      isSeniorElder: 1, // 70세 이상 경로우대 부모님
+      disabledCount: 0,
       creditCard: 26000000,
       debitCard: 15000000,
       marketTransit: 2000000,
@@ -776,7 +878,16 @@ const YearendTaxCalculator = (function() {
     const familyExpense = Math.max(0, Number(state.familyExpenseTotal) || 0);
     const familyMedical = Math.max(0, Number(state.familyMedicalTotal) || 0);
 
-    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical);
+    const depOptions = {
+      coupleDepYouth: state.coupleDepYouth,
+      coupleDepInfant: state.coupleDepInfant,
+      coupleDepAdult: state.coupleDepAdult,
+      coupleDepElderNormal: state.coupleDepElderNormal,
+      coupleDepElderSenior: state.coupleDepElderSenior,
+      coupleDepDisabled: state.coupleDepDisabled
+    };
+
+    const advice = analyzeCouple(pSalary, sSalary, familyExpense, familyMedical, depOptions);
 
     const setInner = (id, val) => {
       const el = document.getElementById(id);
@@ -830,7 +941,41 @@ const YearendTaxCalculator = (function() {
       depBadgeEl.innerText = advice.dependentAdvice.badge;
     }
     setInner('ytax-couple-dep-title', advice.dependentAdvice.title);
-    setInner('ytax-couple-dep-desc', advice.dependentAdvice.desc);
+    const depDescEl = document.getElementById('ytax-couple-dep-desc');
+    if (depDescEl) {
+      depDescEl.innerHTML = advice.dependentAdvice.desc;
+    }
+
+    // Dependent Detailed Breakdown
+    const depBreakdownEl = document.getElementById('ytax-couple-dep-breakdown');
+    if (depBreakdownEl) {
+      let breakdownHtml = `
+        <div class="mt-3 p-3.5 bg-navy-950/80 rounded-2xl border border-navy-800 space-y-2 text-xs">
+          <div class="font-bold text-white flex items-center justify-between border-b border-navy-800 pb-2">
+            <span>부양가족 구성별 배정 가이드</span>
+            <span class="text-teal-400 font-mono text-[11px]">${advice.higherName} 배정 시 유리</span>
+          </div>
+          <div class="space-y-1.5 text-slate-300 text-[11px]">
+            <div class="flex justify-between items-center py-0.5">
+              <span>• 청소년·미취학 자녀 (인당 150만):</span>
+              <strong class="font-mono text-white">${advice.rateDiff > 0 ? `인당 +${formatWon(advice.dependentAdvice.extraPerNormal)} 유리` : '동일'}</strong>
+            </div>
+            <div class="flex justify-between items-center py-0.5">
+              <span>• 70세 이상 경로우대 노인 (인당 250만):</span>
+              <strong class="font-mono text-amber-300">${advice.rateDiff > 0 ? `인당 +${formatWon(advice.dependentAdvice.extraPerSenior)} 유리 (의료비 무제한)` : '동일'}</strong>
+            </div>
+            <div class="flex justify-between items-center py-0.5">
+              <span>• 장애인 부양가족 (인당 350만):</span>
+              <strong class="font-mono text-emerald-300">${advice.rateDiff > 0 ? `인당 +${formatWon(advice.dependentAdvice.extraPerDisabled)} 유리 (나이 무관)` : '동일'}</strong>
+            </div>
+            <div class="pt-1 border-t border-navy-800/80 text-[10px] text-slate-400">
+              ⚠️ <strong class="text-amber-300">성인 자녀(만 20세 초과)</strong>는 기본공제 대상에서 제외됩니다. 단, 대학교 등록금 교육비(900만 한도 15%) 및 자녀 명의 카드 사용액은 부모 중 결정세액이 남아있는 쪽에 배정하여 공제받으실 수 있습니다.
+            </div>
+          </div>
+        </div>
+      `;
+      depBreakdownEl.innerHTML = breakdownHtml;
+    }
   }
 
   // Golden Ratio UI Renderer
@@ -868,6 +1013,13 @@ const YearendTaxCalculator = (function() {
     state.spouseSalary = getNum('ytax-couple-input-spouse-salary', 42000000);
     state.familyExpenseTotal = getNum('ytax-couple-input-expense', 28000000);
     state.familyMedicalTotal = getNum('ytax-couple-input-medical', 1800000);
+
+    state.coupleDepYouth = getNum('ytax-couple-input-dep-youth', state.coupleDepYouth);
+    state.coupleDepInfant = getNum('ytax-couple-input-dep-infant', state.coupleDepInfant);
+    state.coupleDepAdult = getNum('ytax-couple-input-dep-adult', state.coupleDepAdult);
+    state.coupleDepElderNormal = getNum('ytax-couple-input-dep-elder-normal', state.coupleDepElderNormal);
+    state.coupleDepElderSenior = getNum('ytax-couple-input-dep-elder-senior', state.coupleDepElderSenior);
+    state.coupleDepDisabled = getNum('ytax-couple-input-dep-disabled', state.coupleDepDisabled);
 
     // Sync back to main input as well
     const mainSalaryEl = document.getElementById('ytax-input-salary');
@@ -980,12 +1132,23 @@ const YearendTaxCalculator = (function() {
     setVal('ytax-input-prepaid', state.manualPaidTax);
     setVal('ytax-select-paidmethod', state.paidTaxMethod);
     setCheck('ytax-chk-spouse', state.hasSpouse);
-    setVal('ytax-input-children', state.childrenCount);
+    setVal('ytax-input-children-youth', state.childrenYouthCount);
+    setVal('ytax-input-children-infant', state.childrenInfantCount);
+    setVal('ytax-input-children-adult', state.childrenAdultCount);
+    setVal('ytax-input-children', state.childrenCount || (state.childrenYouthCount + state.childrenInfantCount));
     setVal('ytax-input-elders', state.eldersCount);
     setVal('ytax-input-senior-elders', state.isSeniorElder);
     setVal('ytax-input-disabled', state.disabledCount);
     setCheck('ytax-chk-singleparent', state.isSingleParent);
     setCheck('ytax-chk-femalehead', state.isFemaleHead);
+
+    // Couple Tab Inputs
+    setVal('ytax-couple-input-dep-youth', state.coupleDepYouth || state.childrenYouthCount);
+    setVal('ytax-couple-input-dep-infant', state.coupleDepInfant || state.childrenInfantCount);
+    setVal('ytax-couple-input-dep-adult', state.coupleDepAdult || state.childrenAdultCount);
+    setVal('ytax-couple-input-dep-elder-normal', state.coupleDepElderNormal || state.eldersCount);
+    setVal('ytax-couple-input-dep-elder-senior', state.coupleDepElderSenior || state.isSeniorElder);
+    setVal('ytax-couple-input-dep-disabled', state.coupleDepDisabled || state.disabledCount);
 
     setVal('ytax-input-creditcard', state.creditCard);
     setVal('ytax-input-debitcard', state.debitCard);
@@ -1031,7 +1194,12 @@ const YearendTaxCalculator = (function() {
     state.paidTaxMethod = getVal('ytax-select-paidmethod') || 'auto';
     state.manualPaidTax = getNum('ytax-input-prepaid', 2500000);
     state.hasSpouse = getCheck('ytax-chk-spouse');
-    state.childrenCount = getNum('ytax-input-children', 0);
+    
+    // 세분화 자녀 및 직계존속
+    state.childrenYouthCount = getNum('ytax-input-children-youth', 0);
+    state.childrenInfantCount = getNum('ytax-input-children-infant', 0);
+    state.childrenAdultCount = getNum('ytax-input-children-adult', 0);
+    state.childrenCount = state.childrenYouthCount + state.childrenInfantCount;
     state.eldersCount = getNum('ytax-input-elders', 0);
     state.isSeniorElder = getNum('ytax-input-senior-elders', 0);
     state.disabledCount = getNum('ytax-input-disabled', 0);
