@@ -95,6 +95,7 @@
     .prose-content strong { color: #f8fafc; }
     .prose-content > :first-child { margin-top: 0 !important; }
     .prose-content > :last-child { margin-bottom: 0 !important; }
+    .prose-content > div:empty, .prose-content > p:empty { display: none !important; }
     .callout-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px 20px; margin: 18px 0; }
 
     /* Light Theme Overrides */
@@ -196,32 +197,10 @@
       <p class="article-subtitle text-sm text-slate-300 leading-relaxed font-medium">소득세법상 가상자산 양도소득세의 법적 기본 계산 원칙인 선입선출법(FIFO)과 이동평균법의 차이, 실제 세액 비교 시뮬레이션을 설명합니다.</p>
     </div>
 
-    <!-- AdSense Slot 1: Top Banner -->
-    <div class="ad-slot-header">
-      <ins class="adsbygoogle block"
-           style="display:block"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
       <h2>1. 왜 코인 손익 계산에서 회계 방식이 중요한가?</h2><p>비트코인을 3,000만원에 1개 사고, 5,000만원에 1개 더 산 뒤, 8,000만원에 1개를 팔았다고 가정해 봅시다. 이때 나의 실현수익은 얼마일까요?</p><ul><li><strong>선입선출법(FIFO):</strong> 먼저 산 3,000만원짜리를 먼저 판 것으로 보아 <strong>이익 5,000만원</strong>.</li><li><strong>이동평균법:</strong> 평균 매입단가인 4,000만원짜리를 판 것으로 보아 <strong>이익 4,000만원</strong>.</li></ul><p>이처럼 어떤 회계 방식을 적용하느냐에 따라 실현 손익과 세금 액수가 완전히 달라집니다.</p><div class="callout-box"><h3 class="text-purple-400 font-bold mb-2">⚖️ 대한민국 소득세법의 기본 원칙: 선입선출법(FIFO)</h3><p class="text-sm text-slate-200">대한민국 세법은 가상자산의 양도차익을 계산할 때 <strong>선입선출법(First-In, First-Out)</strong>을 기본 회계 기준으로 규정하고 있습니다. 먼저 매수한 수량부터 차례대로 차감하여 매입원가를 산정하는 방식입니다.</p></div><h2>2. CrytoPnL의 듀얼 모드 분석 엔진</h2><p>CrytoPnL 손익분석기는 <strong>선입선출법(FIFO)과 이동평균법을 원클릭으로 상호 비교</strong>할 수 있도록 개발되었습니다. 세법 신고용 데이터는 FIFO로, 개인 투자 수익률 관리는 이동평균법으로 다각도 점검이 가능합니다.</p>
     </article>
-
-    <!-- AdSense Slot 2: Bottom In-Article -->
-    <div class="ad-slot-bottom">
-      <ins class="adsbygoogle block"
-           style="display:block; text-align:center;"
-           data-ad-layout="in-article"
-           data-ad-format="fluid"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
 
     <!-- Interactive CTA Card -->
     <div class="cta-card p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -36,6 +36,15 @@ $sitemapUrls = New-Object System.Collections.Generic.List[PSObject]
 $today = (Get-Date).ToString("yyyy-MM-dd")
 
 # Helper function to strip HTML tags for descriptions
+function Clean-ArticleContent([string]$html) {
+    if ([string]::IsNullOrWhiteSpace($html)) { return "" }
+    $c = $html
+    # Strip leading empty divs, ps, and brs
+    $c = [System.Text.RegularExpressions.Regex]::Replace($c, '^((\s*<div[^>]*>(\s*<br\s*/?>\s*|\s*)*</div>|\s*<p[^>]*>(\s*<br\s*/?>\s*|\s*)*</p>|\s*<br\s*/?>)\s*)+', '')
+    # Strip trailing empty divs, ps, and brs
+    $c = [System.Text.RegularExpressions.Regex]::Replace($c, '((\s*<div[^>]*>(\s*<br\s*/?>\s*|\s*)*</div>|\s*<p[^>]*>(\s*<br\s*/?>\s*|\s*)*</p>|\s*<br\s*/?>)\s*)+$', '')
+    return $c
+}
 function Strip-HtmlTags([string]$html) {
     if ([string]::IsNullOrWhiteSpace($html)) { return "" }
     $clean = [System.Text.RegularExpressions.Regex]::Replace($html, "<[^>]+>", " ")
@@ -164,7 +173,7 @@ foreach ($calc in $calcs) {
     $page = $page.Replace('__CTA_TEXT__', $ctaText)
     $page = $page.Replace('__CATEGORY__', $cat)
     $page = $page.Replace('__TITLE__', $title)
-    $page = $page.Replace('__CONTENT_HTML__', $content)
+    $page = $page.Replace('__CONTENT_HTML__', (Clean-ArticleContent $content))
     $page = $page.Replace('__RELATED_SECTION__', $calcRelatedHtml)
 
     $outPath = Join-Path $rootDir "calculators\$slug.html"
@@ -207,7 +216,7 @@ foreach ($g in $guides) {
     $page = $page.Replace('__CTA_TEXT__', $ctaText)
     $page = $page.Replace('__CATEGORY__', $cat)
     $page = $page.Replace('__TITLE__', $title)
-    $page = $page.Replace('__CONTENT_HTML__', $content)
+    $page = $page.Replace('__CONTENT_HTML__', (Clean-ArticleContent $content))
     $page = $page.Replace('__RELATED_SECTION__', $guideRelatedHtml)
 
     $outPath = Join-Path $rootDir "guides\$slug.html"
@@ -272,7 +281,7 @@ foreach ($rep in $reports) {
     $page = $page.Replace('__CTA_TEXT__', $ctaText)
     $page = $page.Replace('__CATEGORY__', $cat)
     $page = $page.Replace('__TITLE__', $title)
-    $page = $page.Replace('__CONTENT_HTML__', $content)
+    $page = $page.Replace('__CONTENT_HTML__', (Clean-ArticleContent $content))
     $page = $page.Replace('__RELATED_SECTION__', $postRelatedHtml)
 
     $outPath = Join-Path $rootDir "posts\$id.html"

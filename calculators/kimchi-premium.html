@@ -95,6 +95,7 @@
     .prose-content strong { color: #f8fafc; }
     .prose-content > :first-child { margin-top: 0 !important; }
     .prose-content > :last-child { margin-bottom: 0 !important; }
+    .prose-content > div:empty, .prose-content > p:empty { display: none !important; }
     .callout-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px 20px; margin: 18px 0; }
 
     /* Light Theme Overrides */
@@ -196,32 +197,10 @@
       <p class="article-subtitle text-sm text-slate-300 leading-relaxed font-medium">업비트·빗썸과 바이낸스 실시간 시세를 1초 단위로 비교하여 테더(USDT) 및 메이저 코인의 김프 괴리율을 실시간으로 추적합니다.</p>
     </div>
 
-    <!-- AdSense Slot 1: Top Banner -->
-    <div class="ad-slot-header">
-      <ins class="adsbygoogle block"
-           style="display:block"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
       <h2>1. 실시간 김치프리미엄 계산기 기능</h2><p>국내 원화 거래소와 해외 바이낸스 테더 마켓의 시세를 실시간 USD/KRW 환율과 결합하여, <strong>정확한 프리미엄 백분율(%)과 원화 환산 가격</strong>을 실시간 모니터링합니다.</p><div class="callout-box"><h3 class="text-cyan-400 font-bold mb-2">💡 김프 트레이딩 지표</h3><ul class="space-y-1 text-sm text-slate-200"><li>• 비트코인(BTC), 이더리움(ETH), 리플(XRP), 솔라나(SOL) 실시간 김프</li><li>• 김프 3% 이하 매수 알림 및 5% 이상 고평가 알림</li><li>• 바이낸스 테더 송금 시 예상 원화 마진 시뮬레이션</li></ul></div>
     </article>
-
-    <!-- AdSense Slot 2: Bottom In-Article -->
-    <div class="ad-slot-bottom">
-      <ins class="adsbygoogle block"
-           style="display:block; text-align:center;"
-           data-ad-layout="in-article"
-           data-ad-format="fluid"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
 
     <!-- Interactive CTA Card -->
     <div class="cta-card p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">

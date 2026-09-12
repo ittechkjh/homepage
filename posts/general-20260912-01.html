@@ -95,6 +95,7 @@
     .prose-content strong { color: #f8fafc; }
     .prose-content > :first-child { margin-top: 0 !important; }
     .prose-content > :last-child { margin-bottom: 0 !important; }
+    .prose-content > div:empty, .prose-content > p:empty { display: none !important; }
     .callout-box { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px 20px; margin: 18px 0; }
 
     /* Light Theme Overrides */
@@ -196,32 +197,10 @@
       <p class="article-subtitle text-sm text-slate-300 leading-relaxed font-medium">안녕하세요, 가상자산 전문 세무 스터디를 운영하고 있는 크립토세무러입니다. 최근 국회에서 가상자산 양도소득세 2년 유예(2027년 시행) 논의와 더불어 기본공제 한도 5,000만원 상향안이 활발히 거론되고 있지만, 트래블룰(Travel Rule) 시행 이후 국내외 거래...</p>
     </div>
 
-    <!-- AdSense Slot 1: Top Banner -->
-    <div class="ad-slot-header">
-      <ins class="adsbygoogle block"
-           style="display:block"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
       <p>안녕하세요, 가상자산 전문 세무 스터디를 운영하고 있는 크립토세무러입니다.</p><p>최근 국회에서 가상자산 양도소득세 2년 유예(2027년 시행) 논의와 더불어 기본공제 한도 5,000만원 상향안이 활발히 거론되고 있지만, 트래블룰(Travel Rule) 시행 이후 국내외 거래소 간 입출금 내역에 대한 국세청 소명 요구는 꾸준히 증가하고 있습니다.</p><h3>1. 해외 거래소(바이낸스/바이비트) 이용 시 주의사항</h3><p>많은 분들이 해외 거래소에서 선물 거래나 스테이킹을 하다가 국내 업비트/빗썸으로 입금할 때 단순히 '원화 출금용'으로 송금하시는데, 이때 취득가액 입증이 되지 않으면 <strong>전체 입금액이 증여 또는 사업소득으로 추정</strong>될 위험이 있습니다.</p><ul><li><strong>CSV 거래내역 백업:</strong> 바이낸스나 바이비트의 경우 3개월이 지난 체결 내역은 과거 데이터 요청(Export Statement)을 통해서만 다운로드할 수 있으므로 분기마다 반드시 엑셀 백업을 해두셔야 합니다.</li><li><strong>입출금 TXID 기록:</strong> 지갑 주소 간 송금 내역(TXID)을 별도 시트에 기록해 두고, 본인 명의 지갑 간 이동임을 증명할 수 있는 KYC 인증 캡처본을 보관하세요.</li><li><strong>선입선출(FIFO) 장부 작성:</strong> 국내 거래소로 되돌아올 때의 평균 단가를 선입선출법으로 미리 정리해 두면 세무서 소명 요구 시 당황하지 않고 3분 만에 해명서를 작성할 수 있습니다.</li></ul><p>CrytoPnL의 엑셀 분석기를 돌려보니 국내 거래소와 해외 지갑 간 코인 이동도 한눈에 정리되어 큰 도움이 되더군요. 세무 관련 궁금하신 점 댓글 주시면 아는 선에서 답변드리겠습니다!</p>
     </article>
-
-    <!-- AdSense Slot 2: Bottom In-Article -->
-    <div class="ad-slot-bottom">
-      <ins class="adsbygoogle block"
-           style="display:block; text-align:center;"
-           data-ad-layout="in-article"
-           data-ad-format="fluid"
-           data-ad-client="ca-pub-8506585033551011"
-           data-ad-slot="auto"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
 
     <!-- Interactive CTA Card -->
     <div class="cta-card p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
