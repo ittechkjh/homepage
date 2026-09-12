@@ -2,12 +2,13 @@ name: Generate Daily Crypto Market Report
 
 on:
   schedule:
-    - cron: '50 19 * * *' # 04:50 KST (19:50 UTC) - Morning report & 09:00 perspective pre-generation
-    - cron: '55 23 * * *' # 08:55 KST (23:55 UTC) - Morning session perspective update (ready for 09:00 KST)
-    - cron: '55 7 * * *'  # 16:55 KST (07:55 UTC) - Afternoon session perspective update (ready for 17:00 KST)
-    - cron: '15 8 * * *'  # 17:15 KST (08:15 UTC) - Afternoon backup retry (prevents GitHub delay drops)
-    - cron: '55 11 * * *' # 20:55 KST (11:55 UTC) - Night session perspective update (ready for 21:00 KST)
-    - cron: '15 12 * * *' # 21:15 KST (12:15 UTC) - Night backup retry (prevents GitHub delay drops)
+    - cron: '50 19 * * *' # 04:50 KST (19:50 UTC) - Morning market report
+    - cron: '10 0 * * *'  # 09:10 KST (00:10 UTC) - Morning perspective report (09:10 KST)
+    - cron: '25 0 * * *'  # 09:25 KST (00:25 UTC) - Morning backup retry (15m later)
+    - cron: '10 8 * * *'  # 17:10 KST (08:10 UTC) - Afternoon perspective report (17:10 KST)
+    - cron: '25 8 * * *'  # 17:25 KST (08:25 UTC) - Afternoon backup retry (15m later)
+    - cron: '10 12 * * *' # 21:10 KST (12:10 UTC) - Night perspective report (21:10 KST)
+    - cron: '25 12 * * *' # 21:25 KST (12:25 UTC) - Night backup retry (15m later)
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
 
 permissions:
