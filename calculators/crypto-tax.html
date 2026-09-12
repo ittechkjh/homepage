@@ -199,7 +199,89 @@
 
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
-      <h2>1. 가상자산 양도소득세 간편 모의계산</h2><p>복잡한 세법 규정을 일일이 계산할 필요 없이, 연간 총 매도액과 매수원가만 넣으면 <strong>지방소득세 포함 22% 세액과 공제 후 실납부액</strong>을 즉시 산출해 줍니다.</p>
+      <h2>1. 대한민국 가상자산 양도소득세 법안 개요 및 핵심 쟁점</h2>
+<p>
+  대한민국 소득세법에 따른 가상자산 과세 제도는 투자자가 1년 동안 코인 매매, 교환 등을 통해 얻은 <strong>연간 순소득(총 양도차익 - 필요경비)에 대해 지방소득세 2%를 포함한 22%의 단일 세율로 분리과세</strong>하는 것을 골자로 합니다.
+</p>
+<p>
+  국회 및 정부의 세법 개정 논의에 따라 기본공제 한도(250만원 vs 5,000만원) 및 시행 시기에 대한 다양한 시나리오가 제시되고 있습니다. <strong>CrytoPnL 세금 계산기는 최신 세법 개정안을 실시간 반영</strong>하여 두 가지 시나리오를 모두 지원합니다.
+</p>
+
+<div class="callout-box">
+  <h3 class="text-cyan-400 font-bold mb-2">📑 가상자산 양도소득세 정밀 산출 공식</h3>
+  <ul class="text-xs text-slate-200 space-y-1.5 font-mono">
+    <li>• <strong>총 양도가액:</strong> 연간 코인 총 매도 금액 합계</li>
+    <li>• <strong>필요경비:</strong> 취득가액(선입선출법 또는 이동평균법 매수원가) + 거래소 매매 수수료</li>
+    <li>• <strong>과세표준:</strong> (총 양도가액 - 필요경비) - 기본공제액 (250만원 또는 5,000만원)</li>
+    <li>• <strong>최종 산출세액:</strong> 과세표준 × 22% (국세 20% + 지방소득세 2%)</li>
+  </ul>
+</div>
+
+<h2>2. 기본공제 250만원 vs 5,000만원 시뮬레이션 비교</h2>
+<p class="text-xs text-slate-300 mb-2">
+  연간 코인 매매로 순수익 1억 원을 달성했을 경우의 실제 세부담 비교:
+</p>
+<div class="overflow-x-auto">
+  <table class="w-full text-xs text-left text-slate-300 border-collapse mb-4">
+    <thead>
+      <tr class="bg-navy-950 border-b border-navy-800 text-slate-200 font-bold">
+        <th class="p-2.5">구분</th>
+        <th class="p-2.5">기본공제 250만원 적용 시</th>
+        <th class="p-2.5 text-cyan-400">기본공제 5,000만원 적용 시</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-b border-navy-900">
+        <td class="p-2.5 font-semibold">연간 순이익</td>
+        <td class="p-2.5">100,000,000원</td>
+        <td class="p-2.5">100,000,000원</td>
+      </tr>
+      <tr class="border-b border-navy-900">
+        <td class="p-2.5 font-semibold">기본공제액</td>
+        <td class="p-2.5">-2,500,000원</td>
+        <td class="p-2.5 text-cyan-400 font-bold">-50,000,000원</td>
+      </tr>
+      <tr class="border-b border-navy-900">
+        <td class="p-2.5 font-semibold">과세표준</td>
+        <td class="p-2.5">97,500,000원</td>
+        <td class="p-2.5">50,000,000원</td>
+      </tr>
+      <tr class="bg-navy-950/40">
+        <td class="p-2.5 font-bold text-white">최종 납부세액 (22%)</td>
+        <td class="p-2.5 font-bold text-rose-400">21,450,000원</td>
+        <td class="p-2.5 font-bold text-emerald-400">11,000,000원 (1,045만원 절세!)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>3. 합법적으로 세금을 줄이는 4대 절세 팁</h2>
+<ul>
+  <li>
+    <strong>1. 손실 종목 연내 매도 확정 (손익 통산):</strong> 당해 연도 발생한 수익과 손실은 통산(상계)됩니다. 수익이 크게 난 해에는 손실 중인 종목을 12월 31일 이전에 매도하여 실현 손실을 확정 지음으로써 과세표준을 획기적으로 낮출 수 있습니다.
+  </li>
+  <li>
+    <strong>2. 모든 거래 수수료 영수증 확보:</strong> 매매 수수료뿐만 아니라 네트워크 전송 가스비, 입출금 수수료도 증빙이 가능하면 필요경비로 인정받을 수 있습니다.
+  </li>
+  <li>
+    <strong>3. 취득가액 입증 자료 보관:</strong> 해외 거래소나 개인 지갑(메타마스크 등)에서 입금된 코인은 취득가액을 객관적으로 입증하지 못하면 취득가액이 '0원'으로 간주되어 양도가액 전액에 과세될 위험이 있습니다.
+  </li>
+  <li>
+    <strong>4. 배우자/가족 분할 매매 고려:</strong> 기본공제는 인별 과세이므로 계좌 분산을 통해 1인당 기본공제를 합법적으로 극대화할 수 있습니다.
+  </li>
+</ul>
+
+<h2>4. 자주 묻는 질문 (FAQ)</h2>
+<div class="space-y-3">
+  <div>
+    <h4 class="font-bold text-white text-sm">Q1. 코인으로 번 돈은 종합소득세에 합산되나요?</h4>
+    <p class="text-xs text-slate-300">아닙니다. 가상자산 소득세는 근로소득, 사업소득, 금융소득과 합산되지 않고 22% 단일 세율로 분리과세(Separate Taxation)됩니다.</p>
+  </div>
+  <div>
+    <h4 class="font-bold text-white text-sm">Q2. 해외 거래소(바이낸스 등)에서 거래한 것도 과세 대상인가요?</h4>
+    <p class="text-xs text-slate-300">네, 대한민국 거주자라면 해외 거래소, 탈중앙화 거래소(DEX) 등 거래 장소를 불문하고 전 세계에서 발생한 모든 가상자산 양도차익을 국세청에 성실 신고해야 합니다.</p>
+  </div>
+</div>
     </article>
 
     <!-- Interactive CTA Card -->
@@ -221,9 +303,9 @@
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-deduction.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 소득세 22% & 기본공제 5,000만원 절세 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
         <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
@@ -231,9 +313,9 @@
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
-          <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
+        <a href="https://crytopnl.com/guides/water-drop-break-even.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">매매 전략</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 & 불타기(DCA) 평단가 탈출 전략 및 분할 매도 원칙</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
       </div>
@@ -248,12 +330,14 @@
         <div class="footer-brand font-bold text-slate-400">CrytoPnL — 대한민국 1등 가상자산 퀀트 &amp; 회계 분석 플랫폼</div>
         <p class="text-[11px] text-slate-500">본 사이트에서 제공하는 모든 시뮬레이션 및 데이터는 참고용이며, 투자 권유나 세무 대행이 아닙니다.</p>
       </div>
-      <div class="flex items-center gap-3 text-slate-400 text-xs">
-        <a href="https://crytopnl.com/#/legal?tab=privacy" class="hover:text-white transition">개인정보처리방침</a>
+      <div class="flex items-center gap-3 text-slate-400 text-xs flex-wrap justify-center">
+        <a href="https://crytopnl.com/privacy.html" class="hover:text-white transition">개인정보처리방침</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=terms" class="hover:text-white transition">이용약관</a>
+        <a href="https://crytopnl.com/terms.html" class="hover:text-white transition">이용약관</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=about" class="hover:text-white transition">사이트 소개</a>
+        <a href="https://crytopnl.com/about.html" class="hover:text-white transition">사이트 소개</a>
+        <span>•</span>
+        <a href="https://crytopnl.com/contact.html" class="hover:text-white transition">고객 문의</a>
       </div>
     </div>
     <div class="text-center text-[10px] text-slate-600 mt-4">

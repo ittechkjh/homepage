@@ -199,7 +199,58 @@
 
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
-      <h2>1. 코인 물타기 계산기의 활용법</h2><p>보유 코인이 하락했을 때 막연히 추가 매수하는 것이 아니라, <strong>희망하는 탈출 가격까지 평단가를 낮추기 위해 얼마의 자금이 필요한지 사전에 정밀 계산</strong>하는 도구입니다.</p><div class="callout-box"><h3 class="text-amber-400 font-bold mb-2">🎯 지원 모드 3종</h3><ul class="space-y-1 text-sm text-slate-200"><li><strong>1. 추가 매수 금액 지정 모드:</strong> 특정 금액(예: 500만원)을 추가 매수했을 때 최종 평단가와 총 평가손익 확인</li><li><strong>2. 추가 매수 수량 지정 모드:</strong> 목표 코인 개수를 매수했을 때의 평단가 시뮬레이션</li><li><strong>3. 목표 평단가 역산 모드:</strong> 목표 평단가를 지정하면 필요한 필요 현금 액수를 자동 역산</li></ul></div>
+      <h2>1. 코인 물타기(DCA)의 수학적 원리와 탈출 설계</h2>
+<p>
+  가상자산 시장에서 가격이 급락했을 때, 많은 투자자들이 감정에 휘둘려 계획 없이 추가 매수(물타기)를 진행하다가 현금이 모두 고갈되는 비극을 겪습니다. <strong>물타기(Dollar Cost Averaging)는 감정이 아닌 철저한 수학적 계산</strong>에 기반해야 살아남을 수 있습니다.
+</p>
+<p>
+  CrytoPnL 물타기 &amp; 탈출 평단가 계산기는 <strong>"내가 원하는 반등 지점(탈출 목표가)에 도달했을 때 원금 본전 이상으로 빠져나오기 위해 지금 정확히 얼마의 현금과 수량이 필요한가?"</strong>를 역산(Reverse Calculation)해 주는 전략 도구입니다.
+</p>
+
+<div class="callout-box">
+  <h3 class="text-amber-400 font-bold mb-2">📐 평단가(Average Cost) 기본 산출 공식</h3>
+  <p class="text-xs text-slate-200 leading-relaxed font-mono">
+    최종 평단가 = (기존 총 매수금액 + 추가 매수금액) ÷ (기존 보유수량 + 추가 매수수량)
+  </p>
+  <p class="text-[11px] text-slate-400 mt-2">
+    💡 하락률이 -50%인 종목을 원금 복구하기 위해서는 +100% 상승이 필요하지만, 현재 가격에서 동일 금액을 1회 물타기하면 필요한 상승률은 +33.3%로 대폭 축소됩니다.
+  </p>
+</div>
+
+<h2>2. CrytoPnL 물타기 계산기 3대 핵심 모드</h2>
+<ul>
+  <li>
+    <strong>모드 1: 추가 투자금액 지정 시뮬레이션</strong><br>
+    현재 1,000만원어치 물려있는 상태에서 "추가로 300만원을 투입하면 평단가가 얼마까지 내려가는가?"를 즉시 계산합니다.
+  </li>
+  <li>
+    <strong>모드 2: 추가 매수 수량 지정 시뮬레이션</strong><br>
+    비트코인 0.5개를 추가로 더 샀을 때, 전체 계좌의 평단가 변동과 총 평가손익 곡선을 확인합니다.
+  </li>
+  <li>
+    <strong>모드 3: 목표 탈출 평단가 역산 모드 (가장 강력한 기능!)</strong><br>
+    차트 분석상 강력한 저항선이 5,000만원에 위치할 때, 내 평단가를 5,000만원까지 낮추기 위해 지금 당장 필요한 현금이 정확히 얼마인지 1초 만에 역산출합니다.
+  </li>
+</ul>
+
+<h2>3. 성공적인 물타기를 위한 3대 리스크 관리 원칙</h2>
+<ol class="list-decimal pl-5 space-y-2 text-sm text-slate-300">
+  <li><strong>1차 반등 지점 확인 후 진입:</strong> 떨어지는 칼날을 맨손으로 잡지 마십시오. 주요 지지선에서 거래량이 실린 양봉이 출현했을 때 분할 투입해야 합니다.</li>
+  <li><strong>현금 비중 30% 유지 법칙:</strong> 물타기를 할 때 전 재산을 한 번에 올인하면 2차 추가 하락 시 대응 능력을 상실합니다. 최소 3~5회 분할 매수 시나리오를 수립하세요.</li>
+  <li><strong>본전 도달 시 기계적 비중 축소:</strong> 평단가까지 반등했을 때는 욕심을 부리지 말고 추가 매수한 물량만큼 즉시 익절/본절 매도하여 현금을 확보해야 다음 위기에 대응할 수 있습니다.</li>
+</ol>
+
+<h2>4. 자주 묻는 질문 (FAQ)</h2>
+<div class="space-y-3">
+  <div>
+    <h4 class="font-bold text-white text-sm">Q1. 물타기와 불타기의 차이는 무엇인가요?</h4>
+    <p class="text-xs text-slate-300">물타기는 하락장에서 평단가를 낮춰 탈출하는 수비적 전략이며, 불타기(Pyramiding)는 상승 추세가 확정된 종목에 추가 매수하여 복리 수익을 극대화하는 공격적 전략입니다.</p>
+  </div>
+  <div>
+    <h4 class="font-bold text-white text-sm">Q2. 수수료도 계산에 포함되나요?</h4>
+    <p class="text-xs text-slate-300">네, 거래소 기본 매수/매도 수수료(0.05%) 옵션이 내장되어 있어 실체결 시 발생하는 미세한 슬리피지까지 감안한 정밀 결과를 산출합니다.</p>
+  </div>
+</div>
     </article>
 
     <!-- Interactive CTA Card -->
@@ -221,9 +272,9 @@
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-deduction.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 소득세 22% & 기본공제 5,000만원 절세 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
         <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
@@ -231,9 +282,9 @@
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
-          <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
+        <a href="https://crytopnl.com/guides/water-drop-break-even.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">매매 전략</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 & 불타기(DCA) 평단가 탈출 전략 및 분할 매도 원칙</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
       </div>
@@ -248,12 +299,14 @@
         <div class="footer-brand font-bold text-slate-400">CrytoPnL — 대한민국 1등 가상자산 퀀트 &amp; 회계 분석 플랫폼</div>
         <p class="text-[11px] text-slate-500">본 사이트에서 제공하는 모든 시뮬레이션 및 데이터는 참고용이며, 투자 권유나 세무 대행이 아닙니다.</p>
       </div>
-      <div class="flex items-center gap-3 text-slate-400 text-xs">
-        <a href="https://crytopnl.com/#/legal?tab=privacy" class="hover:text-white transition">개인정보처리방침</a>
+      <div class="flex items-center gap-3 text-slate-400 text-xs flex-wrap justify-center">
+        <a href="https://crytopnl.com/privacy.html" class="hover:text-white transition">개인정보처리방침</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=terms" class="hover:text-white transition">이용약관</a>
+        <a href="https://crytopnl.com/terms.html" class="hover:text-white transition">이용약관</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=about" class="hover:text-white transition">사이트 소개</a>
+        <a href="https://crytopnl.com/about.html" class="hover:text-white transition">사이트 소개</a>
+        <span>•</span>
+        <a href="https://crytopnl.com/contact.html" class="hover:text-white transition">고객 문의</a>
       </div>
     </div>
     <div class="text-center text-[10px] text-slate-600 mt-4">

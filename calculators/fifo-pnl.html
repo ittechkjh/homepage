@@ -199,7 +199,65 @@
 
     <!-- Article Content -->
     <article class="article-card prose-content bg-navy-900/60 border border-navy-800 rounded-2xl p-5 sm:p-6 shadow-xl">
-      <h2>1. CrytoPnL 엑셀 실현손익 분석기란?</h2><p>업비트나 빗썸에서 다운로드한 매매 거래내역 엑셀 파일을 업로드하면, <strong>선입선출법(FIFO)과 이동평균법 회계 기준에 따라 종목별 실현손익, 누적 수수료, 현재 평단가, 승률</strong>을 1초 만에 무료로 계산해 주는 전문 퀀트 도구입니다.</p><div class="callout-box"><h3 class="text-cyan-400 font-bold mb-2">⚡ 핵심 기능 요약</h3><ul class="space-y-1 text-sm text-slate-200"><li>• 100% 브라우저 메모리 연산 (서버 전송 0%로 완벽한 자산 데이터 보안)</li><li>• 대용량 엑셀(수만 줄) 1초 초고속 파싱</li><li>• 코인별 승률, 수익 거래 vs 손실 거래 비율 시각화</li><li>• 2026 양도소득세 22% 과세표준 및 예상 세액 자동 시뮬레이션</li></ul></div>
+      <h2>1. 선입선출법(FIFO) 실현손익 분석의 중요성</h2>
+<p>
+  국내 대형 가상자산 거래소인 <strong>업비트와 빗썸의 화면에 표시되는 수익률과 평단가는 단순 '이동평균법'</strong>을 따릅니다. 즉, 현재 보유 중인 수량에 대한 장부상 추정치일 뿐, <strong>"내가 과거에 매도하여 확정 지은 진짜 순이익(실현손익)"</strong>을 알려주지 않습니다.
+</p>
+<p>
+  또한 대한민국 소득세법 및 글로벌 국세청(IRS 등)의 공통 세무 가이드라인은 가상자산 매매 손익 계산 시 <strong>선입선출법(FIFO, First-In First-Out)을 기본 원칙</strong>으로 채택하고 있습니다. 선입선출법이란 가장 먼저 매수한 코인을 가장 먼저 매도한 것으로 간주하여 건별 양도차익을 산출하는 방식입니다.
+</p>
+
+<div class="callout-box">
+  <h3 class="text-cyan-400 font-bold mb-2">⚡ 이동평균법 vs 선입선출법(FIFO) 실전 차이 예시</h3>
+  <p class="text-xs text-slate-200 leading-relaxed mb-2">
+    • <strong>1차 매수:</strong> 비트코인 1개를 4,000만원에 매수<br>
+    • <strong>2차 매수:</strong> 비트코인 1개를 8,000만원에 매수 (총 2개 보유, 거래소 평단가: 6,000만원)<br>
+    • <strong>매도:</strong> 비트코인 1개를 9,000만원에 매도했을 때?
+  </p>
+  <ul class="text-xs text-slate-300 space-y-1">
+    <li>- <strong>거래소 단순 계산:</strong> 9,000만원 - 6,000만원 = <strong>3,000만원 수익</strong>으로 착각</li>
+    <li>- <strong>국세청 FIFO 정밀 계산:</strong> 가장 먼저 산 4,000만원짜리가 매도된 것이므로 9,000만원 - 4,000만원 = <strong>실제 실현이익 5,000만원</strong> (과세표준 대상!)</li>
+  </ul>
+</div>
+
+<h2>2. CrytoPnL 엑셀 손익분석기의 4대 독보적 특장점</h2>
+<ul>
+  <li>
+    <strong>100% 브라우저 메모리 연산 (서버 전송 0%):</strong><br>
+    거래소에서 다운로드한 엑셀 파일에는 민감한 금융 자산과 거래 일시가 고스란히 담겨 있습니다. CrytoPnL는 최첨단 WebAssembly 및 브라우저 엔진을 적용하여, 파일을 외부 서버로 단 1바이트도 전송하지 않고 사용자의 PC/모바일 메모리 안에서만 1초 만에 분석을 완료합니다.
+  </li>
+  <li>
+    <strong>수만 건 대용량 엑셀 1초 초고속 정산:</strong><br>
+    단타 매매자나 그리드 봇 사용자의 5만~10만 줄 이상의 대용량 거래 내역도 브라우저 멈춤 현상 없이 실시간으로 파싱하고 FIFO 매칭 큐(Queue)를 소화합니다.
+  </li>
+  <li>
+    <strong>거래 수수료 및 이벤트 캐시백 자동 반영:</strong><br>
+    거래소가 부과한 0.04%~0.05%의 체결 수수료는 물론, 입출금 수수료까지 필요경비로 자동 합산하여 세법상 인정받을 수 있는 공제액을 극대화합니다.
+  </li>
+  <li>
+    <strong>코인별 승률 및 손익비(Risk/Reward) 다차원 대시보드:</strong><br>
+    내가 어떤 종목에서 가장 많은 수익을 냈고, 어떤 종목에서 잦은 뇌동매매로 손실을 입었는지 승률(Win Rate), 평균 수익금 대비 평균 손실금 비율을 시각화 차트로 제공합니다.
+  </li>
+</ul>
+
+<h2>3. 엑셀 손익분석기 3단계 활용 가이드</h2>
+<ol class="list-decimal pl-5 space-y-2 text-sm text-slate-300">
+  <li><strong>거래소 엑셀 다운로드:</strong> 업비트 [마이페이지 &gt; 거래내역] 또는 빗썸 [자산현황 &gt; 거래내역]에서 전체 기간 거래내역 엑셀을 내려받습니다.</li>
+  <li><strong>드래그 앤 드롭:</strong> CrytoPnL 엑셀 분석기 화면의 파일 영역에 파일을 끌어다 놓습니다.</li>
+  <li><strong>즉시 분석 및 리포트 확인:</strong> 연도별 총 매수액, 총 매도액, FIFO 실현손익, 누적 수수료, 연말정산/소득세 모의계산 결과를 1초 만에 확인하고 엑셀로 재추출합니다.</li>
+</ol>
+
+<h2>4. 자주 묻는 질문 (FAQ)</h2>
+<div class="space-y-3">
+  <div>
+    <h4 class="font-bold text-white text-sm">Q1. 빗썸의 수수료 무료 쿠폰 기간 거래도 정상 반영되나요?</h4>
+    <p class="text-xs text-slate-300">네, 거래내역 엑셀에 기록된 실제 차감 수수료(0원)를 완벽하게 인식하여 왜곡 없이 순수익을 집계합니다.</p>
+  </div>
+  <div>
+    <h4 class="font-bold text-white text-sm">Q2. 에어드랍이나 스테이킹 이자로 받은 코인은 어떻게 처리되나요?</h4>
+    <p class="text-xs text-slate-300">입금 당시의 시가 또는 거래소 취득가액 0원 기준 설정 옵션을 제공하여 세무 가이드라인에 맞춘 유연한 시뮬레이션이 가능합니다.</p>
+  </div>
+</div>
     </article>
 
     <!-- Interactive CTA Card -->
@@ -221,9 +279,9 @@
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-deduction.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 소득세 22% & 기본공제 5,000만원 절세 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
         <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
@@ -231,9 +289,9 @@
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
-          <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
+        <a href="https://crytopnl.com/guides/water-drop-break-even.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">매매 전략</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 & 불타기(DCA) 평단가 탈출 전략 및 분할 매도 원칙</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
       </div>
@@ -248,12 +306,14 @@
         <div class="footer-brand font-bold text-slate-400">CrytoPnL — 대한민국 1등 가상자산 퀀트 &amp; 회계 분석 플랫폼</div>
         <p class="text-[11px] text-slate-500">본 사이트에서 제공하는 모든 시뮬레이션 및 데이터는 참고용이며, 투자 권유나 세무 대행이 아닙니다.</p>
       </div>
-      <div class="flex items-center gap-3 text-slate-400 text-xs">
-        <a href="https://crytopnl.com/#/legal?tab=privacy" class="hover:text-white transition">개인정보처리방침</a>
+      <div class="flex items-center gap-3 text-slate-400 text-xs flex-wrap justify-center">
+        <a href="https://crytopnl.com/privacy.html" class="hover:text-white transition">개인정보처리방침</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=terms" class="hover:text-white transition">이용약관</a>
+        <a href="https://crytopnl.com/terms.html" class="hover:text-white transition">이용약관</a>
         <span>•</span>
-        <a href="https://crytopnl.com/#/legal?tab=about" class="hover:text-white transition">사이트 소개</a>
+        <a href="https://crytopnl.com/about.html" class="hover:text-white transition">사이트 소개</a>
+        <span>•</span>
+        <a href="https://crytopnl.com/contact.html" class="hover:text-white transition">고객 문의</a>
       </div>
     </div>
     <div class="text-center text-[10px] text-slate-600 mt-4">

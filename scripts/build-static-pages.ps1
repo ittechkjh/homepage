@@ -66,6 +66,17 @@ $sitemapUrls.Add([PSCustomObject]@{
     priority = "1.0"
 })
 
+# Add Standalone Legal & Policy pages to sitemap
+$legalPages = @("privacy.html", "terms.html", "about.html", "contact.html")
+foreach ($lp in $legalPages) {
+    $sitemapUrls.Add([PSCustomObject]@{
+        loc = "https://crytopnl.com/$lp"
+        lastmod = $today
+        changefreq = "monthly"
+        priority = "0.8"
+    })
+}
+
 # Related recommendations HTML snippets
 $calcRelatedHtml = @'
     <section class="mt-8 pt-6 border-t border-navy-800">
@@ -74,9 +85,9 @@ $calcRelatedHtml = @'
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-2025.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-deduction.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">2025년 가상자산 과세 유예 및 취득가액 산정 완벽 해설</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 소득세 22% & 기본공제 5,000만원 절세 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
         <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
@@ -84,9 +95,9 @@ $calcRelatedHtml = @'
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/moving-average-macd-guide.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
-          <span class="text-xs text-cyan-400 font-bold mb-1">기술적 분석</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">이동평균선 & MACD 골든크로스 매매 타점 정밀 가이드</h4>
+        <a href="https://crytopnl.com/guides/water-drop-break-even.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">매매 전략</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 & 불타기(DCA) 평단가 탈출 전략 및 분할 매도 원칙</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
       </div>
@@ -100,19 +111,19 @@ $guideRelatedHtml = @'
         직접 계산해보기: 추천 실전 계산기
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/crypto-tax-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/crypto-tax.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 계산기</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">가상자산 세금 계산기 (2025/2026 기본공제 적용)</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 양도소득세 정밀 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/waterfall-dca-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/average-down.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">물타기 계산기</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">물타기 평단가 & 탈출 반등률 정밀 계산기</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">코인 물타기 & 탈출 평단가 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/binance-futures-fee-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
-          <span class="text-xs text-cyan-400 font-bold mb-1">선물 수수료</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">바이낸스 선물 레버리지 수수료 & 펀딩비 계산기</h4>
+        <a href="https://crytopnl.com/calculators/liquidation-price.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">선물 청산가</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">코인 선물 레버리지 격리/교차 강제청산가 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
       </div>
@@ -126,14 +137,14 @@ $postRelatedHtml = @'
         실전 트레이딩 유용한 도구 & 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/kimchi-premium-calculator.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/kimchi-premium.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">실시간 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">실시간 김치프리미엄 차익 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/orderbook-depth-slippage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/trading-fees-slippage.html" class="p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">주문 분석</span>
-          <h4 class="text-xs font-bold text-white line-clamp-2">호가창 오더북 뎁스(Depth)와 슬리피지 최소화 전략</h4>
+          <h4 class="text-xs font-bold text-white line-clamp-2">암호화폐 거래 수수료와 슬리피지 관리 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">가이드 보기 &rarr;</span>
         </a>
         <a href="https://crytopnl.com/#/forum" class="p-4 rounded-2xl bg-navy-900/80 border border-cyan-500/40 hover:border-cyan-400 transition flex flex-col justify-between">
