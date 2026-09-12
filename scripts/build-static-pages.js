@@ -5,6 +5,7 @@
  *   - scripts/page-template.html
  *   - data/static-seo-articles.json
  *   - data/daily-market-reports.json
+ *   - Firestore REST API (live user forum posts)
  * Generates:
  *   - calculators/*.html
  *   - guides/*.html
@@ -150,112 +151,168 @@ function renderPage(tpl, params) {
     .replace(/__RELATED_SECTION__/g, params.relatedHtml);
 }
 
-// 1. Calculators
-(seoData.calculators || []).forEach(calc => {
-  const canonical = `https://crytopnl.com/calculators/${calc.slug}.html`;
-  const html = renderPage(template, {
-    fullTitle: `${calc.title} | CrytoPnL 실전 계산기`,
-    desc: calc.description,
-    keywords: calc.keywords,
-    author: 'CrytoPnL 금융공학팀',
-    canonical,
-    title: calc.title,
-    date: today,
-    ctaLink: calc.ctaLink,
-    ctaText: calc.ctaText,
-    category: calc.category,
-    contentHtml: calc.contentHtml,
-    relatedHtml: calcRelatedHtml
-  });
-  fs.writeFileSync(path.join(rootDir, 'calculators', `${calc.slug}.html`), html, 'utf8');
-  sitemapUrls.push({
-    loc: canonical,
-    lastmod: today,
-    changefreq: 'weekly',
-    priority: '0.9'
-  });
-});
-console.log(`Calculators generated: ${(seoData.calculators || []).length}`);
-
-// 2. Guides
-(seoData.guides || []).forEach(guide => {
-  const canonical = `https://crytopnl.com/guides/${guide.slug}.html`;
-  const html = renderPage(template, {
-    fullTitle: `${guide.title} | CrytoPnL 백서`,
-    desc: guide.description,
-    keywords: guide.keywords,
-    author: 'CrytoPnL 퀀트 리서치팀',
-    canonical,
-    title: guide.title,
-    date: today,
-    ctaLink: guide.ctaLink,
-    ctaText: guide.ctaText,
-    category: guide.category,
-    contentHtml: guide.contentHtml,
-    relatedHtml: guideRelatedHtml
-  });
-  fs.writeFileSync(path.join(rootDir, 'guides', `${guide.slug}.html`), html, 'utf8');
-  sitemapUrls.push({
-    loc: canonical,
-    lastmod: today,
-    changefreq: 'weekly',
-    priority: '0.8'
-  });
-});
-console.log(`Guides generated: ${(seoData.guides || []).length}`);
-
-// 3. Forum Posts
-const reports = repData.reports || [];
-reports.forEach(rep => {
-  const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
-  const plain = stripHtml(rep.content || '');
-  const desc = plain.length > 150 ? plain.substring(0, 150) + '...' : `${rep.title} - CrytoPnL 실시간 퀀트 분석 및 온체인 마켓 리포트`;
-  let dateStr = today;
-  if (rep.timestamp && typeof rep.timestamp === 'number') {
-    const ts = rep.timestamp > 1000000000000 ? rep.timestamp : rep.timestamp * 1000;
-    try {
-      dateStr = new Date(ts).toISOString().split('T')[0];
-    } catch(e) {}
-  } else if (rep.time && /^\d{4}[-.]\d{2}[-.]\d{2}/.test(rep.time)) {
-    dateStr = rep.time.substring(0, 10).replace(/\./g, '-');
+async function fetchFirestorePosts() {
+  try {
+    const url = 'https://firestore.googleapis.com/v1/projects/homepage-437c0/databases/(default)/documents/forum_posts?pageSize=100';
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.documents) return [];
+    return data.documents.map(doc => {
+      const id = doc.name.split('/').pop();
+      const f = doc.fields || {};
+      const ts = f.timestamp?.integerValue ? parseInt(f.timestamp.integerValue) : parseInt(id) || Date.now();
+      return {
+        id,
+        category: f.category?.stringValue || 'general',
+        categoryName: f.categoryName?.stringValue || (f.isNotice?.booleanValue ? '📢 공지사항' : '💬 자유 토론'),
+        title: f.title?.stringValue || '포럼 게시글',
+        author: f.author?.stringValue || 'CrytoPnL 회원',
+        authorRank: f.authorRank?.stringValue || 'Member',
+        timestamp: ts,
+        time: f.time?.stringValue || new Date(ts).toISOString().replace('T', ' ').substring(0, 16),
+        views: f.views?.integerValue ? parseInt(f.views.integerValue) : 150,
+        upvotes: f.upvotes?.integerValue ? parseInt(f.upvotes.integerValue) : 10,
+        isNotice: f.isNotice?.booleanValue || false,
+        content: f.content?.stringValue || '',
+        comments: []
+      };
+    });
+  } catch (e) {
+    console.warn('[build-static-pages] Firestore live fetch skipped:', e.message);
+    return [];
   }
+}
 
-  const html = renderPage(template, {
-    fullTitle: `${rep.title} | CrytoPnL 포럼`,
-    desc,
-    keywords: '비트코인 시황, 암호화폐 퀀트 분석, 온체인 데이터, 시장 전망, CrytoPnL, BTC USDT',
-    author: rep.author || 'AI 퀀트 애널리스트',
-    canonical,
-    title: rep.title,
-    date: dateStr,
-    ctaLink: 'https://crytopnl.com/#/forum',
-    ctaText: '실시간 지표 & 포럼 참여하기',
-    category: rep.categoryName || '시장 분석 리포트',
-    contentHtml: rep.content || '',
-    relatedHtml: postRelatedHtml
+async function main() {
+  // 1. Calculators
+  (seoData.calculators || []).forEach(calc => {
+    const canonical = `https://crytopnl.com/calculators/${calc.slug}.html`;
+    const html = renderPage(template, {
+      fullTitle: `${calc.title} | CrytoPnL 실전 계산기`,
+      desc: calc.description,
+      keywords: calc.keywords,
+      author: 'CrytoPnL 금융공학팀',
+      canonical,
+      title: calc.title,
+      date: today,
+      ctaLink: calc.ctaLink,
+      ctaText: calc.ctaText,
+      category: calc.category,
+      contentHtml: calc.contentHtml,
+      relatedHtml: calcRelatedHtml
+    });
+    fs.writeFileSync(path.join(rootDir, 'calculators', `${calc.slug}.html`), html, 'utf8');
+    sitemapUrls.push({
+      loc: canonical,
+      lastmod: today,
+      changefreq: 'weekly',
+      priority: '0.9'
+    });
   });
-  fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
-  sitemapUrls.push({
-    loc: canonical,
-    lastmod: dateStr,
-    changefreq: 'weekly',
-    priority: '0.85'
-  });
-});
-console.log(`Posts generated: ${reports.length}`);
+  console.log(`Calculators generated: ${(seoData.calculators || []).length}`);
 
-// 4. Sitemap.xml
-const xml = [
-  '<?xml version="1.0" encoding="UTF-8"?>',
-  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  ...sitemapUrls.map(u => `  <url>
+  // 2. Guides
+  (seoData.guides || []).forEach(guide => {
+    const canonical = `https://crytopnl.com/guides/${guide.slug}.html`;
+    const html = renderPage(template, {
+      fullTitle: `${guide.title} | CrytoPnL 백서`,
+      desc: guide.description,
+      keywords: guide.keywords,
+      author: 'CrytoPnL 퀀트 리서치팀',
+      canonical,
+      title: guide.title,
+      date: today,
+      ctaLink: guide.ctaLink,
+      ctaText: guide.ctaText,
+      category: guide.category,
+      contentHtml: guide.contentHtml,
+      relatedHtml: guideRelatedHtml
+    });
+    fs.writeFileSync(path.join(rootDir, 'guides', `${guide.slug}.html`), html, 'utf8');
+    sitemapUrls.push({
+      loc: canonical,
+      lastmod: today,
+      changefreq: 'weekly',
+      priority: '0.8'
+    });
+  });
+  console.log(`Guides generated: ${(seoData.guides || []).length}`);
+
+  // 3. Forum Posts (Merge local reports with Firestore live posts)
+  const existingReports = repData.reports || [];
+  const fsPosts = await fetchFirestorePosts();
+  
+  const postMap = new Map();
+  // Firestore posts first
+  fsPosts.forEach(p => postMap.set(String(p.id), p));
+  // Existing reports
+  existingReports.forEach(r => {
+    const id = String(r.id);
+    if (!postMap.has(id)) {
+      postMap.set(id, r);
+    }
+  });
+
+  const mergedReports = Array.from(postMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  mergedReports.forEach(rep => {
+    const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
+    const plain = stripHtml(rep.content || '');
+    const desc = plain.length > 150 ? plain.substring(0, 150) + '...' : `${rep.title} - CrytoPnL 실시간 퀀트 분석 및 온체인 마켓 리포트`;
+    
+    let dateStr = today;
+    if (rep.timestamp && typeof rep.timestamp === 'number') {
+      const ts = rep.timestamp > 1000000000000 ? rep.timestamp : rep.timestamp * 1000;
+      try {
+        dateStr = new Date(ts).toISOString().split('T')[0];
+      } catch(e) {}
+    } else if (rep.time && /^\d{4}[-.]\d{2}[-.]\d{2}/.test(rep.time)) {
+      dateStr = rep.time.substring(0, 10).replace(/\./g, '-');
+    }
+
+    const html = renderPage(template, {
+      fullTitle: `${rep.title} | CrytoPnL 포럼`,
+      desc,
+      keywords: '비트코인 시황, 암호화폐 퀀트 분석, 온체인 데이터, 시장 전망, CrytoPnL, BTC USDT',
+      author: rep.author || 'AI 퀀트 애널리스트',
+      canonical,
+      title: rep.title,
+      date: dateStr,
+      ctaLink: 'https://crytopnl.com/#/forum',
+      ctaText: '실시간 지표 & 포럼 참여하기',
+      category: rep.categoryName || '시장 분석 리포트',
+      contentHtml: rep.content || '',
+      relatedHtml: postRelatedHtml
+    });
+    fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
+    sitemapUrls.push({
+      loc: canonical,
+      lastmod: dateStr,
+      changefreq: 'weekly',
+      priority: '0.85'
+    });
+  });
+  console.log(`Posts generated: ${mergedReports.length}`);
+
+  // 4. Sitemap.xml
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...sitemapUrls.map(u => `  <url>
     <loc>${u.loc}</loc>
     <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`),
-  '</urlset>'
-].join('\n');
+    '</urlset>'
+  ].join('\n');
 
-fs.writeFileSync(sitemapPath, xml, 'utf8');
-console.log(`sitemap.xml generated with ${sitemapUrls.length} URLs`);
+  fs.writeFileSync(sitemapPath, xml, 'utf8');
+  console.log(`sitemap.xml generated with ${sitemapUrls.length} URLs`);
+}
+
+main().catch(err => {
+  console.error('[build-static-pages] Execution failed:', err);
+  process.exit(1);
+});
