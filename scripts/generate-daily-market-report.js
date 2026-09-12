@@ -798,9 +798,12 @@ async function buildDailyMarketReport(targetDate = null) {
   const kst = targetDate ? new Date(targetDate) : getKSTDate();
   const dateStr = formatDateString(kst);
   const dateKorean = formatDateKorean(kst);
-  const reportId = `report-${dateStr.replace(/-/g, '')}`;
+  const hour = String(kst.getHours()).padStart(2, '0');
+  const min = String(kst.getMinutes()).padStart(2, '0');
+  const timeFormatted = `${hour}:${min}`;
+  const reportId = `report-${dateStr.replace(/-/g, '')}-${hour}${min}`;
 
-  console.log(`[Daily Report Generator] Ingesting real-time market data for ${dateStr}...`);
+  console.log(`[Daily Report Generator] Ingesting real-time market data for ${dateStr} ${timeFormatted}...`);
   const marketData = await fetchLiveMarketData(dateStr);
 
   const img1 = generateReportImage1(dateStr, marketData);
@@ -836,20 +839,20 @@ async function buildDailyMarketReport(targetDate = null) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  console.log(`[Daily Report Generator] Generated for ${dateStr} - Plain text characters: ${cleanText.length}`);
+  console.log(`[Daily Report Generator] Generated for ${dateStr} ${timeFormatted} - Plain text characters: ${cleanText.length}`);
 
-  const postDate = new Date(`${dateStr}T08:00:00+09:00`);
-  const timestamp = postDate.getTime();
+  const timestamp = kst.getTime();
+  const timeStr = `${dateStr} ${timeFormatted}`;
 
   return {
     id: reportId,
     category: 'altcoin',
     categoryName: '📊 시장 분위기',
-    title: `[모닝 시황] ${dateKorean} 글로벌 암호화폐 & 온체인 펀더멘털 종합 분석 보고서`,
+    title: `[${timeFormatted} 시황 브리핑] ${dateKorean} 글로벌 암호화폐 & 온체인 펀더멘털 종합 분석 보고서`,
     author: '시황분석팀 (AI)',
     authorRank: 'VERIFIED',
     timestamp: timestamp,
-    time: `${dateStr} 08:00`,
+    time: timeStr,
     views: 248,
     upvotes: 0,
     isNotice: false,
@@ -1139,8 +1142,8 @@ async function fetchBinance4hTechnicals() {
 
 function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
   const curP = Number(tech.currentPrice || 78370);
-  const slotBadge = slotInfo ? slotInfo.slotHour + '시' : '4H';
-  const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 09:00`;
+  const slotBadge = slotInfo?.timeFormatted ? slotInfo.timeFormatted : (slotInfo ? slotInfo.slotHour + '시' : '4H');
+  const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 실시간`;
   const setup = tech.setup || {
     direction: 'SHORT',
     theme: '주요 이평선 저항 직면 및 하방 리테스트',
@@ -1434,49 +1437,43 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 function getPerspectiveSlotInfo(kstDate = null) {
   const kst = kstDate || getKSTDate();
   const hour = kst.getHours();
+  const min = kst.getMinutes();
   const year = kst.getFullYear();
   const month = String(kst.getMonth() + 1).padStart(2, '0');
   const day = String(kst.getDate()).padStart(2, '0');
+  const hourStr = String(hour).padStart(2, '0');
+  const minStr = String(min).padStart(2, '0');
   const dateStr = `${year}-${month}-${day}`;
   const dateKey = `${year}${month}${day}`;
+  const timeFormatted = `${hourStr}:${minStr}`;
+  const timeStr = `${dateStr} ${timeFormatted}`;
 
-  if (hour >= 20) {
-    // 20:00 ~ 23:59: 21:00 야간 세션 (미국 증시 개장/야간 파생상품 변동성)
-    return {
-      slot: '21',
-      slotHour: 21,
-      slotName: '야간 관점 (21:00)',
-      sessionTitle: '야간 미국 증시 개장 및 파생시장 변동성',
-      sessionContext: '미국 정규 주식/파생시장 개장 시간대로 글로벌 기관 주문 및 레버리지 청산 변동성이 급증하는 구간',
-      id: `perspective-${dateKey}-21`,
-      timeStr: `${dateStr} 21:00`,
-      postDate: new Date(`${dateStr}T21:00:00+09:00`)
-    };
-  } else if (hour >= 15) {
-    // 15:00 ~ 19:59: 17:00 오후 세션 (유럽 런던장 개장)
-    return {
-      slot: '17',
-      slotHour: 17,
-      slotName: '오후 관점 (17:00)',
-      sessionTitle: '오후 유럽 런던장 개장 및 추세 중간 점검',
-      sessionContext: '런던 금융시장 개장에 맞춰 유럽발 기관 유동성이 공급되며 아시아 세션의 추세 돌파 또는 지지 안착을 시험하는 구간',
-      id: `perspective-${dateKey}-17`,
-      timeStr: `${dateStr} 17:00`,
-      postDate: new Date(`${dateStr}T17:00:00+09:00`)
-    };
+  let sessionTitle = '실시간 4H 캔들 기술 분석';
+  let sessionContext = '실시간 시장 호가와 4시간봉 주요 매물대 및 파동 구조를 점검하는 구간';
+
+  if (hour >= 21 || hour < 6) {
+    sessionTitle = '야간 미국 증시 및 글로벌 파생 변동성 세션';
+    sessionContext = '미국 뉴욕 증시 및 글로벌 파생상품 시장 유동성이 집중되며 급격한 추세 확장이 발생하는 구간';
+  } else if (hour >= 15 && hour < 21) {
+    sessionTitle = '오후 유럽 런던장 유동성 및 추세 돌파 세션';
+    sessionContext = '유럽 런던 금융시장 개장과 함께 기관 유동성이 공급되며 주요 매물대 돌파 및 지지 안착을 시험하는 구간';
   } else {
-    // 00:00 ~ 14:59: 09:00 오전 세션 (아시아장/일봉 마감)
-    return {
-      slot: '09',
-      slotHour: 9,
-      slotName: '오전 관점 (09:00)',
-      sessionTitle: '오전 일봉 마감 및 아시아장 개장 분석',
-      sessionContext: '글로벌 암호화폐 일봉 캔들이 마감되고 아시아 시장이 본격 개장하는 시간대로 당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간',
-      id: `perspective-${dateKey}-09`,
-      timeStr: `${dateStr} 09:00`,
-      postDate: new Date(`${dateStr}T09:00:00+09:00`)
-    };
+    sessionTitle = '오전 일봉 마감 및 아시아장 유동성 세션';
+    sessionContext = '글로벌 암호화폐 일봉 마감 이후 아시아 시장이 주도하며 당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간';
   }
+
+  return {
+    slot: `${hourStr}${minStr}`,
+    slotHour: hour,
+    slotMinute: min,
+    timeFormatted,
+    slotName: `${timeFormatted} 관점`,
+    sessionTitle,
+    sessionContext,
+    id: `perspective-${dateKey}-${hourStr}${minStr}`,
+    timeStr,
+    postDate: kst
+  };
 }
 
 function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, slotInfo = null) {
@@ -1657,7 +1654,11 @@ async function buildDailyPerspectiveReport(targetDate = null) {
         // Extract dynamic title from <TITLE> tag if present
         const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
         if (titleMatch && titleMatch[1].trim()) {
-          postTitle = titleMatch[1].replace(/<\/?.*?>/g, '').trim();
+          let extractedTitle = titleMatch[1].replace(/<\/?.*?>/g, '').trim();
+          if (!extractedTitle.startsWith(`[BTC/USDT ${slotInfo.slotName}]`)) {
+            extractedTitle = `[BTC/USDT ${slotInfo.slotName}] ${extractedTitle.replace(/^\[.*?\]\s*/, '')}`;
+          }
+          postTitle = extractedTitle;
           console.log(`[Daily Perspective Generator] Extracted dynamic AI title: "${postTitle}"`);
         }
 
@@ -1737,7 +1738,7 @@ async function main() {
     return true;
   });
 
-  const updatedReports = [...toAdd, ...filtered].slice(0, 50); // Keep last 50 reports
+  const updatedReports = [...toAdd, ...filtered].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 50); // Keep last 50 reports in descending chronological order
 
   const payload = {
     lastUpdated: new Date().toISOString(),

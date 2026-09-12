@@ -2397,17 +2397,13 @@ async function openManualReportModal() {
     }
   }
 
-  // Detect current session
+  // Detect current real-time execution timestamp
   const now = new Date();
-  const kstHours = (now.getUTCHours() + 9) % 24;
-  let sessionName = '야간 세션 (21:00)';
-  if (kstHours >= 20 || kstHours < 2) {
-    sessionName = '야간 세션 (21:00) [미국 증시 개장/파생 변동성]';
-  } else if (kstHours >= 15) {
-    sessionName = '오후 세션 (17:00) [유럽 런던장 개장 세션]';
-  } else {
-    sessionName = '오전 세션 (09:00) [아시아장/일봉 마감 세션]';
-  }
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const kst = new Date(utc + (9 * 3600000));
+  const kstHours = String(kst.getHours()).padStart(2, '0');
+  const kstMins = String(kst.getMinutes()).padStart(2, '0');
+  const sessionName = `실시간 (${kstHours}:${kstMins}) 즉시 발행`;
 
   const targetBadge = document.getElementById('manual-report-target-slot');
   if (targetBadge) {
