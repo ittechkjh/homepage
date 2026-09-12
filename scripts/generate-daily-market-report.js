@@ -578,30 +578,62 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
 
 위 데이터를 종합하여 전문적이고 심도 있는 1,600~1,850자 리포트를 생성해주세요.`;
 
-  const payload = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
-      }
-    ],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 4500
+  const baseContents = [
+    {
+      role: 'user',
+      parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
     }
-  };
+  ];
 
-  // gemini-3.5-flash is confirmed stable and fast, with fallbacks to 3.6-flash and flash-latest
-  const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest'];
-  for (const model of models) {
+  // Candidates in prioritized order:
+  // 1. gemini-3.5-flash with thinkingBudget: 0 (Fastest, ~14s, full complete text)
+  // 2. gemini-flash-latest with thinkingBudget: 0
+  // 3. gemini-3.6-flash with thinkingLevel: 'low'
+  const modelAttempts = [
+    {
+      name: 'gemini-3.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-flash-latest',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.6-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    }
+  ];
+
+  for (const item of modelAttempts) {
     try {
-      console.log(`[Gemini AI] Calling ${model}...`);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      console.log(`[Gemini AI] Calling ${item.name}...`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(90000)
+        body: JSON.stringify(item.payload),
+        signal: AbortSignal.timeout(60000)
       });
       if (res.ok) {
         const data = await res.json();
@@ -609,19 +641,19 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
         const finishReason = candidate?.finishReason || 'UNKNOWN';
         const parts = candidate?.content?.parts || [];
         const text = parts.map(p => p.text || '').join('').trim();
-        console.log(`[Gemini AI] ${model} finishReason: ${finishReason}, parts: ${parts.length}, text length: ${text.length}`);
+        console.log(`[Gemini AI] ${item.name} finishReason: ${finishReason}, parts: ${parts.length}, text length: ${text.length}`);
         if (text && text.length > 500) {
-          console.log(`[Gemini AI] Successfully generated report with ${model} (${text.length} chars)`);
+          console.log(`[Gemini AI] Successfully generated report with ${item.name} (${text.length} chars)`);
           return text;
         } else {
-          console.warn(`[Gemini AI] ${model} text length (${text.length}) is below 500 characters.`);
+          console.warn(`[Gemini AI] ${item.name} text length (${text.length}) is below 500 characters.`);
         }
       } else {
         const errBody = await res.text().catch(() => '');
-        console.warn(`[Gemini AI] ${model} responded with HTTP ${res.status}: ${errBody.slice(0, 150)}`);
+        console.warn(`[Gemini AI] ${item.name} responded with HTTP ${res.status}: ${errBody.slice(0, 150)}`);
       }
     } catch (err) {
-      console.warn(`[Gemini AI] Error calling ${model}:`, err.message);
+      console.warn(`[Gemini AI] Error calling ${item.name}:`, err.message);
     }
   }
   return null;
