@@ -1876,7 +1876,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     authorRank: 'VERIFIED',
     timestamp: postDate.getTime(),
     time: `${dateStr} 08:00`,
-    views: 1,
+    views: 248,
     upvotes: 0,
     isNotice: false,
     image: true,
@@ -1939,14 +1939,16 @@ function ensureDailyMarketReportPost(posts) {
     posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
   }
 
-  // Restore persistent views and upvotes from local storage
+  // Restore persistent views and upvotes from local storage and firestore cache
   try {
     const votesMap = JSON.parse(localStorage.getItem('crytopnl_post_votes') || '{}');
     const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
     posts.forEach(p => {
       if (p && p.id) {
         if (votesMap[p.id] !== undefined) p.upvotes = votesMap[p.id];
-        if (viewsMap[p.id] !== undefined) p.views = viewsMap[p.id];
+        if (viewsMap[p.id] !== undefined) {
+          p.views = Math.max(p.views || 0, viewsMap[p.id]);
+        }
       }
     });
   } catch(e) {}
@@ -1988,8 +1990,37 @@ async function loadDailyMarketReports(force = false) {
             p.timestamp = rep.timestamp;
             p.author = rep.author;
             p.authorRank = rep.authorRank;
+            if (rep.views && (!p.views || rep.views > p.views)) {
+              p.views = rep.views;
+            }
           } else {
             currentPosts.unshift(rep);
+          }
+
+          // Sync / Seed initial views with Firestore forum_views (방안 C)
+          if (typeof db !== 'undefined' && db && rep.id) {
+            const repIdStr = String(rep.id);
+            db.collection('forum_views').doc(repIdStr).get().then(docSnap => {
+              if (docSnap.exists) {
+                const fData = docSnap.data();
+                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views)) {
+                  const higherViews = fData.views;
+                  if (p) p.views = higherViews;
+                  rep.views = higherViews;
+                  try {
+                    const vm = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+                    vm[repIdStr] = higherViews;
+                    localStorage.setItem('crytopnl_post_views', JSON.stringify(vm));
+                  } catch(e) {}
+                  if (typeof renderForumPosts === 'function') renderForumPosts();
+                }
+              } else {
+                db.collection('forum_views').doc(repIdStr).set({
+                  views: rep.views || 185,
+                  seededAt: Date.now()
+                }, { merge: true }).catch(() => {});
+              }
+            }).catch(() => {});
           }
         });
         saveStoredPosts(currentPosts);
@@ -2331,7 +2362,33 @@ function openPostDetailModal(postId, updateHistory = true) {
   currentCafePostId = post.id;
   currentViewingPostId = post.id;
   post.views = (post.views || 0) + 1;
+  try {
+    const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+    viewsMap[post.id] = post.views;
+    localStorage.setItem('crytopnl_post_views', JSON.stringify(viewsMap));
+  } catch(e) {}
   saveStoredPosts(posts);
+
+  // Firestore real-time atomic view increment (방안 C)
+  if (typeof db !== 'undefined' && db && post.id) {
+    try {
+      const pIdStr = String(post.id);
+      const incVal = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue) ?
+                     firebase.firestore.FieldValue.increment(1) : post.views;
+      db.collection('forum_views').doc(pIdStr).set({
+        views: incVal,
+        lastViewed: Date.now()
+      }, { merge: true }).catch(() => {});
+
+      db.collection('forum_posts').doc(pIdStr).get().then(snap => {
+        if (snap.exists) {
+          snap.ref.update({ views: incVal }).catch(() => {});
+        }
+      }).catch(() => {});
+    } catch(err) {
+      console.warn('Firestore view increment error:', err);
+    }
+  }
 
   if (updateHistory && window.location.hash !== `#/forum/post/${post.id}`) {
     history.pushState(null, '', `#/forum/post/${post.id}`);
@@ -5052,10 +5109,53 @@ if (db) {
     });
 
     posts.sort((a,b) => (b.id || 0) - (a.id || 0));
+    posts = ensureDailyMarketReportPost(posts);
     saveStoredPosts(posts);
     if (typeof renderForumPosts === 'function') renderForumPosts();
   }, err => {
     console.warn('Firestore forum_posts onSnapshot error:', err);
+  });
+
+  // Real-time Firestore synchronization for post views (forum_views collection - 방안 C)
+  db.collection('forum_views').onSnapshot(snapshot => {
+    let hasChanges = false;
+    let localViewsMap = {};
+    try {
+      localViewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+    } catch(e) {}
+
+    snapshot.forEach(doc => {
+      const docId = doc.id;
+      const data = doc.data();
+      if (data && typeof data.views === 'number') {
+        const firestoreViews = data.views;
+        if ((localViewsMap[docId] || 0) < firestoreViews) {
+          localViewsMap[docId] = firestoreViews;
+        }
+
+        const allPosts = (typeof inMemoryForumPosts !== 'undefined' && Array.isArray(inMemoryForumPosts)) ? inMemoryForumPosts : [];
+        const target = allPosts.find(p => p && String(p.id) === docId);
+        if (target && (target.views || 0) < firestoreViews) {
+          target.views = firestoreViews;
+          hasChanges = true;
+        }
+
+        if (typeof currentCafePostId !== 'undefined' && String(currentCafePostId) === docId) {
+          const detailViewsEl = document.getElementById('cafe-post-views');
+          if (detailViewsEl) detailViewsEl.innerText = firestoreViews;
+        }
+      }
+    });
+
+    try {
+      localStorage.setItem('crytopnl_post_views', JSON.stringify(localViewsMap));
+    } catch(e) {}
+
+    if (hasChanges && typeof renderForumPosts === 'function') {
+      renderForumPosts();
+    }
+  }, err => {
+    console.warn('Firestore forum_views onSnapshot error:', err);
   });
 
   db.collection('chat_messages').orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
