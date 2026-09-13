@@ -260,7 +260,7 @@ async function fetchLiveMarketData(dateStr) {
   let upcomingEvents = [];
   try {
     if (fs.existsSync(eventsFile)) {
-      const raw = fs.readFileSync(eventsFile, 'utf8');
+      const raw = fs.readFileSync(eventsFile, 'utf8').replace(/^\uFEFF/, '').trim();
       const parsed = JSON.parse(raw);
       upcomingEvents = Array.isArray(parsed.events) ? parsed.events : [];
     }
@@ -1705,7 +1705,7 @@ async function main() {
   let existingReports = [];
   try {
     if (fs.existsSync(reportOutputFile)) {
-      const raw = fs.readFileSync(reportOutputFile, 'utf8');
+      const raw = fs.readFileSync(reportOutputFile, 'utf8').replace(/^\uFEFF/, '').trim();
       const parsed = JSON.parse(raw);
       existingReports = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.reports) ? parsed.reports : []);
     }

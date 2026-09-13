@@ -30,9 +30,20 @@ const sitemapPath = path.join(rootDir, 'sitemap.xml');
   }
 });
 
+function readJsonSafely(filePath, defaultValue = {}) {
+  try {
+    if (!fs.existsSync(filePath)) return defaultValue;
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '').trim();
+    return JSON.parse(raw);
+  } catch (e) {
+    console.warn(`[build-static-pages] Warning parsing ${filePath}:`, e.message);
+    return defaultValue;
+  }
+}
+
 const template = fs.readFileSync(templatePath, 'utf8');
-const seoData = JSON.parse(fs.readFileSync(seoArticlesPath, 'utf8'));
-const repData = JSON.parse(fs.readFileSync(reportsPath, 'utf8'));
+const seoData = readJsonSafely(seoArticlesPath, {});
+const repData = readJsonSafely(reportsPath, { reports: [] });
 
 const today = new Date().toISOString().split('T')[0];
 const sitemapUrls = [];

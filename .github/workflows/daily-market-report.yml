@@ -2,9 +2,9 @@ name: Generate Daily Crypto Market Report
 
 on:
   schedule:
-    - cron: '0 23 * * *' # 매일 08:00 KST (23:00 UTC)
-    - cron: '0 8 * * *'  # 매일 17:00 KST (08:00 UTC)
-    - cron: '0 12 * * *' # 매일 21:00 KST (12:00 UTC)
+    - cron: '18 23 * * *' # 매일 08:18 KST (23:18 UTC, off-peak minute)
+    - cron: '18 8 * * *'  # 매일 17:18 KST (08:18 UTC, off-peak minute)
+    - cron: '18 12 * * *' # 매일 21:18 KST (12:18 UTC, off-peak minute)
   workflow_dispatch: # Allows manual trigger anytime from UI or GitHub Actions tab
     inputs:
       report_type:
@@ -23,6 +23,7 @@ permissions:
 jobs:
   daily-market-report:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
