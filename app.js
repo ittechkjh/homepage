@@ -1929,6 +1929,8 @@ function ensureDailyMarketReportPost(posts) {
           if (rep.category) posts[existingIdx].category = rep.category;
           if (rep.categoryName) posts[existingIdx].categoryName = rep.categoryName;
           if (rep.image !== undefined) posts[existingIdx].image = rep.image;
+          if (rep.views !== undefined) posts[existingIdx].views = rep.views;
+          if (rep.upvotes !== undefined) posts[existingIdx].upvotes = rep.upvotes;
         }
       }
     });
@@ -1960,7 +1962,11 @@ function ensureDailyMarketReportPost(posts) {
     let viewsChanged = false;
     posts.forEach(p => {
       if (p && p.id) {
-        if (votesMap[p.id] !== undefined) p.upvotes = votesMap[p.id];
+        if (votesMap[p.id] !== undefined) {
+          p.upvotes = votesMap[p.id];
+        } else if (!localStorage.getItem('voted_post_' + p.id)) {
+          p.upvotes = 0;
+        }
         const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
         if (isAuto) {
           if (viewsMap[p.id] !== undefined && viewsMap[p.id] >= 50) {
@@ -1973,6 +1979,8 @@ function ensureDailyMarketReportPost(posts) {
         }
         if (viewsMap[p.id] !== undefined) {
           p.views = Math.max(p.views || 0, viewsMap[p.id]);
+        } else {
+          p.views = p.views || 0;
         }
       }
     });
@@ -2021,6 +2029,9 @@ async function loadDailyMarketReports(force = false) {
             if (rep.views !== undefined) {
               p.views = rep.views;
             }
+            if (rep.upvotes !== undefined) {
+              p.upvotes = rep.upvotes;
+            }
           } else {
             currentPosts.unshift(rep);
           }
@@ -2031,7 +2042,7 @@ async function loadDailyMarketReports(force = false) {
             db.collection('forum_views').doc(repIdStr).get().then(docSnap => {
               if (docSnap.exists) {
                 const fData = docSnap.data();
-                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views) && fData.views < 50) {
+                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views)) {
                   const higherViews = fData.views;
                   if (p) p.views = higherViews;
                   rep.views = higherViews;
@@ -2664,7 +2675,7 @@ function renderForumPosts() {
             <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.timestamp || post.time))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
-            <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 1}회</span>
+            <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 0}회</span>
           </div>
           <h3 class="font-semibold text-sm sm:text-base text-slate-100 group-hover:text-cyan-400 transition leading-snug">${escapeHtml(post.title)}</h3>
           <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(plainText)}</p>
@@ -2676,7 +2687,7 @@ function renderForumPosts() {
           </button>
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 font-mono" title="조회수">
             <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
-            <span>조회 ${post.views || 1}</span>
+            <span>조회 ${post.views || 0}</span>
           </div>
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-950 border border-navy-800 text-cyan-400 font-bold font-mono" title="추천수">
             <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
@@ -2900,13 +2911,17 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (titleEl) titleEl.innerText = post.title;
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
   if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
-  if (viewsEl) viewsEl.innerText = post.views;
+  if (viewsEl) viewsEl.innerText = post.views || 0;
+  const modalViewsEl = document.getElementById('modal-post-views');
+  if (modalViewsEl) modalViewsEl.innerText = post.views || 0;
   if (contentEl) {
     contentEl.innerHTML = formatPostContent(post.content);
     convertPostSvgImagesToPng(contentEl);
     adjustCalloutBoxesContrast(contentEl);
   }
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
+  const modalUpvotesEl = document.getElementById('modal-post-upvotes');
+  if (modalUpvotesEl) modalUpvotesEl.innerText = post.upvotes || 0;
 
   const controlsEl = document.getElementById('cafe-post-author-controls');
   const storedUser = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
@@ -3817,8 +3832,8 @@ function handleCafeSubmitPost(e) {
     isNotice,
     author: authorName,
     authorRank: authorRank,
-    upvotes: 1,
-    views: 1,
+    upvotes: 0,
+    views: 0,
     time: formatDateTime(Date.now()),
     timestamp: Date.now(),
     comments: []

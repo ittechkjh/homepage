@@ -1700,8 +1700,8 @@ const CoinCalculators = {
             isNotice: false,
             author: authorName,
             authorRank: authorRank,
-            upvotes: 1,
-            views: 1,
+            upvotes: 0,
+            views: 0,
             time: typeof formatDateTime === 'function' ? formatDateTime(Date.now()) : '방금 전',
             timestamp: postId,
             comments: []
