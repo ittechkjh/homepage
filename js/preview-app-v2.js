@@ -2157,7 +2157,7 @@ function ensureDailyMarketReportPost(posts) {
   const targetReportId = `report-${year}${month}${day}`;
 
   // If today's report is not in cached reports or posts, generate it immediately as fallback
-  if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id) === targetReportId)) {
+  if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id).startsWith(targetReportId))) {
     posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
   }
 

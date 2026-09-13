@@ -308,6 +308,16 @@ async function main() {
       relatedHtml: postRelatedHtml
     });
     fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
+
+    // Also ensure base date-only alias exists (e.g. report-20260913.html, perspective-20260913.html)
+    const baseDateMatch = String(rep.id).match(/^((?:report|perspective)-\d{8})-\d{4}$/);
+    if (baseDateMatch) {
+      const baseFile = path.join(rootDir, 'posts', `${baseDateMatch[1]}.html`);
+      if (!fs.existsSync(baseFile)) {
+        fs.writeFileSync(baseFile, html, 'utf8');
+      }
+    }
+
     sitemapUrls.push({
       loc: canonical,
       lastmod: dateStr,
