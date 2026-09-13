@@ -2098,7 +2098,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     authorRank: 'VERIFIED',
     timestamp: postDate.getTime(),
     time: `${dateStr} 08:00`,
-    views: 248,
+    views: 0,
     upvotes: 0,
     isNotice: false,
     image: true,
@@ -2165,14 +2165,28 @@ function ensureDailyMarketReportPost(posts) {
   try {
     const votesMap = JSON.parse(localStorage.getItem('crytopnl_post_votes') || '{}');
     const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
+    let viewsChanged = false;
     posts.forEach(p => {
       if (p && p.id) {
         if (votesMap[p.id] !== undefined) p.upvotes = votesMap[p.id];
+        const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        if (isAuto) {
+          if (viewsMap[p.id] !== undefined && viewsMap[p.id] >= 50) {
+            delete viewsMap[p.id];
+            viewsChanged = true;
+          }
+          if (p.views && p.views >= 50) {
+            p.views = 0;
+          }
+        }
         if (viewsMap[p.id] !== undefined) {
           p.views = Math.max(p.views || 0, viewsMap[p.id]);
         }
       }
     });
+    if (viewsChanged) {
+      localStorage.setItem('crytopnl_post_views', JSON.stringify(viewsMap));
+    }
   } catch(e) {}
 
   return posts;
@@ -2212,7 +2226,7 @@ async function loadDailyMarketReports(force = false) {
             p.timestamp = rep.timestamp;
             p.author = rep.author;
             p.authorRank = rep.authorRank;
-            if (rep.views && (!p.views || rep.views > p.views)) {
+            if (rep.views !== undefined) {
               p.views = rep.views;
             }
           } else {
@@ -2225,7 +2239,7 @@ async function loadDailyMarketReports(force = false) {
             db.collection('forum_views').doc(repIdStr).get().then(docSnap => {
               if (docSnap.exists) {
                 const fData = docSnap.data();
-                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views)) {
+                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views) && fData.views < 50) {
                   const higherViews = fData.views;
                   if (p) p.views = higherViews;
                   rep.views = higherViews;
@@ -2238,7 +2252,7 @@ async function loadDailyMarketReports(force = false) {
                 }
               } else {
                 db.collection('forum_views').doc(repIdStr).set({
-                  views: rep.views || 185,
+                  views: rep.views || 0,
                   seededAt: Date.now()
                 }, { merge: true }).catch(() => {});
               }

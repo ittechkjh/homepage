@@ -193,8 +193,8 @@ async function fetchFirestorePosts() {
         authorRank: f.authorRank?.stringValue || 'Member',
         timestamp: ts,
         time: f.time?.stringValue || new Date(ts).toISOString().replace('T', ' ').substring(0, 16),
-        views: f.views?.integerValue ? parseInt(f.views.integerValue) : 150,
-        upvotes: f.upvotes?.integerValue ? parseInt(f.upvotes.integerValue) : 10,
+        views: f.views?.integerValue ? parseInt(f.views.integerValue) : 0,
+        upvotes: f.upvotes?.integerValue ? parseInt(f.upvotes.integerValue) : 0,
         isNotice: f.isNotice?.booleanValue || false,
         content: f.content?.stringValue || '',
         comments: []
