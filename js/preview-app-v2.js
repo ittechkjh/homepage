@@ -3213,8 +3213,8 @@ function convertPostSvgImagesToPng(container) {
       } catch (e) {}
 
       if (decodedSvg) {
-        const isPerspective = decodedSvg.includes('420');
-        const targetH = isPerspective ? '420' : '280';
+        const hMatch = decodedSvg.match(/viewBox=["'][^"']*?\s(\d+)\s*["']/i) || decodedSvg.match(/height=["'](\d+)["']/i);
+        const targetH = hMatch ? hMatch[1] : (decodedSvg.includes('450') ? '450' : (decodedSvg.includes('420') ? '420' : '280'));
         decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, `height="${targetH}"`);
         if (!decodedSvg.includes('width="800"')) {
           decodedSvg = decodedSvg.replace(/<svg\b([^>]*)>/i, `<svg $1 width="800" height="${targetH}">`);
@@ -3225,11 +3225,12 @@ function convertPostSvgImagesToPng(container) {
       const tempImg = new Image();
       tempImg.onload = () => {
         try {
-          const isPerspective = decodedSvg && decodedSvg.includes('420');
+          const hMatch = decodedSvg && (decodedSvg.match(/viewBox=["'][^"']*?\s(\d+)\s*["']/i) || decodedSvg.match(/height=["'](\d+)["']/i));
+          const fallbackH = hMatch ? parseInt(hMatch[1], 10) : (decodedSvg && decodedSvg.includes('450') ? 450 : (decodedSvg && decodedSvg.includes('420') ? 420 : 280));
           const canvas = document.createElement('canvas');
           const dpr = 2; // 2x high-resolution for crystal clear paste
           const w = (tempImg.naturalWidth || 800) * dpr;
-          const h = (tempImg.naturalHeight || (isPerspective ? 420 : 280)) * dpr;
+          const h = (tempImg.naturalHeight || fallbackH) * dpr;
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext('2d');
