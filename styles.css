@@ -1005,6 +1005,36 @@ html.theme-light #cafe-post-content hr {
   font-weight: 800 !important;
 }
 
+/* Dark Mode overrides for light-default boxes */
+html:not(.theme-light) #cafe-post-content .callout-box,
+html:not(.theme-light) #cafe-post-content .forum-callout-box,
+html:not(.theme-light) #cafe-post-content [style*="#f0f9ff"],
+html:not(.theme-light) #cafe-post-content [style*="#fff1f2"] {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+}
+html:not(.theme-light) #cafe-post-content .callout-box *,
+html:not(.theme-light) #cafe-post-content .forum-callout-box *,
+html:not(.theme-light) #cafe-post-content [style*="#f0f9ff"] *,
+html:not(.theme-light) #cafe-post-content [style*="#fff1f2"] * {
+  color: #f1f5f9 !important;
+}
+html:not(.theme-light) #cafe-post-content .callout-box strong,
+html:not(.theme-light) #cafe-post-content .forum-callout-box strong,
+html:not(.theme-light) #cafe-post-content [style*="#f0f9ff"] strong,
+html:not(.theme-light) #cafe-post-content [style*="#fff1f2"] strong {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+html:not(.theme-light) #cafe-post-content .summary-box div:first-child,
+html:not(.theme-light) #cafe-post-content [style*="#f0f9ff"] div:first-child {
+  color: #38bdf8 !important;
+}
+html:not(.theme-light) #cafe-post-content .warning-box div:first-child,
+html:not(.theme-light) #cafe-post-content [style*="#fff1f2"] div:first-child {
+  color: #fb7185 !important;
+}
+
 /* Light Mode: Crisp Light Blue / Soft Rose Background with High-Contrast Dark Text */
 html.theme-light #cafe-post-content .callout-box,
 html.theme-light #cafe-post-content .forum-callout-box,

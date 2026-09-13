@@ -1926,6 +1926,9 @@ function ensureDailyMarketReportPost(posts) {
           posts[existingIdx].comments = (posts[existingIdx].comments || []).filter(c => c && !mockAuthors.includes(c.author));
           posts[existingIdx].content = rep.content;
           posts[existingIdx].title = rep.title;
+          if (rep.category) posts[existingIdx].category = rep.category;
+          if (rep.categoryName) posts[existingIdx].categoryName = rep.categoryName;
+          if (rep.image !== undefined) posts[existingIdx].image = rep.image;
         }
       }
     });
@@ -2495,7 +2498,92 @@ function clearForumSearch() {
 }
 window.clearForumSearch = clearForumSearch;
 
+/**
+ * Automatically ensures '💰 재테크 팁' exists in category filter buttons and dropdowns,
+ * even if Cloudflare or browser cached an earlier version of index.html.
+ */
+function ensureForumCategoriesInDOM() {
+  const filters = document.getElementById('forum-category-filters');
+  if (filters && !filters.querySelector('[data-cat="finance"]')) {
+    const generalBtn = filters.querySelector('[data-cat="general"]');
+    const financeBtn = document.createElement('button');
+    financeBtn.onclick = () => filterForum('finance');
+    financeBtn.setAttribute('data-cat', 'finance');
+    financeBtn.className = 'category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition';
+    financeBtn.textContent = '💰 재테크 팁';
+    if (generalBtn && generalBtn.nextSibling) {
+      filters.insertBefore(financeBtn, generalBtn.nextSibling);
+    } else {
+      filters.appendChild(financeBtn);
+    }
+  }
+
+  ['post-category-select', 'edit-post-category-select', 'cafe-write-category'].forEach(id => {
+    const select = document.getElementById(id);
+    if (select && !select.querySelector('option[value="finance"]')) {
+      const opt = document.createElement('option');
+      opt.value = 'finance';
+      opt.textContent = '💰 재테크 팁';
+      const genOpt = select.querySelector('option[value="general"]');
+      if (genOpt && genOpt.nextSibling) {
+        select.insertBefore(opt, genOpt.nextSibling);
+      } else {
+        select.appendChild(opt);
+      }
+    }
+  });
+}
+window.ensureForumCategoriesInDOM = ensureForumCategoriesInDOM;
+
+/**
+ * Dynamically adjusts callout boxes contrast in post detail content.
+ * Guarantees high-contrast readability regardless of browser CSS cache.
+ */
+function adjustCalloutBoxesContrast(container) {
+  if (!container) return;
+  const isLight = document.documentElement.classList.contains('theme-light');
+  const boxes = container.querySelectorAll('.callout-box, .forum-callout-box, [style*="rgba(15, 23, 42"], [style*="rgba(15,23,42"], [style*="rgba(8, 47, 73"], [style*="rgba(8,47,73"], [style*="#f0f9ff"], [style*="#fff1f2"]');
+  boxes.forEach(box => {
+    box.classList.add('callout-box');
+    const styleAttr = box.getAttribute('style') || '';
+    const isWarn = box.classList.contains('warning-box') || styleAttr.includes('#f43f5e') || styleAttr.includes('#fb7185') || styleAttr.includes('#fff1f2');
+    if (isLight) {
+      box.style.setProperty('background-color', isWarn ? '#fff1f2' : '#f0f9ff', 'important');
+      box.style.setProperty('background', isWarn ? '#fff1f2' : '#f0f9ff', 'important');
+      box.style.setProperty('border', isWarn ? '1px solid #fecdd3' : '1px solid #bae6fd', 'important');
+      box.style.setProperty('border-left', isWarn ? '4px solid #e11d48' : '4px solid #0284c7', 'important');
+      box.style.setProperty('color', '#0f172a', 'important');
+      box.querySelectorAll('p, span, div, li').forEach(el => {
+        el.style.setProperty('color', '#1e293b', 'important');
+      });
+      box.querySelectorAll('strong').forEach(el => {
+        el.style.setProperty('color', '#0f172a', 'important');
+        el.style.setProperty('font-weight', '800', 'important');
+      });
+      const firstHeader = box.querySelector('div:first-child');
+      if (firstHeader) firstHeader.style.setProperty('color', isWarn ? '#be123c' : '#0284c7', 'important');
+    } else {
+      box.style.setProperty('background-color', 'rgba(15, 23, 42, 0.95)', 'important');
+      box.style.setProperty('background', 'rgba(15, 23, 42, 0.95)', 'important');
+      box.style.setProperty('border', isWarn ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid rgba(56, 189, 248, 0.4)', 'important');
+      box.style.setProperty('border-left', isWarn ? '4px solid #f43f5e' : '4px solid #38bdf8', 'important');
+      box.style.setProperty('color', '#f8fafc', 'important');
+      box.querySelectorAll('p, span, div, li').forEach(el => {
+        el.style.setProperty('color', '#f1f5f9', 'important');
+      });
+      box.querySelectorAll('strong').forEach(el => {
+        el.style.setProperty('color', '#ffffff', 'important');
+        el.style.setProperty('font-weight', '800', 'important');
+      });
+      const firstHeader = box.querySelector('div:first-child');
+      if (firstHeader) firstHeader.style.setProperty('color', isWarn ? '#fb7185' : '#38bdf8', 'important');
+    }
+  });
+}
+window.adjustCalloutBoxesContrast = adjustCalloutBoxesContrast;
+
 function renderForumPosts() {
+  ensureForumCategoriesInDOM();
   const container = document.getElementById('forum-posts-list');
   if (!container) return;
 
@@ -2816,6 +2904,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (contentEl) {
     contentEl.innerHTML = formatPostContent(post.content);
     convertPostSvgImagesToPng(contentEl);
+    adjustCalloutBoxesContrast(contentEl);
   }
   if (upvotesEl) upvotesEl.innerText = post.upvotes || 0;
 
