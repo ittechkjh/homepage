@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://crytopnl.com/</loc>
@@ -139,122 +139,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://crytopnl.com/posts/1788327453539.html</loc>
-    <lastmod>2026-09-02</lastmod>
+    <loc>https://crytopnl.com/posts/report-20260913-1124.html</loc>
+    <lastmod>2026-09-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://crytopnl.com/posts/1788338967197.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788344937299.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788346219662.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788347142299.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788347504813.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788349801462.html</loc>
-    <lastmod>2026-09-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788483904960.html</loc>
-    <lastmod>2026-09-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/1788484987748.html</loc>
-    <lastmod>2026-09-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/general-20260912-01.html</loc>
-    <lastmod>2026-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/general-20260911-01.html</loc>
-    <lastmod>2026-09-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/general-20260910-01.html</loc>
-    <lastmod>2026-09-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/profit-20260912-01.html</loc>
-    <lastmod>2026-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/profit-20260911-01.html</loc>
-    <lastmod>2026-09-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/profit-20260909-01.html</loc>
-    <lastmod>2026-09-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/trading-20260912-01.html</loc>
-    <lastmod>2026-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/trading-20260911-01.html</loc>
-    <lastmod>2026-09-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/trading-20260910-01.html</loc>
-    <lastmod>2026-09-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/feature-20260912-01.html</loc>
-    <lastmod>2026-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/feature-20260910-01.html</loc>
-    <lastmod>2026-09-10</lastmod>
+    <loc>https://crytopnl.com/posts/perspective-20260913-1124.html</loc>
+    <lastmod>2026-09-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -265,13 +157,31 @@
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://crytopnl.com/posts/report-20260912.html</loc>
-    <lastmod>2026-09-11</lastmod>
+    <loc>https://crytopnl.com/posts/profit-20260912-01.html</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/general-20260912-01.html</loc>
+    <lastmod>2026-09-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://crytopnl.com/posts/perspective-20260912-17.html</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/trading-20260912-01.html</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/feature-20260912-01.html</loc>
     <lastmod>2026-09-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
@@ -283,7 +193,37 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://crytopnl.com/posts/report-20260912.html</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/profit-20260911-01.html</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/general-20260911-01.html</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/trading-20260911-01.html</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://crytopnl.com/posts/report-20260911.html</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/trading-20260910-01.html</loc>
     <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
@@ -295,8 +235,80 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://crytopnl.com/posts/general-20260910-01.html</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/feature-20260910-01.html</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://crytopnl.com/posts/report-20260910.html</loc>
     <lastmod>2026-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/profit-20260909-01.html</loc>
+    <lastmod>2026-09-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788484987748.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788483904960.html</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788349801462.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788347504813.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788347142299.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788346219662.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788344937299.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788338967197.html</loc>
+    <lastmod>2026-09-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://crytopnl.com/posts/1788327453539.html</loc>
+    <lastmod>2026-09-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
