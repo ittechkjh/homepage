@@ -7458,126 +7458,128 @@
   </div>
 
   <!-- Modal: Manual AI Market Report Generator -->
-  <div id="modal-manual-report" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/85 backdrop-blur-sm hidden">
-    <div class="bg-navy-900 border border-purple-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 relative transform transition-all">
-      <!-- Close Button -->
-      <button type="button" onclick="closeManualReportModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-navy-800 transition cursor-pointer">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
+  <div id="modal-manual-report" class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-navy-950/85 backdrop-blur-sm hidden overflow-y-auto">
+    <div class="bg-navy-900 border border-purple-500/40 rounded-3xl max-w-lg w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col shadow-2xl relative transform transition-all my-auto overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-          <i data-lucide="zap" class="w-6 h-6 text-amber-300"></i>
+      <div class="p-5 sm:p-7 pb-4 border-b border-navy-800/80 shrink-0 relative flex items-center gap-3.5 pr-12">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+          <i data-lucide="zap" class="w-5 h-5 sm:w-6 sm:h-6 text-amber-300"></i>
         </div>
-        <div>
-          <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base sm:text-xl font-black text-white flex items-center gap-2 flex-wrap">
             <span>⚡ AI 리포트 수동 생성</span>
             <span class="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold">관리자 전용</span>
           </h3>
-          <p class="text-xs text-slate-400">정기 스케줄 없이 관리자가 원할 때 즉시 퀀트 분석 글을 발행합니다.</p>
+          <p class="text-[11px] sm:text-xs text-slate-400 truncate sm:whitespace-normal">정기 스케줄 없이 관리자가 원할 때 즉시 퀀트 분석 글을 발행합니다.</p>
         </div>
+        <!-- Close Button -->
+        <button type="button" onclick="closeManualReportModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-navy-800 transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
 
-      <!-- Report Type Selection -->
-      <div class="space-y-2">
-        <label class="block text-xs font-bold text-slate-300">발행할 게시글 유형 선택</label>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-purple-500/40 hover:border-purple-500/70 cursor-pointer transition">
-            <input type="radio" name="manual-report-type" value="all" checked class="text-purple-600 focus:ring-purple-500">
-            <div>
-              <div class="font-black text-white text-xs">⚡ 전체 발행</div>
-              <div class="text-[10px] text-slate-400 font-normal">관점 + 시황 둘 다</div>
-            </div>
-          </label>
-          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
-            <input type="radio" name="manual-report-type" value="perspective" class="text-purple-600 focus:ring-purple-500">
-            <div>
-              <div class="font-black text-white text-xs">🎯 차트 관점</div>
-              <div class="text-[10px] text-slate-400 font-normal">4H 캔들 파동/패턴</div>
-            </div>
-          </label>
-          <label class="flex items-center gap-2.5 p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
-            <input type="radio" name="manual-report-type" value="market" class="text-purple-600 focus:ring-purple-500">
-            <div>
-              <div class="font-black text-white text-xs">📊 시장 분위기</div>
-              <div class="text-[10px] text-slate-400 font-normal">온체인/시황 브리핑</div>
-            </div>
-          </label>
+      <!-- Scrollable Body Content -->
+      <div class="p-5 sm:p-7 overflow-y-auto space-y-4 sm:space-y-5 flex-1 overscroll-contain">
+        <!-- Report Type Selection -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-300">발행할 게시글 유형 선택</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-navy-950 border border-purple-500/40 hover:border-purple-500/70 cursor-pointer transition">
+              <input type="radio" name="manual-report-type" value="all" checked class="text-purple-600 focus:ring-purple-500">
+              <div>
+                <div class="font-black text-white text-xs">⚡ 전체 발행</div>
+                <div class="text-[10px] text-slate-400 font-normal">관점 + 시황 둘 다</div>
+              </div>
+            </label>
+            <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
+              <input type="radio" name="manual-report-type" value="perspective" class="text-purple-600 focus:ring-purple-500">
+              <div>
+                <div class="font-black text-white text-xs">🎯 차트 관점</div>
+                <div class="text-[10px] text-slate-400 font-normal">4H 캔들 파동/패턴</div>
+              </div>
+            </label>
+            <label class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-purple-500/50 cursor-pointer transition">
+              <input type="radio" name="manual-report-type" value="market" class="text-purple-600 focus:ring-purple-500">
+              <div>
+                <div class="font-black text-white text-xs">📊 시장 분위기</div>
+                <div class="text-[10px] text-slate-400 font-normal">온체인/시황 브리핑</div>
+              </div>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <!-- Info Box with Detected Session Slot -->
-      <div class="bg-navy-950 border border-navy-800 rounded-2xl p-4 text-xs space-y-2 text-slate-300">
-        <div class="flex items-center justify-between gap-2 flex-wrap">
-          <span class="text-cyan-400 font-bold flex items-center gap-1.5">
-            <i data-lucide="activity" class="w-4 h-4"></i>
-            <span>실시간 4H 캔들 &amp; 글로벌 마켓 분석</span>
-          </span>
-          <span id="manual-report-target-slot" class="px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 font-bold text-[11px] border border-purple-500/30">
-            현재 시각 실시간 발행
-          </span>
-        </div>
-        <p class="text-slate-400 leading-relaxed">
-          버튼을 누르면 바이낸스·업비트 실시간 데이터를 수집하고, Gemini AI가 피보나치·하모닉·엘리엇 파동 및 거시지표를 분석하여 게시판에 새 글을 즉시 등록합니다. (약 35초 소요)
-        </p>
-      </div>
-
-      <!-- Token Input Section (Database Connected) -->
-      <div class="space-y-2.5">
-        <div class="flex justify-between items-center text-xs">
-          <label for="manual-report-token" class="font-bold text-slate-300 flex items-center gap-1.5">
-            <i data-lucide="key" class="w-3.5 h-3.5 text-purple-400"></i> GitHub Personal Access Token (PAT)
-          </label>
-          <div class="flex items-center gap-2.5">
-            <span id="manual-report-db-status" class="text-[11px] text-slate-400 flex items-center gap-1">
-              <i data-lucide="database" class="w-3 h-3 text-cyan-400"></i> DB 확인 중...
+        <!-- Info Box with Detected Session Slot -->
+        <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 text-slate-300">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="text-cyan-400 font-bold flex items-center gap-1.5">
+              <i data-lucide="activity" class="w-4 h-4"></i>
+              <span>실시간 4H 캔들 &amp; 글로벌 마켓 분석</span>
             </span>
-            <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline text-[11px] flex items-center gap-1 font-semibold">
-              <span>토큰 발급하기</span>
-              <i data-lucide="external-link" class="w-3 h-3"></i>
-            </a>
+            <span id="manual-report-target-slot" class="px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 font-bold text-[11px] border border-purple-500/30">
+              현재 시각 실시간 발행
+            </span>
+          </div>
+          <p class="text-slate-400 leading-relaxed text-[11px] sm:text-xs">
+            버튼을 누르면 바이낸스·업비트 실시간 데이터를 수집하고, Gemini AI가 피보나치·하모닉·엘리엇 파동 및 거시지표를 분석하여 게시판에 새 글을 즉시 등록합니다. (약 35초 소요)
+          </p>
+        </div>
+
+        <!-- Token Input Section (Database Connected) -->
+        <div class="space-y-2.5">
+          <div class="flex justify-between items-center text-xs">
+            <label for="manual-report-token" class="font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="key" class="w-3.5 h-3.5 text-purple-400"></i> GitHub Personal Access Token (PAT)
+            </label>
+            <div class="flex items-center gap-2">
+              <span id="manual-report-db-status" class="text-[11px] text-slate-400 flex items-center gap-1">
+                <i data-lucide="database" class="w-3 h-3 text-cyan-400"></i> DB 확인 중...
+              </span>
+              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline text-[11px] flex items-center gap-1 font-semibold">
+                <span>토큰 발급하기</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+          <div class="relative">
+            <input type="password" id="manual-report-token" placeholder="Firebase DB에서 토큰을 불러오는 중..." class="w-full bg-navy-950 border border-navy-800 text-xs sm:text-sm rounded-xl pl-3.5 pr-20 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono transition">
+            <div class="absolute right-2.5 top-2 flex items-center gap-1.5">
+              <button type="button" onclick="saveReportTokenToDatabase()" class="px-2 py-1 bg-purple-600/30 hover:bg-purple-600/60 border border-purple-500/40 rounded-lg text-[10px] text-purple-200 font-bold transition cursor-pointer" title="입력한 토큰을 Firebase DB에 즉시 저장합니다.">
+                DB저장
+              </button>
+              <button type="button" onclick="toggleReportTokenVisibility()" class="text-slate-500 hover:text-slate-300 cursor-pointer p-1">
+                <i data-lucide="eye" id="token-eye-icon" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+            <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>브라우저(로컬)가 아닌 <strong>Firebase 중앙 DB(관리자 설정)</strong>에서 안전하게 로드됩니다.</span>
+            </span>
           </div>
         </div>
-        <div class="relative">
-          <input type="password" id="manual-report-token" placeholder="Firebase DB에서 토큰을 불러오는 중..." class="w-full bg-navy-950 border border-navy-800 text-xs sm:text-sm rounded-xl pl-3.5 pr-20 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono transition">
-          <div class="absolute right-2.5 top-2 flex items-center gap-1.5">
-            <button type="button" onclick="saveReportTokenToDatabase()" class="px-2 py-1 bg-purple-600/30 hover:bg-purple-600/60 border border-purple-500/40 rounded-lg text-[10px] text-purple-200 font-bold transition cursor-pointer" title="입력한 토큰을 Firebase DB에 즉시 저장합니다.">
-              DB저장
-            </button>
-            <button type="button" onclick="toggleReportTokenVisibility()" class="text-slate-500 hover:text-slate-300 cursor-pointer p-1">
-              <i data-lucide="eye" id="token-eye-icon" class="w-4 h-4"></i>
-            </button>
+
+        <!-- Status & Progress Container -->
+        <div id="manual-report-status-box" class="hidden bg-purple-950/30 border border-purple-500/30 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2.5">
+          <div class="flex items-center gap-2 text-purple-300 font-bold" id="manual-report-status-title">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-purple-400"></i>
+            <span>GitHub Actions 실행 신호 전송 중...</span>
           </div>
-        </div>
-        <div class="flex items-center justify-between text-xs text-slate-400 pt-0.5">
-          <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>브라우저(로컬)가 아닌 <strong>Firebase 중앙 DB(관리자 설정)</strong>에서 안전하게 로드됩니다.</span>
-          </span>
+          <p class="text-slate-300 text-[11.5px] leading-relaxed" id="manual-report-status-desc">
+            AI 퀀트 엔진이 실시간 캔들을 분석 중입니다. 잠시만 기다려주세요.
+          </p>
+          <div class="w-full bg-navy-950 rounded-full h-2 overflow-hidden border border-purple-500/20">
+            <div id="manual-report-progress-bar" class="bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 15%;"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Status & Progress Container -->
-      <div id="manual-report-status-box" class="hidden bg-purple-950/30 border border-purple-500/30 rounded-2xl p-4 text-xs space-y-2.5">
-        <div class="flex items-center gap-2 text-purple-300 font-bold" id="manual-report-status-title">
-          <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-purple-400"></i>
-          <span>GitHub Actions 실행 신호 전송 중...</span>
-        </div>
-        <p class="text-slate-300 text-[11.5px] leading-relaxed" id="manual-report-status-desc">
-          AI 퀀트 엔진이 실시간 캔들을 분석 중입니다. 잠시만 기다려주세요.
-        </p>
-        <div class="w-full bg-navy-950 rounded-full h-2 overflow-hidden border border-purple-500/20">
-          <div id="manual-report-progress-bar" class="bg-gradient-to-r from-purple-500 via-indigo-500 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 15%;"></div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-end gap-3 pt-2">
-        <button type="button" onclick="closeManualReportModal()" class="px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+      <!-- Sticky Action Buttons Footer -->
+      <div class="p-3.5 sm:p-5 sm:px-7 bg-navy-950/90 border-t border-navy-800/80 shrink-0 flex items-center justify-end gap-2.5 rounded-b-3xl">
+        <button type="button" onclick="closeManualReportModal()" class="px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 font-bold text-xs transition cursor-pointer shrink-0">
           닫기
         </button>
-        <button type="button" id="manual-report-run-btn" onclick="executeManualReportTrigger()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-black text-xs shadow-lg shadow-purple-950/50 transition flex items-center gap-2 cursor-pointer">
+        <button type="button" id="manual-report-run-btn" onclick="executeManualReportTrigger()" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-black text-xs shadow-lg shadow-purple-950/50 transition flex items-center justify-center gap-2 cursor-pointer">
           <i data-lucide="play" class="w-3.5 h-3.5"></i>
           <span>지금 즉시 실행하기</span>
         </button>
