@@ -351,6 +351,34 @@
     html.theme-light #cafe-post-content p { color: #1e293b !important; }
     html.theme-light #cafe-post-content strong { color: #0f172a !important; }
     html.theme-light #cafe-post-content blockquote { color: #1e293b !important; background: #f0fdfa !important; border-left-color: #0891b2 !important; }
+    /* Callout & Summary boxes in light theme */
+    html.theme-light #cafe-post-content .callout-box,
+    html.theme-light #cafe-post-content .forum-callout-box,
+    html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"],
+    html.theme-light #cafe-post-content [style*="rgba(15,23,42"],
+    html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"],
+    html.theme-light #cafe-post-content [style*="rgba(8,47,73"] {
+      background-color: #f0f9ff !important;
+      border: 1px solid #bae6fd !important;
+      border-left: 4px solid #0284c7 !important;
+      color: #0f172a !important;
+    }
+    html.theme-light #cafe-post-content .callout-box.warning-box,
+    html.theme-light #cafe-post-content [style*="#f43f5e"],
+    html.theme-light #cafe-post-content [style*="#fb7185"] {
+      background-color: #fff1f2 !important;
+      border: 1px solid #fecdd3 !important;
+      border-left: 4px solid #e11d48 !important;
+    }
+    html.theme-light #cafe-post-content .callout-box *,
+    html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"] *,
+    html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"] * { color: #1e293b !important; }
+    html.theme-light #cafe-post-content .callout-box strong,
+    html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"] strong,
+    html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"] strong { color: #0f172a !important; font-weight: 800 !important; }
+    html.theme-light #cafe-post-content [style*="color: #38bdf8"],
+    html.theme-light #cafe-post-content .callout-title { color: #0284c7 !important; font-weight: 800 !important; }
+    html.theme-light #cafe-post-content [style*="color: #fb7185"] { color: #be123c !important; font-weight: 800 !important; }
     #cafe-write-content blockquote, #cafe-post-content blockquote {
       border-left: 4px solid #06b6d4 !important;
       background: rgba(6, 182, 212, 0.08) !important;
@@ -955,6 +983,7 @@
           <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
           <select id="edit-post-category-select" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
             <option value="general">💬 자유 토론</option>
+            <option value="finance">💰 재테크 팁</option>
             <option value="profit">💵 실현손익</option>
             <option value="altcoin">📊 시장 분위기</option>
             <option value="perspective">🎯 차트 관점</option>
@@ -1107,6 +1136,7 @@
           <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리 선택</label>
           <select id="post-category-select" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
             <option value="general">💬 자유 토론</option>
+            <option value="finance">💰 재테크 팁</option>
             <option value="profit">💵 실현손익</option>
             <option value="altcoin">📊 시장 분위기</option>
             <option value="perspective">🎯 차트 관점</option>
@@ -2004,6 +2034,7 @@
           <div class="flex flex-wrap items-center gap-2" id="forum-category-filters">
             <button onclick="filterForum('all')" data-cat="all" class="category-btn active px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-xs font-bold transition">전체</button>
             <button onclick="filterForum('general')" data-cat="general" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💬 자유 토론</button>
+            <button onclick="filterForum('finance')" data-cat="finance" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💰 재테크 팁</button>
             <button onclick="filterForum('profit')" data-cat="profit" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">💵 실현손익</button>
             <button onclick="filterForum('altcoin')" data-cat="altcoin" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">📊 시장 분위기</button>
             <button onclick="filterForum('perspective')" data-cat="perspective" class="category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition">🎯 차트 관점</button>
@@ -2171,6 +2202,7 @@
             <label class="block text-xs font-bold text-slate-200 mb-2">토론 카테고리</label>
             <select id="cafe-write-category" class="w-full bg-navy-950 border border-navy-700 rounded-2xl px-4 py-3.5 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500">
               <option value="general">💬 자유 토론</option>
+              <option value="finance">💰 재테크 팁</option>
               <option value="profit">💵 실현손익</option>
               <option value="altcoin">📊 시장 분위기</option>
               <option value="perspective">🎯 차트 관점</option>

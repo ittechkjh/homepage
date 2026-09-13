@@ -972,4 +972,85 @@ html.theme-light #cafe-post-content hr {
   transition: transform 0.2s ease-in-out;
 }
 
+/* ----------------------------------------------------
+   Callout Box & Summary Box High-Contrast Styling
+   Fixes dark-on-dark unreadable text in light/dark mode
+---------------------------------------------------- */
+#cafe-post-content .callout-box,
+#cafe-post-content .forum-callout-box,
+#cafe-post-content [style*="rgba(15, 23, 42"],
+#cafe-post-content [style*="rgba(15,23,42"],
+#cafe-post-content [style*="rgba(8, 47, 73"],
+#cafe-post-content [style*="rgba(8,47,73"] {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-radius: 14px !important;
+  color: #f8fafc !important;
+}
+#cafe-post-content .callout-box p,
+#cafe-post-content .forum-callout-box p,
+#cafe-post-content [style*="rgba(15, 23, 42"] p,
+#cafe-post-content [style*="rgba(15,23,42"] p,
+#cafe-post-content [style*="rgba(8, 47, 73"] p,
+#cafe-post-content [style*="rgba(8,47,73"] p {
+  color: #f1f5f9 !important;
+  margin-bottom: 0 !important;
+}
+#cafe-post-content .callout-box strong,
+#cafe-post-content .forum-callout-box strong,
+#cafe-post-content [style*="rgba(15, 23, 42"] strong,
+#cafe-post-content [style*="rgba(15,23,42"] strong,
+#cafe-post-content [style*="rgba(8, 47, 73"] strong,
+#cafe-post-content [style*="rgba(8,47,73"] strong {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Light Mode: Crisp Light Blue / Soft Rose Background with High-Contrast Dark Text */
+html.theme-light #cafe-post-content .callout-box,
+html.theme-light #cafe-post-content .forum-callout-box,
+html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"],
+html.theme-light #cafe-post-content [style*="rgba(15,23,42"],
+html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"],
+html.theme-light #cafe-post-content [style*="rgba(8,47,73"] {
+  background-color: #f0f9ff !important;
+  border: 1px solid #bae6fd !important;
+  border-left: 4px solid #0284c7 !important;
+  color: #0f172a !important;
+}
+html.theme-light #cafe-post-content .callout-box.warning-box,
+html.theme-light #cafe-post-content .forum-callout-box.warning-box,
+html.theme-light #cafe-post-content [style*="#f43f5e"],
+html.theme-light #cafe-post-content [style*="#fb7185"] {
+  background-color: #fff1f2 !important;
+  border: 1px solid #fecdd3 !important;
+  border-left: 4px solid #e11d48 !important;
+}
+html.theme-light #cafe-post-content .callout-box *,
+html.theme-light #cafe-post-content .forum-callout-box *,
+html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"] *,
+html.theme-light #cafe-post-content [style*="rgba(15,23,42"] *,
+html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"] *,
+html.theme-light #cafe-post-content [style*="rgba(8,47,73"] * {
+  color: #1e293b !important;
+}
+html.theme-light #cafe-post-content .callout-box strong,
+html.theme-light #cafe-post-content .forum-callout-box strong,
+html.theme-light #cafe-post-content [style*="rgba(15, 23, 42"] strong,
+html.theme-light #cafe-post-content [style*="rgba(15,23,42"] strong,
+html.theme-light #cafe-post-content [style*="rgba(8, 47, 73"] strong,
+html.theme-light #cafe-post-content [style*="rgba(8,47,73"] strong {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light #cafe-post-content [style*="color: #38bdf8"],
+html.theme-light #cafe-post-content .callout-title {
+  color: #0284c7 !important;
+  font-weight: 800 !important;
+}
+html.theme-light #cafe-post-content [style*="color: #fb7185"] {
+  color: #be123c !important;
+  font-weight: 800 !important;
+}
+
+
 
