@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Automated Daily Crypto Market Report Generator
  * Runs daily at 08:00 AM KST via GitHub Actions or locally in Node.js
  * 
@@ -2240,30 +2240,68 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 
 위 데이터를 바탕으로 10년 경력의 차트 전문 분석가로서 6개 섹션 구조와 5개 이미지 플레이스홀더를 정확히 포함하여 1,800~2,500자 분량의 고품질 분석 보고서를 작성해주세요.`;
 
-  const payload = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
-      }
-    ],
-    generationConfig: {
-      temperature: 0.75,
-      maxOutputTokens: 8192,
-      thinkingConfig: { thinkingBudget: 0 }
+  const baseContents = [
+    {
+      role: 'user',
+      parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
     }
-  };
+  ];
 
-  const models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
-  for (const model of models) {
+  const modelAttempts = [
+    {
+      name: 'gemini-3.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-flash-latest',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.6-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-2.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192
+        }
+      }
+    }
+  ];
+
+  for (const item of modelAttempts) {
     try {
-      console.log(`[Gemini Perspective AI] Calling ${model}...`);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      console.log(`[Gemini Perspective AI] Calling ${item.name}...`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(40000)
+        body: JSON.stringify(item.payload),
+        signal: AbortSignal.timeout(45000)
       });
       if (res.ok) {
         const data = await res.json();
@@ -2271,12 +2309,15 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
         const parts = candidate?.content?.parts || [];
         const text = parts.map(p => p.text || '').join('').trim();
         if (text && text.length > 500) {
-          console.log(`[Gemini Perspective AI] Successfully generated perspective report with ${model} (${text.length} chars)`);
+          console.log(`[Gemini Perspective AI] Successfully generated perspective report with ${item.name} (${text.length} chars)`);
           return text;
         }
+      } else {
+        const errText = await res.text().catch(() => '');
+        console.warn(`[Gemini Perspective AI] ${item.name} failed with HTTP ${res.status}:`, errText.slice(0, 150));
       }
     } catch(e) {
-      console.warn(`[Gemini Perspective AI] Error with ${model}:`, e.message);
+      console.warn(`[Gemini Perspective AI] Error with ${item.name}:`, e.message);
     }
   }
   return null;
@@ -3201,29 +3242,67 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 
 위 데이터를 바탕으로 10년 경력의 재테크 블로거로서 4개 인포그래픽 카드와 유튜브 임베드 플레이스홀더를 정확히 포함하여 알찬 글을 작성해주세요.`;
 
-  const payload = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
-      }
-    ],
-    generationConfig: {
-      temperature: 0.75,
-      maxOutputTokens: 8192,
-      thinkingConfig: { thinkingBudget: 0 }
+  const baseContents = [
+    {
+      role: 'user',
+      parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
     }
-  };
+  ];
 
-  const models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
-  for (const model of models) {
+  const modelAttempts = [
+    {
+      name: 'gemini-3.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-flash-latest',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.6-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-2.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 8192
+        }
+      }
+    }
+  ];
+
+  for (const item of modelAttempts) {
     try {
-      console.log(`[Gemini Finance AI] Calling ${model}...`);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      console.log(`[Gemini Finance AI] Calling ${item.name}...`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(item.payload),
         signal: AbortSignal.timeout(45000)
       });
       if (res.ok) {
@@ -3232,12 +3311,15 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
         const parts = candidate?.content?.parts || [];
         const text = parts.map(p => p.text || '').join('').trim();
         if (text && text.length > 500) {
-          console.log(`[Gemini Finance AI] Successfully generated finance report with ${model} (${text.length} chars)`);
+          console.log(`[Gemini Finance AI] Successfully generated finance report with ${item.name} (${text.length} chars)`);
           return text;
         }
+      } else {
+        const errText = await res.text().catch(() => '');
+        console.warn(`[Gemini Finance AI] ${item.name} failed with HTTP ${res.status}:`, errText.slice(0, 150));
       }
     } catch(e) {
-      console.warn(`[Gemini Finance AI] Error with ${model}:`, e.message);
+      console.warn(`[Gemini Finance AI] Error with ${item.name}:`, e.message);
     }
   }
   return null;

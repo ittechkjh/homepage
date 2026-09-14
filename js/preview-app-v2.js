@@ -2641,6 +2641,8 @@ async function executeManualReportTrigger() {
               filterForum('perspective');
             } else if (selectedType === 'market') {
               filterForum('altcoin');
+            } else if (selectedType === 'finance') {
+              filterForum('finance');
             } else {
               filterForum('all');
             }
@@ -2648,7 +2650,13 @@ async function executeManualReportTrigger() {
 
           setTimeout(() => {
             closeManualReportModal();
-            const typeLabel = selectedType === 'perspective' ? 'AI 차트 관점 리포트' : (selectedType === 'market' ? 'AI 시장 분위기 리포트' : 'AI 시장 리포트 & 차트 관점');
+            const typeLabel = selectedType === 'perspective' 
+              ? 'AI 차트 관점 리포트' 
+              : (selectedType === 'market' 
+                  ? 'AI 시장 분위기 리포트' 
+                  : (selectedType === 'finance' 
+                      ? 'AI 재테크 팁 리포트' 
+                      : 'AI 시장 리포트 & 차트 관점'));
             alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
           }, 1500);
         }
@@ -2730,7 +2738,7 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
-  if ((category === 'altcoin' || category === 'perspective') && typeof loadDailyMarketReports === 'function') {
+  if ((category === 'altcoin' || category === 'perspective' || category === 'finance' || category === 'all') && typeof loadDailyMarketReports === 'function') {
     loadDailyMarketReports(true);
   }
   renderForumPosts();
