@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # 수동 생성 버튼(UI 및 GitHub Actions)으로만 실행되도록 스케줄 트리거 해제
     inputs:
       report_type:
-        description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만)'
+        description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만, finance: 재테크 팁 유튜브 분석)'
         required: false
         default: 'all'
         type: choice
@@ -12,6 +12,12 @@ on:
           - all
           - perspective
           - market
+          - finance
+      youtube_url:
+        description: '재테크 팁 생성용 유튜브 영상 URL (선택 사항)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -34,6 +40,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
+          YOUTUBE_URL: ${{ github.event.inputs.youtube_url || '' }}
         run: node scripts/generate-daily-market-report.js
 
       - name: Build static SEO pages and update sitemap
