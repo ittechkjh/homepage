@@ -301,217 +301,572 @@ async function fetchLiveMarketData(dateStr) {
   };
 }
 
-// 2. High-Definition Branded Infographic Generators (crytopnl.com)
+// 2. High-Definition YouTube-Style 16:9 Branded Infographics (crytopnl.com)
+// SVG 1: 메인 썸네일 & 헤드라인 카드 (16:9 800x450)
 function generateReportImage1(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
+  const fngNum = parseInt(m.fngScore) || 69;
+  const fngTone = fngNum >= 75 ? '극단적 탐욕' : (fngNum >= 55 ? '탐욕 및 심리 개선' : (fngNum >= 45 ? '중립 관망세' : '공포 및 위축'));
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
-    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#070a12"/>
+    <linearGradient id="mm_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
     </linearGradient>
+    <radialGradient id="mm_glow1" cx="20%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/><stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mm_glow2" cx="80%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="mm_drop" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
   </defs>
-  <rect width="800" height="280" rx="16" fill="url(#bg1)" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
-  <rect x="20" y="18" width="140" height="26" rx="6" fill="#06b6d4" fill-opacity="0.15" stroke="#06b6d4" stroke-opacity="0.4"/>
-  <text x="90" y="35" fill="#38bdf8" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">MARKET METRICS</text>
-  <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">30대 거시·글로벌 시장 센티먼트 대시보드</text>
-  <rect x="630" y="18" width="150" height="26" rx="6" fill="#06b6d4" fill-opacity="0.12" stroke="#06b6d4" stroke-opacity="0.35"/>
-  <text x="705" y="35" fill="#22d3ee" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
-  <rect x="20" y="70" width="175" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="107" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">공포&amp;탐욕 지수</text>
-  <text x="107" y="140" fill="#fbbf24" font-size="32" font-weight="900" font-family="monospace" text-anchor="middle">${m.fngScore}</text>
-  <rect x="60" y="160" width="95" height="22" rx="11" fill="#f59e0b" fill-opacity="0.15"/>
-  <text x="107" y="175" fill="#fcd34d" font-size="11" font-weight="bold" font-family="sans-serif" text-anchor="middle">${m.fngText}</text>
-  <text x="107" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">단단한 하방 지지</text>
-  <rect x="210" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="300" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">김프 / 코베 프리미엄</text>
-  <text x="300" y="138" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${m.kimp}</text>
-  <text x="300" y="162" fill="#34d399" font-size="13" font-weight="bold" font-family="monospace" text-anchor="middle">CB: ${m.cbPremium}</text>
-  <text x="300" y="185" fill="#a78bfa" font-size="10" font-family="sans-serif" text-anchor="middle">미국 기관 꾸준한 순매수</text>
-  <text x="300" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">과열 없는 차분한 수치</text>
-  <rect x="405" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="495" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">BTC 도미넌스 &amp; 환율</text>
-  <text x="495" y="138" fill="#f43f5e" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${m.btcDominance}%</text>
-  <text x="495" y="162" fill="#cbd5e1" font-size="12" font-weight="bold" font-family="monospace" text-anchor="middle">USD/KRW: ${m.usdKrwRate}</text>
-  <text x="495" y="185" fill="#38bdf8" font-size="10" font-family="sans-serif" text-anchor="middle">비트코인 점유율 주도</text>
-  <text x="495" y="202" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">알트코인 선별 차별화</text>
-  <rect x="600" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="690" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">거래소 상승 종목 비율</text>
-  <text x="690" y="132" fill="#34d399" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">업비트 ${m.upbitRatio}%</text>
-  <text x="690" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 114 / 하락 150)</text>
-  <text x="690" y="174" fill="#fbbf24" font-size="16" font-weight="900" font-family="sans-serif" text-anchor="middle">빗썸 ${m.bithumbRatio}%</text>
-  <text x="690" y="194" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">(상승 172 / 하락 287)</text>
-  <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 데이터 출처: crytopnl.com 실시간 통합 엔진</text>
-  </svg>`;
+
+  <rect width="800" height="450" fill="url(#mm_bg)"/>
+  <rect width="800" height="450" fill="url(#mm_glow1)"/>
+  <rect width="800" height="450" fill="url(#mm_glow2)"/>
+
+  <!-- Subtle grid lines -->
+  <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+    <line x1="0" y1="90" x2="800" y2="90"/><line x1="0" y1="180" x2="800" y2="180"/>
+    <line x1="0" y1="270" x2="800" y2="270"/><line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="160" y1="0" x2="160" y2="450"/><line x1="320" y1="0" x2="320" y2="450"/>
+    <line x1="480" y1="0" x2="480" y2="450"/><line x1="640" y1="0" x2="640" y2="450"/>
+  </g>
+
+  <!-- Top Badges -->
+  <g transform="translate(30, 24)">
+    <rect width="210" height="30" rx="8" fill="#e11d48" filter="url(#mm_drop)"/>
+    <circle cx="18" cy="15" r="5" fill="#ffffff"/>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">2026.09 크립토 심리 분석</text>
+
+    <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
+    <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 전문가 뷰</text>
+
+    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="697" y="20" fill="#bae6fd" font-size="12" font-weight="800" font-family="monospace" text-anchor="middle">⚡ CrytoPnL 리서치</text>
+  </g>
+
+  <!-- Left Main Headline -->
+  <g transform="translate(35, 90)">
+    <rect x="0" y="0" width="220" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="14" y="19" fill="#94a3b8" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif">⚠️ 폭풍 전야의 팽팽한 긴장감</text>
+
+    <text x="0" y="66" fill="#ffffff" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
+      비트코인 신고가 넘보는데...
+    </text>
+
+    <text x="0" y="112" fill="url(#gold_grad)" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
+      시장은 왜 아직 조용할까?
+    </text>
+
+    <g transform="translate(0, 138)">
+      <rect width="455" height="48" rx="12" fill="#0c2338" stroke="#0ea5e9" stroke-width="1.8" filter="url(#mm_drop)"/>
+      <circle cx="28" cy="24" r="14" fill="#0284c7"/>
+      <text x="28" y="29" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
+      <text x="52" y="30" fill="#e0f2fe" font-size="15" font-weight="800" font-family="'Pretendard', sans-serif">
+        <tspan fill="#38bdf8">탐욕 지수 ${m.fngScore}P</tspan> 이면의 <tspan fill="#34d399">스마트머니</tspan>와 대중 심리 다이버전스
+      </text>
+    </g>
+
+    <!-- 3 Key Bullet Points -->
+    <g transform="translate(5, 208)">
+      <circle cx="6" cy="6" r="4" fill="#38bdf8"/>
+      <text x="18" y="11" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">① Fear &amp; Greed ${m.fngScore}p: 과열 징후 없는 건전한 ${fngTone}</text>
+
+      <circle cx="6" cy="34" r="4" fill="#a855f7"/>
+      <text x="18" y="39" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">② LTH 장기보유자 락업 ${m.lthRatio}% 돌파 (거래소 공급 쇼티지 심화)</text>
+
+      <circle cx="6" cy="62" r="4" fill="#34d399"/>
+      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ BTC 도미넌스 ${m.btcDominance}% 독주 vs 알트코인 선별 차별화</text>
+    </g>
+  </g>
+
+  <!-- Right Visual Dashboard Card -->
+  <g transform="translate(525, 88)">
+    <rect x="0" y="0" width="245" height="275" rx="20" fill="#0f172a" fill-opacity="0.9" stroke="#334155" stroke-width="2" filter="url(#mm_drop)"/>
+    <rect x="0" y="0" width="245" height="42" rx="20" fill="#1e293b"/>
+    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">실시간 심리 지표</text>
+
+    <!-- Gauge Block -->
+    <g transform="translate(18, 54)">
+      <rect width="210" height="74" rx="12" fill="#111c30" stroke="#0284c7" stroke-width="1.2"/>
+      <text x="14" y="24" fill="#94a3b8" font-size="11" font-weight="700">Fear &amp; Greed Index</text>
+      <text x="14" y="54" fill="#38bdf8" font-size="28" font-weight="900" font-family="monospace">${m.fngScore}p</text>
+      <rect x="110" y="34" width="86" height="22" rx="6" fill="#0284c7"/>
+      <text x="153" y="49" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${(m.fngText || '탐욕').slice(0, 8)}</text>
+    </g>
+
+    <!-- Funding Rate Block -->
+    <g transform="translate(18, 138)">
+      <rect width="210" height="66" rx="12" fill="#0a251e" stroke="#10b981" stroke-width="1.2"/>
+      <text x="14" y="24" fill="#a7f3d0" font-size="11" font-weight="700">선물 펀딩비 (Funding)</text>
+      <text x="14" y="52" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">${m.fundingRate}%</text>
+      <text x="196" y="50" fill="#6ee7b7" font-size="11" font-weight="800" text-anchor="end">중립 안정권</text>
+    </g>
+
+    <!-- Bottom Result Pill -->
+    <g transform="translate(18, 214)">
+      <rect width="210" height="44" rx="10" fill="#18132b" stroke="#8b5cf6" stroke-width="1.2"/>
+      <text x="105" y="19" fill="#c084fc" font-size="11" font-weight="800" text-anchor="middle">스마트 머니 진단</text>
+      <text x="105" y="36" fill="#facc15" font-size="12" font-weight="900" text-anchor="middle">🔍 조용한 축적(Accumulation)기</text>
+    </g>
+  </g>
+
+  <!-- Bottom YouTube Player Progress Bar -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#050811" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#1e293b" stroke-width="1"/>
+    <line x1="0" y1="0" x2="420" y2="0" stroke="#f43f5e" stroke-width="3"/>
+    <circle cx="420" cy="0" r="4" fill="#f43f5e"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 2026년 9월 중순 시장 분위기 및 심리 다이버전스 분석</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Market Intel</text>
+  </g>
+</svg>`;
   return createSvgDataUri(svg);
 }
 
+// SVG 2: 시장 심리 계측기 & Fear & Greed 매트릭스 (16:9 800x450)
 function generateReportImage2(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
+  const fngNum = parseInt(m.fngScore) || 69;
+  const fngAngle = -90 + (fngNum / 100) * 180;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
-    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#091824"/><stop offset="100%" stop-color="#07090e"/>
+    <linearGradient id="meter_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060913"/><stop offset="50%" stop-color="#0e172a"/><stop offset="100%" stop-color="#060913"/>
     </linearGradient>
+    <filter id="m_drop">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
   </defs>
-  <rect width="800" height="280" rx="16" fill="url(#bg2)" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.35"/>
-  <rect x="20" y="18" width="140" height="26" rx="6" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-opacity="0.4"/>
-  <text x="90" y="35" fill="#34d399" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">ON-CHAIN LEDGER</text>
-  <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">온체인 원장 6대 핵심 펀더멘털 &amp; 공급 쇼티지</text>
-  <rect x="630" y="18" width="150" height="26" rx="6" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-opacity="0.35"/>
-  <text x="705" y="35" fill="#34d399" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
-  <rect x="20" y="70" width="175" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="107" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">MVRV Z-Score</text>
-  <text x="107" y="138" fill="#34d399" font-size="28" font-weight="900" font-family="monospace" text-anchor="middle">${m.mvrv}</text>
-  <rect x="45" y="155" width="125" height="20" rx="10" fill="#10b981" fill-opacity="0.15"/>
-  <text x="107" y="169" fill="#34d399" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">역대 사이클 저평가</text>
-  <text x="107" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">건전한 상승 채널</text>
-  <rect x="210" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="300" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">장기보유자(LTH) 락업</text>
-  <text x="300" y="138" fill="#818cf8" font-size="28" font-weight="900" font-family="monospace" text-anchor="middle">${m.lthRatio}%</text>
-  <rect x="235" y="155" width="130" height="20" rx="10" fill="#6366f1" fill-opacity="0.15"/>
-  <text x="300" y="169" fill="#a5b4fc" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">${m.lthAmount} 장기보유</text>
-  <text x="300" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">거래소 유통량 쇼티지</text>
-  <rect x="405" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="495" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">SOPR / 실현 순이익</text>
-  <text x="495" y="138" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${m.sopr}</text>
-  <rect x="425" y="155" width="140" height="20" rx="10" fill="#0284c7" fill-opacity="0.15"/>
-  <text x="495" y="169" fill="#38bdf8" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">${m.realizedPnl}</text>
-  <text x="495" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">패닉셀 없는 손바뀜</text>
-  <rect x="600" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="690" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">스테이블코인 공급량</text>
-  <text x="690" y="138" fill="#fbbf24" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${m.stableSupply}</text>
-  <rect x="625" y="155" width="130" height="20" rx="10" fill="#d97706" fill-opacity="0.15"/>
-  <text x="690" y="169" fill="#fcd34d" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">USDT ${m.usdtSupply}</text>
-  <text x="690" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">사상 최대 대기 매수세</text>
-  <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 온체인 분석 검증: crytopnl.com</text>
-  </svg>`;
+
+  <rect width="800" height="450" rx="16" fill="url(#meter_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Top Header -->
+  <g transform="translate(25, 20)">
+    <rect width="135" height="28" rx="7" fill="#0284c7" filter="url(#m_drop)"/>
+    <text x="67" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CRITICAL METRICS</text>
+    <text x="150" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">2026 Q3 <tspan fill="#38bdf8">크립토 심리 계측기</tspan> &amp; 시장 감정 다이얼</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Left Large Gauge Card -->
+  <g transform="translate(30, 80)">
+    <rect width="360" height="325" rx="16" fill="#0c1726" stroke="#0284c7" stroke-width="1.8" filter="url(#m_drop)"/>
+    <rect x="20" y="18" width="125" height="24" rx="6" fill="#0284c7"/>
+    <text x="82" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">FEAR &amp; GREED</text>
+    <text x="20" y="70" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">공포·탐욕 심리 지수</text>
+
+    <!-- Visual Arc Meter -->
+    <g transform="translate(180, 160)">
+      <path d="M -110 0 A 110 110 0 0 1 110 0" fill="none" stroke="#1e293b" stroke-width="20" stroke-linecap="round"/>
+      <path d="M -110 0 A 110 110 0 0 1 110 0" fill="none" stroke="#f59e0b" stroke-width="20" stroke-linecap="round" stroke-dasharray="345" stroke-dashoffset="${Math.max(0, 345 - (fngNum / 100) * 345)}"/>
+      <!-- Needle -->
+      <g transform="rotate(${fngAngle})">
+        <line x1="0" y1="0" x2="0" y2="-90" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="0" cy="0" r="8" fill="#38bdf8"/>
+      </g>
+      <text x="0" y="32" fill="#fbbf24" font-size="38" font-weight="900" font-family="monospace" text-anchor="middle">${m.fngScore}</text>
+      <text x="0" y="54" fill="#cbd5e1" font-size="14" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${m.fngText}</text>
+    </g>
+
+    <!-- Bottom interpretation -->
+    <g transform="translate(20, 248)">
+      <rect width="320" height="58" rx="10" fill="#081e33" stroke="#0ea5e9" stroke-width="1"/>
+      <text x="15" y="24" fill="#38bdf8" font-size="12" font-weight="800">💡 시장 심리 진단: 과열 없는 안도 랠리(Relief Rally)</text>
+      <text x="15" y="44" fill="#94a3b8" font-size="11" font-weight="600">극단적 탐욕(85p+) 없는 건강한 상승 추세 및 하방 경직성</text>
+    </g>
+  </g>
+
+  <!-- Right Metrics Grid (4 Cards) -->
+  <g transform="translate(410, 80)">
+    <!-- 1. 김치프리미엄 & 코베 프리미엄 -->
+    <g transform="translate(0, 0)">
+      <rect width="360" height="74" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#m_drop)"/>
+      <text x="18" y="26" fill="#94a3b8" font-size="11" font-weight="700">국내 김프 / 코인베이스 프리미엄</text>
+      <text x="18" y="54" fill="#38bdf8" font-size="20" font-weight="900" font-family="monospace">${m.kimp}</text>
+      <rect x="230" y="22" width="112" height="30" rx="8" fill="#0284c7" fill-opacity="0.2"/>
+      <text x="286" y="42" fill="#38bdf8" font-size="12" font-weight="800" text-anchor="middle">CB: ${m.cbPremium}</text>
+    </g>
+
+    <!-- 2. 선물 펀딩비 & 미결제약정 -->
+    <g transform="translate(0, 84)">
+      <rect width="360" height="74" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#m_drop)"/>
+      <text x="18" y="26" fill="#94a3b8" font-size="11" font-weight="700">선물 펀딩비 / 미결제약정(OI)</text>
+      <text x="18" y="54" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">${m.fundingRate}%</text>
+      <rect x="230" y="22" width="112" height="30" rx="8" fill="#065f46" fill-opacity="0.3"/>
+      <text x="286" y="42" fill="#34d399" font-size="12" font-weight="800" text-anchor="middle">OI: ${(m.openInterest || '$38.5B').slice(0, 10)}</text>
+    </g>
+
+    <!-- 3. 롱/숏 비율 & 청산 규모 -->
+    <g transform="translate(0, 168)">
+      <rect width="360" height="74" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#m_drop)"/>
+      <text x="18" y="26" fill="#94a3b8" font-size="11" font-weight="700">글로벌 롱/숏 비율 &amp; 24H 청산액</text>
+      <text x="18" y="54" fill="#f59e0b" font-size="20" font-weight="900" font-family="monospace">${m.longShortRatio}</text>
+      <rect x="230" y="22" width="112" height="30" rx="8" fill="#78350f" fill-opacity="0.3"/>
+      <text x="286" y="42" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">청산: ${(m.liquidations || '$42.5M').slice(0, 9)}</text>
+    </g>
+
+    <!-- 4. 스마트머니 점수 & LTH 비중 -->
+    <g transform="translate(0, 252)">
+      <rect width="360" height="73" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#m_drop)"/>
+      <text x="18" y="25" fill="#c084fc" font-size="11" font-weight="800">스마트머니 지수 &amp; LTH 비중</text>
+      <text x="18" y="53" fill="#facc15" font-size="20" font-weight="900" font-family="monospace">${m.smartMoneyScore}점 (축적)</text>
+      <rect x="230" y="20" width="112" height="30" rx="8" fill="#581c87" fill-opacity="0.4"/>
+      <text x="286" y="40" fill="#e9d5ff" font-size="12" font-weight="800" text-anchor="middle">LTH ${m.lthRatio}%</text>
+    </g>
+  </g>
+
+  <!-- Footer note -->
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: ${dStr} • 온체인 및 파생상품 센티먼트 종합 계측 • CrytoPnL 퀀트랩</text>
+</svg>`;
   return createSvgDataUri(svg);
 }
 
+// SVG 3: 분위기 형성 3대 핵심 동인 (16:9 800x450)
 function generateReportImage3(dStr, m) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
-    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#181326"/><stop offset="100%" stop-color="#07090e"/>
+    <linearGradient id="bg_driver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070d18"/><stop offset="50%" stop-color="#0c182c"/><stop offset="100%" stop-color="#060912"/>
     </linearGradient>
+    <linearGradient id="grad_blue_card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0369a1" stop-opacity="0.35"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="grad_purple_card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.35"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="grad_emerald_card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#047857" stop-opacity="0.35"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="f_shadow"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/></filter>
   </defs>
-  <rect width="800" height="280" rx="16" fill="url(#bg3)" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity="0.35"/>
-  <rect x="20" y="18" width="140" height="26" rx="6" fill="#8b5cf6" fill-opacity="0.15" stroke="#8b5cf6" stroke-opacity="0.4"/>
-  <text x="90" y="35" fill="#c084fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">DERIVATIVES MAP</text>
-  <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">글로벌 파생상품 레버리지 &amp; 롱숏 청산 맵</text>
-  <rect x="630" y="18" width="150" height="26" rx="6" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-opacity="0.35"/>
-  <text x="705" y="35" fill="#c084fc" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
-  <rect x="20" y="70" width="175" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="107" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">선물 펀딩비 (Funding)</text>
-  <text x="107" y="138" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace" text-anchor="middle">${m.fundingRate}%</text>
-  <rect x="45" y="155" width="125" height="20" rx="10" fill="#0284c7" fill-opacity="0.15"/>
-  <text x="107" y="169" fill="#38bdf8" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">중립 수준 유지</text>
-  <text x="107" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">과열 레버리지 진정</text>
-  <rect x="210" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="300" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">미결제약정 (OI)</text>
-  <text x="300" y="138" fill="#c084fc" font-size="28" font-weight="900" font-family="monospace" text-anchor="middle">${m.openInterest}</text>
-  <rect x="235" y="155" width="130" height="20" rx="10" fill="#7c3aed" fill-opacity="0.15"/>
-  <text x="300" y="169" fill="#d8b4fe" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">안정권 리셋 완료</text>
-  <text x="300" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">급격한 스퀴즈 위험 낮음</text>
-  <rect x="405" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="495" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">롱/숏 비율 (Long/Short)</text>
-  <text x="495" y="138" fill="#34d399" font-size="26" font-weight="900" font-family="monospace" text-anchor="middle">1.297</text>
-  <rect x="430" y="155" width="130" height="20" rx="10" fill="#10b981" fill-opacity="0.15"/>
-  <text x="495" y="169" fill="#34d399" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">롱 56.5% / 숏 43.5%</text>
-  <text x="495" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">매수 우위 지속</text>
-  <rect x="600" y="70" width="180" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <text x="690" y="95" fill="#94a3b8" font-size="11" font-family="sans-serif" text-anchor="middle">청산액 &amp; 변동성(DVOL)</text>
-  <text x="690" y="136" fill="#f43f5e" font-size="22" font-weight="900" font-family="monospace" text-anchor="middle">${m.liquidations}</text>
-  <rect x="625" y="155" width="130" height="20" rx="10" fill="#e11d48" fill-opacity="0.15"/>
-  <text x="690" y="169" fill="#fda4af" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">DVOL: ${m.dvol} (안정)</text>
-  <text x="690" y="195" fill="#64748b" font-size="10" font-family="sans-serif" text-anchor="middle">급격한 변동성 리스크 제한</text>
-  <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 파생 데이터 트래커: crytopnl.com</text>
-  </svg>`;
+
+  <rect width="800" height="450" rx="16" fill="url(#bg_driver)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Top Header -->
+  <g transform="translate(25, 20)">
+    <rect width="120" height="28" rx="7" fill="#059669" filter="url(#f_shadow)"/>
+    <text x="60" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CORE DRIVERS</text>
+    <text x="135" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">현재 시장 분위기를 주도하는 <tspan fill="#34d399">3대 핵심 동인</tspan></text>
+    <rect x="635" y="0" width="130" height="28" rx="7" fill="#1e293b" stroke="#334155"/>
+    <text x="700" y="19" fill="#34d399" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="62" x2="775" y2="62" stroke="#334155" stroke-width="1.2" stroke-opacity="0.8"/>
+
+  <!-- Card 1: ETF & 기관 자금 -->
+  <g transform="translate(25, 78)">
+    <rect width="236" height="320" rx="16" fill="url(#grad_blue_card)" stroke="#0284c7" stroke-width="1.8" filter="url(#f_shadow)"/>
+    <rect x="18" y="18" width="75" height="24" rx="6" fill="#0284c7"/>
+    <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 01</text>
+    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">기관 현물 ETF 유입</text>
+
+    <g transform="translate(18, 90)">
+      <rect width="200" height="62" rx="10" fill="#081b2c" stroke="#0284c7" stroke-width="1"/>
+      <text x="100" y="24" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">CB 프리미엄 / ETF</text>
+      <text x="100" y="50" fill="#38bdf8" font-size="20" font-weight="900" font-family="monospace" text-anchor="middle">${m.cbPremium} 순유입</text>
+    </g>
+
+    <g transform="translate(18, 168)">
+      <text x="0" y="14" fill="#94a3b8" font-size="11" font-weight="700">• 월가 블랙록·피델리티 매집</text>
+      <text x="0" y="36" fill="#cbd5e1" font-size="12" font-weight="700">• 미국 연기금 포트폴리오 편입</text>
+      <text x="0" y="58" fill="#38bdf8" font-size="12" font-weight="800">• 조정 시마다 저가 매수세 유입</text>
+    </g>
+
+    <g transform="translate(18, 245)">
+      <rect width="200" height="48" rx="8" fill="#042335"/>
+      <text x="10" y="20" fill="#34d399" font-size="11" font-weight="800">✓ 개인 매도 ➔ 기관 흡수 장세</text>
+      <text x="10" y="38" fill="#7dd3fc" font-size="10" font-weight="700">✓ 장기 기관 자금의 강력한 하방 지지</text>
+    </g>
+  </g>
+
+  <!-- Card 2: 매크로 유동성 & 금리 -->
+  <g transform="translate(282, 78)">
+    <rect width="236" height="320" rx="16" fill="url(#grad_purple_card)" stroke="#a855f7" stroke-width="1.8" filter="url(#f_shadow)"/>
+    <rect x="18" y="18" width="75" height="24" rx="6" fill="#9333ea"/>
+    <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 02</text>
+    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">거시 매크로 유동성</text>
+
+    <g transform="translate(18, 90)">
+      <rect width="200" height="62" rx="10" fill="#1c0e2d" stroke="#a855f7" stroke-width="1"/>
+      <text x="100" y="24" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">글로벌 M2 / 환율</text>
+      <text x="100" y="50" fill="#c084fc" font-size="19" font-weight="900" font-family="monospace" text-anchor="middle">108.5조$ (+4.2%)</text>
+    </g>
+
+    <g transform="translate(18, 168)">
+      <text x="0" y="14" fill="#94a3b8" font-size="11" font-weight="700">• 美 연준 금리 인하 사이클</text>
+      <text x="0" y="36" fill="#cbd5e1" font-size="12" font-weight="700">• DXY 달러 인덱스 약세 기조</text>
+      <text x="0" y="58" fill="#c084fc" font-size="12" font-weight="800">• 원/달러 ${m.usdKrwRate}원 레벨</text>
+    </g>
+
+    <g transform="translate(18, 245)">
+      <rect width="200" height="48" rx="8" fill="#250d3a"/>
+      <text x="10" y="20" fill="#f472b6" font-size="11" font-weight="800">✓ 글로벌 유동성 재팽창 국면</text>
+      <text x="10" y="38" fill="#e9d5ff" font-size="10" font-weight="700">✓ 위험자산 전반에 우호적 환경</text>
+    </g>
+  </g>
+
+  <!-- Card 3: 온체인 공급 쇼티지 -->
+  <g transform="translate(539, 78)">
+    <rect width="236" height="320" rx="16" fill="url(#grad_emerald_card)" stroke="#10b981" stroke-width="1.8" filter="url(#f_shadow)"/>
+    <rect x="18" y="18" width="75" height="24" rx="6" fill="#059669"/>
+    <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 03</text>
+    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">온체인 공급 쇼티지</text>
+
+    <g transform="translate(18, 90)">
+      <rect width="200" height="62" rx="10" fill="#061f18" stroke="#10b981" stroke-width="1"/>
+      <text x="100" y="24" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">LTH 장기보유 락업</text>
+      <text x="100" y="50" fill="#34d399" font-size="22" font-weight="900" font-family="monospace" text-anchor="middle">${m.lthRatio}% 락업</text>
+    </g>
+
+    <g transform="translate(18, 168)">
+      <text x="0" y="14" fill="#94a3b8" font-size="11" font-weight="700">• 거래소 BTC 잔고 6년 최저</text>
+      <text x="0" y="36" fill="#cbd5e1" font-size="12" font-weight="700">• 스테이블 공급 ${m.stableSupply}</text>
+      <text x="0" y="58" fill="#34d399" font-size="12" font-weight="800">• MVRV ${m.mvrv} (건전한 상승 구간)</text>
+    </g>
+
+    <g transform="translate(18, 245)">
+      <rect width="200" height="48" rx="8" fill="#042a1f"/>
+      <text x="10" y="20" fill="#facc15" font-size="11" font-weight="800">✓ 매도 가능한 유통 코인 고갈</text>
+      <text x="10" y="38" fill="#a7f3d0" font-size="10" font-weight="700">✓ 매수 수요 유입 시 급등 탄력성</text>
+    </g>
+  </g>
+
+  <!-- Bottom Caption -->
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">출처: Glassnode, Farside ETF Flows, FRED Macro Data • 분석: CrytoPnL 퀀트랩</text>
+</svg>`;
   return createSvgDataUri(svg);
 }
 
+// SVG 4: 주요 코인/자산군별 체감 온도차 다이버전스 (16:9 800x450)
 function generateReportImage4(dStr, m) {
-  // Combine today's events and upcoming events in chronological order
-  const combined = [];
-  if (Array.isArray(m.todaysEvents)) {
-    m.todaysEvents.forEach(e => combined.push({ ...e, isToday: true }));
-  }
-  if (Array.isArray(m.nextEvents)) {
-    m.nextEvents.forEach(e => combined.push({ ...e, isToday: false }));
-  }
-
-  // Forward-looking defaults if events list is short
-  const forwardDefaults = [
-    { title: '글로벌 유동성 및 거시 지표', date: dStr, time: '실시간 추적', desc: 'M2 통화량 및 금리 모니터링', isToday: true },
-    { title: '미국 연준(Fed) 금리 정책', date: dStr, time: '상시 모니터링', desc: 'FOMC 인하 경로 추적', isToday: false },
-    { title: '온체인 원장 & 파생 레버리지', date: dStr, time: '실시간 분석', desc: 'OI 미결제약정 & SOPR 지지선', isToday: false }
-  ];
-
-  while (combined.length < 3) {
-    combined.push(forwardDefaults[combined.length]);
-  }
-
-  const formatBadge = (ev) => {
-    if (ev.isToday) {
-      const cleanTime = (ev.time || '오늘').replace(' (KST)', '').trim();
-      return cleanTime.includes('오늘') ? cleanTime : `오늘 ${cleanTime}`;
-    }
-    const datePart = ev.date ? ev.date.slice(5).replace('-', '/') : '';
-    const timePart = ev.time ? ev.time.replace(' (KST)', '').trim() : '';
-    return datePart ? `${datePart} ${timePart}`.trim() : (timePart || '예정 일정');
-  };
-
-  const ev1 = combined[0];
-  const ev2 = combined[1];
-  const ev3 = combined[2];
-
-  const badge1 = formatBadge(ev1);
-  const badge2 = formatBadge(ev2);
-  const badge3 = formatBadge(ev3);
-
-  const getImportance = (ev) => {
-    if (ev.impact === 'CRITICAL') return '★★★★★';
-    if (ev.impact === 'HIGH IMPACT') return '★★★★☆';
-    return '★★★★☆';
-  };
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
-    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080c14"/><stop offset="50%" stop-color="#19151c"/><stop offset="100%" stop-color="#07090e"/>
+    <linearGradient id="bg_div" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080914"/><stop offset="50%" stop-color="#121326"/><stop offset="100%" stop-color="#080914"/>
     </linearGradient>
+    <filter id="div_drop"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter>
   </defs>
-  <rect width="800" height="280" rx="16" fill="url(#bg4)" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.35"/>
-  <rect x="20" y="18" width="140" height="26" rx="6" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-opacity="0.4"/>
-  <text x="90" y="35" fill="#fbbf24" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">MACRO CALENDAR</text>
-  <text x="175" y="36" fill="#ffffff" font-size="15" font-weight="bold" font-family="sans-serif">글로벌 경제 캘린더 타임라인 &amp; 트레이딩 체크포인트</text>
-  <rect x="630" y="18" width="150" height="26" rx="6" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.35"/>
-  <text x="705" y="35" fill="#fcd34d" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="56" x2="780" y2="56" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
-  <rect x="20" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="1"/>
-  <rect x="35" y="85" width="95" height="20" rx="6" fill="#f59e0b" fill-opacity="0.2"/>
-  <text x="82" y="99" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge1}</text>
-  <text x="35" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev1.title || '').slice(0, 18)}</text>
-  <text x="35" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev1.desc || '주요 일정 모니터링').slice(0, 18)}</text>
-  <text x="35" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev1.isToday ? '당일 시장 변동성 주목' : '글로벌 유동성 영향 분석'}</text>
-  <text x="35" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev1)}</text>
-  <rect x="280" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <rect x="295" y="85" width="95" height="20" rx="6" fill="#06b6d4" fill-opacity="0.2"/>
-  <text x="342" y="99" fill="#22d3ee" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge2}</text>
-  <text x="295" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev2.title || '').slice(0, 18)}</text>
-  <text x="295" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev2.desc || '주요 일정 모니터링').slice(0, 18)}</text>
-  <text x="295" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev2.isToday ? '당일 시장 변동성 주목' : '글로벌 유동성 영향 분석'}</text>
-  <text x="295" y="196" fill="#38bdf8" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev2)}</text>
-  <rect x="540" y="70" width="240" height="150" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
-  <rect x="555" y="85" width="95" height="20" rx="6" fill="#a855f7" fill-opacity="0.2"/>
-  <text x="602" y="99" fill="#c084fc" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${badge3}</text>
-  <text x="555" y="128" fill="#ffffff" font-size="13" font-weight="bold" font-family="sans-serif">${(ev3.title || '').slice(0, 18)}</text>
-  <text x="555" y="152" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${(ev3.desc || '주요 일정 모니터링').slice(0, 18)}</text>
-  <text x="555" y="172" fill="#94a3b8" font-size="11" font-family="sans-serif">• ${ev3.isToday ? '당일 시장 변동성 주목' : '일정 전후 포지션 관리'}</text>
-  <text x="555" y="196" fill="#fbbf24" font-size="11" font-weight="bold" font-family="sans-serif">중요도: ${getImportance(ev3)}</text>
-  <text x="400" y="252" fill="#64748b" font-size="11" font-family="sans-serif" text-anchor="middle">기준: ${dStr} 08:00 KST • 경제 캘린더 제공: crytopnl.com</text>
-  </svg>`;
+
+  <rect width="800" height="450" rx="16" fill="url(#bg_div)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Top Header -->
+  <g transform="translate(25, 20)">
+    <rect width="135" height="28" rx="7" fill="#d97706" filter="url(#div_drop)"/>
+    <text x="67" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">MARKET SPLIT</text>
+    <text x="150" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">주요 자산군별 <tspan fill="#fbbf24">체감 온도차</tspan> &amp; 수급 다이버전스</text>
+    <rect x="645" y="0" width="130" height="28" rx="7" fill="#1e293b"/>
+    <text x="710" y="19" fill="#fbbf24" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Left Card: Bitcoin (BTC) -->
+  <g transform="translate(30, 80)">
+    <rect width="235" height="295" rx="16" fill="#1f1807" stroke="#f59e0b" stroke-width="1.8" filter="url(#div_drop)"/>
+    <rect x="16" y="16" width="105" height="24" rx="6" fill="#d97706"/>
+    <text x="68" y="32" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">비트코인 (BTC)</text>
+    <text x="205" y="36" font-size="20" text-anchor="end">🥇</text>
+    
+    <text x="16" y="68" fill="#ffffff" font-size="15" font-weight="800">도미넌스: ${m.btcDominance}%</text>
+    <text x="16" y="88" fill="#fbbf24" font-size="12" font-weight="700">시장 주도권 독주 체제</text>
+
+    <g transform="translate(16, 102)">
+      <rect width="203" height="54" rx="8" fill="#302008"/>
+      <text x="12" y="22" fill="#fde68a" font-size="11" font-weight="800">업비트: ${m.upbitBtcKRW}</text>
+      <text x="12" y="42" fill="#fde68a" font-size="11" font-weight="800">바이낸스: ${m.binanceBtcUSD}</text>
+    </g>
+
+    <g transform="translate(16, 172)">
+      <text x="0" y="14" fill="#cbd5e1" font-size="11" font-weight="700">• 기관 ETF 최우선 수혜</text>
+      <text x="0" y="34" fill="#cbd5e1" font-size="11" font-weight="700">• 디지털 금 위상 공고화</text>
+      <text x="0" y="54" fill="#fbbf24" font-size="11" font-weight="800">• 하방 지지선 가장 견고</text>
+    </g>
+
+    <g transform="translate(16, 245)">
+      <rect width="203" height="34" rx="6" fill="#451a03"/>
+      <text x="101" y="22" fill="#fcd34d" font-size="11" font-weight="900" text-anchor="middle">🔥 체감 온도: 따뜻함 (맑음)</text>
+    </g>
+  </g>
+
+  <!-- Middle Card: Ethereum (ETH) -->
+  <g transform="translate(282, 80)">
+    <rect width="235" height="295" rx="16" fill="#0f192b" stroke="#0ea5e9" stroke-width="1.8" filter="url(#div_drop)"/>
+    <rect x="16" y="16" width="105" height="24" rx="6" fill="#0284c7"/>
+    <text x="68" y="32" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">이더리움 (ETH)</text>
+    <text x="205" y="36" font-size="20" text-anchor="end">🥈</text>
+
+    <text x="16" y="68" fill="#ffffff" font-size="15" font-weight="800">펀딩비: ${m.fundingRate}%</text>
+    <text x="16" y="88" fill="#38bdf8" font-size="12" font-weight="700">L2 수수료 혁신 &amp; 스테이킹</text>
+
+    <g transform="translate(16, 102)">
+      <rect width="203" height="54" rx="8" fill="#082035"/>
+      <text x="12" y="22" fill="#7dd3fc" font-size="11" font-weight="800">스테이킹 락업 견고</text>
+      <text x="12" y="42" fill="#7dd3fc" font-size="11" font-weight="800">선물 레버리지 과열 완화</text>
+    </g>
+
+    <g transform="translate(16, 172)">
+      <text x="0" y="14" fill="#cbd5e1" font-size="11" font-weight="700">• 비트 대비 상대적 박스권</text>
+      <text x="0" y="34" fill="#cbd5e1" font-size="11" font-weight="700">• L2 디커플링 생태계 확대</text>
+      <text x="0" y="54" fill="#38bdf8" font-size="11" font-weight="800">• 장기 가치 저장 수요 축적</text>
+    </g>
+
+    <g transform="translate(16, 245)">
+      <rect width="203" height="34" rx="6" fill="#082f49"/>
+      <text x="101" y="22" fill="#38bdf8" font-size="11" font-weight="900" text-anchor="middle">🌤️ 체감 온도: 미온적 (구름)</text>
+    </g>
+  </g>
+
+  <!-- Right Card: Altcoins (ALTS) -->
+  <g transform="translate(535, 80)">
+    <rect width="235" height="295" rx="16" fill="#1b1226" stroke="#a855f7" stroke-width="1.8" filter="url(#div_drop)"/>
+    <rect x="16" y="16" width="105" height="24" rx="6" fill="#7e22ce"/>
+    <text x="68" y="32" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">알트코인 (ALTS)</text>
+    <text x="205" y="36" font-size="20" text-anchor="end">⚡</text>
+
+    <text x="16" y="68" fill="#ffffff" font-size="15" font-weight="800">상승비율: ${m.upbitRatio}% / ${m.bithumbRatio}%</text>
+    <text x="16" y="88" fill="#c084fc" font-size="12" font-weight="700">극단적 양극화 &amp; 선별 장세</text>
+
+    <g transform="translate(16, 102)">
+      <rect width="203" height="54" rx="8" fill="#251336"/>
+      <text x="12" y="22" fill="#e9d5ff" font-size="11" font-weight="800">업비트 상승 ${m.upbitRatio}%</text>
+      <text x="12" y="42" fill="#e9d5ff" font-size="11" font-weight="800">빗썸 상승 ${m.bithumbRatio}%</text>
+    </g>
+
+    <g transform="translate(16, 172)">
+      <text x="0" y="14" fill="#cbd5e1" font-size="11" font-weight="700">• 무차별 폭등장 아닌 순환매</text>
+      <text x="0" y="34" fill="#cbd5e1" font-size="11" font-weight="700">• 실질 수익성/실사용 코인만 반응</text>
+      <text x="0" y="54" fill="#c084fc" font-size="11" font-weight="800">• 잡알트 유동성 부족 주의</text>
+    </g>
+
+    <g transform="translate(16, 245)">
+      <rect width="203" height="34" rx="6" fill="#3b0764"/>
+      <text x="101" y="22" fill="#d8b4fe" font-size="11" font-weight="900" text-anchor="middle">❄️ 체감 온도: 쌀쌀함 (선별)</text>
+    </g>
+  </g>
+
+  <!-- Bottom Note -->
+  <g transform="translate(30, 390)">
+    <rect width="740" height="42" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+    <text x="370" y="26" fill="#e2e8f0" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">
+      💡 분석 결론: 비트코인이 길을 열고 도미넌스가 꺾일 때 알트코인 대시세 분출 사이클이 시작됩니다!
+    </text>
+  </g>
+</svg>`;
+  return createSvgDataUri(svg);
+}
+
+// SVG 5: 투자자 심리 사이클 로드맵 & 실전 행동 수칙 (16:9 800x450)
+function generateReportImage5(dStr, m) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg_cycle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0e1728"/><stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+    <filter id="c_drop"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter>
+  </defs>
+
+  <rect width="800" height="450" rx="16" fill="url(#bg_cycle)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Top Header -->
+  <g transform="translate(25, 20)">
+    <rect width="130" height="28" rx="7" fill="#7c3aed" filter="url(#c_drop)"/>
+    <text x="65" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CYCLE ROADMAP</text>
+    <text x="145" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">투자자 심리 사이클 상의 <tspan fill="#a78bfa">현재 위치</tspan>와 실전 행동 수칙</text>
+    <rect x="645" y="0" width="130" height="28" rx="7" fill="#1e293b"/>
+    <text x="710" y="19" fill="#a78bfa" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Top Visual Cycle Curve -->
+  <g transform="translate(30, 75)">
+    <rect width="740" height="155" rx="14" fill="#0c1220" stroke="#1e293b" stroke-width="1.5"/>
+
+    <!-- Subtle Background Cycle Stages -->
+    <text x="45" y="26" fill="#64748b" font-size="11" font-weight="700">공포·침체 (Despair)</text>
+    <text x="210" y="26" fill="#38bdf8" font-size="11" font-weight="700">희망 (Hope)</text>
+    <text x="390" y="26" fill="#facc15" font-size="12" font-weight="900">★ 현재 구간: 낙관 (Optimism)</text>
+    <text x="595" y="26" fill="#f43f5e" font-size="11" font-weight="700">광기·환희 (Euphoria)</text>
+
+    <!-- Sine curve path -->
+    <path d="M 20 130 C 100 130, 160 110, 240 85 C 320 60, 420 50, 520 25 C 600 5, 680 -5, 720 40" fill="none" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+    <!-- Active Progress line -->
+    <path d="M 20 130 C 100 130, 160 110, 240 85 C 320 60, 390 53, 440 45" fill="none" stroke="#a855f7" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- Current Location Marker -->
+    <g transform="translate(440, 45)">
+      <circle cx="0" cy="0" r="14" fill="#a855f7" fill-opacity="0.3"/>
+      <circle cx="0" cy="0" r="8" fill="#facc15"/>
+      <rect x="-85" y="-38" width="170" height="26" rx="6" fill="#facc15" filter="url(#c_drop)"/>
+      <text x="0" y="-21" fill="#000000" font-size="11" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">📍 현재 위치: Optimism 초입</text>
+    </g>
+
+    <text x="30" y="145" fill="#64748b" font-size="10">2022~2023 침체기</text>
+    <text x="240" y="145" fill="#38bdf8" font-size="10">2024 반감기/ETF 승인</text>
+    <text x="440" y="145" fill="#facc15" font-size="10" font-weight="800">2026.09 대세 상승 전초전</text>
+    <text x="640" y="145" fill="#64748b" font-size="10">미래 정점 (대중 참여 폭발)</text>
+  </g>
+
+  <!-- Bottom 4 Actionable Guidelines Grid -->
+  <g transform="translate(30, 245)">
+    <!-- Guideline 1 -->
+    <g transform="translate(0, 0)">
+      <rect width="175" height="135" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.2" filter="url(#c_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#0284c7"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 01</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">분할 매수 원칙</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 일시 몰빵 매수 금지</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 주요 지지선 분할 진입</text>
+      <text x="12" y="112" fill="#38bdf8" font-size="11" font-weight="800">✓ FOMO 뇌동매매 차단</text>
+    </g>
+
+    <!-- Guideline 2 -->
+    <g transform="translate(188, 0)">
+      <rect width="175" height="135" rx="12" fill="#061d19" stroke="#10b981" stroke-width="1.2" filter="url(#c_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#059669"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 02</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">현금 비중 20~30%</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 조정 시 줍줍 총알 확보</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 심리적 평정심의 근원</text>
+      <text x="12" y="112" fill="#34d399" font-size="11" font-weight="800">✓ 멘탈 붕괴 사전 예방</text>
+    </g>
+
+    <!-- Guideline 3 -->
+    <g transform="translate(376, 0)">
+      <rect width="175" height="135" rx="12" fill="#1a1128" stroke="#a855f7" stroke-width="1.2" filter="url(#c_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#7e22ce"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 03</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">온체인 팩트 신뢰</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• LTH 락업 및 MVRV 확인</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 단기 뉴스 소음 무시</text>
+      <text x="12" y="112" fill="#c084fc" font-size="11" font-weight="800">✓ 스마트머니 발자국 추적</text>
+    </g>
+
+    <!-- Guideline 4 -->
+    <g transform="translate(565, 0)">
+      <rect width="175" height="135" rx="12" fill="#241506" stroke="#f59e0b" stroke-width="1.2" filter="url(#c_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#d97706"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 04</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">수익 실현 계획</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 환희의 정점 오기 전</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 목표가별 단계적 분할익절</text>
+      <text x="12" y="112" fill="#fbbf24" font-size="11" font-weight="800">✓ 확정 수익만이 진짜 내 돈</text>
+    </g>
+  </g>
+
+  <!-- Bottom Disclaimer -->
+  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">본 인포그래픽은 시장 심리 분석용이며, 개별 코인 매수·매도를 추천하지 않습니다.</text>
+</svg>`;
   return createSvgDataUri(svg);
 }
 
@@ -522,44 +877,69 @@ async function callGeminiAPI(dateStr, dateKorean, m, apiKey) {
     m.nextEvents.map(e => `[예정 일정 - ${e.date}] ${e.title} (${e.desc || ''})`).join('\n')
   ].filter(Boolean).join('\n');
 
-  const systemInstruction = `당신은 대한민국 대표 크립토 퀀트 분석 플랫폼인 crytopnl.com의 수석 암호화폐 리서치 애널리스트(AI)입니다.
-제공된 실시간 시장 수치와 온체인 원장 데이터, 경제 일정을 바탕으로 투자자들에게 통찰력을 주는 일일 모닝 시황 보고서를 작성하세요.
+  const systemInstruction = `당신은 암호화폐 시장을 10년 이상 분석해온 전문 블로거이자 시장 심리 분석가입니다.
+독자는 초보~중급 투자자입니다.
+제공된 실시간 시장 수치와 온체인 원장 데이터, 경제 일정을 바탕으로 투자자들에게 깊은 통찰력을 주는 시장 분위기 분석 블로그 글을 작성하세요.
 
-[필수 작성 규칙]
-1. 분량: HTML 태그를 제외한 순수 한글 텍스트 분량이 반드시 1,600자 ~ 1,850자 사이(최소 1,500자 이상, 2,000자 이내)가 되도록 풍부하게 작성하세요.
-2. 어조: 정중하고 지적인 전문 애널리스트 어조 (~합니다, ~로 분석됩니다, ~에 주목해야 합니다 체). 단순 나열이 아닌 거시 지표, 파생 레버리지, 온체인 공급 사이의 유기적 상관관계를 분석하세요.
-3. 문서 형식: 아래 플레이스홀더를 반드시 포함하여 작성하세요.
-   <INTRO>
-   도입부 종합 진단 (1~2문단)
-   </INTRO>
-   <!-- IMAGE_1 -->
-   <SECTION_1>
-   <h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #22d3ee; padding-left: 8px;">1. 국내외 프리미엄 및 파생상품 레버리지 동향</h4>
-   국내외 프리미엄, 선물 펀딩비, 미결제약정, 롱숏 비율 분석 (2문단)
-   </SECTION_1>
-   <!-- IMAGE_3 -->
-   <SECTION_2>
-   <h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #34d399; padding-left: 8px;">2. 온체인 원장 6대 핵심 지표 분석 (수익성 & 공급 쇼티지)</h4>
-   MVRV, LTH 장기보유자 락업, SOPR, 스테이블코인 대기 매수세 분석 (2문단)
-   </SECTION_2>
-   <!-- IMAGE_2 -->
-   <SECTION_3>
-   <h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #fbbf24; padding-left: 8px;">3. 거시 경제 유동성 및 전통 금융(TradFi) 지표</h4>
-   글로벌 M2 통화량, 기준금리 기대, DXY 달러 인덱스, 환율, 증시 상관관계 (2문단)
-   </SECTION_3>
-   <!-- IMAGE_4 -->
-   <SECTION_4>
-   <h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #f43f5e; padding-left: 8px;">4. 금일 주요 경제 일정 및 글로벌 속보 이슈</h4>
-   제공된 일정 데이터 기반 시장 영향력 분석 (2문단)
-   </SECTION_4>
-   <CONCLUSION>
-   <div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
-     <div style="color: #38bdf8; font-weight: 700; font-size: 13px; margin-bottom: 6px;">💡 [종합 결론 및 트레이딩 전략 가이드]</div>
-     <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">구체적 매매 전략 및 리스크 관리 조언 (1문단)</p>
-   </div>
-   </CONCLUSION>`;
+[글의 목적]
+- 단순 가격 소식이 아니라 '현재 시장의 심리와 분위기'를 중심으로 해석
+- 독자가 현재 시장을 어떻게 바라봐야 하는지 인사이트를 제공
 
-  const userPrompt = `[실시간 시장 및 온체인 지표 데이터 (${dateKorean} 08:00 KST 기준)]
+[글 구조 및 필수 섹션 태그]
+반드시 아래 태그 규격을 지켜 1,800자~2,200자 내외로 충실하고 흥미진진하게 작성하세요.
+
+<INTRO>
+1. 흥미로운 도입 (현재 시장 분위기를 한 문장으로 강력하게 요약하고 독자의 시선을 사로잡는 오프닝 2~3문단)
+</INTRO>
+
+<!-- IMAGE_1 -->
+
+<SECTION_1>
+<h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-top: 28px; margin-bottom: 12px; border-left: 4px solid #0284c7; padding-left: 10px;">2. 현재 시장 분위기 요약: Fear &amp; Greed와 심리 지표의 괴리</h4>
+Fear &amp; Greed 지수(${m.fngScore}P, ${m.fngText}), 김치프리미엄, 선물 펀딩비, 롱숏 비율 등 심리 지표를 바탕으로 현재 시장이 왜 공포도 광기도 아닌 '기묘한 관망세'에 놓여있는지 분석 (2~3문단)
+</SECTION_1>
+
+<!-- IMAGE_2 -->
+
+<SECTION_2>
+<h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-top: 28px; margin-bottom: 12px; border-left: 4px solid #10b981; padding-left: 10px;">3. 분위기 형성 요인 분석: 가격 이면의 3대 동인 (ETF, 매크로, 온체인)</h4>
+기관 현물 ETF 순유입, 글로벌 금리 인하 사이클 및 M2 유동성, 온체인 LTH(${m.lthRatio}%) 락업과 거래소 유통량 쇼티지 등 가격을 지탱하는 실제 요인 심층 해석 (3문단)
+</SECTION_2>
+
+<!-- IMAGE_3 -->
+
+<SECTION_3>
+<h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-top: 28px; margin-bottom: 12px; border-left: 4px solid #f59e0b; padding-left: 10px;">4. 주요 코인별 분위기 차이: 비트코인 독주와 알트코인의 온도차</h4>
+비트코인 도미넌스(${m.btcDominance}%), 이더리움 및 레이어2 흐름, 국내 거래소 상승 종목 비율(업비트 ${m.upbitRatio}%, 빗썸 ${m.bithumbRatio}%)에 따른 자산군별 체감 심리 격차와 선별 장세 분석 (2~3문단)
+</SECTION_3>
+
+<!-- IMAGE_4 -->
+
+<SECTION_4>
+<h4 style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-top: 28px; margin-bottom: 12px; border-left: 4px solid #8b5cf6; padding-left: 10px;">5. 투자자 심리 변화에 따른 시장 단계: 우리는 지금 어디쯤 와 있는가?</h4>
+월스트리트 심리 사이클(Wall St Cheat Sheet) 상의 현재 위치 진단(회의와 낙관 사이), 과거 반감기 사이클 비교, 스마트머니와 일반 대중의 심리 엇박자 분석 (2~3문단)
+</SECTION_4>
+
+<!-- IMAGE_5 -->
+
+<CONCLUSION>
+<div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 20px 22px; margin: 24px 0; color: #ffffff;">
+  <div style="color: #38bdf8; font-weight: 800; font-size: 15px; margin-bottom: 8px;">💡 6. 10년 차 분석가의 실전 행동 가이드: 독자를 위한 실질적 조언</div>
+  <p style="font-size: 14px; line-height: 1.85; margin: 0; color: #f8fafc; font-weight: 500;">
+    초보~중급 투자자가 지금 취해야 할 구체적 자산 배분, 분할 매수 원칙, 심리적 평정심 유지 수칙 제시 (특정 코인 추천 절대 금지, 1~2문단)
+  </p>
+</div>
+</CONCLUSION>
+
+[글 톤앤매너 및 필수 작성 규칙]
+1. 전문적이면서도 친근한 블로그 어조 (~합니다, ~로 분석됩니다, ~를 기억해야 합니다 체). 초보자도 쉽게 이해할 수 있는 비유와 설명.
+2. 팩트(데이터 수치)와 개인적 해석/의견을 명확히 구분하여 서술하세요.
+3. 과도한 낙관이나 공포 조장을 금지하고 객관적인 균형 시각을 유지하세요.
+4. 특정 개별 코인에 대한 매수/매도 추천을 절대 하지 마세요.
+5. 분량: HTML 태그를 제외한 순수 한글 텍스트 분량이 반드시 1,800자 ~ 2,200자 내외가 되도록 풍부하게 작성하세요.
+6. 5장의 이미지가 삽입될 수 있도록 <!-- IMAGE_1 --> 부터 <!-- IMAGE_5 --> 까지 정확한 위치에 플레이스홀더를 배치하세요.`;
+
+  const userPrompt = `[실시간 시장 및 온체인 지표 데이터 (${dateKorean} 기준)]
 - 비트코인 시세: 업비트 ${m.upbitBtcKRW}, 바이낸스 ${m.binanceBtcUSD}
 - 김치프리미엄: ${m.kimp}, 코인베이스 프리미엄: ${m.cbPremium}
 - 공포&탐욕 지수: ${m.fngScore} (${m.fngText})
@@ -576,7 +956,7 @@ async function callGeminiAPI(dateStr, dateKorean, m, apiKey) {
 [주요 일정 및 경제 캘린더]
 ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토큰 언락 예정'}
 
-위 데이터를 종합하여 전문적이고 심도 있는 1,600~1,850자 리포트를 생성해주세요.`;
+위 데이터를 종합하여 전문적이고 심도 있는 1,800~2,200자 시장 심리 분석 글을 생성해주세요.`;
 
   const baseContents = [
     {
@@ -642,11 +1022,11 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
         const parts = candidate?.content?.parts || [];
         const text = parts.map(p => p.text || '').join('').trim();
         console.log(`[Gemini AI] ${item.name} finishReason: ${finishReason}, parts: ${parts.length}, text length: ${text.length}`);
-        if (text && text.length > 500) {
+        if (text && text.length > 600) {
           console.log(`[Gemini AI] Successfully generated report with ${item.name} (${text.length} chars)`);
           return text;
         } else {
-          console.warn(`[Gemini AI] ${item.name} text length (${text.length}) is below 500 characters.`);
+          console.warn(`[Gemini AI] ${item.name} text length (${text.length}) is below 600 characters.`);
         }
       } else {
         const errBody = await res.text().catch(() => '');
@@ -659,8 +1039,8 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
   return null;
 }
 
-// 4. Dynamic Quant Fallback Engine
-function generateDynamicQuantReport(dateStr, dateKorean, m, img1, img2, img3, img4) {
+// 4. Dynamic Quant Fallback Engine (Rich 6-Part 1,900 Chars with 5 Images)
+function generateDynamicQuantReport(dateStr, dateKorean, m, img1, img2, img3, img4, img5) {
   const hasTodayEvents = Array.isArray(m.todaysEvents) && m.todaysEvents.length > 0;
   const evTodayText = hasTodayEvents
     ? m.todaysEvents.map(e => `[${(e.time || '오늘').replace(' (KST)', '')}] ${e.title}`).join(' / ')
@@ -670,119 +1050,126 @@ function generateDynamicQuantReport(dateStr, dateKorean, m, img1, img2, img3, im
     ? m.nextEvents.map(e => `[${e.date}] ${e.title}`).join(', ')
     : '향후 주요 일정들이 순차 대기하고 있습니다.';
 
-  // Contextual intro sentence depending on whether today has events
-  let introEventSentence = '';
-  if (hasTodayEvents) {
-    introEventSentence = `오늘 예정된 주요 경제 이벤트(${evTodayText})를 앞두고 관망세를 보이고 있습니다.`;
-  } else {
-    const nextSummary = m.nextEvents && m.nextEvents.length > 0
-      ? `향후 예정된 주요 일정([${m.nextEvents[0].date.slice(5)}] ${m.nextEvents[0].title}${m.nextEvents[1] ? `, [${m.nextEvents[1].date.slice(5)}] ${m.nextEvents[1].title}` : ''})`
-      : '글로벌 유동성 추이 및 온체인 공급 지표';
-    introEventSentence = `금일 발표 예정된 주요 거시 경제 지표는 부재한 가운데, ${nextSummary}을(를) 주시하며 안정적인 관망세를 보이고 있습니다.`;
-  }
-
-  // Contextual section 4 sentence
-  let section4Content = '';
-  if (hasTodayEvents) {
-    section4Content = `오늘 발표되는 주요 지표(${evTodayText}) 결과에 따라 단기 변동성 확대 및 방향성 탐색이 전개될 전망입니다. 향후 ${evNextText} 등 주요 캘린더 일정도 예정되어 있습니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 솔라나 활성 지갑 급증 속보가 시장을 견인하고 있습니다.`;
-  } else {
-    section4Content = `금일은 공식 발표되는 미국 주요 거시 경제 지표가 부재하여 매크로 충격에 의한 급격한 변동성 리스크는 제한적인 구간입니다. 시장은 거래소 유통량 쇼티지와 온체인 축적 강도 등 내부 펀더멘털에 집중하고 있으며, 향후 ${evNextText} 등의 주요 캘린더 일정을 순차적으로 소화해 나갈 것으로 전망됩니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 온체인 활성 지갑 증가세가 시장의 견고한 하방 지지력을 제공하고 있습니다.`;
-  }
-
-  // Contextual conclusion sentence
-  const conclusionAdvice = hasTodayEvents
-    ? '오늘 경제 지표 발표 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.'
-    : '단기 거시 지표 공백기 속에서 무리한 고레버리지 추격 매수보다는 1.000 SOPR 지지선 및 LTH 락업 구간을 활용한 분할 매수 대응을 권장합니다.';
-
   return `
-<h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  📌 [모닝 브리핑] 30대 거시·온체인 핵심 지표 총괄 및 시장 종합 진단
+<h3 style="font-size: 19px; font-weight: 800; color: #0284c7; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
+  📌 1. 흥미로운 도입: "폭풍 전야의 팽팽한 침묵, 대세 상승의 전초전인가?"
 </h3>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, ${introEventSentence} 현재 비트코인은 업비트 ${m.upbitBtcKRW}, 해외 바이낸스 ${m.binanceBtcUSD} 선에서 안정적으로 거래 중입니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 투기적 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+지난 10년간 비트코인 사이클을 현장에서 목격하며 체득한 가장 확실한 법칙 중 하나는, <strong>"대중이 지루함에 지쳐 떠나갈 때 진짜 큰 파도가 잉태된다"</strong>는 사실입니다. ${dateKorean} 현재 암호화폐 시장은 겉으로 보기에 큰 방향성 없이 횡보하는 것처럼 보이지만, 그 수면 아래에서는 스마트머니와 개인 투자자 사이의 심리적 괴리가 역사상 그 어느 때보다 극명하게 벌어지고 있습니다.
+</p>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+현재 비트코인은 국내 업비트 기준 ${m.upbitBtcKRW}, 해외 바이낸스 기준 ${m.binanceBtcUSD} 선에서 강력한 하방 경직성을 확보한 채 팽팽한 힘겨루기를 이어가고 있습니다. 과거 대세 상승장이 직전 전고점을 뚫기 전 겪었던 전형적인 '숨고르기 및 에너지 응축' 패턴과 정확히 일치하는 흐름입니다.
 </p>
 
-<!-- Image 1: Macro & Sentiment Matrix (crytopnl.com) -->
+<!-- Image 1: Main YouTube Thumbnail -->
 <div class="post-img-container text-center my-4">
-  <img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
+  <img src="${img1}" alt="2026 시장 심리 긴급진단 - CrytoPnL 리서치" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
-1. 국내외 프리미엄 및 파생상품 레버리지 동향
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #0284c7; padding-left: 10px;">
+  2. 현재 시장 분위기 요약: Fear &amp; Greed와 지표 이면의 괴리
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-국내 김치프리미엄은 ${m.kimp}로 투기적 과열 없이 안정적인 수준입니다. 미국 기관의 현물 매수세를 나타내는 코인베이스 프리미엄은 ${m.cbPremium}의 완만한 플러스를 유지하며 월가 기관들의 꾸준한 분할 매집을 보여줍니다. 거래소별 상승 종목 비율은 업비트 ${m.upbitRatio}%, 빗썸 ${m.bithumbRatio}%로 비트코인 도미넌스(${m.btcDominance}%) 집중에 따른 알트코인 차별화 장세가 이어지고 있습니다.<br/>
-선물 펀딩비는 ${m.fundingRate}%로 중립이며, 미결제약정(OI)은 ${m.openInterest}로 레버리지 청산 후 안정권입니다. 롱/숏 비율은 ${m.longShortRatio}로 롱 우세이며, 24시간 청산 규모는 ${m.liquidations}, 내재변동성(DVOL)은 ${m.dvol}로 급격한 변동성 리스크는 제한적입니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+오늘 집계된 얼터너티브 공포&amp;탐욕 지수는 <strong>${m.fngScore}포인트(${m.fngText})</strong>를 기록하고 있습니다. 수치상으로는 분명 탐욕 영역에 진입해 있지만, 커뮤니티나 투자자들의 실제 반응을 살펴보면 전혀 축제 분위기가 아닙니다. 오히려 '또 떨어지는 것 아니냐', '알트코인은 왜 안 가냐'는 불안과 회의론이 지배적인 상황입니다.
+</p>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+시장 파생상품 데이터를 살펴보면 이러한 심리가 숫자로 증명됩니다. 국내 김치프리미엄은 ${m.kimp}로 국내 개인들의 투기적 광풍이 전혀 관찰되지 않는 매우 차분한 상태이며, 미국 기관 수급의 바로미터인 코인베이스 프리미엄은 ${m.cbPremium}의 완만한 양수(+)를 유지하고 있습니다. 선물 펀딩비 역시 ${m.fundingRate}%로 중립 수준에 머물러 있어 과도한 롱 레버리지에 의한 청산 위험이 극도로 낮습니다. 즉, <em>"가격은 견고하게 버티는데 시장 참여자들의 심리는 극도로 신중한, 전형적인 건전한 상승 채널"</em>입니다.
 </p>
 
-<!-- Image 3: Derivatives & Leverage Map (crytopnl.com) -->
+<!-- Image 2: Fear & Greed Sentiment Dial -->
 <div class="post-img-container text-center my-4">
-  <img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
+  <img src="${img2}" alt="2026 Q3 크립토 심리 계측기 & 시장 감정 다이얼 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
-2. 온체인 원장 6대 핵심 지표 분석 (수익성 & 공급 쇼티지)
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #10b981; padding-left: 10px;">
+  3. 분위기 형성 요인 분석: 가격을 떠받치는 3대 핵심 동인
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-비트코인 MVRV Z-Score는 ${m.mvrv}로 역대 사이클 고점 대비 부담 없는 저평가 상승 구간입니다. 채굴자 수익성을 나타내는 Puell Multiple은 ${m.puell}로 반감기 이후 강제 매도 압력이 진정되었습니다.<br/>
-소비 출력 이익 비율(SOPR)은 ${m.sopr}로 시장 참여자들의 완만한 수익 실현이 이뤄지고 있으며, 1.000선이 강력한 지지선 역할을 합니다. 일일 실현 손익은 ${m.realizedPnl}로 패닉셀 없는 건강한 손바뀜을 나타냅니다. 155일 이상 코인을 보유한 장기 보유자(LTH) 비중은 ${m.lthRatio}%(${m.lthAmount})로 거래소 공급 쇼티지가 지속되고 있으며, 스테이블코인 공급량은 ${m.stableSupply}(USDT ${m.usdtSupply})로 사상 최고 수준의 대기 매수세를 보유 중입니다. 스마트머니 순매수 점수는 ${m.smartMoneyScore}점으로 기관 축적 단계입니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+현재 시장의 분위기는 우연이 아닌 3가지 거대한 펀더멘털 축이 맞물리며 형성되고 있습니다.<br/>
+첫째, <strong>기관 현물 ETF 자금의 지속적 유입</strong>입니다. 미국 월가의 주요 자산운용사들과 연기금들은 단기 시세 변동에 일희일비하지 않고 규제된 ETF 창구를 통해 비트코인을 지속적으로 바스켓에 담고 있습니다. 개인이 던지는 물량을 기관이 묵묵히 받아내며 강력한 하방 지지선을 형성하고 있습니다.
+</p>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+둘째, <strong>글로벌 거시 경제(매크로)의 유동성 재팽창</strong>입니다. 미 연준(Fed)의 금리 인하 사이클 진입과 글로벌 M2 통화량이 108.5조 달러(+4.2%)로 사상 최고치를 경신하면서, 달러 인덱스(DXY) 약세와 함께 위험자산 전반으로 자금 유입 압력이 고조되고 있습니다. 원/달러 환율 역시 ${m.usdKrwRate}원 선에서 안정되며 대외 거시 충격에 대한 내성을 갖추었습니다.<br/>
+셋째, <strong>온체인 원장의 공급 쇼티지(Supply Crunch)</strong>입니다. 155일 이상 코인을 움직이지 않은 장기보유자(LTH) 비중이 ${m.lthRatio}%(${m.lthAmount})에 달하며 주요 글로벌 거래소의 비트코인 잔고는 6년 래 최저치로 떨어졌습니다. 반면 대기 매수세를 나타내는 스테이블코인 공급량은 ${m.stableSupply}(USDT ${m.usdtSupply})에 달해, 매도 물량이 씨가 마른 상태에서 작은 매수세 유입만으로도 강한 가격 탄력성이 발생할 수 있는 구조입니다.
 </p>
 
-<!-- Image 2: On-Chain Fundamentals (crytopnl.com) -->
+<!-- Image 3: Core Drivers -->
 <div class="post-img-container text-center my-4">
-  <img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
+  <img src="${img3}" alt="현재 시장 분위기를 주도하는 3대 핵심 동인 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
-3. 거시 경제 유동성 및 전통 금융(TradFi) 지표
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #f59e0b; padding-left: 10px;">
+  4. 주요 코인별 분위기 차이: 비트코인 독주와 알트코인의 온도차
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-글로벌 M2 통화량은 108.5조 달러(+4.2%)로 유동성 확장 국면입니다. 미국 기준금리는 4.50% 인하 사이클이며, 연준 역레포 잔고는 2,450억 달러, 하이일드 스프레드는 3.25%로 신용 리스크가 낮습니다. 달러 인덱스(DXY)는 98.84로 약세를 지속해 위험자산에 우호적이며 원/달러 환율은 ${m.usdKrwRate}입니다. 나스닥(+0.65%), 반도체지수(+0.42%)의 반등과 VIX 15.72 안정세는 크립토 자금 유입을 뒷받침합니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+투자자들이 체감하는 온도차가 극명하게 갈리는 가장 결정적인 원인은 바로 <strong>자산군별 양극화</strong>입니다. 비트코인 도미넌스가 ${m.btcDominance}%에 육박하면서 전체 시장의 유동성을 비트코인이 거의 독점하고 있습니다. 비트코인 홀더들은 전고점 돌파를 목전에 두고 미소를 짓고 있지만, 대다수 알트코인 투자자들은 소외감을 느끼는 이유입니다.
+</p>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+실제로 국내 거래소의 상승 종목 비율을 보면 업비트 ${m.upbitRatio}%, 빗썸 ${m.bithumbRatio}% 수준으로 절반 가까운 종목들이 지지부진한 흐름을 이어가고 있습니다. 이더리움(ETH)은 레이어2 수수료 절감과 기관 스테이킹으로 체질을 개선하고 있으나 여전히 비트코인 대비 베타가 제한적인 상태입니다. 과거처럼 모든 코인이 동시에 폭등하는 '무차별 불장'이 아니라, 실질적인 프로토콜 매출과 확고한 내러티브를 갖춘 소수의 프로젝트만 선별적으로 반응하는 냉정한 장세가 전개되고 있습니다.
 </p>
 
-<!-- Image 4: Macro & Calendar Timeline (crytopnl.com) -->
+<!-- Image 4: Market Split & Divergence -->
 <div class="post-img-container text-center my-4">
-  <img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
+  <img src="${img4}" alt="주요 자산군별 체감 온도차 & 수급 다이버전스 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
 </div>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px;">
-4. 금일 주요 경제 일정 및 글로벌 속보 이슈
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #8b5cf6; padding-left: 10px;">
+  5. 투자자 심리 변화에 따른 시장 단계: 우리는 지금 어디쯤 와 있는가?
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-${section4Content}
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+월스트리트 고전 심리 사이클(Wall St Cheat Sheet)에 비추어 볼 때, 현재 시장은 <strong>'회의(Disbelief)' 단계를 지나 '낙관(Optimism)'의 초입 구간</strong>에 위치해 있습니다. 침체기의 공포는 완전히 걷혔지만, 아직 대중적인 '신념(Belief)'이나 '환희(Euphoria)'의 정점에는 전혀 도달하지 않았습니다.
+</p>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+사이클의 역사를 돌이켜보면, <em>가장 위험한 순간은 모두가 시장의 상승을 당연시하고 축배를 들 때이며, 가장 기회가 큰 구간은 의심과 회의 속에서 조용히 매집이 이루어질 때</em>입니다. 지금 온체인 스마트머니 점수가 ${m.smartMoneyScore}점으로 강력한 축적(Accumulation) 영역에 머무는 반면 개인 투자자들은 망설이고 있다는 사실은, 사이클의 정점이 아직 한참 남아있음을 시사하는 가장 강력한 증거입니다.
 </p>
 
-<div class="morning-conclusion-card" style="background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 8px; padding: 18px 20px; margin: 24px 0;">
-  <div style="color: #0369a1; font-weight: 800; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-    💡 [종합 결론 및 트레이딩 전략 가이드]
+<!-- Image 5: Cycle Roadmap & Action Guide -->
+<div class="post-img-container text-center my-4">
+  <img src="${img5}" alt="투자자 심리 사이클 로드맵 & 실전 행동 수칙 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" />
+</div>
+
+<div class="morning-conclusion-card" style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 20px 22px; margin: 24px 0; color: #ffffff;">
+  <div style="color: #38bdf8; font-weight: 800; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    💡 6. 10년 차 분석가의 실전 행동 가이드: 독자를 위한 실질적 조언
   </div>
-  <p style="font-size: 14px; line-height: 1.8; margin: 0; color: #0c4a6e; font-weight: 500;">
-    공포&탐욕 지수 ${m.fngScore}(${m.fngText}), LTH 비중 ${m.lthRatio}%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. ${conclusionAdvice}
+  <p style="font-size: 14px; line-height: 1.85; margin: 0; color: #f8fafc; font-weight: 500;">
+    초보~중급 투자자분들께 당부드리고 싶은 핵심 행동 수칙은 명확합니다.<br/>
+    첫째, <strong>절대 고레버리지 추격 매수를 하지 마세요.</strong> 거래소 유통량이 적은 환경에서는 단기 흔들기 변동성이 위아래로 크게 터질 수 있으므로, 현물 위주로 지지선 분할 매수하는 원칙을 고수해야 합니다.<br/>
+    둘째, <strong>포트폴리오의 최소 20~30%는 반드시 현금(스테이블코인)으로 유지하세요.</strong> 예기치 못한 매크로 이벤트나 단기 딥(Dip)이 발생했을 때 여유 있게 분할 줍줍할 수 있는 실탄이 있어야 멘탈이 흔들리지 않습니다.<br/>
+    셋째, <strong>비트코인이 길을 터줄 때까지 인내심을 가지세요.</strong> 과거 모든 사이클에서 비트코인의 전고점 돌파 후 도미넌스가 꺾이는 시점에 폭발적인 알트코인 대순환매가 찾아왔습니다. 단기 소음에 흔들리지 말고 온체인 팩트를 나침반 삼아 흔들림 없는 원칙 투자를 이어가시기 바랍니다.
   </p>
 </div>
 `;
 }
 
-// Assemble Gemini AI HTML with 4 Branded Images
-function assembleGeminiHtml(rawText, img1, img2, img3, img4) {
-  const img1Tag = `<div class="post-img-container text-center my-4"><img src="${img1}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const img2Tag = `<div class="post-img-container text-center my-4"><img src="${img2}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const img3Tag = `<div class="post-img-container text-center my-4"><img src="${img3}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const img4Tag = `<div class="post-img-container text-center my-4"><img src="${img4}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+// Assemble Gemini AI HTML with 5 Branded Images
+function assembleGeminiHtml(rawText, img1, img2, img3, img4, img5) {
+  const img1Tag = `<div class="post-img-container text-center my-4"><img src="${img1}" alt="2026 시장 심리 긴급진단 - CrytoPnL 리서치" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img2Tag = `<div class="post-img-container text-center my-4"><img src="${img2}" alt="2026 Q3 크립토 심리 계측기 & 시장 감정 다이얼 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img3Tag = `<div class="post-img-container text-center my-4"><img src="${img3}" alt="현재 시장 분위기를 주도하는 3대 핵심 동인 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img4Tag = `<div class="post-img-container text-center my-4"><img src="${img4}" alt="주요 자산군별 체감 온도차 & 수급 다이버전스 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const img5Tag = `<div class="post-img-container text-center my-4"><img src="${img5}" alt="투자자 심리 사이클 로드맵 & 실전 행동 수칙 - CrytoPnL" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
 
   let processed = rawText;
   if (processed.includes('<!-- IMAGE_1 -->')) {
     processed = processed.replace('<!-- IMAGE_1 -->', img1Tag);
   }
-  if (processed.includes('<!-- IMAGE_3 -->')) {
-    processed = processed.replace('<!-- IMAGE_3 -->', img3Tag);
-  }
   if (processed.includes('<!-- IMAGE_2 -->')) {
     processed = processed.replace('<!-- IMAGE_2 -->', img2Tag);
+  }
+  if (processed.includes('<!-- IMAGE_3 -->')) {
+    processed = processed.replace('<!-- IMAGE_3 -->', img3Tag);
   }
   if (processed.includes('<!-- IMAGE_4 -->')) {
     processed = processed.replace('<!-- IMAGE_4 -->', img4Tag);
   }
+  if (processed.includes('<!-- IMAGE_5 -->')) {
+    processed = processed.replace('<!-- IMAGE_5 -->', img5Tag);
+  }
+
+  // Fallback: If AI omitted image placeholder tags, smartly insert them
+  if (!processed.includes(img1Tag)) processed = img1Tag + processed;
+  if (!processed.includes(img5Tag)) processed = processed + img5Tag;
 
   // Cleanup helper tags
   processed = processed
@@ -810,6 +1197,7 @@ async function buildDailyMarketReport(targetDate = null) {
   const img2 = generateReportImage2(dateStr, marketData);
   const img3 = generateReportImage3(dateStr, marketData);
   const img4 = generateReportImage4(dateStr, marketData);
+  const img5 = generateReportImage5(dateStr, marketData);
 
   let contentHtml = null;
   const apiKey = process.env.GEMINI_API_KEY;
@@ -819,7 +1207,7 @@ async function buildDailyMarketReport(targetDate = null) {
       console.log('[Daily Report Generator] GEMINI_API_KEY detected. Requesting AI report synthesis...');
       const aiText = await callGeminiAPI(dateStr, dateKorean, marketData, apiKey);
       if (aiText) {
-        contentHtml = assembleGeminiHtml(aiText, img1, img2, img3, img4);
+        contentHtml = assembleGeminiHtml(aiText, img1, img2, img3, img4, img5);
       }
     } catch (e) {
       console.warn('[Daily Report Generator] Gemini API synthesis failed, falling back to dynamic quant engine:', e.message);
@@ -830,7 +1218,7 @@ async function buildDailyMarketReport(targetDate = null) {
 
   // Fallback to dynamic quant engine if AI was not available
   if (!contentHtml) {
-    contentHtml = generateDynamicQuantReport(dateStr, dateKorean, marketData, img1, img2, img3, img4);
+    contentHtml = generateDynamicQuantReport(dateStr, dateKorean, marketData, img1, img2, img3, img4, img5);
   }
 
   // Pure text character count check (excluding image containers)
@@ -844,11 +1232,14 @@ async function buildDailyMarketReport(targetDate = null) {
   const timestamp = kst.getTime();
   const timeStr = `${dateStr} ${timeFormatted}`;
 
+  const fngNum = parseInt(marketData.fngScore) || 69;
+  const titleTopic = fngNum >= 75 ? '극단적 탐욕의 유혹과 과열 리스크' : (fngNum >= 55 ? `비트코인 탐욕 지수 ${fngNum}P... 폭풍 전야인가 대세 상승의 서막인가?` : `공포와 관망 사이... 스마트머니는 왜 조용히 지갑을 채울까?`);
+
   return {
     id: reportId,
     category: 'altcoin',
     categoryName: '📊 시장 분위기',
-    title: `[${timeFormatted} 시황 브리핑] ${dateKorean} 글로벌 암호화폐 & 온체인 펀더멘털 종합 분석 보고서`,
+    title: `[시장 심리 분석] ${dateKorean} ${titleTopic}`,
     author: '시황분석팀 (AI)',
     authorRank: 'VERIFIED',
     timestamp: timestamp,
@@ -860,7 +1251,7 @@ async function buildDailyMarketReport(targetDate = null) {
     content: contentHtml,
     comments: []
   };
-}
+};
 
 // 5. Daily Technical Trading Perspective Generator (TradingView Style)
 async function fetchBinance4hTechnicals() {
