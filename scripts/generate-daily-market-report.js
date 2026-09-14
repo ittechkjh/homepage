@@ -52,9 +52,9 @@ function createSvgDataUri(svg) {
 
 // 1. Live Data Ingestion
 async function fetchLiveMarketData(dateStr) {
-  let upbitBtc = 106340000;
-  let binanceBtc = 78370.0;
-  let usdKrw = 1340.5;
+  let upbitBtc = 105400000;
+  let binanceBtc = null;
+  let usdKrw = 1342.5;
   let fngScore = 69;
   let fngText = '탐욕 (Greed)';
 
@@ -103,17 +103,80 @@ async function fetchLiveMarketData(dateStr) {
     console.warn('[Data Ingestion] Upbit ticker fallback used:', e.message);
   }
 
-  // Binance BTC
+  // Global BTC Price (Multi-Source Failover: Bybit -> Binance -> Binance.US -> Coinbase -> Upbit/FX)
+  // Source 1: Bybit Spot Ticker (Worldwide accessible, no HTTP 451 geo-block on US cloud runners)
   try {
-    const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', { signal: AbortSignal.timeout(4000) });
-    if (binanceRes.ok) {
-      const data = await binanceRes.json();
-      if (data && data.price) {
-        binanceBtc = parseFloat(data.price);
+    const bybitRes = await fetch('https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(4000)
+    });
+    if (bybitRes.ok) {
+      const data = await bybitRes.json();
+      if (data && data.result && Array.isArray(data.result.list) && data.result.list[0] && data.result.list[0].lastPrice) {
+        binanceBtc = parseFloat(data.result.list[0].lastPrice);
+        console.log(`[Data Ingestion] Successfully fetched live BTC price from Bybit: $${binanceBtc}`);
       }
     }
   } catch (e) {
-    console.warn('[Data Ingestion] Binance ticker fallback used:', e.message);
+    console.warn('[Data Ingestion] Bybit ticker fetch failed:', e.message);
+  }
+
+  // Source 2: Binance Global Spot
+  if (!binanceBtc) {
+    try {
+      const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', { signal: AbortSignal.timeout(4000) });
+      if (binanceRes.ok) {
+        const data = await binanceRes.json();
+        if (data && data.price) {
+          binanceBtc = parseFloat(data.price);
+          console.log(`[Data Ingestion] Successfully fetched live BTC price from Binance: $${binanceBtc}`);
+        }
+      }
+    } catch (e) {
+      console.warn('[Data Ingestion] Binance ticker fallback used:', e.message);
+    }
+  }
+
+  // Source 3: Binance.US Spot (accessible from US Cloud IPs)
+  if (!binanceBtc) {
+    try {
+      const binanceUsRes = await fetch('https://api.binance.us/api/v3/ticker/price?symbol=BTCUSDT', { signal: AbortSignal.timeout(4000) });
+      if (binanceUsRes.ok) {
+        const data = await binanceUsRes.json();
+        if (data && data.price) {
+          binanceBtc = parseFloat(data.price);
+          console.log(`[Data Ingestion] Successfully fetched live BTC price from Binance.US: $${binanceBtc}`);
+        }
+      }
+    } catch (e) {
+      console.warn('[Data Ingestion] Binance.US ticker fallback used:', e.message);
+    }
+  }
+
+  // Source 4: Coinbase Spot
+  if (!binanceBtc) {
+    try {
+      const cbRes = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot', { signal: AbortSignal.timeout(4000) });
+      if (cbRes.ok) {
+        const data = await cbRes.json();
+        if (data && data.data && data.data.amount) {
+          binanceBtc = parseFloat(data.data.amount);
+          console.log(`[Data Ingestion] Successfully fetched live BTC price from Coinbase: $${binanceBtc}`);
+        }
+      }
+    } catch (e) {
+      console.warn('[Data Ingestion] Coinbase ticker fallback used:', e.message);
+    }
+  }
+
+  // Source 5: Upbit / FX rate conversion (100% fail-safe)
+  if (!binanceBtc) {
+    if (upbitBtc && usdKrw) {
+      binanceBtc = Math.round((upbitBtc / usdKrw) * 100) / 100;
+      console.log(`[Data Ingestion] Implied USD BTC from Upbit/FX: $${binanceBtc}`);
+    } else {
+      binanceBtc = 77500.0;
+    }
   }
 
   // Fear & Greed Index
@@ -1534,7 +1597,7 @@ async function fetchBinance4hTechnicals() {
 // 16:9 High-Definition Perspective Infographics (800x450)
 // SVG 1: 메인 썸네일 & 기술적 셋업 카드 (16:9 800x450)
 function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const slotBadge = slotInfo?.timeFormatted ? slotInfo.timeFormatted : (slotInfo ? slotInfo.slotHour + '시' : '4H');
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 실시간`;
   const setup = tech.setup || {
@@ -1665,7 +1728,7 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
 
 // SVG 2: 중장기 추세 구조 & 50/200 이평선 분석 (16:9 800x450)
 function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const ema50 = Number(tech.ema50 || 76800);
   const ema200 = Number(tech.ema200 || 71200);
 
@@ -1761,7 +1824,7 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
 
 // SVG 3: 단기 4H 캔들 패턴 & 멀티 모멘텀 계측기 (16:9 800x450)
 function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const rsiVal = tech.rsi || 54;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
@@ -1904,7 +1967,7 @@ function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
 
 // SVG 4: 엘리엇 파동 카운팅 & 피보나치 되돌림 로드맵 (16:9 800x450)
 function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const fib = tech.technicalConfluence?.fib || {};
   const f618 = Number(fib.fib618 || Math.round(curP * 0.965));
   const f382 = Number(fib.fib382 || Math.round(curP * 0.985));
@@ -1998,7 +2061,7 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
 
 // SVG 5: 핵심 지지·저항 맵 & 양방향 시나리오 매트릭스 (16:9 800x450)
 function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -2100,7 +2163,7 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
 async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, apiKey) {
   const slotName = slotInfo?.slotName || '실시간 관점';
   const sessionTitle = slotInfo?.sessionTitle || '실시간 4H 캔들 분석';
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const setup = tech.setup || {
     direction: 'LONG',
     theme: '50 EMA 지지 안착 및 상방 돌파 테스트',
@@ -2277,7 +2340,7 @@ function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, imgUris, sl
 
   const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
   const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
-  const curP = Number(tech.currentPrice || 78370);
+  const curP = Number(tech.currentPrice || 77500);
   const ema20 = Number(tech.ema20 || Math.round(curP * 0.998));
   const ema50 = Number(tech.ema50 || Math.round(curP * 1.006));
   const ema200 = Number(tech.ema200 || Math.round(curP * 1.018));
