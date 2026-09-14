@@ -1,11 +1,7 @@
 name: Generate Daily Crypto Market Report
 
 on:
-  schedule:
-    - cron: '18 23 * * *' # 매일 08:18 KST (23:18 UTC, off-peak minute)
-    - cron: '18 8 * * *'  # 매일 17:18 KST (08:18 UTC, off-peak minute)
-    - cron: '18 12 * * *' # 매일 21:18 KST (12:18 UTC, off-peak minute)
-  workflow_dispatch: # Allows manual trigger anytime from UI or GitHub Actions tab
+  workflow_dispatch: # 수동 생성 버튼(UI 및 GitHub Actions)으로만 실행되도록 스케줄 트리거 해제
     inputs:
       report_type:
         description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만)'
