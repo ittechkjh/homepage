@@ -3214,7 +3214,6 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 2. 글 구조 (반드시 준수):
    - 최상단 첫 줄에 반드시 <TITLE>매력적인 제목 (SEO 고려, 숫자나 핵심 키워드 포함)</TITLE> 형태로 제목을 작성하세요.
    - 1. 도입부: 2040 직장인의 월급 관리, 세금, 물가 상승 고민에 깊이 공감하며 영상의 핵심 주제와 시사점을 자연스럽게 소개하세요.
-   - 도입부 직후 반드시 <!-- YOUTUBE_EMBED --> 주석 플레이스홀더를 한 줄에 단독으로 배치하세요.
    - 2. 본문: 영상의 핵심 내용을 3~4개의 소제목(<h4> 태그)으로 구분하여 정리하세요.
      각 소제목마다 구체적이고 실용적인 팁과 주의점을 친절하게 설명하세요.
      소제목마다 아래의 4개 이미지 주석 플레이스홀더를 순서대로 하나씩 반드시 배치하세요:
@@ -3240,7 +3239,7 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 - 영상 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1000) : '제공된 설명 없음'}
 - 영상 자막/발언 요약: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3000) : '영상 내 핵심 재테크 및 절세 투자 포인트'}
 
-위 데이터를 바탕으로 10년 경력의 재테크 블로거로서 4개 인포그래픽 카드와 유튜브 임베드 플레이스홀더를 정확히 포함하여 알찬 글을 작성해주세요.`;
+위 데이터를 바탕으로 10년 경력의 재테크 블로거로서 4개 인포그래픽 카드를 정확히 포함하여 알찬 글을 작성해주세요.`;
 
   const baseContents = [
     {
@@ -3329,11 +3328,6 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris) {
   const safeTitle = (videoDetails?.title || '2040 직장인을 위한 핵심 재테크 전략').replace(/[<>&"]/g, '');
   const channel = (videoDetails?.channelName || '재테크 전문 채널').replace(/[<>&"]/g, '');
-  const videoId = videoDetails?.videoId || '';
-
-  const ytEmbed = videoId ? `<div class="video-container my-6" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 800px; margin: 20px auto; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-    <iframe src="https://www.youtube.com/embed/${videoId}" title="${safeTitle}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 14px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-  </div>` : '';
 
   const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="재테크 핵심 요약 인포그래픽 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
   const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 실천 로드맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
@@ -3351,8 +3345,6 @@ function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris
   안녕하십니까. 10년 차 재테크 블로거입니다. 매월 월급날만 되면 스쳐 지나가는 잔고를 보며 "도대체 어떻게 돈을 모아야 할까?" 고민하시는 20~40대 직장인분들이 많으실 겁니다. 물가와 금리는 요동치는데 월급 인상률은 이를 따라가지 못하는 시대, 단순히 열심히 아끼는 것만으로는 경제적 자유를 이루기 어렵습니다.<br/>
   오늘은 유튜브 <strong>${channel}</strong> 채널의 화제 영상 <em>"${safeTitle}"</em>의 핵심 내용을 바탕으로, 우리 같은 평범한 직장인들이 오늘부터 당장 통장과 계좌에 적용할 수 있는 군더더기 없는 실전 재테크 가이드를 정리해 드립니다.
 </p>
-
-${ytEmbed}
 
 ${imgTag1}
 
@@ -3419,12 +3411,7 @@ ${imgTag4}
 
 // Assemble Finance Report with Gemini Text + Images + Embed
 function assembleFinanceHtml(rawText, videoDetails, imgUris) {
-  const safeTitle = (videoDetails?.title || '2040 직장인 맞춤 재테크 가이드').replace(/[<>&"]/g, '');
-  const videoId = videoDetails?.videoId || '';
-
-  const ytEmbed = videoId ? `<div class="video-container my-6" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 800px; margin: 20px auto; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-    <iframe src="https://www.youtube.com/embed/${videoId}" title="${safeTitle}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 14px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-  </div>` : '';
+  const safeTitle = (videoDetails?.title || '2040 직장인을 위한 맞춤 재테크 가이드').replace(/[<>&"]/g, '');
 
   const imgTags = [
     `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="재테크 핵심 요약 인포그래픽 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
@@ -3435,13 +3422,8 @@ function assembleFinanceHtml(rawText, videoDetails, imgUris) {
 
   let processed = rawText.replace(/<TITLE>.*?<\/TITLE>/gi, '').trim();
 
-  // Replace YouTube Embed
-  if (processed.includes('<!-- YOUTUBE_EMBED -->')) {
-    processed = processed.replace('<!-- YOUTUBE_EMBED -->', ytEmbed);
-  } else {
-    // If model omitted placeholder, prepend embed after first paragraph
-    processed = ytEmbed + '\n' + processed;
-  }
+  // Strip any YouTube embed placeholder if present
+  processed = processed.replace(/<!--\s*YOUTUBE_EMBED\s*-->/gi, '').trim();
 
   // Replace Images
   processed = processed.replace('<!-- FINANCE_IMAGE_1 -->', imgTags[0]);
