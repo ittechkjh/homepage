@@ -347,8 +347,8 @@ function generateReportImage1(dStr, m) {
     <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
     <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 전문가 뷰</text>
 
-    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="697" y="20" fill="#bae6fd" font-size="12" font-weight="800" font-family="monospace" text-anchor="middle">⚡ CrytoPnL 리서치</text>
+    <rect x="635" y="0" width="135" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
 
   <!-- Left Main Headline -->
@@ -365,7 +365,7 @@ function generateReportImage1(dStr, m) {
     </text>
 
     <g transform="translate(0, 138)">
-      <rect width="455" height="48" rx="12" fill="#0c2338" stroke="#0ea5e9" stroke-width="1.8" filter="url(#mm_drop)"/>
+      <rect width="465" height="48" rx="12" fill="#0c2338" stroke="#0ea5e9" stroke-width="1.8" filter="url(#mm_drop)"/>
       <circle cx="28" cy="24" r="14" fill="#0284c7"/>
       <text x="28" y="29" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
       <text x="52" y="30" fill="#e0f2fe" font-size="15" font-weight="800" font-family="'Pretendard', sans-serif">
@@ -397,8 +397,8 @@ function generateReportImage1(dStr, m) {
       <rect width="210" height="74" rx="12" fill="#111c30" stroke="#0284c7" stroke-width="1.2"/>
       <text x="14" y="24" fill="#94a3b8" font-size="11" font-weight="700">Fear &amp; Greed Index</text>
       <text x="14" y="54" fill="#38bdf8" font-size="28" font-weight="900" font-family="monospace">${m.fngScore}p</text>
-      <rect x="110" y="34" width="86" height="22" rx="6" fill="#0284c7"/>
-      <text x="153" y="49" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${(m.fngText || '탐욕').slice(0, 8)}</text>
+      <rect x="98" y="34" width="102" height="22" rx="6" fill="#0284c7"/>
+      <text x="149" y="49" fill="#ffffff" font-size="11" font-weight="800" text-anchor="middle">${fngNum >= 75 ? '극단적 탐욕' : (fngNum >= 55 ? '탐욕 (Greed)' : (fngNum >= 45 ? '중립 (Neutral)' : (fngNum >= 25 ? '공포 (Fear)' : '극단적 공포')))}</text>
     </g>
 
     <!-- Funding Rate Block -->
@@ -1588,8 +1588,8 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
     <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
     <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 기술 분석가 뷰</text>
 
-    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="697" y="20" fill="#bae6fd" font-size="12" font-weight="800" font-family="monospace" text-anchor="middle">⚡ CrytoPnL 차트랩</text>
+    <rect x="635" y="0" width="135" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
 
   <g transform="translate(35, 90)">
