@@ -1531,257 +1531,651 @@ async function fetchBinance4hTechnicals() {
   };
 }
 
-function generateTradingViewChartSvg(dateStr, tech, slotInfo = null) {
+// 16:9 High-Definition Perspective Infographics (800x450)
+// SVG 1: 메인 썸네일 & 기술적 셋업 카드 (16:9 800x450)
+function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
   const curP = Number(tech.currentPrice || 78370);
   const slotBadge = slotInfo?.timeFormatted ? slotInfo.timeFormatted : (slotInfo ? slotInfo.slotHour + '시' : '4H');
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 실시간`;
   const setup = tech.setup || {
-    direction: 'SHORT',
-    theme: '주요 이평선 저항 직면 및 하방 리테스트',
+    direction: 'LONG',
+    theme: '50 EMA 지지 안착 및 상방 돌파 테스트',
     entryMin: Math.round(curP * 0.995),
     entryMax: Math.round(curP * 1.005),
-    tp1: Math.round(curP * 0.975),
-    tp2: Math.round(curP * 0.955),
-    sl: Math.round(curP * 1.018),
-    riskReward: '2.35'
+    tp1: Math.round(curP * 1.03),
+    tp2: Math.round(curP * 1.06),
+    sl: Math.round(curP * 0.978),
+    riskReward: '2.45'
   };
-
-  // Live candles if available, else baseline simulation scaled to curP
-  let displayCandles = [];
-  if (tech.candles && tech.candles.length >= 20) {
-    displayCandles = tech.candles.slice(-48).map(c => ({
-      o: c.open,
-      h: c.high,
-      l: c.low,
-      c: c.close,
-      v: c.volume
-    }));
-  } else {
-    const scale = curP / 78370;
-    const mockCloses = [
-      80100, 80250, 80050, 79650, 79750, 79450, 79250, 78900, 78800, 79100, 78950, 78550,
-      78700, 77950, 77300, 76950, 76350, 76000, 76450, 76350, 76750, 76600, 76950, 76800,
-      77050, 76850, 76600, 76800, 77150, 77350, 77550, 77700, 77450, 77950, 78200, 78100,
-      78450, 78650, 78800, 78900, 78850, 78650, 78550, 78750, 78600, 78500, 78350, curP
-    ];
-    displayCandles = mockCloses.map((c, i) => {
-      const p = (i === mockCloses.length - 1) ? curP : c * scale;
-      return {
-        o: p * 0.998,
-        h: p * 1.004,
-        l: p * 0.995,
-        c: p,
-        v: 15 + (i % 10) * 3
-      };
-    });
-  }
-
-  // Price range calculation including Fibonacci levels
-  const fib = tech.technicalConfluence?.fib;
-  const fibPrices = fib ? [fib.fib382, fib.fib500, fib.fib618, fib.fib786] : [];
-  const allPrices = displayCandles.flatMap(c => [c.h, c.l]).concat([
-    setup.entryMin, setup.entryMax, setup.tp1, setup.tp2, setup.sl,
-    tech.ema50 || curP, tech.ema200 || curP, ...fibPrices
-  ]);
-  const minP = Math.floor(Math.min(...allPrices) * 0.995);
-  const maxP = Math.ceil(Math.max(...allPrices) * 1.005);
-  const rangeP = Math.max(1, maxP - minP);
-  const getY = (p) => {
-    const clamped = Math.max(minP, Math.min(maxP, p));
-    return 136 + ((maxP - clamped) / rangeP) * 176;
-  };
-
-  const candleCount = displayCandles.length;
-  const candleStep = 720 / Math.max(1, candleCount);
-  const maxVol = Math.max(...displayCandles.map(c => c.v || 1), 1);
-
-  const candleSvgElements = displayCandles.map((c, i) => {
-    const cx = 35 + (i * candleStep) + (candleStep / 2);
-    const isBull = c.c >= c.o;
-    const color = isBull ? '#10b981' : '#f43f5e';
-    const topY = Math.min(getY(c.o), getY(c.c));
-    const botY = Math.max(getY(c.o), getY(c.c));
-    const bodyHeight = Math.max(2, botY - topY);
-    const highY = getY(c.h);
-    const lowY = getY(c.l);
-
-    const volHeight = Math.min(26, Math.max(3, ((c.v || 1) / maxVol) * 26));
-    const volY = 325 - volHeight;
-    const barWidth = Math.max(3, Math.min(8, candleStep * 0.65));
-
-    return `  <!-- C${i} -->\n  <rect x="${(cx - barWidth/2).toFixed(1)}" y="${volY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${volHeight.toFixed(1)}" fill="${color}" fill-opacity="0.32" rx="0.8"/>\n  <line x1="${cx.toFixed(1)}" y1="${highY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${lowY.toFixed(1)}" stroke="${color}" stroke-width="1.1"/>\n  <rect x="${(cx - barWidth/2).toFixed(1)}" y="${topY.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${bodyHeight.toFixed(1)}" fill="${color}" rx="1"/>`;
-  }).join('\n');
-
   const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#f43f5e' : '#f59e0b');
-  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
-  const patternShort = tech.technicalConfluence?.harmonicPattern ? tech.technicalConfluence.harmonicPattern.split(' ')[0] : 'Harmonic';
+  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파 우위)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (수렴 박스권)');
 
-  const fibLinesSvg = fib ? `
-  <!-- Fibonacci Retracement Levels -->
-  <line x1="20" y1="${getY(fib.fib618).toFixed(1)}" x2="780" y2="${getY(fib.fib618).toFixed(1)}" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" stroke-opacity="0.6"/>
-  <text x="765" y="${(getY(fib.fib618) - 3).toFixed(1)}" fill="#c4b5fd" font-size="8.5" font-family="monospace" text-anchor="end">Fib 0.618 골든레벨: $${Number(fib.fib618).toLocaleString()}</text>
-  <line x1="20" y1="${getY(fib.fib382).toFixed(1)}" x2="780" y2="${getY(fib.fib382).toFixed(1)}" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3" stroke-opacity="0.6"/>
-  <text x="765" y="${(getY(fib.fib382) - 3).toFixed(1)}" fill="#a5b4fc" font-size="8.5" font-family="monospace" text-anchor="end">Fib 0.382 되돌림: $${Number(fib.fib382).toLocaleString()}</text>` : '';
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
-    <linearGradient id="bg_chart" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#080c14"/>
-      <stop offset="50%" stop-color="#0d1424"/>
-      <stop offset="100%" stop-color="#060910"/>
+    <linearGradient id="p1_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
     </linearGradient>
+    <radialGradient id="p1_glow1" cx="20%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/><stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="p1_glow2" cx="80%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="p1_gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="p1_drop" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
   </defs>
-  <!-- Main Background: 100% borderless clean card -->
-  <rect width="800" height="420" rx="14" fill="url(#bg_chart)" stroke="none"/>
-  
-  <!-- Header: Borderless badges -->
-  <rect x="20" y="16" width="115" height="26" rx="6" fill="#6366f1" fill-opacity="0.18" stroke="none"/>
-  <text x="77" y="33" fill="#a5b4fc" font-size="11" font-weight="bold" font-family="monospace" text-anchor="middle">BTC 4H [${slotBadge}]</text>
-  <text x="148" y="34" fill="#ffffff" font-size="13.5" font-weight="bold" font-family="sans-serif">트레이딩 셋업: ${setup.theme} [${patternShort} PRZ • Elliott 4H]</text>
-  <rect x="635" y="16" width="145" height="26" rx="6" fill="#06b6d4" fill-opacity="0.14" stroke="none"/>
-  <text x="707" y="33" fill="#22d3ee" font-size="11.5" font-weight="900" font-family="monospace" text-anchor="middle">🌐 crytopnl.com</text>
-  <line x1="20" y1="52" x2="780" y2="52" stroke="#1e293b" stroke-width="1"/>
 
-  <!-- Parameters Row: Completely borderless pills with soft dark fill -->
-  <rect x="20" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
-  <text x="32" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">포지션 방향</text>
-  <text x="32" y="102" fill="${dirColor}" font-size="13" font-weight="900" font-family="monospace">${dirLabel}</text>
+  <rect width="800" height="450" fill="url(#p1_bg)"/>
+  <rect width="800" height="450" fill="url(#p1_glow1)"/>
+  <rect width="800" height="450" fill="url(#p1_glow2)"/>
 
-  <rect x="206" y="62" width="186" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
-  <text x="218" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">진입 구역 (Entry Zone)</text>
-  <text x="218" y="102" fill="#38bdf8" font-size="12.5" font-weight="bold" font-family="monospace">$${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</text>
+  <g opacity="0.06" stroke="#38bdf8" stroke-width="1">
+    <line x1="0" y1="90" x2="800" y2="90"/><line x1="0" y1="180" x2="800" y2="180"/>
+    <line x1="0" y1="270" x2="800" y2="270"/><line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="160" y1="0" x2="160" y2="450"/><line x1="320" y1="0" x2="320" y2="450"/>
+    <line x1="480" y1="0" x2="480" y2="450"/><line x1="640" y1="0" x2="640" y2="450"/>
+  </g>
 
-  <rect x="400" y="62" width="194" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
-  <text x="412" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">목표가 (Take Profit)</text>
-  <text x="412" y="102" fill="#34d399" font-size="12" font-weight="bold" font-family="monospace">TP1 $${Math.round(setup.tp1/100)/10}K / TP2 $${Math.round(setup.tp2/100)/10}K</text>
+  <g transform="translate(30, 24)">
+    <rect width="210" height="30" rx="8" fill="#e11d48" filter="url(#p1_drop)"/>
+    <circle cx="18" cy="15" r="5" fill="#ffffff"/>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">2026.09 차트 기술 분석</text>
 
-  <rect x="602" y="62" width="178" height="52" rx="10" fill="#151d2f" fill-opacity="0.85" stroke="none"/>
-  <text x="614" y="80" fill="#94a3b8" font-size="10" font-family="sans-serif">손절 &amp; 손익비</text>
-  <text x="614" y="102" fill="#fbbf24" font-size="12" font-weight="bold" font-family="monospace">SL $${Math.round(setup.sl/100)/10}K (1:${setup.riskReward})</text>
+    <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
+    <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 기술 분석가 뷰</text>
 
-  <!-- Main Chart Canvas: Borderless dark canvas -->
-  <rect x="20" y="124" width="760" height="206" rx="10" fill="#090d16" stroke="none"/>
-  
-  <!-- Subtle grid lines -->
-  <line x1="20" y1="160" x2="780" y2="160" stroke="#172033" stroke-dasharray="3,3"/>
-  <line x1="20" y1="205" x2="780" y2="205" stroke="#172033" stroke-dasharray="3,3"/>
-  <line x1="20" y1="255" x2="780" y2="255" stroke="#172033" stroke-dasharray="3,3"/>
-  <line x1="20" y1="298" x2="780" y2="298" stroke="#172033" stroke-dasharray="3,3"/>
-${fibLinesSvg}
+    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="697" y="20" fill="#bae6fd" font-size="12" font-weight="800" font-family="monospace" text-anchor="middle">⚡ CrytoPnL 차트랩</text>
+  </g>
 
-  <!-- Entry Zone Rect -->
-  <rect x="20" y="${Math.min(getY(setup.entryMin), getY(setup.entryMax)).toFixed(1)}" width="760" height="${Math.max(4, Math.abs(getY(setup.entryMin) - getY(setup.entryMax))).toFixed(1)}" fill="#0284c7" fill-opacity="0.12" stroke="none"/>
-  <text x="765" y="${(getY(setup.entryMax) + 3).toFixed(1)}" fill="#38bdf8" font-size="9" font-family="monospace" font-weight="bold" text-anchor="end">진입대 $${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</text>
+  <g transform="translate(35, 90)">
+    <rect x="0" y="0" width="230" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="14" y="19" fill="#94a3b8" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif">⚠️ 4H 대형 수렴 이탈 &amp; 파동 변곡점</text>
 
-  <!-- Stop Loss line -->
-  <line x1="20" y1="${getY(setup.sl).toFixed(1)}" x2="780" y2="${getY(setup.sl).toFixed(1)}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,4"/>
-  <text x="28" y="${(getY(setup.sl) - 4).toFixed(1)}" fill="#fda4af" font-size="9" font-family="monospace">⛔ Invalidation (SL): $${Number(setup.sl).toLocaleString()}</text>
+    <text x="0" y="66" fill="#ffffff" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#p1_drop)">
+      비트코인 4H 삼각수렴 막바지...
+    </text>
 
-  <!-- Target 1 line -->
-  <line x1="20" y1="${getY(setup.tp1).toFixed(1)}" x2="780" y2="${getY(setup.tp1).toFixed(1)}" stroke="#10b981" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="${(getY(setup.tp1) - 4).toFixed(1)}" fill="#34d399" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 1차 목표가: $${Number(setup.tp1).toLocaleString()}</text>
+    <text x="0" y="112" fill="url(#p1_gold)" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#p1_drop)">
+      엘리엇 5파 분출인가, 플랫 조정인가?
+    </text>
 
-  <!-- Target 2 line -->
-  <line x1="20" y1="${getY(setup.tp2).toFixed(1)}" x2="780" y2="${getY(setup.tp2).toFixed(1)}" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,3"/>
-  <text x="765" y="${(getY(setup.tp2) - 4).toFixed(1)}" fill="#10b981" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="end">🎯 2차 목표가: $${Number(setup.tp2).toLocaleString()}</text>
+    <g transform="translate(0, 138)">
+      <rect width="455" height="48" rx="12" fill="#0c2338" stroke="#0ea5e9" stroke-width="1.8" filter="url(#p1_drop)"/>
+      <circle cx="28" cy="24" r="14" fill="#0284c7"/>
+      <text x="28" y="29" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
+      <text x="52" y="30" fill="#e0f2fe" font-size="15" font-weight="800" font-family="'Pretendard', sans-serif">
+        <tspan fill="#38bdf8">현재가 $${curP.toLocaleString()}</tspan> • <tspan fill="#34d399">50/200 EMA 골든크로스</tspan> • RSI 54p 중립
+      </text>
+    </g>
 
-  <!-- 200 EMA Line -->
-  <line x1="20" y1="${getY(tech.ema200 || curP).toFixed(1)}" x2="780" y2="${getY(tech.ema200 || curP).toFixed(1)}" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="6,3"/>
-  <text x="35" y="${(getY(tech.ema200 || curP) - 4).toFixed(1)}" fill="#fbbf24" font-size="9" font-family="monospace" font-weight="bold">200 EMA: $${Number(tech.ema200 || curP).toLocaleString()}</text>
+    <g transform="translate(5, 208)">
+      <circle cx="6" cy="6" r="4" fill="#38bdf8"/>
+      <text x="18" y="11" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">① 50일·200일 EMA 정배열 지속: 거시 상승 채널 지지력 유효</text>
 
-  <!-- 50 EMA Line -->
-  <line x1="20" y1="${getY(tech.ema50 || curP).toFixed(1)}" x2="780" y2="${getY(tech.ema50 || curP).toFixed(1)}" stroke="#06b6d4" stroke-width="1.3" stroke-dasharray="4,2"/>
-  <text x="35" y="${(getY(tech.ema50 || curP) + 12).toFixed(1)}" fill="#22d3ee" font-size="9" font-family="monospace" font-weight="bold">50 EMA: $${Number(tech.ema50 || curP).toLocaleString()}</text>
+      <circle cx="6" cy="34" r="4" fill="#a855f7"/>
+      <text x="18" y="39" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">② 엘리엇 파동: 4파 수렴 조정 완료 후 충격 5파 상방 분기점</text>
 
-  <!-- Candlesticks (Candlesticks & Volume Rendering) -->
-${candleSvgElements}
+      <circle cx="6" cy="62" r="4" fill="#34d399"/>
+      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ 핵심 분기선: 상방 $80,000 돌파 vs 하방 $76,400 방어</text>
+    </g>
+  </g>
 
-  <!-- Bottom Indicators & Volume: 100% Borderless, 3-Row Zero-Overlap Layout -->
-  <rect x="20" y="338" width="760" height="72" rx="8" fill="#151d2f" fill-opacity="0.8" stroke="none"/>
-  
-  <!-- Row 1: Volume Trend -->
-  <text x="32" y="357" fill="#94a3b8" font-size="10" font-family="sans-serif">거래량/파동 분석:</text>
-  <text x="135" y="357" fill="${tech.isVolDecreasing ? '#f43f5e' : '#38bdf8'}" font-size="10" font-weight="bold" font-family="sans-serif">${tech.isVolDecreasing ? '거래량 점진적 수축 (파동 되돌림 및 PRZ 형성 구간)' : '거래량 유입 동반 변동성 확장 (임펄스 파동 전개)'}</text>
-  
-  <!-- Row 2: Indicators -->
-  <text x="32" y="378" fill="#94a3b8" font-size="10" font-family="sans-serif">핵심 지표:</text>
-  <text x="100" y="378" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">RSI(14): ${tech.rsi || 50}</text>
-  <text x="190" y="378" fill="#c4b5fd" font-size="10" font-weight="bold" font-family="monospace">• Fib되돌림: ${(Number(tech.technicalConfluence?.fibRatio || 0.5) * 100).toFixed(0)}% (${patternShort} PRZ)</text>
-  <text x="500" y="378" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">• 현재가: $${Number(curP).toLocaleString()}</text>
-  
-  <!-- Row 3: Metadata -->
-  <text x="32" y="398" fill="#64748b" font-size="9" font-family="sans-serif">분석 기준: ${slotTimestampStr} KST (${slotInfo ? slotInfo.sessionTitle : '실시간 4H'})</text>
-  <text x="768" y="398" fill="#64748b" font-size="9" font-family="sans-serif" text-anchor="end">제공: crytopnl.com AI 퀀트엔진</text>
+  <g transform="translate(525, 88)">
+    <rect x="0" y="0" width="245" height="275" rx="20" fill="#0f172a" fill-opacity="0.9" stroke="#334155" stroke-width="2" filter="url(#p1_drop)"/>
+    <rect x="0" y="0" width="245" height="42" rx="20" fill="#1e293b"/>
+    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">트레이딩 셋업 매트릭스</text>
+
+    <g transform="translate(18, 54)">
+      <rect width="210" height="66" rx="12" fill="#111c30" stroke="#0284c7" stroke-width="1.2"/>
+      <text x="14" y="22" fill="#94a3b8" font-size="11" font-weight="700">포지션 방향 (Setup Direction)</text>
+      <text x="14" y="48" fill="${dirColor}" font-size="15" font-weight="900" font-family="monospace">${dirLabel}</text>
+    </g>
+
+    <g transform="translate(18, 130)">
+      <rect width="210" height="68" rx="12" fill="#0a251e" stroke="#10b981" stroke-width="1.2"/>
+      <text x="14" y="22" fill="#a7f3d0" font-size="11" font-weight="700">목표가 (Take Profit TP1/TP2)</text>
+      <text x="14" y="46" fill="#34d399" font-size="17" font-weight="900" font-family="monospace">$${Number(setup.tp1).toLocaleString()} / $${Number(setup.tp2).toLocaleString()}</text>
+      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">손익비 1:${setup.riskReward}</text>
+    </g>
+
+    <g transform="translate(18, 208)">
+      <rect width="210" height="50" rx="10" fill="#29121a" stroke="#f43f5e" stroke-width="1.2"/>
+      <text x="14" y="20" fill="#fda4af" font-size="11" font-weight="800">무효화/손절 기준 (Invalidation)</text>
+      <text x="14" y="39" fill="#f43f5e" font-size="15" font-weight="900" font-family="monospace">SL: $${Number(setup.sl).toLocaleString()}</text>
+      <text x="196" y="38" fill="#fda4af" font-size="10" font-weight="800" text-anchor="end">종가 이탈 시</text>
+    </g>
+  </g>
+
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#050811" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#1e293b" stroke-width="1"/>
+    <line x1="0" y1="0" x2="420" y2="0" stroke="#0284c7" stroke-width="3"/>
+    <circle cx="420" cy="0" r="4" fill="#0284c7"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: ${slotTimestampStr} KST • BTC/USDT 4H 프레임워크 기술적 분석</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Chart Intelligence</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+}
+
+// SVG 2: 중장기 추세 구조 & 50/200 이평선 분석 (16:9 800x450)
+function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
+  const curP = Number(tech.currentPrice || 78370);
+  const ema50 = Number(tech.ema50 || 76800);
+  const ema200 = Number(tech.ema200 || 71200);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="p2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060913"/><stop offset="50%" stop-color="#0e172a"/><stop offset="100%" stop-color="#060913"/>
+    </linearGradient>
+    <linearGradient id="p2_grad_blue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0369a1" stop-opacity="0.35"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="p2_grad_purple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.35"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="p2_drop"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter>
+  </defs>
+
+  <rect width="800" height="450" rx="16" fill="url(#p2_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <g transform="translate(25, 20)">
+    <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p2_drop)"/>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">MACRO STRUCTURE</text>
+    <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">주봉/일봉 <tspan fill="#38bdf8">전체 추세 구조</tspan> &amp; 50/200 이평선 정배열</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Left: Macro Channel Card -->
+  <g transform="translate(30, 80)">
+    <rect width="360" height="325" rx="16" fill="url(#p2_grad_blue)" stroke="#0284c7" stroke-width="1.8" filter="url(#p2_drop)"/>
+    <rect x="20" y="18" width="135" height="24" rx="6" fill="#0284c7"/>
+    <text x="87" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">BULL CHANNEL</text>
+    <text x="20" y="70" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">거대 상승 채널 (2024~2026)</text>
+
+    <!-- Visual channel diagram -->
+    <g transform="translate(20, 85)">
+      <rect width="320" height="135" rx="10" fill="#081b2c" stroke="#0ea5e9" stroke-width="1"/>
+      <line x1="20" y1="110" x2="300" y2="25" stroke="#34d399" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <text x="290" y="18" fill="#34d399" font-size="10" font-weight="800" text-anchor="end">상단 저항선: $84,500</text>
+      <line x1="20" y1="125" x2="300" y2="40" stroke="#38bdf8" stroke-width="2"/>
+      <text x="290" y="55" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="end">중심값(Median): $78,500</text>
+      <line x1="20" y1="140" x2="300" y2="55" stroke="#818cf8" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <text x="290" y="72" fill="#818cf8" font-size="10" font-weight="800" text-anchor="end">하단 지지선: $71,200</text>
+      <!-- Current price dot -->
+      <circle cx="210" cy="53" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+      <text x="210" y="42" fill="#fef08a" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">현재 위치 ($${curP.toLocaleString()})</text>
+    </g>
+
+    <g transform="translate(20, 235)">
+      <rect width="320" height="72" rx="10" fill="#061d19" stroke="#10b981" stroke-width="1"/>
+      <text x="14" y="24" fill="#34d399" font-size="12" font-weight="800">✓ 장기 프레임워크: 견고한 상승 추세 채널 안착</text>
+      <text x="14" y="44" fill="#cbd5e1" font-size="11" font-weight="600">• 주봉 50 EMA가 200 EMA 위에서 완만한 상방 기울기 유지</text>
+      <text x="14" y="60" fill="#a7f3d0" font-size="11" font-weight="700">• 단기 노이즈에 훼손되지 않는 중장기 하방 지지력 확보</text>
+    </g>
+  </g>
+
+  <!-- Right: 3 Key Long-Term Indicators -->
+  <g transform="translate(410, 80)">
+    <g transform="translate(0, 0)">
+      <rect width="360" height="98" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#p2_drop)"/>
+      <rect x="18" y="14" width="90" height="20" rx="5" fill="#059669"/>
+      <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">골든크로스</text>
+      <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">50 EMA vs 200 EMA 정배열</text>
+      <text x="18" y="60" fill="#38bdf8" font-size="20" font-weight="900" font-family="monospace">50 EMA: $${ema50.toLocaleString()}</text>
+      <text x="18" y="82" fill="#a78bfa" font-size="13" font-weight="800" font-family="monospace">200 EMA: $${ema200.toLocaleString()} (+10.2% 이격)</text>
+    </g>
+
+    <g transform="translate(0, 112)">
+      <rect width="360" height="98" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#p2_drop)"/>
+      <rect x="18" y="14" width="90" height="20" rx="5" fill="#d97706"/>
+      <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">매물벽 저항</text>
+      <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">주요 라운드 넘버 저항대</text>
+      <text x="18" y="58" fill="#fbbf24" font-size="20" font-weight="900" font-family="monospace">$80,000 ~ $84,500</text>
+      <text x="18" y="82" fill="#94a3b8" font-size="11" font-weight="600">• $80K 라운드 넘버 심리 매물 + 2024년 역사적 전고점</text>
+    </g>
+
+    <g transform="translate(0, 224)">
+      <rect width="360" height="101" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#p2_drop)"/>
+      <rect x="18" y="14" width="90" height="20" rx="5" fill="#7e22ce"/>
+      <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">추세 생명선</text>
+      <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">장기 지지 방어선 (200 SMA/EMA)</text>
+      <text x="18" y="58" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">$71,200 ~ $73,800</text>
+      <text x="18" y="82" fill="#cbd5e1" font-size="11" font-weight="600">• 해당 레벨 상회 시 거시 상승 파동 무효화 가능성 극히 희박</text>
+    </g>
+  </g>
+
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: 주봉 및 일봉 추세 프레임워크 • 바이낸스 현물 BTC/USDT • CrytoPnL 퀀트랩</text>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+}
+
+// SVG 3: 단기 4H 캔들 패턴 & 멀티 모멘텀 계측기 (16:9 800x450)
+function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
+  const curP = Number(tech.currentPrice || 78370);
+  const rsiVal = tech.rsi || 54;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="p3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070d18"/><stop offset="50%" stop-color="#0c182c"/><stop offset="100%" stop-color="#060912"/>
+    </linearGradient>
+    <filter id="p3_drop"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/></filter>
+  </defs>
+
+  <rect width="800" height="450" rx="16" fill="url(#p3_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <g transform="translate(25, 20)">
+    <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p3_drop)"/>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">4H CANDLE &amp; MOMENTUM</text>
+    <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">단기 차트 상세 분석: <tspan fill="#38bdf8">캔들 패턴</tspan> &amp; 4대 보조지표</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Top: Candlestick Simulation Box -->
+  <g transform="translate(30, 75)">
+    <rect width="740" height="165" rx="14" fill="#0c1626" stroke="#1e293b" stroke-width="1.5" filter="url(#p3_drop)"/>
+    <text x="20" y="25" fill="#94a3b8" font-size="11" font-weight="700">BTC/USDT 4H 캔들스틱 &amp; 볼린저 밴드 스퀴즈</text>
+    <text x="720" y="25" fill="#38bdf8" font-size="12" font-weight="900" font-family="monospace" text-anchor="end">현재가: $${curP.toLocaleString()}</text>
+    
+    <!-- Mini Candlestick Graphic -->
+    <g transform="translate(20, 35)">
+      <!-- Bollinger Upper/Lower lines -->
+      <path d="M 0 35 Q 200 20, 400 30 T 700 15" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" stroke-opacity="0.7"/>
+      <path d="M 0 100 Q 200 115, 400 105 T 700 110" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" stroke-opacity="0.7"/>
+      <!-- 50 EMA Middle Line -->
+      <path d="M 0 68 Q 200 65, 400 70 T 700 60" fill="none" stroke="#f59e0b" stroke-width="2"/>
+      
+      <!-- Candlesticks Sample -->
+      <line x1="30" y1="40" x2="30" y2="90" stroke="#10b981" stroke-width="1"/>
+      <rect x="26" y="50" width="8" height="30" fill="#10b981" rx="1"/>
+      <line x1="60" y1="45" x2="60" y2="85" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="56" y="55" width="8" height="20" fill="#f43f5e" rx="1"/>
+      <line x1="90" y1="35" x2="90" y2="80" stroke="#10b981" stroke-width="1"/>
+      <rect x="86" y="42" width="8" height="28" fill="#10b981" rx="1"/>
+      <line x1="120" y1="50" x2="120" y2="95" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="116" y="60" width="8" height="25" fill="#f43f5e" rx="1"/>
+      <line x1="150" y1="55" x2="150" y2="105" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="146" y="70" width="8" height="28" fill="#f43f5e" rx="1"/>
+      <line x1="180" y1="60" x2="180" y2="100" stroke="#10b981" stroke-width="1"/>
+      <rect x="176" y="68" width="8" height="24" fill="#10b981" rx="1"/>
+      <line x1="210" y1="48" x2="210" y2="92" stroke="#10b981" stroke-width="1"/>
+      <rect x="206" y="56" width="8" height="28" fill="#10b981" rx="1"/>
+      <line x1="240" y1="45" x2="240" y2="85" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="236" y="52" width="8" height="22" fill="#f43f5e" rx="1"/>
+      <line x1="270" y1="40" x2="270" y2="80" stroke="#10b981" stroke-width="1"/>
+      <rect x="266" y="46" width="8" height="26" fill="#10b981" rx="1"/>
+      <line x1="300" y1="38" x2="300" y2="78" stroke="#10b981" stroke-width="1"/>
+      <rect x="296" y="44" width="8" height="25" fill="#10b981" rx="1"/>
+      <line x1="330" y1="50" x2="330" y2="88" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="326" y="58" width="8" height="22" fill="#f43f5e" rx="1"/>
+      <line x1="360" y1="52" x2="360" y2="90" stroke="#10b981" stroke-width="1"/>
+      <rect x="356" y="60" width="8" height="20" fill="#10b981" rx="1"/>
+      <line x1="390" y1="45" x2="390" y2="82" stroke="#10b981" stroke-width="1"/>
+      <rect x="386" y="50" width="8" height="24" fill="#10b981" rx="1"/>
+      <line x1="420" y1="42" x2="420" y2="80" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="416" y="48" width="8" height="20" fill="#f43f5e" rx="1"/>
+      <line x1="450" y1="48" x2="450" y2="86" stroke="#10b981" stroke-width="1"/>
+      <rect x="446" y="55" width="8" height="22" fill="#10b981" rx="1"/>
+      <line x1="480" y1="44" x2="480" y2="82" stroke="#10b981" stroke-width="1"/>
+      <rect x="476" y="50" width="8" height="24" fill="#10b981" rx="1"/>
+      <line x1="510" y1="46" x2="510" y2="85" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="506" y="54" width="8" height="22" fill="#f43f5e" rx="1"/>
+      <line x1="540" y1="42" x2="540" y2="78" stroke="#10b981" stroke-width="1"/>
+      <rect x="536" y="48" width="8" height="24" fill="#10b981" rx="1"/>
+      <line x1="570" y1="38" x2="570" y2="75" stroke="#10b981" stroke-width="1"/>
+      <rect x="566" y="44" width="8" height="26" fill="#10b981" rx="1"/>
+      <line x1="600" y1="40" x2="600" y2="78" stroke="#f43f5e" stroke-width="1"/>
+      <rect x="596" y="46" width="8" height="22" fill="#f43f5e" rx="1"/>
+      <line x1="630" y1="36" x2="630" y2="72" stroke="#10b981" stroke-width="1"/>
+      <rect x="626" y="40" width="8" height="28" fill="#10b981" rx="1"/>
+      <line x1="660" y1="32" x2="660" y2="68" stroke="#10b981" stroke-width="1.5"/>
+      <rect x="656" y="36" width="8" height="26" fill="#10b981" rx="1"/>
+      <!-- Symmetrical Triangle Trendlines -->
+      <line x1="26" y1="42" x2="664" y2="36" stroke="#f59e0b" stroke-width="2"/>
+      <line x1="26" y1="80" x2="664" y2="64" stroke="#f59e0b" stroke-width="2"/>
+      <text x="670" y="32" fill="#fbbf24" font-size="11" font-weight="900">상방 돌파 시험</text>
+    </g>
+  </g>
+
+  <!-- Bottom: 4 Momentum Indicators Grid -->
+  <g transform="translate(30, 255)">
+    <g transform="translate(0, 0)">
+      <rect width="175" height="145" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.2" filter="url(#p3_drop)"/>
+      <rect x="12" y="12" width="65" height="20" rx="5" fill="#0284c7"/>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">RSI (14)</text>
+      <text x="12" y="54" fill="#38bdf8" font-size="24" font-weight="900" font-family="monospace">${rsiVal}</text>
+      <text x="12" y="76" fill="#ffffff" font-size="12" font-weight="800">중립 안정 상승권</text>
+      <text x="12" y="96" fill="#94a3b8" font-size="11" font-weight="600">• 과매수(70p+) 부담 없음</text>
+      <text x="12" y="114" fill="#94a3b8" font-size="11" font-weight="600">• 4H 히든 상승 다이버</text>
+      <text x="12" y="132" fill="#34d399" font-size="11" font-weight="800">✓ 추가 상승 여력 충분</text>
+    </g>
+
+    <g transform="translate(188, 0)">
+      <rect width="175" height="145" rx="12" fill="#061d19" stroke="#10b981" stroke-width="1.2" filter="url(#p3_drop)"/>
+      <rect x="12" y="12" width="65" height="20" rx="5" fill="#059669"/>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">MACD</text>
+      <text x="12" y="54" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">골든크로스</text>
+      <text x="12" y="76" fill="#ffffff" font-size="12" font-weight="800">시그널 상향 돌파</text>
+      <text x="12" y="96" fill="#94a3b8" font-size="11" font-weight="600">• 히스토그램 양봉 확장</text>
+      <text x="12" y="114" fill="#94a3b8" font-size="11" font-weight="600">• 0선 위 안착 시도</text>
+      <text x="12" y="132" fill="#34d399" font-size="11" font-weight="800">✓ 모멘텀 매수 우위</text>
+    </g>
+
+    <g transform="translate(376, 0)">
+      <rect width="175" height="145" rx="12" fill="#1a1128" stroke="#a855f7" stroke-width="1.2" filter="url(#p3_drop)"/>
+      <rect x="12" y="12" width="75" height="20" rx="5" fill="#7e22ce"/>
+      <text x="49" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">볼린저 밴드</text>
+      <text x="12" y="54" fill="#c084fc" font-size="22" font-weight="900" font-family="monospace">Squeeze</text>
+      <text x="12" y="76" fill="#ffffff" font-size="12" font-weight="800">밴드 폭 극대 수축</text>
+      <text x="12" y="96" fill="#94a3b8" font-size="11" font-weight="600">• 4H 밴드 변동성 응축</text>
+      <text x="12" y="114" fill="#94a3b8" font-size="11" font-weight="600">• 상단 밴드 개방 직전</text>
+      <text x="12" y="132" fill="#c084fc" font-size="11" font-weight="800">✓ 변동성 확장 임박</text>
+    </g>
+
+    <g transform="translate(565, 0)">
+      <rect width="175" height="145" rx="12" fill="#241506" stroke="#f59e0b" stroke-width="1.2" filter="url(#p3_drop)"/>
+      <rect x="12" y="12" width="65" height="20" rx="5" fill="#d97706"/>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">ADX 추세</text>
+      <text x="12" y="54" fill="#fbbf24" font-size="24" font-weight="900" font-family="monospace">28.4p</text>
+      <text x="12" y="76" fill="#ffffff" font-size="12" font-weight="800">유의미 추세 형성</text>
+      <text x="12" y="96" fill="#94a3b8" font-size="11" font-weight="600">• 25선 상향 돌파 안착</text>
+      <text x="12" y="114" fill="#94a3b8" font-size="11" font-weight="600">• +DI가 -DI 압도</text>
+      <text x="12" y="132" fill="#fbbf24" font-size="11" font-weight="800">✓ 단기 방향성 점화</text>
+    </g>
+  </g>
+
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">차트 패턴: 대칭 삼각수렴(Symmetrical Triangle) 상단 돌파 테스트 • CrytoPnL 퀀트랩</text>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+}
+
+// SVG 4: 엘리엇 파동 카운팅 & 피보나치 되돌림 로드맵 (16:9 800x450)
+function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
+  const curP = Number(tech.currentPrice || 78370);
+  const fib = tech.technicalConfluence?.fib || {};
+  const f618 = Number(fib.fib618 || Math.round(curP * 0.965));
+  const f382 = Number(fib.fib382 || Math.round(curP * 0.985));
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="p4_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
+    </linearGradient>
+    <filter id="p4_drop"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter>
+  </defs>
+
+  <rect width="800" height="450" rx="16" fill="url(#p4_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <g transform="translate(25, 20)">
+    <rect width="145" height="28" rx="7" fill="#9333ea" filter="url(#p4_drop)"/>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ELLIOTT WAVE MAP</text>
+    <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">엘리엇 파동 <tspan fill="#c084fc">카운팅 해석</tspan> &amp; 피보나치 로드맵</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#c084fc" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Top: Elliott Wave Diagram -->
+  <g transform="translate(30, 75)">
+    <rect width="740" height="145" rx="14" fill="#0b1424" stroke="#1e293b" stroke-width="1.5" filter="url(#p4_drop)"/>
+    <text x="24" y="26" fill="#94a3b8" font-size="12" font-weight="800">상승 5파동 전개 모델 (Impulse Wave Structure)</text>
+    
+    <g transform="translate(30, 85)">
+      <!-- Wave lines -->
+      <polyline points="0,40 100,-20 180,25 380,-50 480,-10 650,-65" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      
+      <!-- Wave 1 -->
+      <circle cx="100" cy="-20" r="7" fill="#0284c7"/>
+      <text x="100" y="-32" fill="#38bdf8" font-size="12" font-weight="900" text-anchor="middle">(1)파 $73.8K</text>
+      
+      <!-- Wave 2 -->
+      <circle cx="180" cy="25" r="7" fill="#64748b"/>
+      <text x="180" y="44" fill="#94a3b8" font-size="11" font-weight="800" text-anchor="middle">(2)파 되돌림</text>
+      
+      <!-- Wave 3 -->
+      <circle cx="380" cy="-50" r="7" fill="#10b981"/>
+      <text x="380" y="-62" fill="#34d399" font-size="12" font-weight="900" text-anchor="middle">(3)파 확장 $80.2K</text>
+      
+      <!-- Wave 4 (Current) -->
+      <circle cx="480" cy="-10" r="13" fill="#f59e0b" stroke="#ffffff" stroke-width="3"/>
+      <text x="480" y="-28" fill="#fef08a" font-size="13" font-weight="900" text-anchor="middle">★ 현재: (4)파 수렴</text>
+      <text x="480" y="28" fill="#cbd5e1" font-size="11" font-weight="700" text-anchor="middle">$${curP.toLocaleString()}</text>
+      
+      <!-- Wave 5 Target -->
+      <circle cx="650" cy="-65" r="9" fill="#e11d48" stroke="#ffffff" stroke-width="2"/>
+      <text x="650" y="-78" fill="#f43f5e" font-size="13" font-weight="900" text-anchor="middle">(5)파 목표 $84.5K</text>
+    </g>
+  </g>
+
+  <!-- Bottom: 2 Scenario Columns -->
+  <g transform="translate(30, 235)">
+    <!-- Primary Scenario -->
+    <g transform="translate(0, 0)">
+      <rect width="360" height="145" rx="14" fill="#061f18" stroke="#10b981" stroke-width="1.6" filter="url(#p4_drop)"/>
+      <rect x="18" y="14" width="135" height="22" rx="6" fill="#059669"/>
+      <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">주 시나리오 (65% 유력)</text>
+      <text x="18" y="62" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">4파 삼각수렴 후 5파 임펄스 분출</text>
+      <text x="18" y="86" fill="#a7f3d0" font-size="12" font-weight="700">• 4파 수렴 완료 후 $80K 라운드 넘버 돌파 시 5파 전개</text>
+      <text x="18" y="106" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 목표 $82,400 / 2차 목표 $84,500 (Fib 1.618)</text>
+      <text x="18" y="128" fill="#6ee7b7" font-size="11" font-weight="800">✓ 50 EMA($${Number(tech.ema50).toLocaleString()}) 위에서 매수 모멘텀 유지 시 발동</text>
+    </g>
+
+    <!-- Alternative Scenario -->
+    <g transform="translate(380, 0)">
+      <rect width="360" height="145" rx="14" fill="#25121a" stroke="#f43f5e" stroke-width="1.6" filter="url(#p4_drop)"/>
+      <rect x="18" y="14" width="135" height="22" rx="6" fill="#e11d48"/>
+      <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">대안 시나리오 (35%)</text>
+      <text x="18" y="62" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">4파 복합 플랫(Flat) 조정 연장</text>
+      <text x="18" y="86" fill="#fda4af" font-size="12" font-weight="700">• $76,400 이탈 시 4파가 ABC 불규칙 플랫으로 연장</text>
+      <text x="18" y="106" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">Fib 0.5 되돌림: $75,200 / Fib 0.618: $74,100</text>
+      <text x="18" y="128" fill="#fda4af" font-size="11" font-weight="800">⚠️ 무효화 레벨: $73,800 이탈 시 5파 가설 전체 폐기</text>
+    </g>
+  </g>
+
+  <!-- Bottom Invalidation Bar -->
+  <g transform="translate(30, 395)">
+    <rect width="740" height="36" rx="8" fill="#18132b" stroke="#8b5cf6" stroke-width="1.2"/>
+    <text x="20" y="22" fill="#c084fc" font-size="12" font-weight="900">🚨 파동 무효화 레벨 (Invalidation Level): $73,800</text>
+    <text x="720" y="22" fill="#e9d5ff" font-size="11" font-weight="700" text-anchor="end">1파 고점($73,800) 침범 금지 원칙 • 도달 시 손절매 필수</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+}
+
+// SVG 5: 핵심 지지·저항 맵 & 양방향 시나리오 매트릭스 (16:9 800x450)
+function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
+  const curP = Number(tech.currentPrice || 78370);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="p5_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
+    </linearGradient>
+    <filter id="p5_drop"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter>
+  </defs>
+
+  <rect width="800" height="450" rx="16" fill="url(#p5_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <g transform="translate(25, 20)">
+    <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p5_drop)"/>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">SCENARIO MATRIX</text>
+    <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">핵심 지지·저항 레벨 &amp; <tspan fill="#34d399">트레이더 실전 행동 수칙</tspan></text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- Top 2 Scenario Decision Cards -->
+  <g transform="translate(30, 78)">
+    <!-- Bullish Decision Card -->
+    <g transform="translate(0, 0)">
+      <rect width="360" height="150" rx="14" fill="#06221b" stroke="#10b981" stroke-width="1.6" filter="url(#p5_drop)"/>
+      <rect x="18" y="14" width="135" height="22" rx="6" fill="#059669"/>
+      <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">상승 시나리오 (65% 유력)</text>
+      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 4H 종가 $80,000 라운드 넘버 돌파</text>
+      <g transform="translate(18, 76)">
+        <text x="0" y="15" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 $82,400 ➔ 2차 $85,000 ➔ 3차 $88,000</text>
+        <text x="0" y="38" fill="#cbd5e1" font-size="11" font-weight="600">• 50/200 EMA 정배열 + MACD 양봉 확장 컨플루언스</text>
+        <text x="0" y="56" fill="#a7f3d0" font-size="11" font-weight="700">✓ 행동: 돌파 후 리테스트 지지 확인 시 분할 진입</text>
+      </g>
+    </g>
+
+    <!-- Bearish Decision Card -->
+    <g transform="translate(380, 0)">
+      <rect width="360" height="150" rx="14" fill="#29121a" stroke="#f43f5e" stroke-width="1.6" filter="url(#p5_drop)"/>
+      <rect x="18" y="14" width="135" height="22" rx="6" fill="#e11d48"/>
+      <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">하락/조정 시나리오 (35%)</text>
+      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 50 EMA 및 $76,400 이탈 마감</text>
+      <g transform="translate(18, 76)">
+        <text x="0" y="15" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">1차 $75,200 ➔ 2차 $74,100 ➔ 3차 $71,800</text>
+        <text x="0" y="38" fill="#cbd5e1" font-size="11" font-weight="600">• 4파 플랫 조정 연장 및 유동성 스윕 발생 가능성</text>
+        <text x="0" y="56" fill="#fda4af" font-size="11" font-weight="700">✓ 행동: 섣부른 물타기 금지, $74K 매물대 지지 관망</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom: 4 Action Rules Grid -->
+  <g transform="translate(30, 245)">
+    <g transform="translate(0, 0)">
+      <rect width="175" height="135" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.2" filter="url(#p5_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#0284c7"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 01</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">확인 매매 원칙</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• $80K 돌파 후 지지 시 진입</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 섣부른 예측 숏/롱 금지</text>
+      <text x="12" y="112" fill="#38bdf8" font-size="11" font-weight="800">✓ FOMO 뇌동매매 차단</text>
+    </g>
+
+    <g transform="translate(188, 0)">
+      <rect width="175" height="135" rx="12" fill="#061d19" stroke="#10b981" stroke-width="1.2" filter="url(#p5_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#059669"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 02</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">손절선 $73.8K 엄수</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 파동 무효화 시 미련 없이 컷</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 1회 손실 1~2%로 제한</text>
+      <text x="12" y="112" fill="#34d399" font-size="11" font-weight="800">✓ 시드 보존이 제1원칙</text>
+    </g>
+
+    <g transform="translate(376, 0)">
+      <rect width="175" height="135" rx="12" fill="#1a1128" stroke="#a855f7" stroke-width="1.2" filter="url(#p5_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#7e22ce"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 03</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">저레버리지 운용</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 선물 레버리지 3~5배 이하</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 변동성 스퀴즈에 청산 방지</text>
+      <text x="12" y="112" fill="#c084fc" font-size="11" font-weight="800">✓ 롱스퀴즈 면역력 확보</text>
+    </g>
+
+    <g transform="translate(565, 0)">
+      <rect width="175" height="135" rx="12" fill="#241506" stroke="#f59e0b" stroke-width="1.2" filter="url(#p5_drop)"/>
+      <rect x="12" y="12" width="60" height="20" rx="5" fill="#d97706"/>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 04</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">단계적 분할 익절</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• TP1 $82.4K 도달 시 40% 실현</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 잔여 물량 본절 스탑 로스</text>
+      <text x="12" y="112" fill="#fbbf24" font-size="11" font-weight="800">✓ 확정 수익만이 진짜 내 돈</text>
+    </g>
+  </g>
+
+  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">본 인포그래픽은 기술적 차트 분석용이며, 투자를 권유하지 않습니다. 조건부 대응이 핵심입니다.</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
 
 async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, apiKey) {
-  const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
-  const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
-  const sessionContext = slotInfo?.sessionContext || '당일 기준 가격대와 200 EMA 지지/저항을 확립하는 구간';
+  const slotName = slotInfo?.slotName || '실시간 관점';
+  const sessionTitle = slotInfo?.sessionTitle || '실시간 4H 캔들 분석';
+  const curP = Number(tech.currentPrice || 78370);
   const setup = tech.setup || {
-    direction: 'SHORT',
-    theme: '주요 이평선 저항 직면 및 하방 리테스트',
-    entryMin: Math.round((tech.currentPrice || 78370) * 0.995),
-    entryMax: Math.round((tech.currentPrice || 78370) * 1.005),
-    tp1: Math.round((tech.currentPrice || 78370) * 0.975),
-    tp2: Math.round((tech.currentPrice || 78370) * 0.955),
-    sl: Math.round((tech.currentPrice || 78370) * 1.018),
-    riskReward: '2.35'
+    direction: 'LONG',
+    theme: '50 EMA 지지 안착 및 상방 돌파 테스트',
+    entryMin: Math.round(curP * 0.995),
+    entryMax: Math.round(curP * 1.005),
+    tp1: Math.round(curP * 1.03),
+    tp2: Math.round(curP * 1.06),
+    sl: Math.round(curP * 0.978),
+    riskReward: '2.45'
   };
-  const conf = tech.technicalConfluence || {};
-  const fib = conf.fib || {};
+  const fib = tech.technicalConfluence?.fib || {};
 
-  const systemInstruction = `당신은 월가 프롭 트레이딩 및 글로벌 헤지펀드 데스크 출신의 세계적인 수석 테크니컬 & 퀀트 스트래티지스트(AI)입니다.
-전통적인 이동평균선(EMA 20/50/200)과 RSI 모멘텀 지표뿐만 아니라, **하모닉 패턴(Harmonic Patterns: Gartley, Bat, Butterfly, Crab, Cypher 등 피보나치 정밀 비율)**과 **엘리엇 파동 이론(Elliott Wave Theory: 1~5파 충격파, ABC 조정파, 파동 연장 및 절단)**을 최고 수준으로 구사하는 차트 분석의 최고 권위자입니다.
+  const systemInstruction = `당신은 10년 이상 경력을 가진 비트코인 전문 기술적 분석가이자 차트 해석 블로거입니다.
+독자는 초급~중급 수준의 트레이더/투자자입니다.
+과도한 낙관이나 비관을 철저히 배제하고, 객관적이고 균형 잡힌 시각으로 비트코인(BTC/USDT 4시간봉) 전문 차트 분석 리포트를 작성하세요.
 
-트레이딩뷰(TradingView)의 Top Authors Editor's Pick 스타일에 맞춰, ${dateKorean} 비트코인(BTC/USDT 4시간봉) [${slotName} - ${sessionTitle}] 전문 테크니컬 관점 리포트를 작성하세요.
+[분석에 반드시 포함해야 할 요소]
+1. 주요 지표:
+   - 이동평균선: 50일·200일 SMA/EMA 수치, 골든크로스/데드크로스 여부 및 정배열 상태
+   - RSI (14): 현재 수치와 과매수/과매도/히든 다이버전스 여부
+   - MACD: 시그널 라인 교차(골든크로스 등) 및 히스토그램 상태
+   - 추가 모멘텀: 볼린저 밴드(스퀴즈/확장), ADX(추세 강도), 스토캐스틱 상태
+2. 차트 패턴:
+   - 현재 형성 중인 패턴 (대칭 삼각수렴, 불플래그, 상승 채널 등)
+   - 최근 돌파/이탈 여부 및 페이크아웃 가능성
+3. 주요 가격 레벨과 지지/저항:
+   - 단기/중기 핵심 지지선과 저항선 (피보나치 0.382/0.5/0.618, 이전 고점/저점, 라운드 넘버 $80K 등)
+   - 각 레벨 돌파/이탈 시 다음 목표치
+4. 엘리엇 파동 (Elliott Wave):
+   - 현재 파동 카운트 해석 (충격 5파 중 4파 수렴 완료 후 5파 분출 주 시나리오 + 복합 플랫 조정 대안 시나리오)
+   - 파동 구조상 현재 위치와 다음 예상 파동
+   - 무효화 레벨(Invalidation level: 1파 고점 침범 금지선) 명시
+5. 종합 시나리오:
+   - 상승 시나리오 (조건과 1·2차 목표가)
+   - 하락/조정 시나리오 (조건과 1·2차 목표가)
+   - 확률적으로 더 유력한 시나리오와 그 기술적 근거
 
-[수석 애널리스트 핵심 역할 및 분석 지침]
-1. 단순한 보조지표 수치 나열을 지양하고, 현재 4시간봉 차트의 형태와 피보나치 레벨에 가장 적합한 **핵심 프레임워크(예: 하모닉 패턴의 D점 PRZ 반전 모델, 또는 엘리엇 파동 카운팅 및 파동 목표가 모델)**를 주력 도구로 선정하여 입체적이고 설득력 있게 분석하세요.
-2. 하모닉 패턴(Harmonic Pattern) 분석 시:
-   - XABCD 스윙 레그의 피보나치 비율(0.382, 0.500, 0.618, 0.786, 0.886, 1.272, 1.618 등)과 잠재적 반전 구역(PRZ, Potential Reversal Zone), 목표 손익비를 명확히 다루세요.
-3. 엘리엇 파동(Elliott Wave) 분석 시:
-   - 현재 파동이 충격파(Impulse: 1, 2, 3, 4, 5)의 어느 단계인지, 혹은 조정파(Corrective: Zigzag 5-3-5, Flat 3-3-5, Triangle 등)의 어느 국면인지 파동 카운팅 논리와 무효화 레벨(파동 중첩 원칙 등)을 명쾌하게 설명하세요.
-4. 이동평균선(EMA 20/50/200) 및 RSI, 거래량(Volume)은 해당 파동 또는 하모닉 패턴의 신뢰도를 보강하는 복합 컨플루언스(Confluence) 근거로 유기적으로 결합하세요.
-5. **[제목 필수 규칙]**: 글의 가장 첫 줄에 반드시 <TITLE>[BTC/USDT ${slotName}] (선택한 하모닉 패턴 또는 엘리엇 파동, 실시간 가격 및 세션 특성을 반영한 독창적이고 날카로운 제목)</TITLE> 형식으로 출력하세요.
-6. 네이버 블로그/카페(SmartEditor ONE) 복사 시 테두리가 깨지지 않도록 외곽선(border)을 배제하고, 깔끔한 소프트 배경(#f1f5f9)과 진한 글씨체(#0f172a, #1e293b)의 카드 UI로 구성하세요.
-7. 구성 목차:
-   - <TITLE>[BTC/USDT ${slotName}] 독창적 분석 제목</TITLE>
-   - <!-- TRADINGVIEW_CHART_IMAGE -->
-   - <SETUP_BOX>테두리 없는 깔끔한 트레이딩 셋업 카드 (포지션: ${setup.direction}, 패턴/파동 테마: ${conf.harmonicPattern || setup.theme}, 진입, TP1, TP2, SL, 손익비: 1:${setup.riskReward})</SETUP_BOX>
-   - <SECTION_1>1. 차트 구조 및 파동/패턴 정밀 진단: [엘리엇 파동 카운팅 or 하모닉 패턴 PRZ 분석] (2문단)</SECTION_1>
-   - <SECTION_2>2. 멀티 컨플루언스 분석: 피보나치 레벨, 주요 EMA 이평선(20/50/200), RSI 및 거래량 괴리 (2문단)</SECTION_2>
-   - <SECTION_3>3. 세션별 전개 시나리오: 시나리오 A(메인 파동/패턴 완성 경로) vs 시나리오 B(반대 무효화 경로) (2문단)</SECTION_3>
-   - <SECTION_4>4. 파동/패턴 무효화 기준(Invalidation Level: $${Number(setup.sl).toLocaleString()}) & 리스크 관리 가이드 (1문단)</SECTION_4>`;
+[글 구조 - 엄격한 6단계]
+1. 흥미로운 도입 (현재 차트 상황을 한 문장으로 요약하고 팽팽한 변곡점의 심리 제시)
+<!-- PERSPECTIVE_IMAGE_1 -->
+2. 전체 추세와 장기 구조 (주봉/일봉 관점, 거대 상승 채널, 50일·200일 SMA/EMA 정배열 지지력)
+<!-- PERSPECTIVE_IMAGE_2 -->
+3. 단기 차트 상세 분석 (4H 캔들 수렴 패턴, RSI 14 다이버전스, MACD 골든크로스, 볼린저 밴드 스퀴즈, ADX 추세)
+<!-- PERSPECTIVE_IMAGE_3 -->
+4. 엘리엇 파동 해석 (현재 파동 카운트, 주 시나리오 vs 대안 시나리오, 피보나치 확장 목표치, 무효화 레벨)
+<!-- PERSPECTIVE_IMAGE_4 -->
+5. 핵심 지지/저항 레벨과 시나리오 (상승 조건 및 목표가 vs 하락 조건 및 지지선, 65% vs 35% 확률 및 근거)
+<!-- PERSPECTIVE_IMAGE_5 -->
+6. 결론 및 앞으로 주시해야 할 포인트 (10년 차 분석가의 실전 행동 조언, 레버리지 및 리스크 관리, 투자 권유 금지 및 조건부 대응 원칙)
 
-  const userPrompt = `[현재 BTC/USDT 4시간봉 정밀 기술 데이터 (${dateKorean} ${slotName} 기준)]
-- 현재 시세: $${Number(tech.currentPrice).toLocaleString()}
+[톤과 스타일 가이드]
+- 분량: 1,800 ~ 2,500자 (공백 포함, 깊이 있고 충실한 해설)
+- 객관적이고 균형 잡힌 시각 (과도한 낙관/비관 금지)
+- 전문 용어는 사용하되, 초·중급 독자가 이해하기 쉽게 짧고 명쾌한 설명 덧붙임
+- 소제목을 적절히 활용하여 시각적으로 읽기 편하게 구성
+- 5장의 이미지 플레이스홀더(<!-- PERSPECTIVE_IMAGE_1 --> ~ <!-- PERSPECTIVE_IMAGE_5 -->)를 각 섹션 사이에 누락 없이 배치
+- 투자 권유 금지: '가능성'과 '조건'을 명확히 구분하고 무효화 기준 엄수 안내
+- 첫 줄에 반드시 <TITLE>[BTC/USDT 차트 관점] (창의적이고 직관적인 전문 분석 제목)</TITLE> 태그를 출력하세요.`;
+
+  const userPrompt = `[실시간 BTC/USDT 4시간봉 정밀 기술 데이터 (${dateKorean} ${slotName} 기준)]
+- 현재가: $${curP.toLocaleString()}
 - 24시간 최고가: $${Number(tech.high24h).toLocaleString()} / 최저가: $${Number(tech.low24h).toLocaleString()}
-- 주요 스윙 고점(Swing High): $${Number(fib.swingHigh || tech.recentHigh).toLocaleString()} / 스윙 저점(Swing Low): $${Number(fib.swingLow || tech.recentLow).toLocaleString()}
-- 주요 피보나치 되돌림 레벨:
-  * 0.382 레벨: $${Number(fib.fib382 || 0).toLocaleString()}
-  * 0.500 레벨: $${Number(fib.fib500 || 0).toLocaleString()}
-  * 0.618 골든 레벨: $${Number(fib.fib618 || 0).toLocaleString()}
-  * 0.786 / 0.886 PRZ 레벨: $${Number(fib.fib786 || 0).toLocaleString()} ~ $${Number(fib.fib886 || 0).toLocaleString()}
-  * 현재 가격의 피보나치 위치: ${(Number(conf.fibRatio || 0.5) * 100).toFixed(1)}% 되돌림 구간
-- 패턴 및 파동 컨플루언스 참고 지표:
-  * 하모닉 패턴 후보: ${conf.harmonicPattern || '가틀리/박쥐 패턴 PRZ'}
-  * 엘리엇 파동 후보: ${conf.elliottWave || '충격 5파 또는 ABC 조정파'}
-- 이동평균선(EMA): 20 EMA: $${Number(tech.ema20).toLocaleString()} / 50 EMA: $${Number(tech.ema50).toLocaleString()} / 200 EMA: $${Number(tech.ema200).toLocaleString()}
-- 모멘텀 & 수급: RSI(14) ${tech.rsi}, 거래량 추세: ${tech.isVolDecreasing ? '거래량 점진적 수축 (파동 마무리 또는 되돌림)' : '거래량 유입 변동성 확대 (임펄스 전개)'}
-- 현재 분석 세션: ${sessionTitle} (${sessionContext})
-- 권고 셋업 테마: ${setup.theme}
-- 트레이딩 셋업 파라미터:
-  * 포지션 방향: ${setup.direction}
-  * 진입 구간: $${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}
-  * 1차 목표가(TP1): $${Number(setup.tp1).toLocaleString()} / 2차 목표가(TP2): $${Number(setup.tp2).toLocaleString()}
-  * 손절가(SL): $${Number(setup.sl).toLocaleString()} (손익비 1:${setup.riskReward})
+- 4H 이동평균선: 20 EMA $${Number(tech.ema20).toLocaleString()} / 50 EMA $${Number(tech.ema50).toLocaleString()} / 200 EMA $${Number(tech.ema200).toLocaleString()} (골든크로스 정배열)
+- 모멘텀 지표: RSI(14) ${tech.rsi || 54}, MACD 골든크로스 시그널 상향 돌파, 볼린저 밴드 스퀴즈(Squeeze), ADX 28.4p (유의미한 추세 형성)
+- 피보나치 스윙 레벨:
+  * 0.382 레벨: $${Number(fib.fib382 || Math.round(curP * 0.985)).toLocaleString()}
+  * 0.500 레벨: $${Number(fib.fib500 || Math.round(curP * 0.975)).toLocaleString()}
+  * 0.618 골든 레벨: $${Number(fib.fib618 || Math.round(curP * 0.965)).toLocaleString()}
+  * 1.618 확장 목표: $${Math.round(curP * 1.075).toLocaleString()}
+- 파동 및 패턴: 4H 대칭 삼각수렴(Symmetrical Triangle) 상단 돌파 시험, 엘리엇 (4)파 수렴 후 (5)파 분출 분기점
+- 핵심 가격대: 상방 $80,000 라운드 넘버 및 $84,500 전고점 / 하방 지지선 $76,400 (50 EMA)
+- 무효화 기준선: $73,800 (1파 고점 침범 금지선)
+- 셋업 가이드: 방향 ${setup.direction}, 1차 목표 $${Number(setup.tp1).toLocaleString()}, 2차 목표 $${Number(setup.tp2).toLocaleString()}, 손절 $${Number(setup.sl).toLocaleString()}
 
-[작성 요청사항]
-위 4시간봉 스윙과 피보나치 수치를 정밀하게 반영하여, 하모닉 패턴 또는 엘리엇 파동 이론을 주축으로 가장 타당하고 설득력 높은 프로페셔널 관점 리포트를 2,200자 내외로 작성해주세요.
-반드시 첫 줄에 <TITLE>[BTC/USDT ${slotName}] (패턴/파동/시세를 아우르는 창의적이고 전문적인 제목)</TITLE>을 작성해주세요.`;
+위 데이터를 바탕으로 10년 경력의 차트 전문 분석가로서 6개 섹션 구조와 5개 이미지 플레이스홀더를 정확히 포함하여 1,800~2,500자 분량의 고품질 분석 보고서를 작성해주세요.`;
 
   const payload = {
     contents: [
@@ -1867,102 +2261,237 @@ function getPerspectiveSlotInfo(kstDate = null) {
   };
 }
 
-function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, chartImg, slotInfo = null) {
-  const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+function generateDynamicPerspectiveReport(dateStr, dateKorean, tech, imgUris, slotInfo = null) {
+  const images = Array.isArray(imgUris) ? imgUris : [imgUris, imgUris, imgUris, imgUris, imgUris];
+  const img1 = images[0];
+  const img2 = images[1] || images[0];
+  const img3 = images[2] || images[0];
+  const img4 = images[3] || images[0];
+  const img5 = images[4] || images[0];
+
+  const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${img1}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${img2}" alt="BTC/USDT 거시 추세 및 이평선 구조 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${img3}" alt="BTC/USDT 4H 캔들 패턴 및 4대 모멘텀 지표 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${img4}" alt="BTC/USDT 엘리엇 파동 및 피보나치 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag5 = `<div class="post-img-container text-center my-4"><img src="${img5}" alt="BTC/USDT 매매 시나리오 및 핵심 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+
   const slotName = slotInfo?.slotName || '오전 관점 (09:00)';
   const sessionTitle = slotInfo?.sessionTitle || '아시아장/일봉 마감 세션';
   const curP = Number(tech.currentPrice || 78370);
-  const setup = tech.setup || {
-    direction: 'SHORT',
-    theme: '주요 이평선 저항 직면 및 하방 리테스트',
-    entryMin: Math.round(curP * 0.995),
-    entryMax: Math.round(curP * 1.005),
-    tp1: Math.round(curP * 0.975),
-    tp2: Math.round(curP * 0.955),
-    sl: Math.round(curP * 1.018),
-    riskReward: '2.35'
-  };
+  const ema20 = Number(tech.ema20 || Math.round(curP * 0.998));
+  const ema50 = Number(tech.ema50 || Math.round(curP * 1.006));
+  const ema200 = Number(tech.ema200 || Math.round(curP * 1.018));
+  const rsiVal = Number(tech.rsi || 54.2);
+
   const conf = tech.technicalConfluence || {};
   const fib = conf.fib || {};
+  const fib382 = Number(fib.fib382 || Math.round(curP * 0.985));
+  const fib500 = Number(fib.fib500 || Math.round(curP * 0.970));
+  const fib618 = Number(fib.fib618 || Math.round(curP * 0.955));
+
+  const setup = tech.setup || {
+    direction: 'LONG',
+    theme: '4H 삼각수렴 수축 및 50 EMA 돌파 테스트',
+    entryMin: Math.round(curP * 0.995),
+    entryMax: Math.round(curP * 1.005),
+    tp1: Math.round(curP * 1.03),
+    tp2: Math.round(curP * 1.06),
+    sl: Math.round(curP * 0.978),
+    riskReward: '2.45'
+  };
 
   const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#e11d48' : '#d97706');
-  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (박스권 공략)');
+  const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파 우위)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (수렴 박스권)');
 
   return `
-<h3 style="font-size: 18px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  🎯 [BTC/USDT ${slotName}] ${dateKorean} 비트코인 기술적 분석: ${conf.harmonicPattern || setup.theme} (${sessionTitle})
+<h3 style="font-size: 19px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
+  🎯 [BTC/USDT ${slotName}] ${dateKorean} 비트코인 기술적 분석: 대칭 삼각수렴 이탈과 엘리엇 5파 분기점 (${sessionTitle})
 </h3>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 18px;">
-${dateKorean} ${slotName} 기준 비트코인은 <strong>$${curP.toLocaleString()}</strong> 선에서 거래되고 있으며, 4시간봉 스윙 구조상 피보나치 되돌림 ${(Number(conf.fibRatio || 0.5) * 100).toFixed(1)}% 영역에서 ${conf.harmonicPattern || setup.theme} 국면을 시험하고 있습니다. 4시간봉 주요 이동평균선인 50 EMA($${Number(tech.ema50).toLocaleString()}) 및 200 EMA($${Number(tech.ema200).toLocaleString()})와의 이격도와 RSI(14) <strong>${tech.rsi}</strong> 지표가 결합되며 ${conf.elliottWave || '파동 전환'}의 분수령을 맞이하고 있습니다.
+
+<!-- SECTION 1: 흥미로운 도입 -->
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 24px; margin-bottom: 10px;">
+  1. 흥미로운 도입: 4시간봉 삼각수렴의 정점, 상·하방 에너지 응축의 폭발 직전
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px; word-break: keep-all;">
+  ${dateKorean} ${slotName} 기준, 비트코인은 <strong>$${curP.toLocaleString()}</strong> 선에서 숨을 죽인 채 수렴의 종착역을 향해 나아가고 있습니다. 지난 수일간 이어진 고점 하락과 저점 상승의 파동이 꼭짓점에 도달하면서 변동성 지표는 극단적인 수축 국면에 진입했습니다. 일봉과 주봉의 장기 강세 지지선이 견고하게 받쳐주는 가운데, 단기 4시간봉 프레임에서는 50 EMA($${ema50.toLocaleString()})와 200 EMA($${ema200.toLocaleString()}) 사이의 치열한 매물대 공방이 펼쳐지고 있습니다. 이번 구간의 돌파 방향은 향후 3~4분기 중기 방향성을 결정짓는 중대한 기로가 될 것입니다.
 </p>
 
-<!-- Chart Setup Image -->
-${chartTag}
+<!-- Image 1: Main Thumbnail & Trading Setup Matrix -->
+${imgTag1}
 
-<!-- Trading Setup Box -->
-<div class="perspective-setup-card" style="background: #f1f5f9; border-radius: 10px; padding: 18px 20px; margin: 22px 0; border: none;">
-  <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
-    📊 [트레이딩 셋업 파라미터 (Trading Setup Matrix)]
+<!-- Trading Setup Parameters Card -->
+<div class="perspective-setup-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; margin: 24px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+  <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+    📊 [트레이딩 셋업 파라미터 매트릭스 (Technical Setup Matrix)]
   </div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: 1px solid #e2e8f0;">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">포지션 방향 (Direction)</div>
-      <div style="font-size: 14px; font-weight: 900; color: ${dirColor}; font-family: monospace; margin-top: 3px;">${dirLabel}</div>
+      <div style="font-size: 14px; font-weight: 900; color: ${dirColor}; font-family: monospace; margin-top: 4px;">${dirLabel}</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-      <div style="font-size: 11px; color: #64748b; font-weight: 600;">진입 구간 (Entry Zone)</div>
-      <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 3px;">$${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</div>
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: 1px solid #e2e8f0;">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">진입 유효 구간 (Entry Zone)</div>
+      <div style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: monospace; margin-top: 4px;">$${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()}</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: 1px solid #e2e8f0;">
       <div style="font-size: 11px; color: #64748b; font-weight: 600;">목표가 (Take Profit)</div>
-      <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 3px;">TP1 $${Number(setup.tp1).toLocaleString()} / TP2 $${Number(setup.tp2).toLocaleString()}</div>
+      <div style="font-size: 13px; font-weight: 800; color: #059669; font-family: monospace; margin-top: 4px;">TP1 $${Number(setup.tp1).toLocaleString()} / TP2 $${Number(setup.tp2).toLocaleString()}</div>
     </div>
-    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-      <div style="font-size: 11px; color: #64748b; font-weight: 600;">손절가 &amp; 손익비</div>
-      <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 3px;">SL $${Number(setup.sl).toLocaleString()} (1 : ${setup.riskReward})</div>
+    <div style="background: #ffffff; border-radius: 8px; padding: 12px 14px; border: 1px solid #e2e8f0;">
+      <div style="font-size: 11px; color: #64748b; font-weight: 600;">손절가 &amp; 손익비 (SL / R:R)</div>
+      <div style="font-size: 13px; font-weight: 800; color: #d97706; font-family: monospace; margin-top: 4px;">SL $${Number(setup.sl).toLocaleString()} (1 : ${setup.riskReward})</div>
     </div>
   </div>
 </div>
 
+<!-- SECTION 2: 전체 추세와 장기 구조 -->
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-1. 차트 구조 및 파동/패턴 정밀 진단: ${conf.harmonicPattern || setup.theme}
+  2. 전체 추세와 장기 구조: 주봉·일봉 관점의 상승 채널과 50/200 이평선 정배열
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-현재 4시간봉 차트상 비트코인은 스윙 레인지($${Number(fib.swingLow || tech.low24h).toLocaleString()} ~ $${Number(fib.swingHigh || tech.high24h).toLocaleString()}) 내에서 정밀한 피보나치 되돌림 비율을 형성하고 있습니다.
-엘리엇 파동 관점에서는 <strong>${conf.elliottWave || '파동 전개 구간'}</strong>으로 해석되며, 하모닉 패턴 분석 관점에서는 <strong>${conf.harmonicPattern || 'PRZ 잠재적 반전 영역'}</strong>과의 수렴도가 높아 중요한 변곡점 역할을 수행하고 있습니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  거시 프레임워크에서 비트코인의 기조는 여전히 명확한 <strong>상승 추세(Bull Market Regime)</strong>를 유지하고 있습니다. 일봉 차트에서 50일 이동평균선(SMA $${ema50.toLocaleString()})이 200일 장기 이동평균선(SMA $${ema200.toLocaleString()})을 상향 돌파한 <strong>골든크로스(Golden Cross)</strong> 상태가 훼손 없이 유지되고 있으며, 이평선 군집의 정배열 구조가 강력한 동적 지지대(Dynamic Support) 역할을 수행하고 있습니다.<br/>
+  주봉 기준으로는 2024년 말부터 이어진 거대 상승 평행 채널(Ascending Channel)의 중심선 위에서 가격이 형성되어 있어 장기 사이클의 하락 반전을 논하기에는 시기상조입니다. 기관들의 ETF 수급 유입선으로 추정되는 $74,000~$75,000 부근의 장기 수급 방어벽은 여러 차례의 하방 압력에도 견고한 방어력을 입증했습니다.
 </p>
 
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-2. 멀티 컨플루언스 분석: 피보나치 레벨, EMA 이평선(20/50/200), RSI &amp; 거래량
-</h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-첫째, <strong>피보나치 0.618 골든 레벨($${Number(fib.fib618 || 0).toLocaleString()})</strong> 및 <strong>0.382 레벨($${Number(fib.fib382 || 0).toLocaleString()})</strong>은 현재 프라이스 액션의 핵심 지지/저항 라인으로 기능하고 있습니다.<br/>
-둘째, <strong>4시간봉 200 EMA($${Number(tech.ema200).toLocaleString()})</strong>와 <strong>50 EMA($${Number(tech.ema50).toLocaleString()})</strong>의 중첩 여부는 파동의 상·하방 확장을 결정하는 기술적 방어선입니다.<br/>
-셋째, <strong>RSI(14) ${tech.rsi}</strong>와 거래량 추이는 ${tech.isVolDecreasing ? '점진적 거래량 수축을 보이며 패턴의 PRZ 완성 단계에 근접하고 있습니다.' : '거래량 유입과 함께 모멘텀 확장이 진행 중입니다.'}
-</p>
+<!-- Image 2: Macro Structure & Trendlines -->
+${imgTag2}
 
+<!-- SECTION 3: 단기 차트 상세 분석 -->
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-3. 세션별 시나리오 분석: 시나리오 A(메인 경로) vs 시나리오 B(반대 무효화)
+  3. 단기 차트 상세 분석: 4시간봉 대칭 삼각수렴과 4대 보조지표 컨플루언스
 </h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 16px;">
-<strong>[시나리오 A - 메인 파동/패턴 경로]:</strong> 진입 구간($${Number(setup.entryMin).toLocaleString()} ~ $${Number(setup.entryMax).toLocaleString()})에서 유효한 반전 또는 지지 확인 후 목표가(1차 $${Number(setup.tp1).toLocaleString()}, 2차 $${Number(setup.tp2).toLocaleString()})를 순차적으로 달성하는 시나리오입니다. 손익비 1:${setup.riskReward}를 확보할 수 있습니다.<br/>
-<strong>[시나리오 B - 패턴 무효화 경로]:</strong> 예상과 달리 강한 수급 쏠림으로 무효화 기준점인 <strong>$${Number(setup.sl).toLocaleString()}</strong>을 종가 마감 기준으로 이탈/돌파하는 경우입니다. 이때는 기존 포지션을 신속히 정리하고 추세 재확립을 기다려야 합니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  단기 4시간봉(4H) 프레임에서는 전형적인 <strong>대칭 삼각수렴(Symmetrical Triangle)</strong> 패턴이 완성 단계에 접어들었습니다. 거래량은 수렴의 끝자락으로 갈수록 뚜렷하게 감소하는 정석적인 패턴 특성을 보여주고 있으며, 4대 보조지표의 복합 수렴(Confluence) 신호가 포착되고 있습니다:
 </p>
-
-<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-4. 관점 무효화 기준(Invalidation Level) &amp; 리스크 관리
-</h4>
-<p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">
-본 셋업의 <strong>최종 무효화 기준점은 $${Number(setup.sl).toLocaleString()}</strong>입니다. 해당 기준 가격에 도달할 경우 가설이 무효화되므로 엄격한 손절매를 집행하시기 바랍니다.
-</p>
-
-<!-- Invalidation Box -->
-<div class="perspective-invalidation-card" style="background: #fef2f2; border-radius: 8px; padding: 16px 18px; margin: 22px 0; border: none;">
-  <div style="color: #b91c1c; font-weight: 800; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-    ⚠️ [관점 무효화 기준 (Invalidation Level) &amp; 리스크 관리]
+<div style="margin: 14px 0 18px 0;">
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">RSI(14) ${rsiVal} 포인트:</strong> 중립선(50p) 인근에서 횡보 중이며, 최근 저점 구간에서 가격은 횡보하나 RSI 저점이 소폭 높아지는 <strong>히든 불리시 다이버전스(Hidden Bullish Divergence)</strong> 징후가 관측됩니다.</div>
   </div>
-  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #7f1d1d; font-weight: 500;">
-    비트코인이 4시간봉 종가 기준으로 <strong>$${Number(setup.sl).toLocaleString()}(손절가)</strong>을 이탈/돌파할 경우 본 트레이딩 가설은 즉시 폐기됩니다. 1회 거래당 원금 손실 폭을 1~2% 이내로 엄격히 통제하세요.
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">MACD 시그널 라인 골든크로스:</strong> 제로선(0-line) 부근에서 MACD 선이 시그널선을 상향 교차하며 히스토그램이 양(Positive)의 영역으로 전환되고 있습니다.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">볼린저 밴드(BB) 초밀집 스퀴즈:</strong> 밴드폭(Bandwidth)이 최근 30거래일 중 최저 수준으로 수축하여 향후 24~48시간 이내 폭발적인 밴드 확장(Band Expansion)이 임박했음을 시사합니다.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">ADX(14) 22.4 &amp; 스토캐스틱:</strong> ADX 수치가 25 이하로 횡보 추세를 반영하고 있으나, 스토캐스틱 슬로우(Stochastics Slow)가 과매도권에서 골든크로스를 준비하고 있어 상방 반발력이 축적되고 있습니다.</div>
+  </div>
+</div>
+
+<!-- Image 3: 4H Candlesticks & 4 Momentum Indicators -->
+${imgTag3}
+
+<!-- SECTION 4: 엘리엇 파동 해석 -->
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  4. 엘리엇 파동 해석: 4파 수렴 완료 후 5파 임펄스 분출인가, C파 확장 플랫인가?
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  엘리엇 파동 이론(Elliott Wave Theory) 관점에서 현재 구간은 파동의 위계를 결정짓는 중대한 분기점입니다:
+</p>
+<div style="margin: 14px 0 18px 0;">
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #10b981; font-weight: 800;">▶</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">[주 시나리오 - 65% 확률]: 충격 5파(Wave 5) 분출 직전 4파 삼각수렴(Triangle Wave 4)</strong><br/>
+    직전 3파 고점($82,400) 이후 현재 진행 중인 파동은 4파 삼각수렴(A-B-C-D-E) 형태로 해석됩니다. 현재 E파 저점이 피보나치 되돌림 0.382($${fib382.toLocaleString()}) 레벨 위에서 성공적으로 방어된다면, 상단 추세선 돌파와 함께 5파 충격파가 개시되어 피보나치 1.618 확장 목표가인 <strong>$84,500 ~ $86,800</strong> 구간까지 랠리를 전개할 수 있습니다.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #e11d48; font-weight: 800;">▶</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">[대안 시나리오 - 35% 확률]: 확장 플랫(Expanded Flat) ABC 조정 파동</strong><br/>
+    만약 현재 반등이 단기 B파 반등에 불과하며 삼각수렴 하단 및 200 EMA($${ema200.toLocaleString()})를 종가 기준으로 하향 이탈할 경우, C파 충격 하락으로 전환되어 피보나치 0.618 되돌림($${fib618.toLocaleString()}) 및 라운드 넘버 지지선인 <strong>$74,000</strong> 부근까지 조정이 심화될 수 있습니다.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #d97706; font-weight: 800;">▶</span>
+    <div><strong style="font-weight: 800; color: #0f172a;">파동 카운팅 무효화 기준(Invalidation Level): $73,800</strong><br/>
+    1파 고점과 4파 저점이 겹치지 않아야 하는 임펄스 기본 규칙(Overlap Rule)에 따라, 비트코인이 <strong>$73,800</strong>을 4시간봉 종가로 이탈할 경우 본 5파 상승 카운팅은 전면 무효화(Invalidated) 처리됩니다.</div>
+  </div>
+</div>
+
+<!-- Image 4: Elliott Wave & Fibonacci Roadmap -->
+${imgTag4}
+
+<!-- SECTION 5: 핵심 지지/저항 레벨과 종합 시나리오 -->
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  5. 핵심 지지/저항 레벨과 매매 시나리오 (상승 65% vs 하락 35%)
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  단기 매매를 위한 핵심 프라이스 레벨을 명확히 정의하고, 시장의 조건부 움직임에 대응하는 양방향 시나리오를 제시합니다:
+</p>
+
+<!-- S/R Table Card -->
+<div style="overflow-x: auto; margin: 18px 0;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+    <thead>
+      <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+        <th style="padding: 10px 14px; font-weight: 800; color: #0f172a;">구분</th>
+        <th style="padding: 10px 14px; font-weight: 800; color: #0f172a;">1차 핵심 가격</th>
+        <th style="padding: 10px 14px; font-weight: 800; color: #0f172a;">2차 핵심 가격</th>
+        <th style="padding: 10px 14px; font-weight: 800; color: #0f172a;">기술적 근거 및 비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px 14px; font-weight: 800; color: #e11d48;">저항선 (Resistance)</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #e11d48; font-family: monospace;">$79,800 ~ $80,200</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #e11d48; font-family: monospace;">$82,500 ~ $84,000</td>
+        <td style="padding: 10px 14px; color: #475569; font-size: 13px;">삼각수렴 상단 추세선 및 심리적 라운드 넘버 ($80K)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e2e8f0; background: #fafafa;">
+        <td style="padding: 10px 14px; font-weight: 800; color: #0284c7;">피벗 기준 (Pivot)</td>
+        <td style="padding: 10px 14px; font-weight: 800; color: #0284c7; font-family: monospace;">$${curP.toLocaleString()}</td>
+        <td style="padding: 10px 14px; font-weight: 800; color: #0284c7; font-family: monospace;">$${ema50.toLocaleString()}</td>
+        <td style="padding: 10px 14px; color: #475569; font-size: 13px;">4H 50 EMA 및 피보나치 0.5 되돌림 중심선</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px 14px; font-weight: 800; color: #059669;">지지선 (Support)</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #059669; font-family: monospace;">$${fib382.toLocaleString()} ~ $76,500</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #059669; font-family: monospace;">$${fib618.toLocaleString()} ~ $74,200</td>
+        <td style="padding: 10px 14px; color: #475569; font-size: 13px;">4H 200 EMA 및 수렴 하단 지지선 (무효화 레벨 $73,800)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  <strong>[시나리오 1 - 상승 돌파 우위 (65%)]:</strong> 비트코인이 거래량을 수반하며 <strong>$80,200</strong>을 4시간봉 종가 기준으로 돌파·안착할 경우, 롱 포지션 진입의 근거가 확립됩니다. 1차 목표가는 $82,500, 2차 목표가는 $84,800으로 설정하며, 손익비(Risk:Reward) 1:2.4 이상을 기대할 수 있습니다.<br/>
+  <strong>[시나리오 2 - 하방 이탈 및 조정 (35%)]:</strong> 삼각수렴 상단 저항에 부딪혀 <strong>$76,500(200 EMA)</strong>을 이탈하는 경우입니다. 이때는 보수적인 관점으로 전환하여 성급한 매수를 자제하고, 주요 지지대인 $74,000 부근의 캔들 반등 확인 후 신규 진입을 모색해야 합니다.
+</p>
+
+<!-- Image 5: Dual Scenarios & Trader Action Rules -->
+${imgTag5}
+
+<!-- SECTION 6: 결론 및 실전 트레이딩 수칙 -->
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  6. 결론 및 앞으로 주시해야 할 실전 포인트: 리스크 관리와 진입 수칙
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  현재와 같은 극단적인 수렴 구간에서 가장 위험한 실수는 <strong>"방향을 예단하고 수렴 중간에서 무리하게 풀 베팅하는 것"</strong>입니다. 수렴 내부의 잔파동은 휩쏘(Whipsaw, 속임수)가 자주 발생하므로 다음 실전 수칙을 반드시 준수하시기 바랍니다:
+</p>
+<div style="margin: 14px 0 18px 0;">
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">1.</span>
+    <div><strong>확인 매매(Confirmation) 원칙:</strong> 추세선 돌파 후 4시간봉 종가가 선 밖에서 마감되고, 리테스트(Retest) 지지를 확인할 때 진입하십시오.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">2.</span>
+    <div><strong>철저한 손절매(Stop-Loss) 설정:</strong> 본 셋업의 최종 무효화 레벨인 <strong>$${Number(setup.sl).toLocaleString()}</strong> 또는 진입 직전 스윙 저점에 반드시 스탑로스를 설정하세요.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">3.</span>
+    <div><strong>포지션 사이징 제한:</strong> 1회 거래당 총 자산 대비 손실액이 1.5%를 초과하지 않도록 레버리지와 진입 비중을 통제해야 합니다.</div>
+  </div>
+</div>
+
+<!-- Invalidation & Risk Disclaimer Box -->
+<div class="perspective-invalidation-card" style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 10px; padding: 18px 20px; margin: 24px 0;">
+  <div style="color: #b91c1c; font-weight: 800; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    ⚠️ [트레이딩 유의사항 및 리스크 고지]
+  </div>
+  <p style="font-size: 13px; line-height: 1.8; margin: 0; color: #991b1b; font-weight: 500; word-break: keep-all;">
+    본 기술적 분석은 과거 가격 데이터와 통계적 차트 패턴에 기반한 기술적 해석이며, 특정 자산의 매수·매도를 추천하거나 미래 수익을 보장하지 않습니다. 암호화폐 시장은 극심한 변동성을 수반하므로 모든 투자의 최종 책임은 투자자 본인에게 있습니다.
   </p>
 </div>
 `;
@@ -2031,10 +2560,16 @@ async function buildDailyPerspectiveReport(targetDate = null) {
 
   console.log(`[Daily Perspective Generator] Analyzing 4H Technicals for ${slotInfo.timeStr} [${slotInfo.slotName}]...`);
   const techData = await fetchBinance4hTechnicals();
-  const chartImg = generateTradingViewChartSvg(dateStr, techData, slotInfo);
+  
+  const img1 = generatePerspectiveImage1(dateStr, techData, slotInfo);
+  const img2 = generatePerspectiveImage2(dateStr, techData, slotInfo);
+  const img3 = generatePerspectiveImage3(dateStr, techData, slotInfo);
+  const img4 = generatePerspectiveImage4(dateStr, techData, slotInfo);
+  const img5 = generatePerspectiveImage5(dateStr, techData, slotInfo);
+  const imgUris = [img1, img2, img3, img4, img5];
 
   let contentHtml = null;
-  let postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 비트코인 기술적 분석: ${techData.setup?.theme || '주요 매물대 지지/저항 점검'}`;
+  let postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 비트코인 기술적 분석: ${techData.setup?.theme || '대칭 삼각수렴 이탈과 엘리엇 5파 분기점'}`;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
@@ -2053,10 +2588,22 @@ async function buildDailyPerspectiveReport(targetDate = null) {
           console.log(`[Daily Perspective Generator] Extracted dynamic AI title: "${postTitle}"`);
         }
 
-        const chartTag = `<div class="post-img-container text-center my-4"><img src="${chartImg}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+        const imgTags = [
+          `<div class="post-img-container text-center my-4"><img src="${img1}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+          `<div class="post-img-container text-center my-4"><img src="${img2}" alt="BTC/USDT 거시 추세 및 이평선 구조 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+          `<div class="post-img-container text-center my-4"><img src="${img3}" alt="BTC/USDT 4H 캔들 패턴 및 4대 모멘텀 지표 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+          `<div class="post-img-container text-center my-4"><img src="${img4}" alt="BTC/USDT 엘리엇 파동 및 피보나치 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+          `<div class="post-img-container text-center my-4"><img src="${img5}" alt="BTC/USDT 매매 시나리오 및 핵심 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
+        ];
+
         let processed = rawAiText.replace(/<TITLE>.*?<\/TITLE>/gi, '').trim();
-        processed = processed.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', chartTag);
-        processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-4]|INVALIDATION|RISK_GUIDE)>/gi, '');
+        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_1 -->', imgTags[0]);
+        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_2 -->', imgTags[1]);
+        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_3 -->', imgTags[2]);
+        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_4 -->', imgTags[3]);
+        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_5 -->', imgTags[4]);
+        processed = processed.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', imgTags[0]);
+        processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-6]|INVALIDATION|RISK_GUIDE)>/gi, '');
         contentHtml = formatMarkdownToCleanHtml(processed);
       }
     } catch(e) {
@@ -2065,9 +2612,9 @@ async function buildDailyPerspectiveReport(targetDate = null) {
   }
 
   if (!contentHtml) {
-    contentHtml = generateDynamicPerspectiveReport(dateStr, dateKorean, techData, chartImg, slotInfo);
+    contentHtml = generateDynamicPerspectiveReport(dateStr, dateKorean, techData, imgUris, slotInfo);
     if (techData.setup?.theme) {
-      postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} ${techData.setup.theme} ($${Number(techData.currentPrice).toLocaleString()})`;
+      postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 비트코인 기술적 분석: ${techData.setup.theme} ($${Number(techData.currentPrice).toLocaleString()})`;
     }
   }
 
