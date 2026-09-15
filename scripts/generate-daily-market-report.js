@@ -2837,10 +2837,10 @@ async function fetchYouTubeVideoDetails(youtubeUrl) {
 }
 
 // SVG 1: 메인 썸네일 & 핵심 브리핑 카드 (16:9 800x450)
-function generateFinanceImage1(dateStr, videoDetails) {
-  const safeTitle = (videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
-  const channel = (videoDetails?.channelName || '재테크 전문 채널').replace(/[<>&"]/g, '');
-  const displayTitle1 = safeTitle.length > 25 ? safeTitle.slice(0, 25) + '...' : safeTitle;
+function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
+  const safeTitle = (customTitle || videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
+  const cleanTitle = safeTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
+  const displayTitle1 = cleanTitle.length > 25 ? cleanTitle.slice(0, 25) + '...' : cleanTitle;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -2886,10 +2886,10 @@ function generateFinanceImage1(dateStr, videoDetails) {
     <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
 
-  <!-- Main Hero Title & Channel -->
+  <!-- Main Hero Title -->
   <g transform="translate(35, 90)">
     <rect x="0" y="0" width="240" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">📺 유튜브 분석: ${channel}</text>
+    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 2026 직장인 실전 재테크 인사이트</text>
 
     <text x="0" y="66" fill="#ffffff" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${displayTitle1}</text>
     <text x="0" y="106" fill="url(#f1_gold)" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">2040 직장인을 위한 핵심 실천 요약</text>
@@ -3209,12 +3209,19 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
   const systemInstruction = `당신은 10년 경력의 재테크·투자 전문 블로거이자 금융 콘텐츠 에디터입니다.
 독자는 20~40대 직장인·사회초년생으로, 쉽고 실용적인 자산 관리 및 투자 정보를 원합니다.
 
-[글 작성 요구사항]
+[글 작성 요구사항 - 엄격 준수]
 1. 톤앤매너: 신뢰감 있고 친근하며, 과장 없이 객관적인 재테크 블로그 스타일. 전문 용어는 초보자도 바로 이해할 수 있도록 쉽게 풀어서 설명.
-2. 글 구조 (반드시 준수):
-   - 최상단 첫 줄에 반드시 <TITLE>매력적인 제목 (SEO 고려, 숫자나 핵심 키워드 포함)</TITLE> 형태로 제목을 작성하세요.
-   - 1. 도입부: 2040 직장인의 월급 관리, 세금, 물가 상승 고민에 깊이 공감하며 영상의 핵심 주제와 시사점을 자연스럽게 소개하세요.
-   - 2. 본문: 영상의 핵심 내용을 3~4개의 소제목(<h4> 태그)으로 구분하여 정리하세요.
+2. 제목 작성 (필수):
+   - 최상단 첫 줄에 반드시 <TITLE>[재테크 팁] 독창적이고 매력적인 제목</TITLE> 형태로 작성하세요.
+   - ⚠️ 절대 유튜브 영상의 원본 제목을 그대로 베끼거나 사용하지 마세요!
+   - 영상의 핵심 내용(예: 통장 쪼개기, 절세 계좌, ETF 적립, 비상금 등)과 구체적 혜택/숫자를 결합하여 독자의 클릭을 부르는 전문 블로그 스타일의 새로운 제목을 직접 창작하세요.
+3. 유튜브 및 출처 언급 금지 (필수):
+   - ⚠️ 특정 유튜브 채널명이나 '유튜브 영상', '유튜브 채널', '영상에서는' 등의 유튜브 관련 언급을 제목, 소제목, 본문 어디에도 일절 적지 마세요.
+   - 순수하게 10년 차 재테크 에디터가 독자에게 직접 조언하는 신뢰도 높은 금융·재테크 전문 가이드 칼럼으로 작성하세요.
+4. 글 구조 (반드시 준수):
+   - 최상단 첫 줄: <TITLE>[재테크 팁] 직접 창작한 매력적인 제목</TITLE>
+   - 1. 도입부: 2040 직장인의 월급 관리, 세금, 물가 상승 고민에 깊이 공감하며 오늘 다룰 실전 재테크 주제와 중요성을 자연스럽게 소개하세요. (유튜브/채널 언급 금지)
+   - 2. 본문: 핵심 내용을 3~4개의 소제목(<h4> 태그)으로 구분하여 정리하세요.
      각 소제목마다 구체적이고 실용적인 팁과 주의점을 친절하게 설명하세요.
      소제목마다 아래의 4개 이미지 주석 플레이스홀더를 순서대로 하나씩 반드시 배치하세요:
      <!-- FINANCE_IMAGE_1 -->
@@ -3223,21 +3230,20 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
      <!-- FINANCE_IMAGE_4 -->
    - 3. 정리 및 시사점: 내 상황(사회초년생, 맞벌이 부부, 1주택자 등)에 오늘부터 당장 통장과 계좌에 어떻게 적용할지 3단계 실천 로드맵을 제시하세요.
    - 4. 마무리 + 독자 행동 유도: 독자의 현재 재테크 상황이나 궁금한 점을 묻는 댓글 유도 질문과 따뜻한 격려로 마무리하세요.
-3. 분량: 1,800~2,500자 (모바일에서도 읽기 편하며 정보가 알찬 분량).
-4. 추가 필수 규칙:
+5. 분량: 1,800~2,500자 (모바일에서도 읽기 편하며 정보가 알찬 분량).
+6. 추가 필수 규칙:
    - 핵심 키워드(적금, ETF, 연금저축, IRP, ISA, 절세, 복리, 비상금 등)를 문맥에 맞게 자연스럽게 삽입하세요.
-   - 영상에서 나온 수치·사례는 정확하게 반영하고, 필요시 현재 시점(2026년 최신 기준)으로 변경된 세법이나 제도는 업데이트하여 설명하세요.
+   - 언급된 수치·사례는 정확하게 반영하고, 필요시 현재 시점(2026년 최신 기준)으로 세법이나 제도를 업데이트하여 설명하세요.
    - 과장·확정적 표현 절대 금지 ("무조건 돈 번다", "원금 보장 대박" 등 절대 금지).
-5. 문장 스타일: 짧은 문장 위주, 가독성 좋은 줄바꿈, 불필요한 수식어를 최소화하여 깔끔하게 작성하세요.`;
+7. 문장 스타일: 짧은 문장 위주, 가독성 좋은 줄바꿈, 불필요한 수식어를 최소화하여 깔끔하게 작성하세요.`;
 
-  const userPrompt = `다음 유튜브 재테크 영상 정보를 검토하고, 위 요구사항에 맞추어 전문 재테크 블로그 분석 글을 완성해주세요.
+  const userPrompt = `다음 금융·재테크 영상의 핵심 정보를 검토하고, 위 요구사항에 맞추어 전문 재테크 블로그 분석 칼럼을 완성해주세요.
+(주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
 
-[분석 대상 유튜브 영상 정보]
-- 영상 제목: ${videoDetails.title}
-- 채널명: ${videoDetails.channelName}
-- 영상 URL: ${videoDetails.url}
-- 영상 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1000) : '제공된 설명 없음'}
-- 영상 자막/발언 요약: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3000) : '영상 내 핵심 재테크 및 절세 투자 포인트'}
+[분석 대상 금융 콘텐츠 정보]
+- 원본 주제/제목: ${videoDetails.title}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1000) : '제공된 설명 없음'}
+- 주요 발언/내용 요약: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3000) : '핵심 재테크 및 절세 투자 포인트'}
 
 위 데이터를 바탕으로 10년 경력의 재테크 블로거로서 4개 인포그래픽 카드를 정확히 포함하여 알찬 글을 작성해주세요.`;
 
@@ -3324,10 +3330,29 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
   return null;
 }
 
+// Synthesize Catchy Finance Title (without using raw YouTube title or channel mentions)
+function synthesizeCatchyFinanceTitle(videoDetails) {
+  const combined = ((videoDetails?.title || '') + ' ' + (videoDetails?.description || '') + ' ' + (videoDetails?.transcript || '')).toLowerCase();
+
+  if (combined.includes('연금') || combined.includes('irp') || combined.includes('isa') || combined.includes('절세') || combined.includes('세액공제')) {
+    return "[재테크 팁] 2040 직장인, 월급날 무조건 챙겨야 할 절세 3총사 (연금저축·IRP·ISA 세팅법)";
+  }
+  if (combined.includes('통장') || combined.includes('저축') || combined.includes('비상금') || combined.includes('파킹') || combined.includes('쪼개') || combined.includes('모으')) {
+    return "[재테크 팁] 2040 직장인, 월급날 무조건 '이것'부터 적립해야 하는 이유 (통장 쪼개기·자동 저축)";
+  }
+  if (combined.includes('etf') || combined.includes('s&p') || combined.includes('나스닥') || combined.includes('주식') || combined.includes('배당')) {
+    return "[재테크 팁] 평범한 직장인이 월 30만원으로 노후 자산 5억 만드는 지수 ETF 적립법";
+  }
+  if (combined.includes('부동산') || combined.includes('청약') || combined.includes('대출') || combined.includes('전세')) {
+    return "[재테크 팁] 사회초년생과 무주택 직장인을 위한 현실적인 내 집 마련 자금 로드맵";
+  }
+  return "[재테크 팁] 2040 직장인이 오늘부터 당장 계좌에 적용하는 실전 재테크 & 절세 가이드";
+}
+
 // Dynamic Finance Report Fallback Engine
-function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris) {
-  const safeTitle = (videoDetails?.title || '2040 직장인을 위한 핵심 재테크 전략').replace(/[<>&"]/g, '');
-  const channel = (videoDetails?.channelName || '재테크 전문 채널').replace(/[<>&"]/g, '');
+function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, customTitle = null) {
+  const displayTitle = customTitle || synthesizeCatchyFinanceTitle(videoDetails);
+  const cleanTitle = displayTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
 
   const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="재테크 핵심 요약 인포그래픽 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
   const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 실천 로드맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
@@ -3335,7 +3360,7 @@ function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris
   const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="주의사항 및 리스크 방어 수칙 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
 
   return `<h3 style="font-size: 19px; font-weight: 800; color: #d97706; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-  💰 [재테크 팁] ${safeTitle} 핵심 요약 및 2040 직장인 실전 가이드
+  💰 [재테크 팁] ${cleanTitle}
 </h3>
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 24px; margin-bottom: 10px;">
@@ -3343,16 +3368,16 @@ function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px; word-break: keep-all;">
   안녕하십니까. 10년 차 재테크 블로거입니다. 매월 월급날만 되면 스쳐 지나가는 잔고를 보며 "도대체 어떻게 돈을 모아야 할까?" 고민하시는 20~40대 직장인분들이 많으실 겁니다. 물가와 금리는 요동치는데 월급 인상률은 이를 따라가지 못하는 시대, 단순히 열심히 아끼는 것만으로는 경제적 자유를 이루기 어렵습니다.<br/>
-  오늘은 유튜브 <strong>${channel}</strong> 채널의 화제 영상 <em>"${safeTitle}"</em>의 핵심 내용을 바탕으로, 우리 같은 평범한 직장인들이 오늘부터 당장 통장과 계좌에 적용할 수 있는 군더더기 없는 실전 재테크 가이드를 정리해 드립니다.
+  오늘은 20~40대 직장인과 사회초년생이 오늘부터 당장 자신의 통장과 계좌에 적용할 수 있는 군더더기 없는 실전 재테크 &amp; 절세 가이드를 알기 쉽게 정리해 드립니다.
 </p>
 
 ${imgTag1}
 
 <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
-  2. 영상 핵심 포인트: 선저축 후지출과 '통장 쪼개기'의 마법
+  2. 실전 핵심 포인트: 선저축 후지출과 '통장 쪼개기'의 마법
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
-  영상에서 가장 강조하는 첫 번째 원칙은 바로 <strong>'강제 저축 시스템'</strong>입니다. 쓰고 남은 돈을 저축하겠다는 생각은 100전 100패입니다. 급여가 입금되자마자 최소 40~50%는 자동으로 저축·투자 계좌로 이체되는 시스템을 구축해야 합니다.
+  재테크에서 가장 강조하는 첫 번째 원칙은 바로 <strong>'강제 저축 시스템'</strong>입니다. 쓰고 남은 돈을 저축하겠다는 생각은 100전 100패입니다. 급여가 입금되자마자 최소 40~50%는 자동으로 저축·투자 계좌로 이체되는 시스템을 구축해야 합니다.
 </p>
 <div style="margin: 14px 0 18px 0;">
   <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
@@ -3394,7 +3419,7 @@ ${imgTag4}
   5. 정리 및 독자 시사점: 오늘부터 당장 통장에 적용할 3단계
 </h4>
 <p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
-  오늘 살펴본 영상의 핵심을 요약하면 다음과 같습니다:<br/>
+  오늘 살펴본 핵심을 요약하면 다음과 같습니다:<br/>
   1) <strong>파킹통장 비상금 채우기</strong> ➔ 2) <strong>연금저축/ISA 계좌 개설 후 월 자동이체 걸기</strong> ➔ 3) <strong>미국/국내 지수 추종 ETF를 꾸준히 적립식으로 모아가기</strong>.<br/>
   재테크의 승패는 단기 고수익 종목을 찾는 것이 아니라, 잃지 않는 구조를 만들고 오랫동안 복리를 누리는 인내심에 달려 있습니다. 여러분의 현재 재테크 고민이나 실천 중인 통장 쪼개기 노하우가 있다면 댓글로 자유롭게 남겨주세요!
 </p>
@@ -3457,20 +3482,15 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     console.warn('[YouTube Finance Generator] Could not fetch video details, using fallback');
   }
 
-  const img1 = generateFinanceImage1(dateStr, videoDetails);
-  const img2 = generateFinanceImage2(dateStr, videoDetails);
-  const img3 = generateFinanceImage3(dateStr, videoDetails);
-  const img4 = generateFinanceImage4(dateStr, videoDetails);
-  const imgUris = [img1, img2, img3, img4];
-
-  let postTitle = `[재테크 팁] ${videoDetails?.title || '2040 직장인을 위한 핵심 재테크·절세 실천 가이드'}`;
-  let contentHtml = null;
+  // Synthesize catchy title (avoid raw YouTube title & channel mentions)
+  let postTitle = synthesizeCatchyFinanceTitle(videoDetails);
+  let rawAiText = null;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey && videoDetails) {
     try {
       console.log('[YouTube Finance Generator] Requesting AI finance analysis from Gemini...');
-      const rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, apiKey);
+      rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, apiKey);
       if (rawAiText) {
         const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
         if (titleMatch && titleMatch[1].trim()) {
@@ -3481,16 +3501,27 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
           postTitle = extractedTitle;
           console.log(`[YouTube Finance Generator] Extracted dynamic AI title: "${postTitle}"`);
         }
-        contentHtml = assembleFinanceHtml(rawAiText, videoDetails, imgUris);
       }
     } catch(e) {
       console.warn('[YouTube Finance Generator] Gemini API call failed, falling back:', e.message);
     }
   }
 
+  // Generate SVG infographics (Image 1 uses the final synthesized/AI title)
+  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle);
+  const img2 = generateFinanceImage2(dateStr, videoDetails);
+  const img3 = generateFinanceImage3(dateStr, videoDetails);
+  const img4 = generateFinanceImage4(dateStr, videoDetails);
+  const imgUris = [img1, img2, img3, img4];
+
+  let contentHtml = null;
+  if (rawAiText) {
+    contentHtml = assembleFinanceHtml(rawAiText, videoDetails, imgUris);
+  }
+
   if (!contentHtml) {
     console.log('[YouTube Finance Generator] Using dynamic finance engine fallback');
-    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris);
+    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, postTitle);
   }
 
   return {
