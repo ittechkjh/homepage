@@ -2010,7 +2010,13 @@ async function loadDailyMarketReports(force = false) {
   }
   _lastDailyMarketReportsFetchTime = now;
   try {
-    const res = await fetch('data/daily-market-reports.json?v=' + Date.now());
+    let res = await fetch('data/daily-market-reports.json?v=' + Date.now());
+    if (!res.ok) {
+      try {
+        const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+        if (rawRes.ok) res = rawRes;
+      } catch(e) {}
+    }
     if (res.ok) {
       const data = await res.json();
       const reports = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
@@ -2390,7 +2396,10 @@ async function executeManualReportTrigger() {
 
     if (res.status === 204) {
       // Successfully triggered!
-      let secondsLeft = 35;
+      const triggerTime = Date.now();
+      const totalSeconds = 80;
+      let secondsLeft = totalSeconds;
+      let isCompleted = false;
       const typeDesc = selectedType === 'perspective' 
         ? '4H 캔들과 엘리엇/하모닉 파동을 분석' 
         : (selectedType === 'market' 
@@ -2409,53 +2418,133 @@ async function executeManualReportTrigger() {
       }
       if (typeof lucide !== 'undefined') lucide.createIcons();
 
+      const finishSuccess = async () => {
+        if (isCompleted) return;
+        isCompleted = true;
+        clearInterval(_manualReportTimer);
+        if (progressBar) progressBar.style.width = '100%';
+        if (statusTitle) {
+          statusTitle.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> <span class="text-cyan-300">새 리포트 발행 완료!</span>';
+        }
+        if (statusDesc) {
+          statusDesc.textContent = '최신 리포트를 불러와 게시판을 갱신합니다...';
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        if (typeof loadDailyMarketReports === 'function') {
+          await loadDailyMarketReports(true);
+        }
+        if (typeof filterForum === 'function') {
+          if (selectedType === 'perspective') {
+            filterForum('perspective');
+          } else if (selectedType === 'market') {
+            filterForum('altcoin');
+          } else if (selectedType === 'finance') {
+            filterForum('finance');
+          } else {
+            filterForum('all');
+          }
+        }
+
+        setTimeout(() => {
+          closeManualReportModal();
+          const typeLabel = selectedType === 'perspective' 
+            ? 'AI 차트 관점 리포트' 
+            : (selectedType === 'market' 
+                ? 'AI 시장 분위기 리포트' 
+                : (selectedType === 'finance' ? '재테크 팁 칼럼' : 'AI 시장 리포트 & 차트 관점'));
+          alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
+        }, 1200);
+      };
+
+      const checkNewReportExists = async () => {
+        try {
+          let checkRes = await fetch('data/daily-market-reports.json?v=' + Date.now());
+          if (!checkRes.ok) {
+            checkRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+          }
+          if (checkRes.ok) {
+            const data = await checkRes.json();
+            const list = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
+            if (list.length > 0) {
+              const matched = list.some(r => {
+                if (!r) return false;
+                const rTime = r.timestamp || (r.time ? new Date(r.time).getTime() : 0);
+                const isRecent = rTime >= (triggerTime - 30000);
+                if (!isRecent) return false;
+                if (selectedType === 'perspective') return r.category === 'perspective';
+                if (selectedType === 'market') return r.category === 'market';
+                if (selectedType === 'finance') return r.category === 'finance';
+                return true;
+              });
+              if (matched) return true;
+            }
+          }
+        } catch(e) {}
+        return false;
+      };
+
+      let pollRunning = false;
       clearInterval(_manualReportTimer);
       _manualReportTimer = setInterval(async () => {
         secondsLeft--;
-        const pct = Math.min(95, Math.round(((35 - secondsLeft) / 35) * 85 + 15));
+        const elapsed = totalSeconds - secondsLeft;
+        const pct = Math.min(95, Math.round((elapsed / totalSeconds) * 80 + 15));
         if (progressBar) progressBar.style.width = `${pct}%`;
         if (runBtn) {
-          runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${secondsLeft}s)</span>`;
+          runBtn.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-amber-300"></i> <span>분석 진행 중 (${Math.max(1, secondsLeft)}s)</span>`;
         }
         if (statusDesc) {
           statusDesc.innerHTML = `AI 퀀트 엔진이 ${typeDesc} 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${Math.max(1, secondsLeft)}초 후 새 글이 자동 반영됩니다...</span>`;
         }
 
+        // Start polling after 40 seconds elapsed, every ~4 seconds
+        if (elapsed >= 40 && !pollRunning) {
+          pollRunning = true;
+          const found = await checkNewReportExists();
+          pollRunning = false;
+          if (found) {
+            await finishSuccess();
+            return;
+          }
+        }
+
         if (secondsLeft <= 0) {
-          clearInterval(_manualReportTimer);
-          if (progressBar) progressBar.style.width = '100%';
           if (statusTitle) {
-            statusTitle.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> <span class="text-cyan-300">새 리포트 발행 완료!</span>';
+            statusTitle.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-cyan-400"></i> <span class="text-cyan-300">생성 완료 확인 중...</span>';
           }
           if (statusDesc) {
-            statusDesc.textContent = '최신 리포트를 불러와 게시판을 갱신합니다...';
+            statusDesc.innerHTML = '리포트 생성이 완료 단계에 진입했습니다.<br/><span class="font-bold text-cyan-300 text-sm">서버 배포 동기화 여부를 확인하고 있습니다...</span>';
           }
-          if (typeof lucide !== 'undefined') lucide.createIcons();
-
-          if (typeof loadDailyMarketReports === 'function') {
-            await loadDailyMarketReports(true);
-          }
-          if (typeof filterForum === 'function') {
-            if (selectedType === 'perspective') {
-              filterForum('perspective');
-            } else if (selectedType === 'market') {
-              filterForum('altcoin');
-            } else if (selectedType === 'finance') {
-              filterForum('finance');
-            } else {
-              filterForum('all');
+          if (!pollRunning) {
+            pollRunning = true;
+            const found = await checkNewReportExists();
+            pollRunning = false;
+            if (found) {
+              await finishSuccess();
+              return;
             }
           }
 
-          setTimeout(() => {
-            closeManualReportModal();
-            const typeLabel = selectedType === 'perspective' 
-              ? 'AI 차트 관점 리포트' 
-              : (selectedType === 'market' 
-                  ? 'AI 시장 분위기 리포트' 
-                  : (selectedType === 'finance' ? '재테크 팁 칼럼' : 'AI 시장 리포트 & 차트 관점'));
-            alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
-          }, 1500);
+          // Timeout safety: after 115 seconds total (secondsLeft <= -35)
+          if (secondsLeft <= -35) {
+            clearInterval(_manualReportTimer);
+            if (progressBar) progressBar.style.width = '100%';
+            if (statusTitle) {
+              statusTitle.innerHTML = '<i data-lucide="info" class="w-4 h-4 text-amber-400"></i> <span class="text-amber-300">백그라운드 발행 진행 중</span>';
+            }
+            if (statusDesc) {
+              statusDesc.innerHTML = 'GitHub Actions 백그라운드 작업이 완료되었거나 마무리 단계입니다.<br/><span class="text-amber-200 font-bold">약 30초 후 새로고침(F5)을 하시면 최신 리포트가 게시판에 표시됩니다.</span>';
+            }
+            if (runBtn) {
+              runBtn.disabled = false;
+              runBtn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> <span>확인</span>';
+            }
+            if (typeof loadDailyMarketReports === 'function') {
+              loadDailyMarketReports(true);
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+          }
         }
       }, 1000);
 
