@@ -498,6 +498,11 @@ function generateReportImage2(dStr, m) {
   const fngNum = parseInt(m.fngScore) || 69;
   const fngAngle = -90 + (fngNum / 100) * 180;
 
+  // Extract clean short string for Long/Short ratio so it never overflows into liquidations badge
+  const rawLs = String(m.longShortRatio || '1.297');
+  const lsVal = rawLs.split(' ')[0] || '1.297';
+  const lsDominance = rawLs.includes('숏') && parseFloat(lsVal) < 1.0 ? '숏 우세' : '롱 우세';
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="meter_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -524,21 +529,23 @@ function generateReportImage2(dStr, m) {
   <!-- Left Large Gauge Card -->
   <g transform="translate(30, 80)">
     <rect width="360" height="325" rx="16" fill="#0c1726" stroke="#0284c7" stroke-width="1.8" filter="url(#m_drop)"/>
-    <rect x="20" y="18" width="125" height="24" rx="6" fill="#0284c7"/>
-    <text x="82" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">FEAR &amp; GREED</text>
-    <text x="20" y="70" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">공포·탐욕 심리 지수</text>
+    
+    <!-- Header: Badge + Title side-by-side on same baseline -->
+    <rect x="20" y="18" width="110" height="24" rx="6" fill="#0284c7"/>
+    <text x="75" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">FEAR &amp; GREED</text>
+    <text x="142" y="35" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">공포·탐욕 심리 지수</text>
 
-    <!-- Visual Arc Meter -->
-    <g transform="translate(180, 160)">
-      <path d="M -110 0 A 110 110 0 0 1 110 0" fill="none" stroke="#1e293b" stroke-width="20" stroke-linecap="round"/>
-      <path d="M -110 0 A 110 110 0 0 1 110 0" fill="none" stroke="#f59e0b" stroke-width="20" stroke-linecap="round" stroke-dasharray="345" stroke-dashoffset="${Math.max(0, 345 - (fngNum / 100) * 345)}"/>
+    <!-- Visual Arc Meter (Center placed to ensure ample space above and below) -->
+    <g transform="translate(180, 168)">
+      <path d="M -100 0 A 100 100 0 0 1 100 0" fill="none" stroke="#1e293b" stroke-width="18" stroke-linecap="round"/>
+      <path d="M -100 0 A 100 100 0 0 1 100 0" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="${Math.max(0, 314 - (fngNum / 100) * 314)}"/>
       <!-- Needle -->
       <g transform="rotate(${fngAngle})">
-        <line x1="0" y1="0" x2="0" y2="-90" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="0" cy="0" r="8" fill="#38bdf8"/>
+        <line x1="0" y1="0" x2="0" y2="-82" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="0" cy="0" r="7" fill="#38bdf8"/>
       </g>
-      <text x="0" y="32" fill="#fbbf24" font-size="38" font-weight="900" font-family="monospace" text-anchor="middle">${m.fngScore}</text>
-      <text x="0" y="54" fill="#cbd5e1" font-size="14" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${m.fngText}</text>
+      <text x="0" y="28" fill="#fbbf24" font-size="36" font-weight="900" font-family="monospace" text-anchor="middle">${m.fngScore}</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${m.fngText}</text>
     </g>
 
     <!-- Bottom interpretation -->
@@ -573,7 +580,7 @@ function generateReportImage2(dStr, m) {
     <g transform="translate(0, 168)">
       <rect width="360" height="74" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#m_drop)"/>
       <text x="18" y="26" fill="#94a3b8" font-size="11" font-weight="700">글로벌 롱/숏 비율 &amp; 24H 청산액</text>
-      <text x="18" y="54" fill="#f59e0b" font-size="20" font-weight="900" font-family="monospace">${m.longShortRatio}</text>
+      <text x="18" y="54" fill="#f59e0b" font-size="20" font-weight="900" font-family="monospace">${lsVal} <tspan font-size="12" fill="#fbbf24" font-weight="700">(${lsDominance})</tspan></text>
       <rect x="230" y="22" width="112" height="30" rx="8" fill="#78350f" fill-opacity="0.3"/>
       <text x="286" y="42" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">청산: ${(m.liquidations || '$42.5M').slice(0, 9)}</text>
     </g>
@@ -582,7 +589,7 @@ function generateReportImage2(dStr, m) {
     <g transform="translate(0, 252)">
       <rect width="360" height="73" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#m_drop)"/>
       <text x="18" y="25" fill="#c084fc" font-size="11" font-weight="800">스마트머니 지수 &amp; LTH 비중</text>
-      <text x="18" y="53" fill="#facc15" font-size="20" font-weight="900" font-family="monospace">${m.smartMoneyScore}점 (축적)</text>
+      <text x="18" y="53" fill="#facc15" font-size="20" font-weight="900" font-family="monospace">${m.smartMoneyScore}점 <tspan font-size="12" fill="#fde047" font-weight="700">(축적)</tspan></text>
       <rect x="230" y="20" width="112" height="30" rx="8" fill="#581c87" fill-opacity="0.4"/>
       <text x="286" y="40" fill="#e9d5ff" font-size="12" font-weight="800" text-anchor="middle">LTH ${m.lthRatio}%</text>
     </g>
