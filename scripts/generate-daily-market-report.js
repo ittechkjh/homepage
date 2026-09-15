@@ -1299,7 +1299,7 @@ async function buildDailyMarketReport(targetDate = null) {
     .trim();
   console.log(`[Daily Report Generator] Generated for ${dateStr} ${timeFormatted} - Plain text characters: ${cleanText.length}`);
 
-  const timestamp = kst.getTime();
+  const timestamp = targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000));
   const timeStr = `${dateStr} ${timeFormatted}`;
 
   const fngNum = parseInt(marketData.fngScore) || 69;
@@ -2736,7 +2736,7 @@ async function buildDailyPerspectiveReport(targetDate = null) {
     title: postTitle,
     author: 'AI 퀀트 애널리스트',
     authorRank: 'VERIFIED',
-    timestamp: slotInfo.postDate.getTime(),
+    timestamp: targetDate ? new Date(targetDate).getTime() : (slotInfo.postDate.getTime() - (9 * 3600000)),
     time: slotInfo.timeStr,
     views: 0,
     upvotes: 0,
@@ -3550,7 +3550,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     title: postTitle,
     author: '10년차 재테크 에디터',
     authorRank: 'Financial Editor',
-    timestamp: kst.getTime(),
+    timestamp: targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000)),
     time: `${dateStr} ${timeFormatted}`,
     views: 0,
     upvotes: 0,

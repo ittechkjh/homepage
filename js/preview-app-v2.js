@@ -2946,7 +2946,7 @@ function renderForumPosts() {
             ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
             ${post.category === 'perspective' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">🎯 차트 관점</span>' : post.category === 'finance' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">💰 재테크 팁</span>' : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '📊 시장 분위기' : post.categoryName)}</span>`}
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
-            <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.timestamp || post.time))}</span>
+            <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.time || post.timestamp))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
             ${post.authorRank ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-navy-950 border border-navy-800 text-cyan-400 font-mono">${escapeHtml(post.authorRank)}</span>` : ''}
             <span class="text-xs text-slate-400 font-mono flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400 inline"></i>조회 ${post.views || 0}회</span>
@@ -3198,7 +3198,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   }
   if (titleEl) titleEl.innerText = post.title;
   if (authorEl) authorEl.innerText = `${post.author} (${post.authorRank || 'Member'})`;
-  if (timeEl) timeEl.innerText = formatDateTime(post.timestamp || post.time);
+  if (timeEl) timeEl.innerText = formatDateTime(post.time || post.timestamp);
   if (viewsEl) viewsEl.innerText = post.views || 0;
   const modalViewsEl = document.getElementById('modal-post-views');
   if (modalViewsEl) modalViewsEl.innerText = post.views || 0;
