@@ -2249,9 +2249,27 @@ async function openManualReportModal() {
     targetBadge.textContent = sessionName;
   }
 
+  toggleManualReportInputs();
+
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 window.openManualReportModal = openManualReportModal;
+
+function toggleManualReportInputs() {
+  const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
+  const selectedType = typeRadio ? typeRadio.value : 'all';
+  const ytContainer = document.getElementById('manual-report-youtube-container');
+  if (ytContainer) {
+    if (selectedType === 'finance') {
+      ytContainer.classList.remove('hidden');
+      const ytInput = document.getElementById('manual-report-youtube-url');
+      if (ytInput) ytInput.focus();
+    } else {
+      ytContainer.classList.add('hidden');
+    }
+  }
+}
+window.toggleManualReportInputs = toggleManualReportInputs;
 
 function closeManualReportModal() {
   const modal = document.getElementById('modal-manual-report');
@@ -2333,6 +2351,8 @@ async function executeManualReportTrigger() {
   // Selected report type
   const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
   const selectedType = typeRadio ? typeRadio.value : 'all';
+  const ytInput = document.getElementById('manual-report-youtube-url');
+  const youtubeUrl = ytInput ? ytInput.value.trim() : '';
 
   // UI state: Running
   if (runBtn) {
@@ -2362,7 +2382,8 @@ async function executeManualReportTrigger() {
       body: JSON.stringify({
         ref: 'main',
         inputs: {
-          report_type: selectedType
+          report_type: selectedType,
+          youtube_url: youtubeUrl
         }
       })
     });
@@ -2370,7 +2391,13 @@ async function executeManualReportTrigger() {
     if (res.status === 204) {
       // Successfully triggered!
       let secondsLeft = 35;
-      const typeDesc = selectedType === 'perspective' ? '4H 캔들과 엘리엇/하모닉 파동을 분석' : (selectedType === 'market' ? '거시지표 및 온체인 시황 데이터를 분석' : '4H 차트 관점 및 시장 분위기를 종합 분석');
+      const typeDesc = selectedType === 'perspective' 
+        ? '4H 캔들과 엘리엇/하모닉 파동을 분석' 
+        : (selectedType === 'market' 
+            ? '거시지표 및 온체인 시황 데이터를 분석' 
+            : (selectedType === 'finance'
+                ? (youtubeUrl ? '유튜브 영상 분석 및 10년차 재테크 에디터 칼럼을 작성' : '10년차 재테크 에디터 맞춤 재테크 칼럼을 작성')
+                : '4H 차트 관점 및 시장 분위기를 종합 분석'));
       if (statusTitle) {
         statusTitle.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span class="text-emerald-300">GitHub Actions 실행 시작!</span>';
       }
@@ -2413,6 +2440,8 @@ async function executeManualReportTrigger() {
               filterForum('perspective');
             } else if (selectedType === 'market') {
               filterForum('altcoin');
+            } else if (selectedType === 'finance') {
+              filterForum('finance');
             } else {
               filterForum('all');
             }
@@ -2420,7 +2449,11 @@ async function executeManualReportTrigger() {
 
           setTimeout(() => {
             closeManualReportModal();
-            const typeLabel = selectedType === 'perspective' ? 'AI 차트 관점 리포트' : (selectedType === 'market' ? 'AI 시장 분위기 리포트' : 'AI 시장 리포트 & 차트 관점');
+            const typeLabel = selectedType === 'perspective' 
+              ? 'AI 차트 관점 리포트' 
+              : (selectedType === 'market' 
+                  ? 'AI 시장 분위기 리포트' 
+                  : (selectedType === 'finance' ? '재테크 팁 칼럼' : 'AI 시장 리포트 & 차트 관점'));
             alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
           }, 1500);
         }
@@ -2502,7 +2535,7 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
-  if ((category === 'altcoin' || category === 'perspective') && typeof loadDailyMarketReports === 'function') {
+  if ((category === 'altcoin' || category === 'perspective' || category === 'finance') && typeof loadDailyMarketReports === 'function') {
     loadDailyMarketReports(true);
   }
   renderForumPosts();

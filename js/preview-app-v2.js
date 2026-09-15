@@ -2571,12 +2571,6 @@ async function executeManualReportTrigger() {
   const ytInput = document.getElementById('manual-report-youtube-url');
   const youtubeUrl = ytInput ? ytInput.value.trim() : '';
 
-  if (selectedType === 'finance' && !youtubeUrl) {
-    alert('재테크 팁 작성을 위해 분석할 유튜브 영상 URL을 입력해 주세요.\n(예: https://www.youtube.com/watch?v=...)');
-    if (ytInput) ytInput.focus();
-    return;
-  }
-
   // UI state: Running
   if (runBtn) {
     runBtn.disabled = true;
@@ -2619,7 +2613,7 @@ async function executeManualReportTrigger() {
         : (selectedType === 'market' 
             ? '거시지표 및 온체인 시황 데이터를 분석' 
             : (selectedType === 'finance' 
-                ? '유튜브 재테크 영상 내용과 핵심 수치를 분석' 
+                ? (youtubeUrl ? '유튜브 재테크 영상 내용과 핵심 수치를 분석' : '10년차 재테크 에디터 맞춤 재테크 칼럼을 작성') 
                 : '4H 차트 관점 및 시장 분위기를 종합 분석'));
       if (statusTitle) {
         statusTitle.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span class="text-emerald-300">GitHub Actions 실행 시작!</span>';

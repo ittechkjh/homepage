@@ -3353,7 +3353,14 @@ function synthesizeCatchyFinanceTitle(videoDetails) {
   if (combined.includes('부동산') || combined.includes('청약') || combined.includes('대출') || combined.includes('전세')) {
     return "[재테크 팁] 사회초년생과 무주택 직장인을 위한 현실적인 내 집 마련 자금 로드맵";
   }
-  return "[재테크 팁] 2040 직장인이 오늘부터 당장 계좌에 적용하는 실전 재테크 & 절세 가이드";
+  const defaultTitles = [
+    "[재테크 팁] 2040 직장인, 월급날 무조건 챙겨야 할 절세 3총사 (연금저축·IRP·ISA 세팅법)",
+    "[재테크 팁] 2040 직장인, 월급날 무조건 '이것'부터 적립해야 하는 이유 (통장 쪼개기·자동 저축)",
+    "[재테크 팁] 평범한 직장인이 월 30만원으로 노후 자산 5억 만드는 지수 ETF 적립법",
+    "[재테크 팁] 2040 직장인이 오늘부터 당장 계좌에 적용하는 실전 재테크 & 절세 가이드"
+  ];
+  const day = new Date().getDate();
+  return defaultTitles[day % defaultTitles.length];
 }
 
 // Dynamic Finance Report Fallback Engine
@@ -3494,10 +3501,15 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   let rawAiText = null;
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (apiKey && videoDetails) {
+  if (apiKey) {
     try {
       console.log('[YouTube Finance Generator] Requesting AI finance analysis from Gemini...');
-      rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, apiKey);
+      const targetDetails = videoDetails || {
+        title: postTitle.replace(/^\[재테크\s*팁\]\s*/, ''),
+        description: '2040 직장인과 사회초년생을 위한 실전 재테크, 통장 쪼개기, 절세 계좌(연금저축, IRP, ISA) 활용법 및 장기 적립식 투자 전략',
+        transcript: '월급 관리와 현금 흐름 통제, 비상금 파킹통장, 절세 세액공제 혜택 최대화 및 노후 자산 형성 가이드'
+      };
+      rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, targetDetails, apiKey);
       if (rawAiText) {
         const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
         if (titleMatch && titleMatch[1].trim()) {
@@ -3581,13 +3593,9 @@ async function main() {
 
   // Generate YouTube finance report if requested
   if (reportType === 'finance' || process.env.YOUTUBE_URL) {
-    const ytUrl = process.env.YOUTUBE_URL || process.argv[3];
-    if (ytUrl) {
-      const financeReport = await buildYouTubeFinanceReport(ytUrl);
-      if (financeReport) toAdd.push(financeReport);
-    } else if (reportType === 'finance') {
-      console.warn('[YouTube Finance] "finance" report requested but no YouTube URL was provided.');
-    }
+    const ytUrl = process.env.YOUTUBE_URL || process.argv[3] || '';
+    const financeReport = await buildYouTubeFinanceReport(ytUrl);
+    if (financeReport) toAdd.push(financeReport);
   }
 
   const idsToAdd = toAdd.map(item => item.id);
