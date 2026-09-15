@@ -2858,15 +2858,15 @@ function extractFinanceThemeData(videoDetails, customTitle = null) {
       benefitSub: '취득세·보유세 절감',
       caution: '일시적 2주택 3년 처분기한',
       bullets: [
-        '① 1주택 비과세 수성: 12억 이하 비과세 & 실거주 요건 체크',
+        '① 1주택 비과세 수성: 12억 이하 비과세 및 실거주 요건 체크',
         '② 갈아타기 처분 기한: 신규 주택 취득 후 3년 내 종전 주택 매도',
         '③ 다주택 중과 배제 활용: 기본세율(6~45%) 구간 내 출구 전략'
       ],
-      roadmapTitle: '부동산 자산 방어 & 3단계 실천 로드맵',
+      roadmapTitle: '부동산 자산 방어 및 3단계 실천 로드맵',
       steps: [
-        { title: '1단계 무주택', sub: '청약 & 시드머니 형성', items: ['✓ 청약통장 납입액 최적화', '• 월 25만 원 인정 한도 활용', '✓ 월세 세액공제 증빙 확보', '• 연 최대 15~17% 공제', '✓ ISA 활용 종잣돈 적립', '• 비과세 혜택으로 시드 방어'] },
-        { title: '2단계 1주택자', sub: '비과세 & 갈아타기 전략', items: ['✓ 1세대 1주택 12억 비과세', '• 거주·보유기간 2년 충족', '✓ 일시적 2주택 3년 룰', '• 종전 주택 처분 기한 엄수', '✓ 종부세 기본공제 체크', '• 단독명의 12억 공제 활용'] },
-        { title: '3단계 다주택자', sub: '중과 배제 & 포트폴리오', items: ['✓ 양도세 중과 배제 연장', '• 최고 82.5% 대신 기본세율', '✓ 똘똘한 한 채 압축', '• 비선호 지역 우선 정리', '✓ 금융자산 분산 투자', '• 연금·배당 ETF로 유동성 확보'] }
+        { title: '1단계 무주택', sub: '청약 및 시드머니 형성', items: ['✓ 청약통장 납입액 최적화', '• 월 25만 원 인정 한도 활용', '✓ 월세 세액공제 증빙 확보', '• 연 최대 15~17% 공제', '✓ ISA 활용 종잣돈 적립', '• 비과세 혜택으로 시드 방어'] },
+        { title: '2단계 1주택자', sub: '비과세 및 갈아타기 전략', items: ['✓ 1세대 1주택 12억 비과세', '• 거주·보유기간 2년 충족', '✓ 일시적 2주택 3년 룰', '• 종전 주택 처분 기한 엄수', '✓ 종부세 기본공제 체크', '• 단독명의 12억 공제 활용'] },
+        { title: '3단계 다주택자', sub: '중과 배제 및 포트폴리오', items: ['✓ 양도세 중과 배제 연장', '• 최고 82.5% 대신 기본세율', '✓ 똘똘한 한 채 압축', '• 비선호 지역 우선 정리', '✓ 금융자산 분산 투자', '• 연금·배당 ETF로 유동성 확보'] }
       ],
       matrixCards: [
         { tag: '무주택자', sub: '청약·월세 절세', main: '연 최대 120만 공제', bullets: ['• 청약저축 납입액 40% 소득공제', '• 월세액 최대 17% 세액공제', '✓ 내 집 마련 초기 시드머니 방어'] },
@@ -2902,11 +2902,11 @@ function extractFinanceThemeData(videoDetails, customTitle = null) {
       benefitSub: '배당 재투자 스노우볼',
       caution: '단기 급락장 뇌동매매 주의',
       bullets: [
-        '① 지수 추종 ETF 분할 적립: 미국 S&P500·나스닥100 적립',
+        '① 지수 추종 ETF 분할 적립: 미국 S&amp;P500·나스닥100 적립',
         '② 절세 계좌 내 해외 ETF: ISA 및 연금계좌에서 배당세 0%',
         '③ 배당금 100% 재투자: 장기 복리 스노우볼 엔진 완성'
       ],
-      roadmapTitle: '글로벌 지수 분할 적립 & 3단계 실천 로드맵',
+      roadmapTitle: '글로벌 지수 분할 적립 및 3단계 실천 로드맵',
       steps: [
         { title: '1단계 파킹통장', sub: '비상금 6개월 확보', items: ['✓ 3~6개월 생활비 보관', '• 급전 필요 시 주식 매도 방지', '✓ 수시입출금 고금리 활용', '• 파킹통장 3%대 유지', '✓ 빚투 절대 금지', '• 순수 여유자금 투자 원칙'] },
         { title: '2단계 ISA 바구니', sub: '만능 절세 계좌 세팅', items: ['✓ 중개형 ISA 개설', '• 비과세 200~400만 원', '✓ 국내 상장 해외 ETF', '• 배당소득세 과세이연', '✓ 3년 만기 후 연금 이전', '• 10% 추가 세액공제'] },
@@ -2915,7 +2915,7 @@ function extractFinanceThemeData(videoDetails, customTitle = null) {
       matrixCards: [
         { tag: '일반 위탁계좌', sub: '해외 직투(달러)', main: '양도세 22% (250만 공제)', bullets: ['• 환차익 비과세 혜택', '• 미국 개별주/ETF 직접 매수', '⚠️ 매년 5월 양도세 자진신고'] },
         { tag: '중개형 ISA', sub: '국내상장 해외ETF', main: '순익 200~400만 비과세', bullets: ['• 초과분 9.9% 분리과세', '• 손익통산(이익-손실 상계)', '✓ 3년 주기 연금 전환 추천'] },
-        { tag: '연금저축펀드', sub: '노후 자산 엔진', main: '연 600만 세액공제', bullets: ['• 최대 99만 원 연말환급', '• 과세이연 후 3.3~5.5% 연금세', '✓ S&P500 TR ETF 최적'] },
+        { tag: '연금저축펀드', sub: '노후 자산 엔진', main: '연 600만 세액공제', bullets: ['• 최대 99만 원 연말환급', '• 과세이연 후 3.3~5.5% 연금세', '✓ S&amp;P500 TR ETF 최적'] },
         { tag: '미국 지수 ETF', sub: '장기 복리 정석', main: '연평균 8%~11% 성장', bullets: ['• 전 세계 혁신 우량주 묶음', '• 개별 기업 파산 리스크 0', '✓ 15년 이상 보유 시 무손실'] }
       ],
       riskBadge: 'INVESTMENT RISK',
@@ -2949,17 +2949,17 @@ function extractFinanceThemeData(videoDetails, customTitle = null) {
       '② 절세 계좌 3총사 활용: 연금저축 + IRP + 중개형 ISA',
       '③ 지수 추종 ETF 분할 적립: 장기 복리 성장 엔진 탑재'
     ],
-    roadmapTitle: '2040 직장인 통장 분리 & 3단계 실천 로드맵',
+    roadmapTitle: '2040 직장인 통장 분리 및 3단계 실천 로드맵',
     steps: [
       { title: '1단계 시드머니', sub: '비상금 파킹통장 구축', items: ['✓ 3~6개월 생활비 확보', '• 수시입출금 파킹통장 활용', '✓ 고금리 부채 전액 청산', '• 리볼빙, 카드론 0원 원칙', '✓ 통장 4개 쪼개기', '• 급여/고정/소비/비상금 분리'] },
       { title: '2단계 절세 계좌', sub: '세액공제 한도 우선 납입', items: ['✓ 연금저축펀드 600만', '• 16.5% 세액공제(최대 99만)', '✓ 개인형 IRP 300만', '• 합산 900만(최대 148.5만)', '✓ 중개형 ISA 연 2,000만', '• 배당 비과세 + 9.9% 분리과세'] },
-      { title: '3단계 지수 적립', sub: '장기 복리 성장 엔진 탑재', items: ['✓ 미국 S&P500·나스닥100', '• 국내 상장 해외 ETF 매수', '✓ 정액 적립식(DCA)', '• 주가 등락 무관 매월 자동이체', '✓ 배당금 100% 재투자', '• 스노우볼 복리 효과 극대화'] }
+      { title: '3단계 지수 적립', sub: '장기 복리 성장 엔진 탑재', items: ['✓ 미국 S&amp;P500·나스닥100', '• 국내 상장 해외 ETF 매수', '✓ 정액 적립식(DCA)', '• 주가 등락 무관 매월 자동이체', '✓ 배당금 100% 재투자', '• 스노우볼 복리 효과 극대화'] }
     ],
     matrixCards: [
       { tag: '일반 예·적금', sub: '단기 안정성 1순위', main: '연 3.0% ~ 3.5%', bullets: ['• 이자소득세 15.4% 원천징수', '• 예금자보호 5천만 원', '⚠️ 물가상승률 감안 시 자산 증식 한계'] },
       { tag: '연금저축 + IRP', sub: '연말정산 13.2%~16.5%', main: '최대 148.5만원 환급', bullets: ['• 연간 900만 원까지 세액공제 한도', '• 배당소득세 과세이연 및 연금세', '✓ 직장인 필수 1순위 절세 방패 계좌'] },
       { tag: '중개형 ISA', sub: '만능 절세 바구니', main: '비과세 200~400만', bullets: ['• 손익 통산 후 순이익 비과세', '• 한도 초과분 9.9% 분리과세', '✓ 3년 의무가입 후 연금계좌 전환 시 추가 공제'] },
-      { tag: '미국 지수 ETF', sub: 'S&P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 글로벌 1등 우량 기업 묶음 투자', '• 개별주 리스크 배제 및 분기 배당', '✓ 20년 적립 시 원금 대비 3.5~5배 복리'] }
+      { tag: '미국 지수 ETF', sub: 'S&amp;P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 글로벌 1등 우량 기업 묶음 투자', '• 개별주 리스크 배제 및 분기 배당', '✓ 20년 적립 시 원금 대비 3.5~5배 복리'] }
     ],
     riskBadge: 'RISK CHECKLIST',
     riskTitle: '투자·가입 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 리스크 방어 4대 수칙',
@@ -2975,6 +2975,12 @@ function extractFinanceThemeData(videoDetails, customTitle = null) {
       '매월 작더라도 꾸준히 쌓아가는 복리 습관이 10년 뒤 여러분의 가장 강력한 경제적 자유를 만들어줍니다.'
     ]
   };
+}
+
+// Safely sanitizes SVG string to prevent XML parse errors from unescaped '&'
+function sanitizeSvgXml(svg) {
+  if (!svg) return '';
+  return svg.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
 }
 
 // SVG 1: 메인 썸네일 & 핵심 브리핑 카드 (16:9 800x450)
@@ -3096,7 +3102,7 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
     <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Finance Lab</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
 // SVG 2: 2040 직장인을 위한 3단계 실천 로드맵 (16:9 800x450)
@@ -3191,7 +3197,7 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
 
   <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실행이 곧 자산입니다 • 맞춤 단계별 전략을 미리 세우고 대응하는 것이 성공의 열쇠입니다</text>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
 // SVG 3: 핵심 비교 분석 & 수익/공제율 매트릭스 (16:9 800x450)
@@ -3280,7 +3286,7 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
 
   <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건과 혜택을 사전에 숙지할 때 불필요한 세금 유출과 리스크를 원천 차단할 수 있습니다</text>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
 // SVG 4: 필수 주의사항 & 리스크 방어 4대 수칙 (16:9 800x450)
@@ -3368,7 +3374,7 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
     <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${tData.summaryBullets[1] || ''}</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
 // Gemini AI Call for Finance Tips
@@ -3531,9 +3537,9 @@ function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris
   const cleanTitle = displayTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
 
   const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="${tData.badge} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 실천 로드맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="심층 비교 분석 매트릭스 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="필수 주의사항 및 리스크 방어 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="${tData.roadmapTitle} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="${tData.matrixTitle} 심층 비교 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="${tData.riskTitle ? tData.riskTitle.replace(/<[^>]+>/g, '').replace(/&amp;/g, '및') : '필수 주의사항 및 리스크 방어'} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
 
   if (tData.theme === 'realestate') {
     return `<h3 style="font-size: 19px; font-weight: 800; color: #d97706; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
@@ -3683,14 +3689,19 @@ ${imgTag4}
 }
 
 // Assemble Finance Report with Gemini Text + Images + Embed
-function assembleFinanceHtml(rawText, videoDetails, imgUris) {
+function assembleFinanceHtml(rawText, videoDetails, imgUris, themeData = null, postTitle = null) {
   const safeTitle = (videoDetails?.title || '2040 직장인을 위한 맞춤 재테크 가이드').replace(/[<>&"]/g, '');
+  const tData = themeData || extractFinanceThemeData(videoDetails, postTitle);
+  const safeBadge = tData?.badge || '재테크 핵심 요약 인포그래픽';
+  const safeRoadmap = tData?.roadmapTitle || '3단계 실천 로드맵';
+  const safeMatrix = tData?.matrixTitle ? `${tData.matrixTitle} 심층 비교 분석` : '절세 및 투자 상품 비교 매트릭스';
+  const safeRisk = tData?.riskTitle ? tData.riskTitle.replace(/<[^>]+>/g, '').replace(/&amp;/g, '및') : '주의사항 및 리스크 방어 수칙';
 
   const imgTags = [
-    `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="재테크 핵심 요약 인포그래픽 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-    `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 실천 로드맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-    `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="절세 및 투자 상품 비교 매트릭스 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-    `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="주의사항 및 리스크 방어 수칙 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="${safeBadge} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="${safeRoadmap} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="${safeMatrix} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="${safeRisk} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
   ];
 
   let processed = rawText.replace(/<TITLE>.*?<\/TITLE>/gi, '').trim();
@@ -3770,7 +3781,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   let contentHtml = null;
   if (rawAiText) {
-    contentHtml = assembleFinanceHtml(rawAiText, videoDetails, imgUris);
+    contentHtml = assembleFinanceHtml(rawAiText, videoDetails, imgUris, dynamicThemeData, postTitle);
   }
 
   if (!contentHtml) {

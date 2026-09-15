@@ -3377,6 +3377,7 @@ function convertPostSvgImagesToPng(container) {
       } catch (e) {}
 
       if (decodedSvg) {
+        decodedSvg = decodedSvg.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
         const hMatch = decodedSvg.match(/viewBox=["'][^"']*?\s(\d+)\s*["']/i) || decodedSvg.match(/height=["'](\d+)["']/i);
         const targetH = hMatch ? hMatch[1] : (decodedSvg.includes('450') ? '450' : (decodedSvg.includes('420') ? '420' : '280'));
         decodedSvg = decodedSvg.replace(/width=["']100%["']/gi, 'width="800"').replace(/height=["']100%["']/gi, `height="${targetH}"`);
