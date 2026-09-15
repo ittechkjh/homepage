@@ -1809,11 +1809,12 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
   const img4Uri = generateReportImage4(dateStr);
 
   const contentHtml = `
-<h3 style="font-size: 16px; font-weight: 700; color: #22d3ee; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-  📌 [모닝 브리핑] 30대 거시·온체인 핵심 지표 총괄 및 시장 종합 진단
+<h3 style="font-size: 19px; font-weight: 800; color: #0284c7; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
+  📌 1. 흥미로운 도입: "폭풍 전야의 팽팽한 침묵, 대세 상승의 전초전인가?"
 </h3>
-<p style="color: #e2e8f0; line-height: 1.7; margin-bottom: 16px;">
-${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터와 글로벌 M2 통화 유동성 확장을 바탕으로 하방 경직성을 확보한 채, 주요 글로벌 거시 경제 일정과 온체인 축적 흐름을 주시하며 안정적인 관망세를 보이고 있습니다. 시세 화면의 30대 거시 지표와 온체인 원장을 종합 진단한 결과, 시장은 과열 없는 건강한 상승 추세 채널을 유지하고 있는 것으로 분석됩니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+지난 10년간 비트코인 사이클을 현장에서 목격하며 체득한 가장 확실한 법칙 중 하나는, <strong>"대중이 지루함에 지쳐 떠나갈 때 진짜 큰 파도가 잉태된다"</strong>는 사실입니다. ${dateKorean} 현재 암호화폐 시장은 겉으로 보기에 큰 방향성 없이 횡보하는 것처럼 보이지만, 그 수면 아래에서는 스마트머니와 개인 투자자 사이의 심리적 괴리가 역사상 그 어느 때보다 극명하게 벌어지고 있습니다.<br/>
+현재 비트코인은 국내 업비트 기준 1억 400만 원 선, 해외 바이낸스 기준 78,000달러 선에서 강력한 하방 경직성을 확보한 채 팽팽한 힘겨루기를 이어가고 있습니다. 과거 대세 상승장이 직전 전고점을 뚫기 전 겪었던 전형적인 '숨고르기 및 에너지 응축' 패턴과 일치하는 흐름입니다.
 </p>
 
 <!-- Image 1: Macro & Sentiment Matrix (crytopnl.com) -->
@@ -1821,12 +1822,12 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
   <img src="${img1Uri}" alt="30대 거시·글로벌 시장 센티먼트 대시보드 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(14, 165, 233, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #22d3ee; padding-left: 8px;">
-1. 국내외 프리미엄 및 파생상품 레버리지 동향
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #0284c7; padding-left: 10px;">
+  2. 현재 시장 분위기 요약: Fear &amp; Greed와 지표 이면의 괴리
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-국내 김치프리미엄은 +1.20%로 투기적 과열 없이 안정적인 수준입니다. 미국 기관의 현물 매수세를 나타내는 코인베이스 프리미엄은 +0.08%의 완만한 플러스를 유지하며 월가 기관들의 꾸준한 분할 매집을 보여줍니다. 거래소별 상승 종목 비율은 업비트 40%(상승 114개 / 하락 150개), 빗썸 36%(상승 172개 / 하락 287개)로 비트코인 도미넌스(58.34%) 집중에 따른 알트코인 차별화 장세가 이어지고 있습니다.
-선물 펀딩비는 0.0038%로 중립이며, 미결제약정(OI)은 348억 달러로 레버리지 청산 후 안정권입니다. 롱/숏 비율은 1.297로 롱 우세(56.5%)이며, 24시간 청산 규모는 1억 4,820만 달러, 내재변동성(DVOL)은 52.4로 급격한 변동성 리스크는 제한적입니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+오늘 집계된 얼터너티브 공포&amp;탐욕 지수는 <strong>69포인트(탐욕)</strong>를 기록하고 있습니다. 수치상으로는 분명 탐욕 영역에 진입해 있지만, 커뮤니티나 투자자들의 실제 반응은 전혀 축제 분위기가 아닙니다. 오히려 '또 떨어지는 것 아니냐', '알트코인은 왜 안 가냐'는 불안과 회의론이 지배적입니다.<br/>
+시장 파생상품 데이터를 살펴보면 김치프리미엄은 +1.20%로 과열 없는 안정권이며, 코인베이스 프리미엄은 +0.08%로 미국 기관들의 분할 매집세를 대변합니다. 선물 펀딩비는 +0.0038%로 중립 수준에 머물러 있어 과도한 롱 레버리지에 의한 청산 위험이 극도로 낮습니다.
 </p>
 
 <!-- Image 3: Derivatives & Leverage Map (crytopnl.com) -->
@@ -1834,12 +1835,14 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
   <img src="${img3Uri}" alt="글로벌 파생상품 레버리지 & 롱숏 청산 맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(139, 92, 246, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #34d399; padding-left: 8px;">
-2. 온체인 원장 6대 핵심 지표 분석 (수익성 & 공급 쇼티지)
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #10b981; padding-left: 10px;">
+  3. 분위기 형성 요인 분석: 가격을 떠받치는 3대 핵심 동인
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-비트코인 MVRV Z-Score는 1.84로 역대 사이클 고점 대비 부담 없는 저평가 상승 구간입니다. 채굴자 수익성을 나타내는 Puell Multiple은 0.92로 반감기 이후 강제 매도 압력이 진정되었습니다.
-소비 출력 이익 비율(SOPR)은 1.0184로 시장 참여자들의 완만한 수익 실현이 이뤄지고 있으며, 1.000선이 강력한 지지선 역할을 합니다. 일일 실현 손익은 순이익 +4억 1,250만 달러(약 5,775억 원)로 패닉셀 없는 건강한 손바뀜을 나타냅니다. 155일 이상 코인을 보유한 장기 보유자(LTH) 비중은 74.2%(1,489만 BTC)로 거래소 공급 쇼티지가 지속되고 있으며, 스테이블코인 공급량은 1,725억 달러(USDT 1,184억 달러)로 사상 최고 수준의 대기 매수세를 보유 중입니다. 스마트머니 순매수 점수는 78점으로 기관 축적 단계입니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+현재 시장의 분위기는 우연이 아닌 3가지 거대한 펀더멘털 축이 맞물리며 형성되고 있습니다.<br/>
+첫째, <strong>기관 현물 ETF 자금의 지속적 유입</strong>입니다. 미국 월가의 주요 자산운용사들과 연기금들은 단기 시세 변동에 일희일비하지 않고 규제된 ETF 창구를 통해 비트코인을 지속적으로 바스켓에 담고 있습니다.<br/>
+둘째, <strong>글로벌 거시 경제(매크로)의 유동성 재팽창</strong>입니다. 미 연준의 금리 인하 사이클과 글로벌 M2 통화량 확장이 위험자산 전반에 우호적인 환경을 조성합니다.<br/>
+셋째, <strong>온체인 원장의 공급 쇼티지</strong>입니다. 155일 이상 코인을 움직이지 않은 장기보유자(LTH) 비중이 74.2%(1,489만 BTC)에 달하며 주요 글로벌 거래소의 비트코인 잔고는 6년 래 최저치로 떨어졌습니다.
 </p>
 
 <!-- Image 2: On-Chain Fundamentals (crytopnl.com) -->
@@ -1847,11 +1850,11 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
   <img src="${img2Uri}" alt="온체인 원장 6대 핵심 펀더멘털 분석 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #fbbf24; padding-left: 8px;">
-3. 거시 경제 유동성 및 전통 금융(TradFi) 지표
+<h4 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #f59e0b; padding-left: 10px;">
+  4. 주요 코인별 분위기 차이: 비트코인 독주와 알트코인의 온도차
 </h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-글로벌 M2 통화량은 108.5조 달러(+4.2%)로 유동성 확장 국면입니다. 미국 기준금리는 4.50% 인하 사이클이며, 연준 역레포 잔고는 2,450억 달러, 하이일드 스프레드는 3.25%로 신용 리스크가 낮습니다. 달러 인덱스(DXY)는 98.84로 약세를 지속해 위험자산에 우호적이며 원/달러 환율은 1,340.5원입니다. 나스닥(+0.65%), 반도체지수(+0.42%)의 반등과 VIX 15.72 안정세는 크립토 자금 유입을 뒷받침합니다.
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px;">
+비트코인 도미넌스가 58%를 웃돌며 시장의 유동성을 비트코인이 거의 독점하고 있습니다. 실제로 국내 거래소의 상승 종목 비율을 보면 업비트 40%, 빗썸 36% 수준으로 절반 이상의 종목들이 지지부진한 흐름을 이어가고 있습니다. 과거처럼 모든 코인이 동시에 폭등하는 '무차별 불장'이 아니라, 실질적인 매출과 확실한 내러티브를 갖춘 소수의 프로젝트만 선별 반응하는 냉정한 장세입니다.
 </p>
 
 <!-- Image 4: Macro & Calendar Timeline (crytopnl.com) -->
@@ -1859,19 +1862,12 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
   <img src="${img4Uri}" alt="글로벌 경제 캘린더 타임라인 & 트레이딩 체크포인트 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 14px; border: 1px solid rgba(245, 158, 11, 0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
 </div>
 
-<h4 style="font-size: 14px; font-weight: 700; color: #f8fafc; margin-top: 24px; margin-bottom: 8px; border-left: 4px solid #f43f5e; padding-left: 8px;">
-4. 금일 주요 경제 일정 및 글로벌 속보 이슈
-</h4>
-<p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 14px;">
-금일 글로벌 거시 경제 및 주요 크립토 이벤트 일정을 상시 모니터링 중이며, 향후 발표될 미국 통화 정책 지표와 주요 프로젝트 일정에 따라 방향성 탐색이 전개될 전망입니다. 미국 주요 연기금의 비트코인 현물 ETF 편입 확대와 온체인 활성 지갑 증가세가 시장의 견고한 하방 지지력을 제공하고 있습니다.
-</p>
-
-<div style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 18px 20px; margin: 20px 0; color: #ffffff;">
-  <div style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-bottom: 8px;">
-    💡 [종합 결론 및 트레이딩 전략 가이드]
+<div class="morning-conclusion-card" style="background: rgba(8, 47, 73, 0.7); border: 1px solid rgba(56, 189, 248, 0.5); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 20px 22px; margin: 24px 0; color: #ffffff;">
+  <div style="color: #38bdf8; font-weight: 800; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    💡 5. 10년 차 분석가의 실전 행동 가이드: 독자를 위한 실질적 조언
   </div>
-  <p style="font-size: 13px; line-height: 1.75; margin: 0; color: #f8fafc; font-weight: 500;">
-    공포&탐욕 지수 69(탐욕), LTH 비중 74.2%, 해시레이트 685 EH/s가 단단한 하방을 형성하고 있습니다. 주요 지표 발표 및 일정 전후 일시적 레버리지 흔들기에 대비해 무리한 추격 매수보다는 1.000 SOPR 지지선을 활용한 분할 매수 대응을 권장합니다.
+  <p style="font-size: 14px; line-height: 1.85; margin: 0; color: #f8fafc; font-weight: 500;">
+    초보~중급 투자자분들께 당부드리고 싶은 핵심 행동 수칙은 명확합니다. 절대 고레버리지 추격 매수를 하지 마시고, 포트폴리오의 최소 20~30%는 반드시 현금(스테이블코인)으로 유지하세요. 비트코인의 전고점 안착 이후 찾아올 알트코인 대순환매를 차분히 준비하는 것이 지금 가장 현명한 전략입니다.
   </p>
 </div>
 `;
@@ -1882,7 +1878,7 @@ ${dateKorean} 기준 암호화폐 시장은 견고한 온체인 원장 데이터
     id: `report-${dateStr.replace(/-/g, '')}`,
     category: 'altcoin',
     categoryName: '📊 시장 분위기',
-    title: `[모닝 시황] ${dateKorean} 글로벌 암호화폐 & 온체인 펀더멘털 종합 분석 보고서`,
+    title: `[시장 심리 분석] ${dateKorean} 비트코인 탐욕 지수 69P... 폭풍 전야인가 대세 상승의 서막인가?`,
     author: '시황분석팀 (AI)',
     authorRank: 'VERIFIED',
     timestamp: postDate.getTime(),
@@ -1950,8 +1946,14 @@ function ensureDailyMarketReportPost(posts) {
   const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
   const targetReportId = `report-${year}${month}${day}`;
 
-  // If today's report is not in cached reports or posts, generate it immediately as fallback
-  if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id).startsWith(targetReportId))) {
+  // If real report exists for today (e.g. report-YYYYMMDD-HHmm), remove any fallback dummy report (report-YYYYMMDD)
+  const hasRealReportForToday = posts.some(p => String(p.id).startsWith(targetReportId + '-'));
+  if (hasRealReportForToday) {
+    const dummyIdx = posts.findIndex(p => String(p.id) === targetReportId);
+    if (dummyIdx !== -1) {
+      posts.splice(dummyIdx, 1);
+    }
+  } else if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id).startsWith(targetReportId))) {
     posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
   }
 
@@ -2011,6 +2013,19 @@ async function loadDailyMarketReports(force = false) {
           localStorage.setItem('crytopnl_daily_market_reports_cache', JSON.stringify(reports));
         } catch(e) {}
         const currentPosts = getStoredPosts();
+        // Remove any obsolete fallback dummy post (e.g. report-20260915) if a real timestamped report exists
+        reports.forEach(rep => {
+          if (rep && rep.id && String(rep.id).startsWith('report-')) {
+            const parts = String(rep.id).split('-');
+            if (parts.length >= 3) {
+              const fallbackDummyId = `report-${parts[1]}`;
+              const dummyIdx = currentPosts.findIndex(p => String(p.id) === fallbackDummyId);
+              if (dummyIdx !== -1) {
+                currentPosts.splice(dummyIdx, 1);
+              }
+            }
+          }
+        });
         reports.forEach(rep => {
           if (!rep || !rep.id) return;
           const p = currentPosts.find(x => String(x.id) === String(rep.id));
