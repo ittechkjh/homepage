@@ -2843,11 +2843,150 @@ async function fetchYouTubeVideoDetails(youtubeUrl) {
   };
 }
 
+// Helper to detect theme and extract dynamic card parameters from videoDetails or custom input
+function extractFinanceThemeData(videoDetails, customTitle = null) {
+  const text = `${customTitle || ''} ${videoDetails?.title || ''} ${videoDetails?.description || ''} ${videoDetails?.transcript || ''}`.toLowerCase();
+  
+  if (text.includes('부동산') || text.includes('취득세') || text.includes('양도세') || text.includes('종부세') || text.includes('주택') || text.includes('아파트') || text.includes('전세') || text.includes('청약')) {
+    return {
+      theme: 'realestate',
+      badge: '2026 부동산 세제·실전 가이드',
+      heroSub: '1주택·무주택·다주택 핵심 대응 수칙',
+      matrixTitle: '부동산 세제 핵심 매트릭스',
+      target: '1주택 갈아타기·무주택·투자자',
+      benefit: '양도세 12억 비과세 + 중과 완화',
+      benefitSub: '취득세·보유세 절감',
+      caution: '일시적 2주택 3년 처분기한',
+      bullets: [
+        '① 1주택 비과세 수성: 12억 이하 비과세 & 실거주 요건 체크',
+        '② 갈아타기 처분 기한: 신규 주택 취득 후 3년 내 종전 주택 매도',
+        '③ 다주택 중과 배제 활용: 기본세율(6~45%) 구간 내 출구 전략'
+      ],
+      roadmapTitle: '부동산 자산 방어 & 3단계 실천 로드맵',
+      steps: [
+        { title: '1단계 무주택', sub: '청약 & 시드머니 형성', items: ['✓ 청약통장 납입액 최적화', '• 월 25만 원 인정 한도 활용', '✓ 월세 세액공제 증빙 확보', '• 연 최대 15~17% 공제', '✓ ISA 활용 종잣돈 적립', '• 비과세 혜택으로 시드 방어'] },
+        { title: '2단계 1주택자', sub: '비과세 & 갈아타기 전략', items: ['✓ 1세대 1주택 12억 비과세', '• 거주·보유기간 2년 충족', '✓ 일시적 2주택 3년 룰', '• 종전 주택 처분 기한 엄수', '✓ 종부세 기본공제 체크', '• 단독명의 12억 공제 활용'] },
+        { title: '3단계 다주택자', sub: '중과 배제 & 포트폴리오', items: ['✓ 양도세 중과 배제 연장', '• 최고 82.5% 대신 기본세율', '✓ 똘똘한 한 채 압축', '• 비선호 지역 우선 정리', '✓ 금융자산 분산 투자', '• 연금·배당 ETF로 유동성 확보'] }
+      ],
+      matrixCards: [
+        { tag: '무주택자', sub: '청약·월세 절세', main: '연 최대 120만 공제', bullets: ['• 청약저축 납입액 40% 소득공제', '• 월세액 최대 17% 세액공제', '✓ 내 집 마련 초기 시드머니 방어'] },
+        { tag: '1세대 1주택', sub: '양도소득세 비과세', main: '12억 이하 전액 비과세', bullets: ['• 2년 이상 보유(조정지역 거주)', '• 일시적 2주택 3년 내 처분', '✓ 상급지 갈아타기 최적 타이밍'] },
+        { tag: '일시적 2주택', sub: '대체 취득 특례', main: '기존 주택 3년 처분', bullets: ['• 신규 주택 취득 1년 후 매수', '• 취득세 일반세율(1~3%) 적용', '✓ 처분 기한 초과 시 가산세 주의'] },
+        { tag: '다주택자', sub: '중과 완화 출구', main: '기본세율 6% ~ 45%', bullets: ['• 중과 배제 기간 내 매도 유도', '• 장기보유특별공제(최대 30%)', '✓ 취득세 중과 리스크 사전 점검'] }
+      ],
+      riskBadge: 'REAL ESTATE RISK',
+      riskTitle: '부동산 세무 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 리스크 방어 4대 수칙',
+      risks: [
+        { code: '01', title: '처분 기한 도과', sub: '일시적 2주택 3년 초과', desc: '비과세 취소 + 양도세 추징', tag: '✓ 캘린더 알림 등록 필수' },
+        { code: '02', title: '실거주 요건 누락', sub: '조정대상지역 취득 시', desc: '2년 실거주 미충족 시 과세', tag: '✓ 전입 및 주민등록 유지' },
+        { code: '03', title: '취득세 중과 복병', sub: '조정지역 2주택 이상', desc: '8%~12% 취득세 폭탄 주의', tag: '✓ 계약 전 주택 수 산정' },
+        { code: '04', title: '자금조달계획서', sub: '증여·차용증 철저 소명', desc: '국세청 편법 증여 전수조사', tag: '✓ 적법한 금융 거래 내역' }
+      ],
+      summaryQuote: '부동산 세금의 성패는 복잡한 편법이 아니라, 비과세 요건과 법정 처분 기한을 단 하루도 놓치지 않는 철저한 일정 관리에 있습니다.',
+      summaryBullets: [
+        '1단계(내 주택 비과세 요건 파악) ➔ 2단계(처분·취득 일정표 수립) ➔ 3단계(금융 절세계좌 병행)의 원칙을 사수하세요.',
+        '세법 개편 흐름을 미리 체크하고 1주택 비과세 방패를 지키는 것이 수천만 원의 세금을 아끼는 지름길입니다.'
+      ]
+    };
+  }
+
+  // Stock / ETF theme
+  if (text.includes('etf') || text.includes('주식') || text.includes('s&p') || text.includes('나스닥') || text.includes('배당') || text.includes('미국주식')) {
+    return {
+      theme: 'stock',
+      badge: '2026 ETF·글로벌 투자 전략 가이드',
+      heroSub: '월 30만 원으로 복리 자산 만들기',
+      matrixTitle: '투자 자산 핵심 매트릭스',
+      target: '2040 직장인·적립식 투자자',
+      benefit: '연평균 8~10% 장기 복리',
+      benefitSub: '배당 재투자 스노우볼',
+      caution: '단기 급락장 뇌동매매 주의',
+      bullets: [
+        '① 지수 추종 ETF 분할 적립: 미국 S&P500·나스닥100 적립',
+        '② 절세 계좌 내 해외 ETF: ISA 및 연금계좌에서 배당세 0%',
+        '③ 배당금 100% 재투자: 장기 복리 스노우볼 엔진 완성'
+      ],
+      roadmapTitle: '글로벌 지수 분할 적립 & 3단계 실천 로드맵',
+      steps: [
+        { title: '1단계 파킹통장', sub: '비상금 6개월 확보', items: ['✓ 3~6개월 생활비 보관', '• 급전 필요 시 주식 매도 방지', '✓ 수시입출금 고금리 활용', '• 파킹통장 3%대 유지', '✓ 빚투 절대 금지', '• 순수 여유자금 투자 원칙'] },
+        { title: '2단계 ISA 바구니', sub: '만능 절세 계좌 세팅', items: ['✓ 중개형 ISA 개설', '• 비과세 200~400만 원', '✓ 국내 상장 해외 ETF', '• 배당소득세 과세이연', '✓ 3년 만기 후 연금 이전', '• 10% 추가 세액공제'] },
+        { title: '3단계 자동 적립', sub: '지수 ETF 분할 매수', items: ['✓ 매월 급여일 자동이체', '• 주가 등락 무관 DCA 적립', '✓ 배당금 자동 재투자', '• 복리 효과 극대화', '✓ 10년 이상 장기 보유', '• 원금 대비 3~5배 증식'] }
+      ],
+      matrixCards: [
+        { tag: '일반 위탁계좌', sub: '해외 직투(달러)', main: '양도세 22% (250만 공제)', bullets: ['• 환차익 비과세 혜택', '• 미국 개별주/ETF 직접 매수', '⚠️ 매년 5월 양도세 자진신고'] },
+        { tag: '중개형 ISA', sub: '국내상장 해외ETF', main: '순익 200~400만 비과세', bullets: ['• 초과분 9.9% 분리과세', '• 손익통산(이익-손실 상계)', '✓ 3년 주기 연금 전환 추천'] },
+        { tag: '연금저축펀드', sub: '노후 자산 엔진', main: '연 600만 세액공제', bullets: ['• 최대 99만 원 연말환급', '• 과세이연 후 3.3~5.5% 연금세', '✓ S&P500 TR ETF 최적'] },
+        { tag: '미국 지수 ETF', sub: '장기 복리 정석', main: '연평균 8%~11% 성장', bullets: ['• 전 세계 혁신 우량주 묶음', '• 개별 기업 파산 리스크 0', '✓ 15년 이상 보유 시 무손실'] }
+      ],
+      riskBadge: 'INVESTMENT RISK',
+      riskTitle: '주식·ETF 투자 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 리스크 방어 4대 수칙',
+      risks: [
+        { code: '01', title: '확정 고수익 의심', sub: '"원금 보장 월 10%"', desc: '100% 폰지 사기 의심', tag: '✓ 원금보장 고수익은 없다' },
+        { code: '02', title: '레버리지 장기투자', sub: '2X, 3X 음의 복리', desc: '횡보장 계좌 녹아내림', tag: '✓ 1배수 정석 ETF 원칙' },
+        { code: '03', title: '패닉셀(공포 투매)', sub: '조정장 감정 매도', desc: '저점 매도 고점 매수 반복', tag: '✓ 기계적 월 분할 매수' },
+        { code: '04', title: '숨은 총보수(TER)', sub: '기타비용·매매중개수수료', desc: '공시 총보수와 괴리 발생', tag: '✓ 실질부담비용 최저 선택' }
+      ],
+      summaryQuote: '투자의 성패는 고수익 타이밍을 맞히는 데 있지 않고, 잃지 않는 우량 자산에 꾸준히 시간을 더하는 복리의 힘에 있습니다.',
+      summaryBullets: [
+        '1단계(비상금 파킹) ➔ 2단계(절세 계좌 세팅) ➔ 3단계(지수 ETF 자동이체) 순서를 지키세요.',
+        '시장 노이즈에 흔들리지 않고 매달 묵묵히 모아가는 사람이 결국 경제적 자유를 완성합니다.'
+      ]
+    };
+  }
+
+  // Default General Finance
+  return {
+    theme: 'general',
+    badge: '2026 재테크·투자 전략 가이드',
+    heroSub: '2040 직장인을 위한 핵심 실천 요약',
+    matrixTitle: '재테크 핵심 요약 매트릭스',
+    target: '20~40대 직장인·사회초년생',
+    benefit: '연말정산 환급 + 복리 증식',
+    benefitSub: '연 148.5만원 절세',
+    caution: '과장된 고수익 미끼 상품 주의',
+    bullets: [
+      '① 소득 대비 저축률 극대화: 선저축 후지출 50% 법칙',
+      '② 절세 계좌 3총사 활용: 연금저축 + IRP + 중개형 ISA',
+      '③ 지수 추종 ETF 분할 적립: 장기 복리 성장 엔진 탑재'
+    ],
+    roadmapTitle: '2040 직장인 통장 분리 & 3단계 실천 로드맵',
+    steps: [
+      { title: '1단계 시드머니', sub: '비상금 파킹통장 구축', items: ['✓ 3~6개월 생활비 확보', '• 수시입출금 파킹통장 활용', '✓ 고금리 부채 전액 청산', '• 리볼빙, 카드론 0원 원칙', '✓ 통장 4개 쪼개기', '• 급여/고정/소비/비상금 분리'] },
+      { title: '2단계 절세 계좌', sub: '세액공제 한도 우선 납입', items: ['✓ 연금저축펀드 600만', '• 16.5% 세액공제(최대 99만)', '✓ 개인형 IRP 300만', '• 합산 900만(최대 148.5만)', '✓ 중개형 ISA 연 2,000만', '• 배당 비과세 + 9.9% 분리과세'] },
+      { title: '3단계 지수 적립', sub: '장기 복리 성장 엔진 탑재', items: ['✓ 미국 S&P500·나스닥100', '• 국내 상장 해외 ETF 매수', '✓ 정액 적립식(DCA)', '• 주가 등락 무관 매월 자동이체', '✓ 배당금 100% 재투자', '• 스노우볼 복리 효과 극대화'] }
+    ],
+    matrixCards: [
+      { tag: '일반 예·적금', sub: '단기 안정성 1순위', main: '연 3.0% ~ 3.5%', bullets: ['• 이자소득세 15.4% 원천징수', '• 예금자보호 5천만 원', '⚠️ 물가상승률 감안 시 자산 증식 한계'] },
+      { tag: '연금저축 + IRP', sub: '연말정산 13.2%~16.5%', main: '최대 148.5만원 환급', bullets: ['• 연간 900만 원까지 세액공제 한도', '• 배당소득세 과세이연 및 연금세', '✓ 직장인 필수 1순위 절세 방패 계좌'] },
+      { tag: '중개형 ISA', sub: '만능 절세 바구니', main: '비과세 200~400만', bullets: ['• 손익 통산 후 순이익 비과세', '• 한도 초과분 9.9% 분리과세', '✓ 3년 의무가입 후 연금계좌 전환 시 추가 공제'] },
+      { tag: '미국 지수 ETF', sub: 'S&P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 글로벌 1등 우량 기업 묶음 투자', '• 개별주 리스크 배제 및 분기 배당', '✓ 20년 적립 시 원금 대비 3.5~5배 복리'] }
+    ],
+    riskBadge: 'RISK CHECKLIST',
+    riskTitle: '투자·가입 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 리스크 방어 4대 수칙',
+    risks: [
+      { code: '01', title: '확정 고수익 의심', sub: '"원금 보장 월 10%"', desc: '100% 폰지 사기 의심', tag: '✓ 하이리턴엔 하이리스크' },
+      { code: '02', title: '중도해지 페널티', sub: '55세 이전 해지 시', desc: '16.5% 기타소득세 추징', tag: '✓ 장기 여유자금만 납입' },
+      { code: '03', title: '무리한 빚투 금지', sub: '신용·대출 레버리지', desc: '하락장 패닉셀 주원인', tag: '✓ 본업에 지장 없는 투자' },
+      { code: '04', title: '숨은 보수·비용', sub: '총보수비용(TER)', desc: '매매중개수수료 합산', tag: '✓ 실질부담비용 최저 선택' }
+    ],
+    summaryQuote: '재테크의 승패는 단기 고수익 종목을 맞히는 데 있지 않고, 잃지 않는 시스템을 먼저 완성하는 데 있습니다.',
+    summaryBullets: [
+      '1단계(비상금 파킹) ➔ 2단계(절세 계좌 한도) ➔ 3단계(글로벌 지수 ETF 분할 적립)의 기본 순서를 지키세요.',
+      '매월 작더라도 꾸준히 쌓아가는 복리 습관이 10년 뒤 여러분의 가장 강력한 경제적 자유를 만들어줍니다.'
+    ]
+  };
+}
+
 // SVG 1: 메인 썸네일 & 핵심 브리핑 카드 (16:9 800x450)
-function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
+function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const safeTitle = (customTitle || videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
   const cleanTitle = safeTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
   const displayTitle1 = cleanTitle.length > 25 ? cleanTitle.slice(0, 25) + '...' : cleanTitle;
+
+  const b1 = tData.bullets[0] || '① 지출 통제 및 시드머니 방어';
+  const b2 = tData.bullets[1] || '② 절세 계좌 활용 혜택 극대화';
+  const b3 = tData.bullets[2] || '③ 장기 복리 성장 시스템 구축';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -2882,12 +3021,12 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
 
   <!-- Top Badges -->
   <g transform="translate(30, 24)">
-    <rect width="215" height="30" rx="8" fill="#d97706" filter="url(#f1_drop)"/>
+    <rect width="225" height="30" rx="8" fill="#d97706" filter="url(#f1_drop)"/>
     <circle cx="18" cy="15" r="5" fill="#ffffff"/>
-    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">2026 재테크·투자 전략 가이드</text>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${tData.badge}</text>
 
-    <rect x="225" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2"/>
-    <text x="292" y="20" fill="#fbbf24" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 블로거 뷰</text>
+    <rect x="235" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="302" y="20" fill="#fbbf24" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 블로거 뷰</text>
 
     <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
     <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
@@ -2895,29 +3034,29 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
 
   <!-- Main Hero Title -->
   <g transform="translate(35, 90)">
-    <rect x="0" y="0" width="240" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 2026 직장인 실전 재테크 인사이트</text>
+    <rect x="0" y="0" width="250" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 ${tData.badge}</text>
 
-    <text x="0" y="66" fill="#ffffff" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${displayTitle1}</text>
-    <text x="0" y="106" fill="url(#f1_gold)" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">2040 직장인을 위한 핵심 실천 요약</text>
+    <text x="0" y="66" fill="#ffffff" font-size="27" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${displayTitle1}</text>
+    <text x="0" y="106" fill="url(#f1_gold)" font-size="26" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${tData.heroSub}</text>
 
     <g transform="translate(0, 134)">
       <rect width="460" height="46" rx="12" fill="#1b1c2b" stroke="#f59e0b" stroke-width="1.8" filter="url(#f1_drop)"/>
       <circle cx="28" cy="23" r="14" fill="#d97706"/>
       <text x="28" y="28" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
-      <text x="52" y="29" fill="#fef3c7" font-size="14" font-weight="800" font-family="'Pretendard', sans-serif">
-        <tspan fill="#f59e0b">실전 재테크 팁</tspan> • <tspan fill="#34d399">절세·복리 극대화</tspan> • 팩트 체크 검증
+      <text x="52" y="29" fill="#fef3c7" font-size="13.5" font-weight="800" font-family="'Pretendard', sans-serif">
+        <tspan fill="#f59e0b">실전 재테크 팁</tspan> • <tspan fill="#34d399">절세·혜택 극대화</tspan> • 팩트 체크 검증
       </text>
     </g>
 
     <!-- Bullets -->
     <g transform="translate(5, 204)">
       <circle cx="6" cy="6" r="4" fill="#f59e0b"/>
-      <text x="18" y="11" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">① 소득 대비 저축률 극대화: 선저축 후지출 50% 법칙</text>
+      <text x="18" y="11" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b1}</text>
       <circle cx="6" cy="34" r="4" fill="#38bdf8"/>
-      <text x="18" y="39" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">② 절세 계좌 3총사 활용: 연금저축 + IRP + 중개형 ISA</text>
+      <text x="18" y="39" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b2}</text>
       <circle cx="6" cy="62" r="4" fill="#34d399"/>
-      <text x="18" y="67" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ 지수 추종 ETF 분할 적립: 장기 복리 성장 엔진 탑재</text>
+      <text x="18" y="67" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b3}</text>
     </g>
   </g>
 
@@ -2925,25 +3064,25 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
   <g transform="translate(525, 88)">
     <rect x="0" y="0" width="245" height="280" rx="20" fill="#0f172a" fill-opacity="0.95" stroke="#334155" stroke-width="2" filter="url(#f1_drop)"/>
     <rect x="0" y="0" width="245" height="42" rx="20" fill="#1e293b"/>
-    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">재테크 핵심 요약 매트릭스</text>
+    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${tData.matrixTitle}</text>
 
     <g transform="translate(18, 54)">
       <rect width="210" height="66" rx="12" fill="#181e2b" stroke="#f59e0b" stroke-width="1.2"/>
       <text x="14" y="22" fill="#94a3b8" font-size="11" font-weight="700">권장 타깃 (Target)</text>
-      <text x="14" y="48" fill="#fbbf24" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">20~40대 직장인·사회초년생</text>
+      <text x="14" y="48" fill="#fbbf24" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.target}</text>
     </g>
 
     <g transform="translate(18, 130)">
       <rect width="210" height="68" rx="12" fill="#0b241c" stroke="#10b981" stroke-width="1.2"/>
       <text x="14" y="22" fill="#a7f3d0" font-size="11" font-weight="700">핵심 기대 효과 (Benefits)</text>
-      <text x="14" y="46" fill="#34d399" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">연말정산 환급 + 복리 증식</text>
-      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">연 148.5만원 절세</text>
+      <text x="14" y="46" fill="#34d399" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.benefit}</text>
+      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">${tData.benefitSub}</text>
     </g>
 
     <g transform="translate(18, 208)">
       <rect width="210" height="54" rx="10" fill="#24141d" stroke="#f43f5e" stroke-width="1.2"/>
       <text x="14" y="20" fill="#fda4af" font-size="11" font-weight="800">주의사항 (Caution)</text>
-      <text x="14" y="40" fill="#f43f5e" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">과장된 고수익 미끼 상품 주의</text>
+      <text x="14" y="40" fill="#f43f5e" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${tData.caution}</text>
     </g>
   </g>
 
@@ -2953,7 +3092,7 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
     <line x1="0" y1="0" x2="800" y2="0" stroke="#1e293b" stroke-width="1"/>
     <line x1="0" y1="0" x2="420" y2="0" stroke="#f59e0b" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#f59e0b"/>
-    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 2026 재테크 분석 가이드 • 팩트 기반 실전 전략</text>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 2026 실전 재테크 가이드 • 팩트 기반 맞춤형 전략</text>
     <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Finance Lab</text>
   </g>
 </svg>`;
@@ -2961,7 +3100,12 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null) {
 }
 
 // SVG 2: 2040 직장인을 위한 3단계 실천 로드맵 (16:9 800x450)
-function generateFinanceImage2(dateStr, videoDetails) {
+function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
+  const s1 = tData.steps?.[0] || { title: '1단계 시드머니', sub: '비상금 구축', items: ['✓ 3~6개월 생활비 확보', '• 파킹통장 활용', '✓ 고금리 부채 청산', '• 리볼빙 0원', '✓ 통장 분리', '• 급여/소비/비상금'] };
+  const s2 = tData.steps?.[1] || { title: '2단계 절세 계좌', sub: '세액공제 납입', items: ['✓ 연금저축 600만', '• 16.5% 세액공제', '✓ 개인형 IRP 300만', '• 합산 900만 공제', '✓ 중개형 ISA 2000만', '• 배당 비과세'] };
+  const s3 = tData.steps?.[2] || { title: '3단계 자산 증식', sub: '복리 엔진 탑재', items: ['✓ 지수 ETF 매수', '• 글로벌 우량주', '✓ 분할 적립식(DCA)', '• 매월 자동이체', '✓ 배당금 재투자', '• 스노우볼 복리'] };
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -2979,7 +3123,7 @@ function generateFinanceImage2(dateStr, videoDetails) {
   <g transform="translate(25, 20)">
     <rect width="150" height="28" rx="7" fill="#d97706" filter="url(#f2_drop)"/>
     <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ACTION ROADMAP</text>
-    <text x="165" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">2040 직장인 통장 분리 &amp; <tspan fill="#fbbf24">3단계 실천 로드맵</tspan></text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.roadmapTitle}</text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -2992,17 +3136,17 @@ function generateFinanceImage2(dateStr, videoDetails) {
       <rect width="230" height="315" rx="16" fill="#0b172a" stroke="#0284c7" stroke-width="1.8" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#0284c7"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">1단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">시드 머니 방어</text>
-      <text x="18" y="94" fill="#38bdf8" font-size="12" font-weight="800">비상금 파킹통장 구축</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s1.title}</text>
+      <text x="18" y="94" fill="#38bdf8" font-size="12" font-weight="800">${s1.sub}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#071320" stroke="#0ea5e9" stroke-width="1"/>
-        <text x="12" y="26" fill="#bae6fd" font-size="12" font-weight="800">✓ 3~6개월 생활비 확보</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">• 수시입출금 파킹통장 활용</text>
-        <text x="12" y="72" fill="#bae6fd" font-size="12" font-weight="800">✓ 고금리 부채 전액 청산</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">• 리볼빙, 카드론 0원 원칙</text>
-        <text x="12" y="120" fill="#bae6fd" font-size="12" font-weight="800">✓ 통장 4개 쪼개기</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">• 급여/고정/소비/비상금 분리</text>
+        <text x="12" y="26" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[0] || ''}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[1] || ''}</text>
+        <text x="12" y="72" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[2] || ''}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[3] || ''}</text>
+        <text x="12" y="120" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[4] || ''}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[5] || ''}</text>
       </g>
     </g>
 
@@ -3011,17 +3155,17 @@ function generateFinanceImage2(dateStr, videoDetails) {
       <rect width="230" height="315" rx="16" fill="#0c1e18" stroke="#10b981" stroke-width="2" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#059669"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">2단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">절세 3총사 채우기</text>
-      <text x="18" y="94" fill="#34d399" font-size="12" font-weight="800">세액공제 한도 우선 납입</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s2.title}</text>
+      <text x="18" y="94" fill="#34d399" font-size="12" font-weight="800">${s2.sub}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#051d16" stroke="#10b981" stroke-width="1"/>
-        <text x="12" y="26" fill="#a7f3d0" font-size="12" font-weight="800">✓ 연금저축펀드 600만</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">• 16.5% 세액공제(최대 99만)</text>
-        <text x="12" y="72" fill="#a7f3d0" font-size="12" font-weight="800">✓ 개인형 IRP 300만</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">• 합산 900만(최대 148.5만)</text>
-        <text x="12" y="120" fill="#a7f3d0" font-size="12" font-weight="800">✓ 중개형 ISA 연 2,000만</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">• 배당 비과세 + 9.9% 분리과세</text>
+        <text x="12" y="26" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[0] || ''}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[1] || ''}</text>
+        <text x="12" y="72" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[2] || ''}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[3] || ''}</text>
+        <text x="12" y="120" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[4] || ''}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[5] || ''}</text>
       </g>
     </g>
 
@@ -3030,28 +3174,36 @@ function generateFinanceImage2(dateStr, videoDetails) {
       <rect width="230" height="315" rx="16" fill="#191329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#7e22ce"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">3단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">글로벌 지수 분할 적립</text>
-      <text x="18" y="94" fill="#c084fc" font-size="12" font-weight="800">장기 복리 성장 엔진 탑재</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s3.title}</text>
+      <text x="18" y="94" fill="#c084fc" font-size="12" font-weight="800">${s3.sub}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#140e24" stroke="#8b5cf6" stroke-width="1"/>
-        <text x="12" y="26" fill="#e9d5ff" font-size="12" font-weight="800">✓ 미국 S&amp;P500·나스닥100</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">• 국내 상장 해외 ETF 매수</text>
-        <text x="12" y="72" fill="#e9d5ff" font-size="12" font-weight="800">✓ 정액 적립식(DCA)</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">• 주가 등락 무관 매월 자동이체</text>
-        <text x="12" y="120" fill="#e9d5ff" font-size="12" font-weight="800">✓ 배당금 100% 재투자</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">• 스노우볼 복리 효과 극대화</text>
+        <text x="12" y="26" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[0] || ''}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[1] || ''}</text>
+        <text x="12" y="72" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[2] || ''}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[3] || ''}</text>
+        <text x="12" y="120" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[4] || ''}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[5] || ''}</text>
       </g>
     </g>
   </g>
 
-  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실행이 곧 자산입니다 • 매월 급여일 자동이체 설정이 성공 재테크의 핵심입니다</text>
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실행이 곧 자산입니다 • 맞춤 단계별 전략을 미리 세우고 대응하는 것이 성공의 열쇠입니다</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
 
-// SVG 3: 핵심 재테크 비교 분석 & 수익/공제율 매트릭스 (16:9 800x450)
-function generateFinanceImage3(dateStr, videoDetails) {
+// SVG 3: 핵심 비교 분석 & 수익/공제율 매트릭스 (16:9 800x450)
+function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
+  const cards = tData.matrixCards || [
+    { tag: '일반 예·적금', sub: '단기 안정성 1순위', main: '연 3.0% ~ 3.5%', bullets: ['• 이자소득세 15.4% 원천징수', '• 예금자보호 5천만 원', '⚠️ 물가 감안 시 한계'] },
+    { tag: '연금저축 + IRP', sub: '연말정산 13.2%~16.5%', main: '최대 148.5만원 환급', bullets: ['• 연 900만 세액공제', '• 배당 과세이연', '✓ 필수 절세 방패'] },
+    { tag: '중개형 ISA', sub: '만능 절세 바구니', main: '비과세 200~400만', bullets: ['• 손익 통산 비과세', '• 9.9% 분리과세', '✓ 연금 전환 추가 공제'] },
+    { tag: '미국 지수 ETF', sub: 'S&P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 우량 기업 묶음 투자', '• 분기 배당 지급', '✓ 장기 복리 효과'] }
+  ];
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3068,8 +3220,8 @@ function generateFinanceImage3(dateStr, videoDetails) {
   <!-- Header -->
   <g transform="translate(25, 20)">
     <rect width="150" height="28" rx="7" fill="#0284c7" filter="url(#f3_drop)"/>
-    <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">TAX &amp; PRODUCT MATRIX</text>
-    <text x="165" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">주요 재테크 계좌·상품 <tspan fill="#38bdf8">절세 &amp; 수익 비교 분석</tspan></text>
+    <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ANALYSIS MATRIX</text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.matrixTitle} <tspan fill="#38bdf8">심층 비교 분석</tspan></text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -3077,62 +3229,70 @@ function generateFinanceImage3(dateStr, videoDetails) {
 
   <!-- 4 Comparison Cards (2x2 Grid) -->
   <g transform="translate(30, 80)">
-    <!-- Card 1: 예적금 -->
+    <!-- Card 1 -->
     <g transform="translate(0, 0)">
       <rect width="360" height="150" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#f3_drop)"/>
-      <rect x="18" y="14" width="85" height="22" rx="6" fill="#475569"/>
-      <text x="60" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">일반 예·적금</text>
-      <text x="115" y="30" fill="#94a3b8" font-size="13" font-weight="700">단기 안정성 1순위</text>
-      <text x="18" y="65" fill="#f8fafc" font-size="20" font-weight="900" font-family="monospace">연 3.0% ~ 3.5%</text>
-      <text x="18" y="90" fill="#cbd5e1" font-size="12" font-weight="600">• 이자소득세 15.4% 원천징수</text>
-      <text x="18" y="110" fill="#cbd5e1" font-size="12" font-weight="600">• 예금자보호 5천만 원(상향 논의 중)</text>
-      <text x="18" y="132" fill="#f43f5e" font-size="11" font-weight="800">⚠️ 실질 물가상승률 감안 시 자산 증식 한계</text>
+      <rect x="18" y="14" width="95" height="22" rx="6" fill="#475569"/>
+      <text x="65" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[0]?.tag || ''}</text>
+      <text x="125" y="30" fill="#94a3b8" font-size="13" font-weight="700">${cards[0]?.sub || ''}</text>
+      <text x="18" y="65" fill="#f8fafc" font-size="18" font-weight="900" font-family="monospace">${cards[0]?.main || ''}</text>
+      <text x="18" y="90" fill="#cbd5e1" font-size="12" font-weight="600">${cards[0]?.bullets?.[0] || ''}</text>
+      <text x="18" y="110" fill="#cbd5e1" font-size="12" font-weight="600">${cards[0]?.bullets?.[1] || ''}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="800">${cards[0]?.bullets?.[2] || ''}</text>
     </g>
 
-    <!-- Card 2: 연금저축/IRP -->
+    <!-- Card 2 -->
     <g transform="translate(380, 0)">
       <rect width="360" height="150" rx="14" fill="#072018" stroke="#10b981" stroke-width="1.8" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="105" height="22" rx="6" fill="#059669"/>
-      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">연금저축 + IRP</text>
-      <text x="135" y="30" fill="#34d399" font-size="13" font-weight="800">연말정산 13.2%~16.5%</text>
-      <text x="18" y="65" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">최대 148.5만원 환급</text>
-      <text x="18" y="90" fill="#a7f3d0" font-size="12" font-weight="600">• 연간 900만 원까지 세액공제 한도</text>
-      <text x="18" y="110" fill="#a7f3d0" font-size="12" font-weight="600">• 배당소득세 과세이연 및 연금소득세(3.3~5.5%)</text>
-      <text x="18" y="132" fill="#34d399" font-size="11" font-weight="900">✓ 직장인 필수 1순위 절세 방패 계좌</text>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[1]?.tag || ''}</text>
+      <text x="135" y="30" fill="#34d399" font-size="13" font-weight="800">${cards[1]?.sub || ''}</text>
+      <text x="18" y="65" fill="#34d399" font-size="18" font-weight="900" font-family="monospace">${cards[1]?.main || ''}</text>
+      <text x="18" y="90" fill="#a7f3d0" font-size="12" font-weight="600">${cards[1]?.bullets?.[0] || ''}</text>
+      <text x="18" y="110" fill="#a7f3d0" font-size="12" font-weight="600">${cards[1]?.bullets?.[1] || ''}</text>
+      <text x="18" y="132" fill="#34d399" font-size="11" font-weight="900">${cards[1]?.bullets?.[2] || ''}</text>
     </g>
 
-    <!-- Card 3: 중개형 ISA -->
+    <!-- Card 3 -->
     <g transform="translate(0, 165)">
       <rect width="360" height="150" rx="14" fill="#091b2c" stroke="#0284c7" stroke-width="1.8" filter="url(#f3_drop)"/>
-      <rect x="18" y="14" width="95" height="22" rx="6" fill="#0284c7"/>
-      <text x="65" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">중개형 ISA</text>
-      <text x="125" y="30" fill="#38bdf8" font-size="13" font-weight="800">만능 절세 바구니</text>
-      <text x="18" y="65" fill="#38bdf8" font-size="20" font-weight="900" font-family="monospace">비과세 200~400만</text>
-      <text x="18" y="90" fill="#bae6fd" font-size="12" font-weight="600">• 손익 통산 후 순이익 비과세</text>
-      <text x="18" y="110" fill="#bae6fd" font-size="12" font-weight="600">• 한도 초과분 9.9% 분리과세(종합소득 미합산)</text>
-      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="900">✓ 3년 의무가입 후 연금계좌 전환 시 10% 추가 공제</text>
+      <rect x="18" y="14" width="100" height="22" rx="6" fill="#0284c7"/>
+      <text x="68" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[2]?.tag || ''}</text>
+      <text x="130" y="30" fill="#38bdf8" font-size="13" font-weight="800">${cards[2]?.sub || ''}</text>
+      <text x="18" y="65" fill="#38bdf8" font-size="18" font-weight="900" font-family="monospace">${cards[2]?.main || ''}</text>
+      <text x="18" y="90" fill="#bae6fd" font-size="12" font-weight="600">${cards[2]?.bullets?.[0] || ''}</text>
+      <text x="18" y="110" fill="#bae6fd" font-size="12" font-weight="600">${cards[2]?.bullets?.[1] || ''}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="900">${cards[2]?.bullets?.[2] || ''}</text>
     </g>
 
-    <!-- Card 4: 지수 ETF 적립 -->
+    <!-- Card 4 -->
     <g transform="translate(380, 165)">
       <rect width="360" height="150" rx="14" fill="#181329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="105" height="22" rx="6" fill="#7e22ce"/>
-      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">미국 지수 ETF</text>
-      <text x="135" y="30" fill="#c084fc" font-size="13" font-weight="800">S&amp;P500 / 나스닥100</text>
-      <text x="18" y="65" fill="#c084fc" font-size="20" font-weight="900" font-family="monospace">연평균 8% ~ 11%</text>
-      <text x="18" y="90" fill="#e9d5ff" font-size="12" font-weight="600">• 글로벌 1등 우량 기업 묶음 투자</text>
-      <text x="18" y="110" fill="#e9d5ff" font-size="12" font-weight="600">• 개별주 리스크 배제 및 분기 배당 지급</text>
-      <text x="18" y="132" fill="#c084fc" font-size="11" font-weight="900">✓ 20년 적립 시 원금 대비 3.5배~5배 복리 효과</text>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[3]?.tag || ''}</text>
+      <text x="135" y="30" fill="#c084fc" font-size="13" font-weight="800">${cards[3]?.sub || ''}</text>
+      <text x="18" y="65" fill="#c084fc" font-size="18" font-weight="900" font-family="monospace">${cards[3]?.main || ''}</text>
+      <text x="18" y="90" fill="#e9d5ff" font-size="12" font-weight="600">${cards[3]?.bullets?.[0] || ''}</text>
+      <text x="18" y="110" fill="#e9d5ff" font-size="12" font-weight="600">${cards[3]?.bullets?.[1] || ''}</text>
+      <text x="18" y="132" fill="#c084fc" font-size="11" font-weight="900">${cards[3]?.bullets?.[2] || ''}</text>
     </g>
   </g>
 
-  <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">계좌별 절세 한도와 상품 특성을 교차 활용할 때 실질 자산 증식 속도가 가장 빠릅니다</text>
+  <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건과 혜택을 사전에 숙지할 때 불필요한 세금 유출과 리스크를 원천 차단할 수 있습니다</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
 
 // SVG 4: 필수 주의사항 & 리스크 방어 4대 수칙 (16:9 800x450)
-function generateFinanceImage4(dateStr, videoDetails) {
+function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
+  const rList = tData.risks || [
+    { code: '01', title: '확정 고수익 의심', sub: '"원금 보장 월 10%"', desc: '100% 폰지 사기 의심', tag: '✓ 하이리턴엔 하이리스크' },
+    { code: '02', title: '중도해지 페널티', sub: '55세 이전 해지 시', desc: '16.5% 기타소득세 추징', tag: '✓ 장기 여유자금만 납입' },
+    { code: '03', title: '무리한 빚투 금지', sub: '신용·대출 레버리지', desc: '하락장 패닉셀 주원인', tag: '✓ 본업에 지장 없는 투자' },
+    { code: '04', title: '숨은 보수·비용', sub: '총보수비용(TER)', desc: '매매중개수수료 합산', tag: '✓ 실질부담비용 최저 선택' }
+  ];
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f4_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3149,8 +3309,8 @@ function generateFinanceImage4(dateStr, videoDetails) {
   <!-- Header -->
   <g transform="translate(25, 20)">
     <rect width="145" height="28" rx="7" fill="#e11d48" filter="url(#f4_drop)"/>
-    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">RISK CHECKLIST</text>
-    <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">투자·가입 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 리스크 방어 4대 수칙</text>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${tData.riskBadge}</text>
+    <text x="160" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.riskTitle}</text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -3161,41 +3321,41 @@ function generateFinanceImage4(dateStr, videoDetails) {
     <g transform="translate(0, 0)">
       <rect width="175" height="150" rx="12" fill="#25121a" stroke="#f43f5e" stroke-width="1.4" filter="url(#f4_drop)"/>
       <rect x="12" y="12" width="65" height="20" rx="5" fill="#e11d48"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 01</text>
-      <text x="12" y="54" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">확정 고수익 의심</text>
-      <text x="12" y="78" fill="#fda4af" font-size="11" font-weight="700">• "원금 보장 월 10%"</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="11" font-weight="500">• 100% 폰지 사기 의심</text>
-      <text x="12" y="118" fill="#fda4af" font-size="11" font-weight="800">✓ 하이리턴엔 하이리스크</text>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[0].code}</text>
+      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[0].title}</text>
+      <text x="12" y="78" fill="#fda4af" font-size="11" font-weight="700">• ${rList[0].sub}</text>
+      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[0].desc}</text>
+      <text x="12" y="118" fill="#fda4af" font-size="10.5" font-weight="800">${rList[0].tag}</text>
     </g>
 
     <g transform="translate(188, 0)">
       <rect width="175" height="150" rx="12" fill="#20150a" stroke="#f59e0b" stroke-width="1.4" filter="url(#f4_drop)"/>
       <rect x="12" y="12" width="65" height="20" rx="5" fill="#d97706"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 02</text>
-      <text x="12" y="54" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">중도해지 페널티</text>
-      <text x="12" y="78" fill="#fde68a" font-size="11" font-weight="700">• 55세 이전 해지 시</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="11" font-weight="500">• 16.5% 기타소득세 추징</text>
-      <text x="12" y="118" fill="#fde68a" font-size="11" font-weight="800">✓ 장기 여유자금만 납입</text>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[1].code}</text>
+      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[1].title}</text>
+      <text x="12" y="78" fill="#fde68a" font-size="11" font-weight="700">• ${rList[1].sub}</text>
+      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[1].desc}</text>
+      <text x="12" y="118" fill="#fde68a" font-size="10.5" font-weight="800">${rList[1].tag}</text>
     </g>
 
     <g transform="translate(376, 0)">
       <rect width="175" height="150" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.4" filter="url(#f4_drop)"/>
       <rect x="12" y="12" width="65" height="20" rx="5" fill="#0284c7"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 03</text>
-      <text x="12" y="54" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">무리한 빚투 금지</text>
-      <text x="12" y="78" fill="#bae6fd" font-size="11" font-weight="700">• 신용·대출 레버리지</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="11" font-weight="500">• 하락장 패닉셀 주원인</text>
-      <text x="12" y="118" fill="#bae6fd" font-size="11" font-weight="800">✓ 본업에 지장 없는 투자</text>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[2].code}</text>
+      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[2].title}</text>
+      <text x="12" y="78" fill="#bae6fd" font-size="11" font-weight="700">• ${rList[2].sub}</text>
+      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[2].desc}</text>
+      <text x="12" y="118" fill="#bae6fd" font-size="10.5" font-weight="800">${rList[2].tag}</text>
     </g>
 
     <g transform="translate(565, 0)">
       <rect width="175" height="150" rx="12" fill="#0b201a" stroke="#10b981" stroke-width="1.4" filter="url(#f4_drop)"/>
       <rect x="12" y="12" width="65" height="20" rx="5" fill="#059669"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 04</text>
-      <text x="12" y="54" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">숨은 보수·비용 체크</text>
-      <text x="12" y="78" fill="#a7f3d0" font-size="11" font-weight="700">• 총보수비용(TER)</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="11" font-weight="500">• 매매중개수수료 합산</text>
-      <text x="12" y="118" fill="#a7f3d0" font-size="11" font-weight="800">✓ 실질부담비용 최저 선택</text>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[3].code}</text>
+      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[3].title}</text>
+      <text x="12" y="78" fill="#a7f3d0" font-size="11" font-weight="700">• ${rList[3].sub}</text>
+      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[3].desc}</text>
+      <text x="12" y="118" fill="#a7f3d0" font-size="10.5" font-weight="800">${rList[3].tag}</text>
     </g>
   </g>
 
@@ -3203,9 +3363,9 @@ function generateFinanceImage4(dateStr, videoDetails) {
   <g transform="translate(30, 260)">
     <rect width="740" height="135" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#f4_drop)"/>
     <text x="24" y="32" fill="#c084fc" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">💡 10년 차 재테크 에디터의 실전 총평</text>
-    <text x="24" y="62" fill="#e9d5ff" font-size="13" font-weight="700">"재테크의 승패는 단기 고수익 종목을 맞히는 데 있지 않고, 잃지 않는 시스템을 먼저 완성하는 데 있습니다."</text>
-    <text x="24" y="86" fill="#cbd5e1" font-size="12" font-weight="500">• 1단계(비상금 파킹) ➔ 2단계(절세 계좌 한도) ➔ 3단계(글로벌 지수 ETF 분할 적립)의 기본 순서를 지키세요.</text>
-    <text x="24" y="110" fill="#a7f3d0" font-size="12" font-weight="700">• 매월 작더라도 꾸준히 쌓아가는 복리 습관이 10년 뒤 여러분의 가장 강력한 경제적 자유를 만들어줍니다.</text>
+    <text x="24" y="60" fill="#e9d5ff" font-size="12.5" font-weight="700">"${tData.summaryQuote}"</text>
+    <text x="24" y="86" fill="#cbd5e1" font-size="11.5" font-weight="500">• ${tData.summaryBullets[0] || ''}</text>
+    <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${tData.summaryBullets[1] || ''}</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
@@ -3214,20 +3374,22 @@ function generateFinanceImage4(dateStr, videoDetails) {
 // Gemini AI Call for Finance Tips
 async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, apiKey) {
   const systemInstruction = `당신은 10년 경력의 재테크·투자 전문 블로거이자 금융 콘텐츠 에디터입니다.
-독자는 20~40대 직장인·사회초년생으로, 쉽고 실용적인 자산 관리 및 투자 정보를 원합니다.
+독자는 20~40대 직장인·사회초년생·실수요자로, 쉽고 실용적인 자산 관리 및 세무·투자 정보를 원합니다.
 
 [글 작성 요구사항 - 엄격 준수]
-1. 톤앤매너: 신뢰감 있고 친근하며, 과장 없이 객관적인 재테크 블로그 스타일. 전문 용어는 초보자도 바로 이해할 수 있도록 쉽게 풀어서 설명.
+1. 분석 대상 콘텐츠 주제 밀착 (최우선 원칙):
+   - 전달받은 영상의 실제 주제(예: 부동산 세제, 양도세 비과세, 취득세/종부세 개편, 주식/ETF, 대출, 연금 등)를 정확하게 파악하고, 글 전체가 그 영상의 핵심 논점과 실전 팁을 충실하게 다루어야 합니다.
+   - 부동산 세제 영상인데 엉뚱하게 통장 쪼개기나 미국 ETF 내용만 채워 넣는 식의 주제 왜곡은 절대 금지합니다.
 2. 제목 작성 (필수):
    - 최상단 첫 줄에 반드시 <TITLE>[재테크 팁] 독창적이고 매력적인 제목</TITLE> 형태로 작성하세요.
    - ⚠️ 절대 유튜브 영상의 원본 제목을 그대로 베끼거나 사용하지 마세요!
-   - 영상의 핵심 내용(예: 통장 쪼개기, 절세 계좌, ETF 적립, 비상금 등)과 구체적 혜택/숫자를 결합하여 독자의 클릭을 부르는 전문 블로그 스타일의 새로운 제목을 직접 창작하세요.
+   - 영상의 실제 핵심 논점과 구체적인 혜택/숫자/대상(예: 1주택, 무주택, 양도세 12억, 일시적 2주택 3년 등)을 결합하여 독자의 클릭을 부르는 전문 블로그 스타일의 새로운 제목을 직접 창작하세요.
 3. 유튜브 및 출처 언급 금지 (필수):
-   - ⚠️ 특정 유튜브 채널명이나 '유튜브 영상', '유튜브 채널', '영상에서는' 등의 유튜브 관련 언급을 제목, 소제목, 본문 어디에도 일절 적지 마세요.
-   - 순수하게 10년 차 재테크 에디터가 독자에게 직접 조언하는 신뢰도 높은 금융·재테크 전문 가이드 칼럼으로 작성하세요.
+   - ⚠️ 특정 유튜브 채널명이나 '유튜브 영상', '유튜브 채널', '영상에서는', '출연자가' 등의 유튜브 관련 언급을 제목, 소제목, 본문 어디에도 일절 적지 마세요.
+   - 순수하게 10년 차 재테크 에디터가 독자에게 직접 전문 지식과 노하우를 전달하는 신뢰도 높은 금융·재테크 칼럼으로 작성하세요.
 4. 글 구조 (반드시 준수):
    - 최상단 첫 줄: <TITLE>[재테크 팁] 직접 창작한 매력적인 제목</TITLE>
-   - 1. 도입부: 2040 직장인의 월급 관리, 세금, 물가 상승 고민에 깊이 공감하며 오늘 다룰 실전 재테크 주제와 중요성을 자연스럽게 소개하세요. (유튜브/채널 언급 금지)
+   - 1. 도입부: 독자의 현실적인 자산/세금/투자 고민에 깊이 공감하며 오늘 다룰 실전 주제의 중요성을 자연스럽게 소개하세요. (유튜브/채널 언급 금지)
    - 2. 본문: 핵심 내용을 3~4개의 소제목(<h4> 태그)으로 구분하여 정리하세요.
      각 소제목마다 구체적이고 실용적인 팁과 주의점을 친절하게 설명하세요.
      소제목마다 아래의 4개 이미지 주석 플레이스홀더를 순서대로 하나씩 반드시 배치하세요:
@@ -3235,24 +3397,23 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
      <!-- FINANCE_IMAGE_2 -->
      <!-- FINANCE_IMAGE_3 -->
      <!-- FINANCE_IMAGE_4 -->
-   - 3. 정리 및 시사점: 내 상황(사회초년생, 맞벌이 부부, 1주택자 등)에 오늘부터 당장 통장과 계좌에 어떻게 적용할지 3단계 실천 로드맵을 제시하세요.
-   - 4. 마무리 + 독자 행동 유도: 독자의 현재 재테크 상황이나 궁금한 점을 묻는 댓글 유도 질문과 따뜻한 격려로 마무리하세요.
+   - 3. 정리 및 시사점: 독자의 상황(무주택, 1주택, 다주택 또는 초보 투자자 등)에 오늘부터 당장 어떻게 대처하고 적용할지 3단계 실천 로드맵을 제시하세요.
+   - 4. 마무리 + 독자 행동 유도: 독자의 현재 상황이나 궁금한 점을 묻는 댓글 유도 질문과 따뜻한 격려로 마무리하세요.
 5. 분량: 1,800~2,500자 (모바일에서도 읽기 편하며 정보가 알찬 분량).
 6. 추가 필수 규칙:
-   - 핵심 키워드(적금, ETF, 연금저축, IRP, ISA, 절세, 복리, 비상금 등)를 문맥에 맞게 자연스럽게 삽입하세요.
-   - 언급된 수치·사례는 정확하게 반영하고, 필요시 현재 시점(2026년 최신 기준)으로 세법이나 제도를 업데이트하여 설명하세요.
-   - 과장·확정적 표현 절대 금지 ("무조건 돈 번다", "원금 보장 대박" 등 절대 금지).
-7. 문장 스타일: 짧은 문장 위주, 가독성 좋은 줄바꿈, 불필요한 수식어를 최소화하여 깔끔하게 작성하세요.`;
+   - 영상에 언급된 핵심 제도·숫자·사례를 정확하게 분석하고, 필요시 2026년 최신 세법 및 금융 규정 기준으로 보완 설명하세요.
+   - 과장·확정적 표현 절대 금지 ("무조건 돈 번다", "원금 보장" 등 절대 금지).
+7. 문장 스타일: 가독성 좋은 단문 위주, 명확한 줄바꿈과 볼드 서식 활용으로 가독성을 높여주세요.`;
 
-  const userPrompt = `다음 금융·재테크 영상의 핵심 정보를 검토하고, 위 요구사항에 맞추어 전문 재테크 블로그 분석 칼럼을 완성해주세요.
+  const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 요약)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
 
 [분석 대상 금융 콘텐츠 정보]
 - 원본 주제/제목: ${videoDetails.title}
-- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1000) : '제공된 설명 없음'}
-- 주요 발언/내용 요약: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3000) : '핵심 재테크 및 절세 투자 포인트'}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1200) : '제공된 설명 없음'}
+- 주요 발언/자막 내용: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3500) : '핵심 금융 및 자산 관리 포인트'}
 
-위 데이터를 바탕으로 10년 경력의 재테크 블로거로서 4개 인포그래픽 카드를 정확히 포함하여 알찬 글을 작성해주세요.`;
+위 원본 내용의 실제 요점(부동산 세제, 1주택/무주택/다주택 대책, 절세 요건 등)을 빠짐없이 반영하여 4개 인포그래픽 카드 플레이스홀더를 포함해 작성해주세요.`;
 
   const baseContents = [
     {
@@ -3364,14 +3525,87 @@ function synthesizeCatchyFinanceTitle(videoDetails) {
 }
 
 // Dynamic Finance Report Fallback Engine
-function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, customTitle = null) {
+function generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const displayTitle = customTitle || synthesizeCatchyFinanceTitle(videoDetails);
   const cleanTitle = displayTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
 
-  const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="재테크 핵심 요약 인포그래픽 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="${tData.badge} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
   const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 실천 로드맵 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="절세 및 투자 상품 비교 매트릭스 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
-  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="주의사항 및 리스크 방어 수칙 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="심층 비교 분석 매트릭스 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="필수 주의사항 및 리스크 방어 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`;
+
+  if (tData.theme === 'realestate') {
+    return `<h3 style="font-size: 19px; font-weight: 800; color: #d97706; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
+  🏠 [재테크 팁] ${cleanTitle}
+</h3>
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 24px; margin-bottom: 10px;">
+  1. 도입부: "월급은 그대로인데 세금만 늘어날까?" 부동산 세제 개편의 현실
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px; word-break: keep-all;">
+  안녕하십니까. 10년 차 재테크 에디터입니다. 물가와 금리 변동성 속에서 내 집 마련을 꿈꾸는 무주택자부터, 상급지 갈아타기를 준비하는 1주택자, 보유세 부담을 덜고 싶은 다주택자까지 모두의 공통적인 고민은 바로 <strong>'부동산 세금'</strong>입니다.<br/>
+  세금 제도는 개편될 때마다 복잡해 보여서 손을 놓기 쉽지만, 법이 정한 비과세 요건과 감면 조항을 선제적으로 챙기면 수천만 원에서 수억 원에 달하는 소중한 자산을 지킬 수 있습니다. 오늘 글에서는 2026년 기준 부동산 세제 핵심 개편 사항과 내 상황별 맞춤 실전 생존 전략을 알기 쉽게 총정리해 드립니다.
+</p>
+
+${imgTag1}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  2. 1주택자·갈아타기: 양도세 12억 비과세와 일시적 2주택 3년 처분 룰
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  1주택 실수요자에게 가장 중요한 세제 혜택은 단연 <strong>1세대 1주택 양도소득세 비과세(양도가액 12억 원 이하 전액 비과세)</strong>입니다. 하지만 취득 당시 조정대상지역 여부에 따른 '2년 보유 + 2년 거주' 요건을 충족하지 못하면 비과세 혜택이 박탈될 수 있으므로 전입 및 등기 이력을 꼼꼼히 확인해야 합니다.
+</p>
+<div style="margin: 14px 0 18px 0;">
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #d97706; font-weight: 800;">•</span>
+    <div><strong>일시적 1세대 2주택 특례:</strong> 기존 주택 취득 후 1년 이상 지난 시점에 신규 주택을 취득하고, 신규 주택 취득일로부터 <strong>3년 이내</strong>에 종전 주택을 처분해야 양도세 비과세가 온전히 유지됩니다.</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #d97706; font-weight: 800;">•</span>
+    <div><strong>종합부동산세 부담 완화:</strong> 1주택자 기본공제 금액(12억 원) 및 공정시장가액비율 적용으로 보유세 부담이 완화되었으므로 공시가격 변동 추이를 체크하세요.</div>
+  </div>
+</div>
+
+${imgTag2}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  3. 무주택자 &amp; 다주택자: 청약 소득공제부터 중과 배제 출구 전략까지
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  <strong>무주택자</strong>라면 주택청약종합저축 납입 인정 한도(월 25만 원 상향)를 채워 연말정산 소득공제(연 300만 한도의 40%, 최대 120만 원)와 월세 세액공제(최대 17%)를 적극 활용하여 내 집 마련 종잣돈을 지켜야 합니다.<br/>
+  반면 <strong>다주택자</strong>의 경우, 정부가 한시적으로 연장 적용 중인 <strong>다주택자 양도소득세 중과 배제</strong> 조치를 활용할 필요가 있습니다. 최고 82.5%에 달하던 징벌적 중과세율 대신 기본세율(6%~45%)과 장기보유특별공제가 적용될 때 비선호 주택을 정리하고 포트폴리오를 슬림화하는 출구 전략을 실행해야 합니다.
+</p>
+
+${imgTag3}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  4. 주의사항: 절대 놓쳐선 안 될 부동산 세무 4대 함정
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  부동산 세금에서 가장 빈번하게 발생하는 실수는 <strong>처분 기한 도과</strong>입니다. 일시적 2주택 처분 기한(3년)을 단 하루라도 넘기면 수천만 원의 양도세와 가산세가 한꺼번에 추징됩니다. 또한 조정지역 내 추가 매수 시 취득세 중과세율(8%~12%) 복병을 주의하고, 가족 간 거래 시 차용증 작성과 적정 이자 지급 등 증빙을 철저히 갖추어야 국세청 소명 요구를 방어할 수 있습니다.
+</p>
+
+${imgTag4}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  5. 정리 및 시사점: 부동산과 금융자산의 절세 시너지 3단계
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  부동산으로 자산의 기둥을 세웠다면, 유동 자산은 ISA와 연금저축 계좌를 통해 절세형 복리 투자로 굴려야 합니다.<br/>
+  1) <strong>내 주택 상태별 비과세/감면 요건 점검</strong> ➔ 2) <strong>처분 및 취득 캘린더 일정 등록</strong> ➔ 3) <strong>ISA 계좌를 통한 금융자산 절세 병행</strong>.<br/>
+  부동산 세법의 변화를 주기적으로 살피고 미리 대비하는 현명한 투자자가 되시길 응원합니다. 궁금하신 세무 고민이나 갈아타기 계획이 있다면 댓글로 남겨주세요!
+</p>
+
+<div class="perspective-invalidation-card" style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 18px 20px; margin: 24px 0;">
+  <div style="color: #b45309; font-weight: 800; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    💡 [재테크 에디터 유의사항 안내]
+  </div>
+  <p style="font-size: 13px; line-height: 1.8; margin: 0; color: #92400e; font-weight: 500; word-break: keep-all;">
+    본 글은 대중적인 세법 규정과 제도를 알기 쉽게 정리한 콘텐츠이며, 개별 세무 자문이나 부동산 매매를 권유하지 않습니다. 실제 부동산 취득·처분 시에는 개인별 취득 시기, 거주 요건, 관할 지자체 규정에 따라 세액이 달라질 수 있으므로 반드시 전문 세무사와 사전 상담하시기 바랍니다.
+  </p>
+</div>`;
+  }
 
   return `<h3 style="font-size: 19px; font-weight: 800; color: #d97706; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
   💰 [재테크 팁] ${cleanTitle}
@@ -3526,11 +3760,12 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     }
   }
 
-  // Generate SVG infographics (Image 1 uses the final synthesized/AI title)
-  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle);
-  const img2 = generateFinanceImage2(dateStr, videoDetails);
-  const img3 = generateFinanceImage3(dateStr, videoDetails);
-  const img4 = generateFinanceImage4(dateStr, videoDetails);
+  // Generate theme data & SVG infographics
+  const dynamicThemeData = extractFinanceThemeData(videoDetails, postTitle);
+  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img3 = generateFinanceImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img4 = generateFinanceImage4(dateStr, videoDetails, postTitle, dynamicThemeData);
   const imgUris = [img1, img2, img3, img4];
 
   let contentHtml = null;
@@ -3540,7 +3775,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   if (!contentHtml) {
     console.log('[YouTube Finance Generator] Using dynamic finance engine fallback');
-    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, postTitle);
+    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, postTitle, dynamicThemeData);
   }
 
   return {
