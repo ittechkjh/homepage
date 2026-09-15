@@ -2846,7 +2846,51 @@ async function fetchYouTubeVideoDetails(youtubeUrl) {
 // Helper to detect theme and extract dynamic card parameters from videoDetails or custom input
 function extractFinanceThemeData(videoDetails, customTitle = null) {
   const text = `${customTitle || ''} ${videoDetails?.title || ''} ${videoDetails?.description || ''} ${videoDetails?.transcript || ''}`.toLowerCase();
-  
+
+  // 0. Crypto Taxation & Strategy theme
+  if (text.includes('가상자산') || text.includes('코인') || text.includes('암호화폐') || text.includes('과세 유예') || text.includes('크립토 세금') || text.includes('비트코인 세금') || (text.includes('과세') && text.includes('코인'))) {
+    return {
+      theme: 'crypto_tax',
+      badge: '2027 가상자산 과세 유예·절세 가이드',
+      heroSub: '코인 투자자가 당장 챙겨야 할 실전 4대 수칙',
+      matrixTitle: '가상자산 과세 제도 및 절세',
+      target: '국내외 가상자산·코인 투자자 및 홀더',
+      benefit: '2026년까지 비과세 기간 확보',
+      benefitSub: '합법적 절세 포트폴리오 구축',
+      caution: '취득가 미입증 시 세금 폭탄 주의',
+      bullets: [
+        '① 2027년 과세 유예 확정: 2026년 말까지 양도차익 비과세 유지',
+        '② 취득가액 입증 서류 필수: 해외 거래소·개인지갑 거래원장 CSV 보관',
+        '③ 선입선출법 & 분할 매도: 과세 시행 전 합법적 포트폴리오 리밸런싱'
+      ],
+      roadmapTitle: '가상자산 과세 대비 및 3단계 절세 로드맵',
+      steps: [
+        { title: '1단계 거래원장 확보', sub: '취득가액 증빙 자료 백업', items: ['✓ 국내외 거래소 내역 다운', '• 바이낸스/업비트 매매원장', '✓ 개인지갑 트랜잭션 기록', '• 입출금 당시 시세 캡처', '✓ 취득가 미입증 시 0원 간주', '• 양도가액 전체 과세 방어'] },
+        { title: '2단계 포트폴리오 재편', sub: '비과세 유예 기간 활용', items: ['✓ 2026년 말까지 유예 기간', '• 비과세 구간 차익 실현 검토', '✓ 손실 코인 손익통산 전략', '• 물린 종목 손실 확정 상계', '✓ 분할 매도로 수익 분산', '• 연도별 공제 한도 최적화'] },
+        { title: '3단계 세무 규정 준수', sub: '해외계좌·신고 기준 점검', items: ['✓ 해외금융계좌 신고 기준', '• 매월 말 잔액 5억 초과 시', '✓ 가상자산 양도세 22% 대비', '• 기본공제 250만 초과분 대비', '✓ 합법적 절세 가이드 준수', '• 불법 대행 사기 원천 차단'] }
+      ],
+      matrixCards: [
+        { tag: '과세 시행 시점', sub: '소득세법 개정안 확정', main: '2027년 1월 시행', bullets: ['• 2025년에서 2년 추가 유예 확정', '• 2026년 말까지 비과세 거래 유지', '✓ 세부 시행령 및 입증 기준 주목'] },
+        { tag: '세율 및 기본공제', sub: '기타소득 20% + 지방세 2%', main: '실질 세율 22%', bullets: ['• 연 250만 원 기본공제 적용', '• 공제액 5천만 원 상향 논의 주목', '✓ 250만 원 초과 수익 전액 과세'] },
+        { tag: '취득가액 산정법', sub: '선입선출법(FIFO) 원칙', main: '취득 증빙 확보 필수', bullets: ['• 과거 저점 매수분 먼저 매도 간주', '• 증빙 없으면 취득가 0원 간주 폭탄', '⚠️ 거래소 폐업 전 거래내역 백업'] },
+        { tag: '해외 거래소 규정', sub: '바이낸스·바이비트 등', main: '해외금융계좌 신고', bullets: ['• 매월 말일 잔액 5억 초과 시 신고', '• 미신고 시 과태료 최고 20% 부과', '✓ 국내 입출금 트래블룰 규정 준수'] }
+      ],
+      riskBadge: 'CRYPTO TAX RISK',
+      riskTitle: '가상자산 과세 전 <tspan fill="#f43f5e">필수 주의사항</tspan> &amp; 세무 리스크 방어 4대 수칙',
+      risks: [
+        { code: '01', title: '취득가 미입증 폭탄', sub: '해외 거래·에어드랍 내역', desc: '증빙 없으면 취득가 0원 간주', tag: '✓ 거래내역 CSV 필수 백업' },
+        { code: '02', title: '해외금융계좌 미신고', sub: '해외 거래소 보유 5억 초과', desc: '매년 6월 미신고 시 최대 20% 과태료', tag: '✓ 잔액 기준 꼼꼼히 확인' },
+        { code: '03', title: '선입선출 양도차익 함정', sub: '옛날 저점 매수분 먼저 처분', desc: '예상보다 큰 양도차익 발생', tag: '✓ 지갑/계정별 분리 매매' },
+        { code: '04', title: '불법 절세 대행 사기', sub: '"세금 100% 면제" 유혹', desc: '차명 계좌/현금화는 형사 처벌', tag: '✓ 합법적 절세 규정 준수' }
+      ],
+      summaryQuote: '2027년 가상자산 과세 유예는 단순한 시간 벌기가 아니라, 취득가액 증빙을 확보하고 손익 통산 포트폴리오를 재정비할 수 있는 마지막 골든타임입니다.',
+      summaryBullets: [
+        '거래소별 매매 원장 다운로드와 취득가 증빙 백업을 지금 당장 완료하세요.',
+        '과세 시행 전 비과세 기간을 전략적으로 활용하여 계좌별 포트폴리오를 합법적으로 재편하세요.'
+      ]
+    };
+  }
+
   if (text.includes('부동산') || text.includes('취득세') || text.includes('양도세') || text.includes('종부세') || text.includes('주택') || text.includes('아파트') || text.includes('전세') || text.includes('청약')) {
     return {
       theme: 'realestate',
@@ -3497,7 +3541,50 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 6. 추가 필수 규칙:
    - 영상에 언급된 핵심 제도·숫자·사례를 정확하게 분석하고, 필요시 2026년 최신 세법 및 금융 규정 기준으로 보완 설명하세요.
    - 과장·확정적 표현 절대 금지 ("무조건 돈 번다", "원금 보장" 등 절대 금지).
-7. 문장 스타일: 가독성 좋은 단문 위주, 명확한 줄바꿈과 볼드 서식 활용으로 가독성을 높여주세요.`;
+7. 문장 스타일: 가독성 좋은 단문 위주, 명확한 줄바꿈과 볼드 서식 활용으로 가독성을 높여주세요.
+8. 맞춤형 인포그래픽 데이터 JSON 출력 (필수):
+   - 글 본문 맨 끝에 반드시 본 글의 핵심 논점·수치와 100% 일치하는 4장 인포그래픽용 데이터를 아래 JSON 형식으로 완벽하게 감싸서 출력하세요.
+   <INFOGRAPHIC_DATA>
+   {
+     "badge": "주제 핵심 배지 (15자 이내, 예: 2027 가상자산 과세 유예)",
+     "heroSub": "주제 핵심 부제 (20자 이내)",
+     "matrixTitle": "비교 매트릭스 제목 (15자 이내)",
+     "target": "타깃 독자층 (예: 코인 투자자·홀더)",
+     "benefit": "핵심 혜택/결과 (15자 이내)",
+     "benefitSub": "추가 효과 한 줄",
+     "caution": "핵심 주의점 한 줄",
+     "bullets": [
+       "① 본문 핵심 요약 1",
+       "② 본문 핵심 요약 2",
+       "③ 본문 핵심 요약 3"
+     ],
+     "roadmapTitle": "3단계 실천 로드맵 제목",
+     "steps": [
+       { "title": "1단계 제목", "sub": "1단계 소제목", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
+       { "title": "2단계 제목", "sub": "2단계 소제목", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
+       { "title": "3단계 제목", "sub": "3단계 소제목", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] }
+     ],
+     "matrixCards": [
+       { "tag": "구분 1", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "구분 2", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "구분 3", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "구분 4", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] }
+     ],
+     "riskBadge": "RISK BADGE (영문 대문자)",
+     "riskTitle": "리스크 방어 수칙 제목 (HTML 태그 가능)",
+     "risks": [
+       { "code": "01", "title": "수칙 1 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
+       { "code": "02", "title": "수칙 2 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
+       { "code": "03", "title": "수칙 3 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
+       { "code": "04", "title": "수칙 4 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" }
+     ],
+     "summaryQuote": "에디터 핵심 총평 한 줄",
+     "summaryBullets": [
+       "실천 수칙 1",
+       "실천 수칙 2"
+     ]
+   }
+   </INFOGRAPHIC_DATA>`;
 
   const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 요약)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
@@ -3507,7 +3594,7 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
 - 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1200) : '제공된 설명 없음'}
 - 주요 발언/자막 내용: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3500) : '핵심 금융 및 자산 관리 포인트'}
 
-위 원본 내용의 실제 요점(부동산 세제, 1주택/무주택/다주택 대책, 절세 요건 등)을 빠짐없이 반영하여 4개 인포그래픽 카드 플레이스홀더를 포함해 작성해주세요.`;
+위 원본 내용의 실제 요점(가상자산 세제, 부동산 세제, ETF, 연금 등 전달된 영상의 진짜 주제)을 빠짐없이 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
 
   const baseContents = [
     {
@@ -3797,6 +3884,9 @@ function assembleFinanceHtml(rawText, videoDetails, imgUris, themeData = null, p
   // Strip any YouTube embed placeholder if present
   processed = processed.replace(/<!--\s*YOUTUBE_EMBED\s*-->/gi, '').trim();
 
+  // Strip <INFOGRAPHIC_DATA> JSON block if present
+  processed = processed.replace(/<INFOGRAPHIC_DATA>[\s\S]*?<\/INFOGRAPHIC_DATA>/gi, '').trim();
+
   // Replace Images
   processed = processed.replace('<!-- FINANCE_IMAGE_1 -->', imgTags[0]);
   processed = processed.replace('<!-- FINANCE_IMAGE_2 -->', imgTags[1]);
@@ -3832,6 +3922,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   // Synthesize catchy title (avoid raw YouTube title & channel mentions)
   let postTitle = synthesizeCatchyFinanceTitle(videoDetails);
   let rawAiText = null;
+  let aiInfographicData = null;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey) {
@@ -3853,14 +3944,28 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
           postTitle = extractedTitle;
           console.log(`[YouTube Finance Generator] Extracted dynamic AI title: "${postTitle}"`);
         }
+
+        // Try extracting dynamic infographic JSON from AI
+        const infoMatch = rawAiText.match(/<INFOGRAPHIC_DATA>([\s\S]*?)<\/INFOGRAPHIC_DATA>/i);
+        if (infoMatch && infoMatch[1]) {
+          try {
+            const parsedInfo = JSON.parse(infoMatch[1].trim());
+            if (parsedInfo && parsedInfo.steps && parsedInfo.matrixCards && parsedInfo.risks) {
+              aiInfographicData = parsedInfo;
+              console.log(`[YouTube Finance Generator] Successfully parsed AI-generated dynamic infographic data!`);
+            }
+          } catch(jsonErr) {
+            console.warn('[YouTube Finance Generator] Failed to parse <INFOGRAPHIC_DATA> JSON:', jsonErr.message);
+          }
+        }
       }
     } catch(e) {
       console.warn('[YouTube Finance Generator] Gemini API call failed, falling back:', e.message);
     }
   }
 
-  // Generate theme data & SVG infographics
-  const dynamicThemeData = extractFinanceThemeData(videoDetails, postTitle);
+  // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
+  const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
   const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img3 = generateFinanceImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
