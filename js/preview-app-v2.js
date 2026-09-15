@@ -1814,6 +1814,13 @@ function getStoredPosts() {
     } catch (e) {}
   }
   result = ensureDailyMarketReportPost(result);
+  // Filter out any dummy fallback post (e.g. report-YYYYMMDD) if a real timestamped report (report-YYYYMMDD-HHmm) exists
+  result = result.filter(p => {
+    if (p && p.id && /^report-\d{8}$/.test(String(p.id))) {
+      return !result.some(x => String(x.id).startsWith(String(p.id) + '-'));
+    }
+    return true;
+  });
   inMemoryForumPosts = result;
   return result;
 }
