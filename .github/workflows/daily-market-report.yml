@@ -54,6 +54,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No market report changes to commit."
           else
-            git commit -m "chore(report): auto-publish daily crypto market report & static pages [skip ci]"
+            git commit -m "chore(report): auto-publish daily crypto market report & static pages"
             git push origin main
           fi

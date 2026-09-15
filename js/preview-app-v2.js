@@ -2227,14 +2227,23 @@ async function loadDailyMarketReports(force = false) {
   }
   _lastDailyMarketReportsFetchTime = now;
   try {
-    let res = await fetch('data/daily-market-reports.json?v=' + Date.now());
-    if (!res.ok) {
+    let res = null;
+    if (force) {
       try {
         const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
         if (rawRes.ok) res = rawRes;
       } catch(e) {}
     }
-    if (res.ok) {
+    if (!res || !res.ok) {
+      res = await fetch('data/daily-market-reports.json?v=' + Date.now());
+    }
+    if (!res || !res.ok) {
+      try {
+        const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+        if (rawRes.ok) res = rawRes;
+      } catch(e) {}
+    }
+    if (res && res.ok) {
       const data = await res.json();
       const reports = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
       if (reports.length > 0) {
@@ -2678,11 +2687,15 @@ async function executeManualReportTrigger() {
 
       const checkNewReportExists = async () => {
         try {
-          let checkRes = await fetch('data/daily-market-reports.json?v=' + Date.now());
-          if (!checkRes.ok) {
-            checkRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+          let checkRes = null;
+          try {
+            const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+            if (rawRes.ok) checkRes = rawRes;
+          } catch(e) {}
+          if (!checkRes || !checkRes.ok) {
+            checkRes = await fetch('data/daily-market-reports.json?v=' + Date.now());
           }
-          if (checkRes.ok) {
+          if (checkRes && checkRes.ok) {
             const data = await checkRes.json();
             const list = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
             if (list.length > 0) {
@@ -2826,7 +2839,12 @@ function saveStoredPosts(posts) {
     localStorage.setItem('crytopnl_forum_posts', JSON.stringify(cleanPosts));
     try { localStorage.removeItem('coinhub_forum_posts'); } catch(e) {}
   } catch(e) {
-    console.warn('localStorage quota reached, operating in memory/Firestore mode:', e);
+    try {
+      localStorage.removeItem('crytopnl_daily_market_reports_cache');
+      localStorage.setItem('crytopnl_forum_posts', JSON.stringify(cleanPosts));
+    } catch(err2) {
+      console.warn('localStorage quota reached, operating in memory/Firestore mode:', err2);
+    }
   }
 }
 window.saveStoredPosts = saveStoredPosts;
