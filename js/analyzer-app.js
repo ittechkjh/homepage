@@ -3092,6 +3092,87 @@ const App = {
             } catch (e) {}
         }
 
+        // 4. Fallback: 계정 전환(비회원->회원/관리자) 또는 레거시 키에 보관된 거래 내역 자동 복구
+        if (tradesToUse.length === 0) {
+            // 4-1. 비회원(user_default) IndexedDB 확인
+            if (uid !== 'user_default' && typeof AnalyzerDB !== 'undefined') {
+                try {
+                    const defaultDb = await AnalyzerDB.getTrades('user_default');
+                    if (Array.isArray(defaultDb) && defaultDb.length > 0) {
+                        tradesToUse = defaultDb;
+                    }
+                } catch (e) {}
+            }
+
+            // 4-2. 비회원(user_default) 및 레거시 localStorage 키 순회 복구
+            if (tradesToUse.length === 0) {
+                const candidateKeys = [
+                    'coinhub_user_default_trades',
+                    'coinhub_trades',
+                    'crytopnl_trades',
+                    'coinhub_raw_trades',
+                    'upbit_trades',
+                    'bithumb_trades'
+                ];
+                for (const k of candidateKeys) {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                tradesToUse = parsed;
+                                break;
+                            }
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            // 4-3. IndexedDB tradesStore 전체 스캔 (임의의 키에 저장된 최대 레코드 복구)
+            if (tradesToUse.length === 0 && typeof AnalyzerDB !== 'undefined') {
+                try {
+                    const db = await AnalyzerDB.getDB();
+                    if (db && db.objectStoreNames.contains('tradesStore')) {
+                        const allDocs = await new Promise((resolve) => {
+                            const tx = db.transaction('tradesStore', 'readonly');
+                            const req = tx.objectStore('tradesStore').getAll();
+                            req.onsuccess = () => resolve(req.result || []);
+                            req.onerror = () => resolve([]);
+                        });
+                        for (const doc of allDocs) {
+                            if (Array.isArray(doc) && doc.length > tradesToUse.length) {
+                                tradesToUse = doc;
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // 4-4. localStorage 내 coinhub_user_*_trades 패턴 전체 스캔
+            if (tradesToUse.length === 0) {
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('coinhub_user_') && k.endsWith('_trades')) {
+                            try {
+                                const parsed = JSON.parse(localStorage.getItem(k));
+                                if (Array.isArray(parsed) && parsed.length > tradesToUse.length) {
+                                    tradesToUse = parsed;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // 발견된 데이터가 있다면 현재 로그인된 uid로 즉시 마이그레이션 저장
+            if (tradesToUse.length > 0 && uid !== 'user_default') {
+                try {
+                    AnalyzerStorage.saveTrades(tradesToUse);
+                } catch (e) {}
+            }
+        }
+
         if (tradesToUse.length > 0) {
             const healed = AnalyzerStorage.healTrades(tradesToUse);
             this.state.rawTrades = healed;
