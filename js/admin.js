@@ -1440,8 +1440,8 @@ const AdminApp = {
 
             const todayF = stats.todayFeatures || stats.features || {};
             const cumF = stats.cumFeatures || stats.features || {};
-            const todayTotalF = Math.max(1, featKeys.reduce((sum, item) => sum + (Number(todayF[item.key]) || 0), 0));
-            const cumTotalF = Math.max(1, featKeys.reduce((sum, item) => sum + (Number(cumF[item.key]) || 0), 0));
+            const todayTotalF = featKeys.reduce((sum, item) => sum + (Number(todayF[item.key]) || 0), 0);
+            const cumTotalF = featKeys.reduce((sum, item) => sum + (Number(cumF[item.key]) || 0), 0);
 
             const isFeatToday = (this.featureScope === 'today');
             const activeF = isFeatToday ? todayF : cumF;
@@ -1467,26 +1467,31 @@ const AdminApp = {
                     : `최근 14일 누적 실측치 기준 (총 ${cumTotalF.toLocaleString()}회 이용)`;
             }
 
-            const getPct = (val, total) => Math.round(((Number(val) || 0) / total) * 100);
             featKeys.forEach(item => {
-                const mainPct = getPct(activeF[item.key], activeTotalF);
-                const altPct = getPct(altF[item.key], altTotalF);
+                const activeCnt = Number(activeF[item.key]) || 0;
+                const altCnt = Number(altF[item.key]) || 0;
+                const barWidth = activeTotalF > 0 ? Math.round((activeCnt / activeTotalF) * 100) : 0;
                 const elPct = document.getElementById(item.id + '-pct');
                 const elBar = document.getElementById(item.id + '-bar');
                 const elSub = document.getElementById(item.id + '-sub');
-                if (elPct) elPct.innerText = mainPct + '%';
-                if (elBar) elBar.style.width = mainPct + '%';
+                if (elPct) elPct.innerText = activeCnt.toLocaleString() + '회';
+                if (elBar) elBar.style.width = barWidth + '%';
                 if (elSub) {
-                    elSub.innerText = isFeatToday ? `(누적 ${altPct}%)` : `(오늘 ${altPct}%)`;
+                    elSub.innerText = isFeatToday ? `(누적: ${altCnt.toLocaleString()}회)` : `(오늘: ${altCnt.toLocaleString()}회)`;
                 }
             });
 
-            // 4. Update Device Share (Today vs Cumulative)
+            // 4. Update Device Share (Today vs Cumulative - raw counts)
             const isDevToday = (this.deviceScope === 'today');
-            const mobilePct = isDevToday ? (stats.todayMobilePct ?? stats.mobilePct ?? 0) : (stats.cumMobilePct ?? stats.mobilePct ?? 0);
-            const desktopPct = isDevToday ? (stats.todayDesktopPct ?? stats.desktopPct ?? 0) : (stats.cumDesktopPct ?? stats.desktopPct ?? 0);
-            const altMobilePct = !isDevToday ? (stats.todayMobilePct ?? stats.mobilePct ?? 0) : (stats.cumMobilePct ?? stats.mobilePct ?? 0);
-            const altDesktopPct = !isDevToday ? (stats.todayDesktopPct ?? stats.desktopPct ?? 0) : (stats.cumDesktopPct ?? stats.desktopPct ?? 0);
+            const todayDev = stats.todayDevices || { mobile: 0, desktop: 0 };
+            const cumDev = stats.cumDevices || { mobile: 0, desktop: 0 };
+            const activeDev = isDevToday ? todayDev : cumDev;
+            const altDev = isDevToday ? cumDev : todayDev;
+
+            const mobileCount = Number(activeDev.mobile || 0);
+            const desktopCount = Number(activeDev.desktop || 0);
+            const altMobileCount = Number(altDev.mobile || 0);
+            const altDesktopCount = Number(altDev.desktop || 0);
 
             // Update device scope toggle button styles
             const btnDevToday = document.getElementById('admin-device-scope-today');
@@ -1501,21 +1506,24 @@ const AdminApp = {
             }
             const devDescEl = document.getElementById('admin-device-scope-desc');
             if (devDescEl) {
-                devDescEl.textContent = isDevToday ? '오늘 하루 접속 기기 및 브라우저 환경 기준' : '최근 14일 누적 접속 기기 및 브라우저 환경 기준';
+                const activeDevTotal = mobileCount + desktopCount;
+                devDescEl.textContent = isDevToday 
+                    ? `오늘 하루 실측치 기준 (총 ${activeDevTotal.toLocaleString()}명)` 
+                    : `최근 14일 누적 실측치 기준 (총 ${activeDevTotal.toLocaleString()}명)`;
             }
 
-            const setDev = (id, pct) => {
+            const setDev = (id, textVal) => {
                 const el = document.getElementById(id);
-                if (el) el.innerText = pct + '%';
+                if (el) el.innerText = textVal;
             };
-            setDev('admin-dev-mobile-pct', mobilePct);
-            setDev('admin-dev-desktop-pct', desktopPct);
+            setDev('admin-dev-mobile-pct', mobileCount.toLocaleString() + '명');
+            setDev('admin-dev-desktop-pct', desktopCount.toLocaleString() + '명');
             const subMobileEl = document.getElementById('admin-dev-mobile-sub');
             const subDesktopEl = document.getElementById('admin-dev-desktop-sub');
-            if (subMobileEl) subMobileEl.innerText = isDevToday ? `오늘 실측 (누적: ${altMobilePct}%)` : `전체 누적 (오늘: ${altMobilePct}%)`;
-            if (subDesktopEl) subDesktopEl.innerText = isDevToday ? `오늘 실측 (누적: ${altDesktopPct}%)` : `전체 누적 (오늘: ${altDesktopPct}%)`;
+            if (subMobileEl) subMobileEl.innerText = isDevToday ? `오늘: ${mobileCount.toLocaleString()}명 (누적: ${altMobileCount.toLocaleString()}명)` : `전체: ${mobileCount.toLocaleString()}명 (오늘: ${altMobileCount.toLocaleString()}명)`;
+            if (subDesktopEl) subDesktopEl.innerText = isDevToday ? `오늘: ${desktopCount.toLocaleString()}명 (누적: ${altDesktopCount.toLocaleString()}명)` : `전체: ${desktopCount.toLocaleString()}명 (오늘: ${altDesktopCount.toLocaleString()}명)`;
 
-            // 5. Update Dynamic Browser Environment Breakdown
+            // 5. Update Dynamic Browser Environment Breakdown (raw counts)
             const bContainer = document.getElementById('admin-browser-breakdown');
             if (bContainer) {
                 const activeBMap = isDevToday ? (stats.todayBrowsers || stats.browsers || {}) : (stats.cumBrowsers || stats.browsers || {});
@@ -1524,7 +1532,7 @@ const AdminApp = {
                 const altBTotal = Object.values(altBMap).reduce((a, b) => a + Number(b || 0), 0);
 
                 if (activeBTotal === 0 && altBTotal === 0) {
-                    bContainer.innerHTML = '<div class="col-span-full text-center text-slate-500 text-[11px] py-2">브라우저 데이터 없음 (0%)</div>';
+                    bContainer.innerHTML = '<div class="col-span-full text-center text-slate-500 text-[11px] py-2">브라우저 데이터 없음 (0명)</div>';
                 } else {
                     const bNames = [
                         { key: 'Chrome', name: 'Chrome', color: 'text-cyan-400', dot: 'bg-cyan-400' },
@@ -1539,15 +1547,13 @@ const AdminApp = {
                         const cnt = Number(activeBMap[b.key] || 0);
                         const altCnt = Number(altBMap[b.key] || 0);
                         if (cnt === 0 && altCnt === 0) return '';
-                        const pct = activeBTotal > 0 ? Math.round((cnt / activeBTotal) * 100) : 0;
-                        const altPct = altBTotal > 0 ? Math.round((altCnt / altBTotal) * 100) : 0;
-                        const subLabel = isDevToday ? `(누적 ${altPct}%)` : `(오늘 ${altPct}%)`;
+                        const subLabel = isDevToday ? `(누적: ${altCnt.toLocaleString()}명)` : `(오늘: ${altCnt.toLocaleString()}명)`;
                         return `
                           <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
                             <span class="w-2 h-2 rounded-full ${b.dot}"></span>
                             <span class="text-slate-300 text-[11px]">${b.name}:</span>
                             <div class="ml-auto text-right">
-                              <span class="${b.color} font-bold text-[11px]">${pct}%</span>
+                              <span class="${b.color} font-bold text-[11px]">${cnt.toLocaleString()}명</span>
                               <span class="text-[9px] text-slate-500 font-normal ml-1">${subLabel}</span>
                             </div>
                           </div>
