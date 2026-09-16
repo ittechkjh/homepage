@@ -5785,9 +5785,16 @@ async function handleUnifiedLoginSubmit(e) {
       };
       localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
       localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+      localStorage.setItem('crytopnl_is_admin_client', '1');
+      sessionStorage.setItem('coinhub_admin_authenticated', '1');
+      sessionStorage.setItem('crytopnl_admin_authenticated', '1');
 
       if (firestore) {
         firestore.collection('users').doc('admin').set(adminUser, { merge: true }).catch(e => console.warn(e));
+      }
+
+      if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
+        AdminAnalytics.rollbackAdminVisit();
       }
 
       updateAuthUI();
@@ -6019,6 +6026,8 @@ function handleLogout() {
   if (confirm('로그아웃하시겠습니까?')) {
     localStorage.removeItem('crytopnl_user');
     localStorage.removeItem('coinhub_user');
+    localStorage.removeItem('crytopnl_is_admin_client');
+    localStorage.removeItem('coinhub_is_admin_client');
     sessionStorage.removeItem('crytopnl_admin_authenticated');
     sessionStorage.removeItem('coinhub_admin_authenticated');
     updateAuthUI();

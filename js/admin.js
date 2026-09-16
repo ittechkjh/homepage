@@ -35,7 +35,87 @@ const AdminAnalytics = {
         return 'Other';
     },
 
+    isAdminSession: function () {
+        try {
+            if (sessionStorage.getItem('coinhub_admin_authenticated') === '1' ||
+                sessionStorage.getItem('crytopnl_admin_authenticated') === '1' ||
+                sessionStorage.getItem('cryptopnl_admin_authenticated') === '1') {
+                return true;
+            }
+            if (localStorage.getItem('crytopnl_is_admin_client') === '1' ||
+                localStorage.getItem('coinhub_is_admin_client') === '1') {
+                return true;
+            }
+            const userKeys = ['crytopnl_user', 'coinhub_user', 'cryptopnl_user'];
+            for (const k of userKeys) {
+                const raw = localStorage.getItem(k);
+                if (raw) {
+                    const u = JSON.parse(raw);
+                    if (u && (u.username?.toLowerCase() === 'admin' || u.role === 'ADMIN' || u.rank === 'ADMIN')) {
+                        return true;
+                    }
+                }
+            }
+            if (typeof currentUser !== 'undefined' && currentUser) {
+                if (currentUser.username?.toLowerCase() === 'admin' || currentUser.role === 'ADMIN' || currentUser.rank === 'ADMIN') {
+                    return true;
+                }
+            }
+        } catch (e) {}
+        return false;
+    },
+
+    rollbackAdminVisit: function () {
+        try {
+            const todayStr = this.getKstDateStr();
+            const visitedKey = 'crytopnl_visited_' + todayStr;
+            const devKey = 'crytopnl_dev_logged_' + todayStr;
+            const hadSessionVisit = sessionStorage.getItem(visitedKey) === '1';
+
+            sessionStorage.setItem('coinhub_admin_authenticated', '1');
+            sessionStorage.setItem('crytopnl_admin_authenticated', '1');
+            localStorage.setItem('crytopnl_is_admin_client', '1');
+
+            if (hadSessionVisit) {
+                sessionStorage.removeItem(visitedKey);
+                sessionStorage.removeItem(devKey);
+
+                const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+                if (firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+                    const dec = firebase.firestore.FieldValue.increment(-1);
+                    firestore.collection('site_analytics').doc(todayStr).set({
+                        visitors: dec,
+                        pageviews: dec
+                    }, { merge: true }).catch(e => console.warn('Rollback visit note:', e));
+
+                    firestore.collection('site_analytics').doc('totals').set({
+                        totalVisitors: dec,
+                        totalPageviews: dec
+                    }, { merge: true }).catch(e => console.warn('Rollback totals note:', e));
+                }
+
+                try {
+                    const data = this.getAnalyticsData();
+                    if (data && Array.isArray(data.history)) {
+                        const todayEntry = data.history.find(h => h.date === todayStr);
+                        if (todayEntry) {
+                            todayEntry.visitors = Math.max(0, (todayEntry.visitors || 1) - 1);
+                            todayEntry.pageviews = Math.max(0, (todayEntry.pageviews || 1) - 1);
+                        }
+                        data.totalVisitorsAllTime = Math.max(0, (data.totalVisitorsAllTime || 1) - 1);
+                        data.totalPageviewsAllTime = Math.max(0, (data.totalPageviewsAllTime || 1) - 1);
+                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+                    }
+                } catch (e) {}
+
+                this.cloudStatsCache = null;
+                localStorage.removeItem('coinhub_admin_cloud_stats_cache');
+            }
+        } catch (e) {}
+    },
+
     init: function () {
+        if (this.isAdminSession()) return;
         this.recordVisit('analyzer');
     },
 
@@ -83,8 +163,11 @@ const AdminAnalytics = {
         return data;
     },
 
-    recordVisit: function (featureName = null) {
+    recordVisit: function (featureName = null, force = false) {
         try {
+            if (!force && this.isAdminSession()) {
+                return Promise.resolve();
+            }
             const todayStr = this.getKstDateStr();
             // Accurate mobile detection: handles standard mobile UA, iPadOS 13+ desktop mode with touch, and narrow touch screens
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent) ||
@@ -426,6 +509,8 @@ const AdminAnalytics = {
                 presenceSnap.forEach(p => {
                     const pd = p.data();
                     if (pd && pd.lastSeen && Number(pd.lastSeen) >= nowTime - 60000) {
+                        const uName = (pd.username || '').toLowerCase();
+                        if (uName === 'admin') return;
                         pCount++;
                     }
                 });
@@ -1220,6 +1305,10 @@ const AdminApp = {
     logoutAdmin: function () {
         if (confirm('관리자 세션을 로그아웃하시겠습니까?')) {
             sessionStorage.removeItem('coinhub_admin_authenticated');
+            sessionStorage.removeItem('crytopnl_admin_authenticated');
+            sessionStorage.removeItem('cryptopnl_admin_authenticated');
+            localStorage.removeItem('crytopnl_is_admin_client');
+            localStorage.removeItem('coinhub_is_admin_client');
             if (typeof updateAdminNavVisibility === 'function') updateAdminNavVisibility();
             alert('관리자 계정에서 로그아웃되었습니다.');
             if (typeof switchTab === 'function') switchTab('analyzer');
@@ -1241,6 +1330,8 @@ const AdminApp = {
 
         if (pw.trim() === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
+            sessionStorage.setItem('crytopnl_admin_authenticated', '1');
+            localStorage.setItem('crytopnl_is_admin_client', '1');
             const adminUser = {
                 username: 'admin',
                 email: 'admin@cryptopnl.com',
@@ -1252,6 +1343,9 @@ const AdminApp = {
             };
             localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
             if (typeof currentUser !== 'undefined') currentUser = adminUser;
+            if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
+                AdminAnalytics.rollbackAdminVisit();
+            }
             if (typeof updateAuthUI === 'function') updateAuthUI();
             if (typeof updateAdminNavVisibility === 'function') updateAdminNavVisibility();
             this.checkAdminAccess();
@@ -1280,6 +1374,10 @@ const AdminApp = {
         const contentEl = document.getElementById('admin-dashboard-content');
 
         if (isAuth) {
+            localStorage.setItem('crytopnl_is_admin_client', '1');
+            if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
+                AdminAnalytics.rollbackAdminVisit();
+            }
             if (guardEl) {
                 guardEl.classList.add('hidden');
                 guardEl.classList.remove('block');
@@ -1322,6 +1420,8 @@ const AdminApp = {
 
         if (pw === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
+            sessionStorage.setItem('crytopnl_admin_authenticated', '1');
+            localStorage.setItem('crytopnl_is_admin_client', '1');
             
             const adminUser = {
                 username: id || 'admin',
@@ -1334,6 +1434,9 @@ const AdminApp = {
             };
             localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
             if (typeof currentUser !== 'undefined') currentUser = adminUser;
+            if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
+                AdminAnalytics.rollbackAdminVisit();
+            }
             if (typeof updateAuthUI === 'function') updateAuthUI();
             
             this.checkAdminAccess();
@@ -1346,6 +1449,10 @@ const AdminApp = {
 
     handleAdminLogout: function () {
         sessionStorage.removeItem('coinhub_admin_authenticated');
+        sessionStorage.removeItem('crytopnl_admin_authenticated');
+        sessionStorage.removeItem('cryptopnl_admin_authenticated');
+        localStorage.removeItem('crytopnl_is_admin_client');
+        localStorage.removeItem('coinhub_is_admin_client');
         this.checkAdminAccess();
         alert('관리자 모드에서 안전하게 로그아웃되었습니다.');
         if (typeof switchTab === 'function') switchTab('market');
