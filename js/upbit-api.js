@@ -660,7 +660,7 @@ const UpbitAPI = {
         'KRW-LIT', 'KRW-TAIKO', 'KRW-RE', 'KRW-AVAX', 'KRW-XAUT', 'KRW-CPOOL', 'KRW-CAP', 'KRW-IMX', 'KRW-SC', 'KRW-INJ',
         'KRW-MVL', 'KRW-HIVE', 'KRW-CBK', 'KRW-XLM', 'KRW-OP', 'KRW-SAFE', 'KRW-GLM', 'KRW-SUPER', 'KRW-LINEA', 'KRW-DATA',
         'KRW-KERNEL', 'KRW-POKT', 'KRW-SENT', 'KRW-ZKC', 'KRW-KNC', 'KRW-ZKP', 'KRW-AUCTION', 'KRW-ORDER', 'KRW-FCT2', 'KRW-MTL',
-        'KRW-VET', 'KRW-TAO', 'KRW-QTUM', 'KRW-LINK', 'KRW-XRP', 'KRW-CHZ', 'KRW-ASTR', 'KRW-ZK', 'KRW-STORJ', 'KRW-ENA',
+        'KRW-VET', 'KRW-TAO', 'KRW-QTUM', 'KRW-LINK', 'KRW-XRP', 'KRW-CHZ', 'KRW-ASTR', 'KRW-ZK', 'KRW-BFC', 'KRW-ENA',
         'KRW-MANA', 'KRW-OPEN', 'KRW-PYTH', 'KRW-ENS', 'KRW-GRT', 'KRW-PUMP', 'KRW-XTZ', 'KRW-CKB', 'KRW-KAVA', 'KRW-TOSHI',
         'KRW-BARD', 'KRW-ZRO', 'KRW-RAY', 'KRW-ONDO', 'KRW-ZRX', 'KRW-GMT', 'KRW-TFUEL', 'KRW-CFG', 'KRW-AZTEC', 'KRW-CFX',
         'KRW-XPL', 'KRW-ZAMA', 'KRW-MASK', 'KRW-EURC', 'KRW-COMP', 'KRW-ZETA', 'KRW-RED', 'KRW-TIA', 'KRW-ADA', 'KRW-ELF',
@@ -746,7 +746,7 @@ const UpbitAPI = {
         "KRW-CBK","KRW-XLM","KRW-OP","KRW-SAFE","KRW-GLM","KRW-SUPER","KRW-LINEA","KRW-DATA",
         "KRW-KERNEL","KRW-POKT","KRW-SENT","KRW-ZKC","KRW-KNC","KRW-ZKP","KRW-AUCTION","KRW-ORDER",
         "KRW-FCT2","KRW-MTL","KRW-VET","KRW-TAO","KRW-QTUM","KRW-LINK","KRW-XRP","KRW-CHZ",
-        "KRW-ASTR","KRW-ZK","KRW-STORJ","KRW-ENA","KRW-MANA","KRW-OPEN","KRW-PYTH","KRW-ENS",
+        "KRW-ASTR","KRW-ZK","KRW-BFC","KRW-ENA","KRW-MANA","KRW-OPEN","KRW-PYTH","KRW-ENS",
         "KRW-GRT","KRW-PUMP","KRW-XTZ","KRW-CKB","KRW-KAVA","KRW-TOSHI","KRW-BARD","KRW-ZRO",
         "KRW-RAY","KRW-ONDO","KRW-ZRX","KRW-GMT","KRW-TFUEL","KRW-CFG","KRW-AZTEC","KRW-CFX",
         "KRW-XPL","KRW-ZAMA","KRW-MASK","KRW-EURC","KRW-COMP","KRW-ZETA","KRW-RED","KRW-TIA",
@@ -894,18 +894,74 @@ const UpbitAPI = {
                     tickerMap['UPBIT:::' + item.market] = entry;
                 };
 
-                // 단일 요청으로 287개 전 종목 일괄 수신
+                // 단일 요청으로 공식 KRW 전 종목 일괄 수신
                 const joined = upbitMarkets.join(',');
                 const cRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + joined);
                 if (cRes.ok) {
                     const cJson = await cRes.json();
                     if (Array.isArray(cJson)) cJson.forEach(parseItem);
                 } else {
-                    console.warn(`Upbit ticker 단일 응답 상태: ${cRes.status}`);
+                    console.warn(`Upbit ticker 단일 응답 상태: ${cRes.status}, 요청 종목 대상 재시도 수행`);
+                    // 만약 신규 상장폐지/코드 불일치로 404 발생 시, 실제 보유/요청된 마켓 목록으로 즉시 재시도
+                    if (markets && markets.length > 0) {
+                        const fallbackMarkets = markets
+                            .map(m => (this.getStandardMarketInfo ? this.getStandardMarketInfo(m).market : (typeof m === 'string' ? (m.startsWith('KRW-') ? m : 'KRW-' + m) : m.market)))
+                            .filter(m => m && m.startsWith('KRW-'))
+                            .filter((v, i, a) => a.indexOf(v) === i);
+                        if (fallbackMarkets.length > 0) {
+                            try {
+                                const retryRes = await fetch('https://api.upbit.com/v1/ticker?markets=' + fallbackMarkets.join(','));
+                                if (retryRes.ok) {
+                                    const retryJson = await retryRes.json();
+                                    if (Array.isArray(retryJson)) retryJson.forEach(parseItem);
+                                }
+                            } catch(e) {}
+                        }
+                    }
                 }
             }
         } catch (err) {
             console.warn('업비트 시세 조회 네트워크 폴백:', err);
+        }
+
+        // 4-1. 빗썸 실시간 시세 API 병합 (Bithumb 거래 코인 및 빗썸 전용 종목 시세 완벽 연동)
+        try {
+            const bRes = await fetch('https://api.bithumb.com/public/ticker/ALL_KRW');
+            if (bRes.ok) {
+                const bData = await bRes.json();
+                if (bData && bData.status === '0000' && bData.data) {
+                    const bDataObj = bData.data;
+                    Object.keys(bDataObj).forEach(sym => {
+                        if (sym === 'date') return;
+                        const item = bDataObj[sym];
+                        if (!item || !item.closing_price) return;
+                        const tradeP = parseFloat(item.closing_price);
+                        const rate = parseFloat(item.fluctate_rate_24H || 0) / 100;
+                        const vol24h = parseFloat(item.acc_trade_value_24H || 0);
+                        const bEntry = {
+                            tradePrice: tradeP,
+                            signedChangeRate: rate,
+                            accTradeVolume: parseFloat(item.acc_trade_value || vol24h),
+                            accTradePrice: parseFloat(item.acc_trade_value || vol24h),
+                            accTradeVolume24h: vol24h,
+                            accTradePrice24h: vol24h,
+                            highPrice: parseFloat(item.max_price || tradeP),
+                            lowPrice: parseFloat(item.min_price || tradeP),
+                            openingPrice: parseFloat(item.opening_price || tradeP),
+                            timestamp: Date.now(),
+                            isBithumb: true
+                        };
+                        tickerMap['BITHUMB:::' + sym] = bEntry;
+                        tickerMap['BITHUMB:::KRW-' + sym] = bEntry;
+                        if (!tickerMap['KRW-' + sym]) {
+                            tickerMap['KRW-' + sym] = bEntry;
+                            tickerMap[sym] = bEntry;
+                        }
+                    });
+                }
+            }
+        } catch (bErr) {
+            console.warn('빗썸 시세 수신 오류 (무시 가능):', bErr.message);
         }
 
         // 5. 신규 데이터 수신 시 기존 메모리 캐시와 누적 병합(Cumulative merge) 갱신
@@ -1016,8 +1072,11 @@ const UpbitAPI = {
         let totalUnrealizedProfit = 0;
 
         (coinSummaries || []).forEach(coin => {
-            const { market, symbol } = this.getStandardMarketInfo(coin.market || coin.coinSymbol);
-            const ticker = tickerMap[market] || tickerMap[symbol] || tickerMap['KRW-' + symbol] || (coin.market ? tickerMap[coin.market] : null) || (coin.coinSymbol ? tickerMap[coin.coinSymbol] : null);
+            const isBithumb = coin.exchange === 'BITHUMB' || (coin.market && coin.market.includes('BITHUMB'));
+            const ticker = (isBithumb ? (tickerMap['BITHUMB:::' + symbol] || tickerMap['BITHUMB:::KRW-' + symbol] || tickerMap['BITHUMB:::' + market]) : null) ||
+                           tickerMap[market] || tickerMap[symbol] || tickerMap['KRW-' + symbol] ||
+                           (coin.market ? tickerMap[coin.market] : null) ||
+                           (coin.coinSymbol ? tickerMap[coin.coinSymbol] : null);
 
             coin.koreanName = this.getKoreanName(market || coin.market || coin.coinSymbol);
 

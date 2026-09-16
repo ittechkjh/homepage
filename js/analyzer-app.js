@@ -1336,10 +1336,15 @@ const App = {
             try { ChartManager.renderPortfolioDoughnutChart(this.state.reportData.coinSummaries); } catch(e) {}
             try { ChartManager.renderCoinStackingChart(this.state.reportData.coinSummaries); } catch(e) {}
 
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
             const timeEl = document.getElementById('lastTickerUpdateTime');
             if (timeEl) {
-                const now = new Date();
-                timeEl.textContent = `실시간 시세 반영: ${now.toLocaleTimeString()}`;
+                timeEl.textContent = `실시간 시세 반영: ${timeStr}`;
+            }
+            const tableLiveEl = document.getElementById('coinsTableLiveText');
+            if (tableLiveEl) {
+                tableLiveEl.textContent = `실시간 시세 연동 중 (${timeStr})`;
             }
 
             if (showToast) {

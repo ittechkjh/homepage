@@ -3252,7 +3252,13 @@
             <div class="table-card">
               <div class="table-toolbar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex items-center gap-3 flex-wrap">
-                  <div class="font-bold text-sm text-slate-100">코인별 실현 손익 & 잔고 현황</div>
+                  <div class="font-bold text-sm text-slate-100 flex items-center gap-2 flex-wrap">
+                    <span>코인별 실현 손익 &amp; 잔고 현황</span>
+                    <span id="coinsTableLiveStatus" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-[11px] text-emerald-400 font-medium">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span id="coinsTableLiveText">실시간 시세 연동 중</span>
+                    </span>
+                  </div>
                   <div class="inline-flex rounded-lg border border-navy-700 bg-navy-950 p-0.5 text-xs font-bold">
                     <button id="btnCoinsFilterAll" class="btn btn-sm btn-primary px-3 py-1 rounded-md">전체 거래 종목</button>
                     <button id="btnCoinsFilterHolding" class="btn btn-sm btn-outline px-3 py-1 rounded-md">🔥 현재 보유 종목만</button>
