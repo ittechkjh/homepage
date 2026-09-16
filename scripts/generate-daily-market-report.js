@@ -366,9 +366,19 @@ async function fetchLiveMarketData(dateStr) {
 
 // 2. High-Definition YouTube-Style 16:9 Branded Infographics (crytopnl.com)
 // SVG 1: 메인 썸네일 & 헤드라인 카드 (16:9 800x450)
-function generateReportImage1(dStr, m) {
+function generateReportImage1(dStr, m, aiInfo = null) {
   const fngNum = parseInt(m.fngScore) || 69;
   const fngTone = fngNum >= 75 ? '극단적 탐욕' : (fngNum >= 55 ? '탐욕 및 심리 개선' : (fngNum >= 45 ? '중립 관망세' : '공포 및 위축'));
+
+  const badgeText = aiInfo?.badgeText || `${dStr.slice(0, 7).replace('-', '.')} 크립토 심리 분석`;
+  const headlineTag = aiInfo?.headlineTag || (fngNum >= 75 ? '🔥 극단적 탐욕 주의' : (fngNum >= 55 ? '⚠️ 시장 심리 탐욕 개선' : '⚠️ 공포와 관망 사이'));
+  const headlineMain = aiInfo?.headlineMain || (fngNum >= 65 ? '비트코인 탐욕 지수 상승...' : '시장의 심리 다이버전스...');
+  const headlineSub = aiInfo?.headlineSub || (fngNum >= 65 ? '스마트머니는 무엇을 볼까?' : '조용한 축적기의 변곡점');
+
+  const b1 = aiInfo?.keyDrivers?.[0] || `① Fear &amp; Greed ${m.fngScore}p: 과열 없는 ${fngTone}`;
+  const b2 = aiInfo?.keyDrivers?.[1] || `② LTH 장기보유자 락업 ${m.lthRatio}% 돌파 (공급 쇼티지)`;
+  const b3 = aiInfo?.keyDrivers?.[2] || `③ BTC 도미넌스 ${m.btcDominance}% 독주 vs 알트 선별`;
+  const smartMoney = aiInfo?.smartMoneyTone || (fngNum >= 65 ? '🔍 건전한 탐욕 분할 대응' : '🔍 조용한 축적(Accumulation)기');
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -405,7 +415,7 @@ function generateReportImage1(dStr, m) {
   <g transform="translate(30, 24)">
     <rect width="210" height="30" rx="8" fill="#e11d48" filter="url(#mm_drop)"/>
     <circle cx="18" cy="15" r="5" fill="#ffffff"/>
-    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">2026.09 크립토 심리 분석</text>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${badgeText}</text>
 
     <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
     <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 전문가 뷰</text>
@@ -416,22 +426,22 @@ function generateReportImage1(dStr, m) {
 
   <!-- Left Main Headline -->
   <g transform="translate(35, 90)">
-    <rect x="0" y="0" width="220" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="14" y="19" fill="#94a3b8" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif">⚠️ 폭풍 전야의 팽팽한 긴장감</text>
+    <rect x="0" y="0" width="230" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="14" y="19" fill="#94a3b8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">${headlineTag}</text>
 
-    <text x="0" y="66" fill="#ffffff" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
-      비트코인 신고가 넘보는데...
+    <text x="0" y="66" fill="#ffffff" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
+      ${headlineMain}
     </text>
 
-    <text x="0" y="112" fill="url(#gold_grad)" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
-      시장은 왜 아직 조용할까?
+    <text x="0" y="108" fill="url(#gold_grad)" font-size="28" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#mm_drop)">
+      ${headlineSub}
     </text>
 
     <g transform="translate(0, 138)">
       <rect width="465" height="48" rx="12" fill="#0c2338" stroke="#0ea5e9" stroke-width="1.8" filter="url(#mm_drop)"/>
       <circle cx="28" cy="24" r="14" fill="#0284c7"/>
       <text x="28" y="29" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
-      <text x="52" y="30" fill="#e0f2fe" font-size="15" font-weight="800" font-family="'Pretendard', sans-serif">
+      <text x="52" y="30" fill="#e0f2fe" font-size="14.5" font-weight="800" font-family="'Pretendard', sans-serif">
         <tspan fill="#38bdf8">탐욕 지수 ${m.fngScore}P</tspan> 이면의 <tspan fill="#34d399">스마트머니</tspan>와 대중 심리 다이버전스
       </text>
     </g>
@@ -439,13 +449,13 @@ function generateReportImage1(dStr, m) {
     <!-- 3 Key Bullet Points -->
     <g transform="translate(5, 208)">
       <circle cx="6" cy="6" r="4" fill="#38bdf8"/>
-      <text x="18" y="11" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">① Fear &amp; Greed ${m.fngScore}p: 과열 징후 없는 건전한 ${fngTone}</text>
+      <text x="18" y="11" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b1}</text>
 
       <circle cx="6" cy="34" r="4" fill="#a855f7"/>
-      <text x="18" y="39" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">② LTH 장기보유자 락업 ${m.lthRatio}% 돌파 (거래소 공급 쇼티지 심화)</text>
+      <text x="18" y="39" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b2}</text>
 
       <circle cx="6" cy="62" r="4" fill="#34d399"/>
-      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ BTC 도미넌스 ${m.btcDominance}% 독주 vs 알트코인 선별 차별화</text>
+      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b3}</text>
     </g>
   </g>
 
@@ -476,7 +486,7 @@ function generateReportImage1(dStr, m) {
     <g transform="translate(18, 214)">
       <rect width="210" height="44" rx="10" fill="#18132b" stroke="#8b5cf6" stroke-width="1.2"/>
       <text x="105" y="19" fill="#c084fc" font-size="11" font-weight="800" text-anchor="middle">스마트 머니 진단</text>
-      <text x="105" y="36" fill="#facc15" font-size="12" font-weight="900" text-anchor="middle">🔍 조용한 축적(Accumulation)기</text>
+      <text x="105" y="36" fill="#facc15" font-size="11.5" font-weight="900" text-anchor="middle">${smartMoney}</text>
     </g>
   </g>
 
@@ -486,7 +496,7 @@ function generateReportImage1(dStr, m) {
     <line x1="0" y1="0" x2="800" y2="0" stroke="#1e293b" stroke-width="1"/>
     <line x1="0" y1="0" x2="420" y2="0" stroke="#f43f5e" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#f43f5e"/>
-    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 2026년 9월 중순 시장 분위기 및 심리 다이버전스 분석</text>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: ${dStr} • 실시간 온체인 및 심리 다이버전스 분석</text>
     <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Market Intel</text>
   </g>
 </svg>`;
@@ -494,7 +504,7 @@ function generateReportImage1(dStr, m) {
 }
 
 // SVG 2: 시장 심리 계측기 & Fear & Greed 매트릭스 (16:9 800x450)
-function generateReportImage2(dStr, m) {
+function generateReportImage2(dStr, m, aiInfo = null) {
   const fngNum = parseInt(m.fngScore) || 69;
   const fngAngle = -90 + (fngNum / 100) * 180;
 
@@ -502,6 +512,9 @@ function generateReportImage2(dStr, m) {
   const rawLs = String(m.longShortRatio || '1.297');
   const lsVal = rawLs.split(' ')[0] || '1.297';
   const lsDominance = rawLs.includes('숏') && parseFloat(lsVal) < 1.0 ? '숏 우세' : '롱 우세';
+
+  const diagnosisBadge = aiInfo?.badgeText ? String(aiInfo.badgeText).slice(0, 24) : '과열 없는 안도 랠리(Relief Rally)';
+  const diagnosisDesc = aiInfo?.smartMoneyTone ? String(aiInfo.smartMoneyTone).slice(0, 32) : '극단적 탐욕(85p+) 없는 건강한 상승 추세 및 하방 경직성';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -551,8 +564,8 @@ function generateReportImage2(dStr, m) {
     <!-- Bottom interpretation -->
     <g transform="translate(20, 248)">
       <rect width="320" height="58" rx="10" fill="#081e33" stroke="#0ea5e9" stroke-width="1"/>
-      <text x="15" y="24" fill="#38bdf8" font-size="12" font-weight="800">💡 시장 심리 진단: 과열 없는 안도 랠리(Relief Rally)</text>
-      <text x="15" y="44" fill="#94a3b8" font-size="11" font-weight="600">극단적 탐욕(85p+) 없는 건강한 상승 추세 및 하방 경직성</text>
+      <text x="15" y="24" fill="#38bdf8" font-size="12" font-weight="800">💡 시장 심리 진단: ${diagnosisBadge}</text>
+      <text x="15" y="44" fill="#94a3b8" font-size="11" font-weight="600">${diagnosisDesc}</text>
     </g>
   </g>
 
@@ -596,13 +609,17 @@ function generateReportImage2(dStr, m) {
   </g>
 
   <!-- Footer note -->
-  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: ${dStr} • 온체인 및 파생상품 센티먼트 종합 계측 • CrytoPnL 퀀트랩</text>
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: 실시간 온체인 및 파생상품 매트릭스 • CrytoPnL 퀀트랩</text>
 </svg>`;
   return createSvgDataUri(svg);
 }
 
 // SVG 3: 분위기 형성 3대 핵심 동인 (16:9 800x450)
-function generateReportImage3(dStr, m) {
+function generateReportImage3(dStr, m, aiInfo = null) {
+  const driver1Title = aiInfo?.keyDrivers?.[0] || '기관 현물 ETF 유입';
+  const driver2Title = aiInfo?.keyDrivers?.[1] || '글로벌 매크로 & M2';
+  const driver3Title = aiInfo?.keyDrivers?.[2] || '온체인 LTH 공급 쇼티지';
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="bg_driver" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -638,7 +655,7 @@ function generateReportImage3(dStr, m) {
     <rect width="236" height="320" rx="16" fill="url(#grad_blue_card)" stroke="#0284c7" stroke-width="1.8" filter="url(#f_shadow)"/>
     <rect x="18" y="18" width="75" height="24" rx="6" fill="#0284c7"/>
     <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 01</text>
-    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">기관 현물 ETF 유입</text>
+    <text x="18" y="66" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${driver1Title}</text>
 
     <g transform="translate(18, 90)">
       <rect width="200" height="62" rx="10" fill="#081b2c" stroke="#0284c7" stroke-width="1"/>
@@ -653,49 +670,49 @@ function generateReportImage3(dStr, m) {
     </g>
 
     <g transform="translate(18, 245)">
-      <rect width="200" height="48" rx="8" fill="#042335"/>
-      <text x="10" y="20" fill="#34d399" font-size="11" font-weight="800">✓ 개인 매도 ➔ 기관 흡수 장세</text>
-      <text x="10" y="38" fill="#7dd3fc" font-size="10" font-weight="700">✓ 장기 기관 자금의 강력한 하방 지지</text>
+      <rect width="200" height="48" rx="8" fill="#0c2338"/>
+      <text x="10" y="20" fill="#facc15" font-size="11" font-weight="800">✓ 기관 현물 수요 탄탄한 하방</text>
+      <text x="10" y="38" fill="#38bdf8" font-size="10" font-weight="700">✓ 하방 경직성 제공의 핵심 축</text>
     </g>
   </g>
 
-  <!-- Card 2: 매크로 유동성 & 금리 -->
+  <!-- Card 2: 매크로 환경 & 유동성 -->
   <g transform="translate(282, 78)">
-    <rect width="236" height="320" rx="16" fill="url(#grad_purple_card)" stroke="#a855f7" stroke-width="1.8" filter="url(#f_shadow)"/>
-    <rect x="18" y="18" width="75" height="24" rx="6" fill="#9333ea"/>
+    <rect width="236" height="320" rx="16" fill="url(#grad_purple_card)" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f_shadow)"/>
+    <rect x="18" y="18" width="75" height="24" rx="6" fill="#7e22ce"/>
     <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 02</text>
-    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">거시 매크로 유동성</text>
+    <text x="18" y="66" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${driver2Title}</text>
 
     <g transform="translate(18, 90)">
-      <rect width="200" height="62" rx="10" fill="#1c0e2d" stroke="#a855f7" stroke-width="1"/>
-      <text x="100" y="24" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">글로벌 M2 / 환율</text>
-      <text x="100" y="50" fill="#c084fc" font-size="19" font-weight="900" font-family="monospace" text-anchor="middle">108.5조$ (+4.2%)</text>
+      <rect width="200" height="62" rx="10" fill="#1b122c" stroke="#8b5cf6" stroke-width="1"/>
+      <text x="100" y="24" fill="#c084fc" font-size="11" font-weight="700" text-anchor="middle">환율 및 글로벌 M2</text>
+      <text x="100" y="50" fill="#c084fc" font-size="18" font-weight="900" font-family="monospace" text-anchor="middle">KRW ${m.usdKrwRate}</text>
     </g>
 
     <g transform="translate(18, 168)">
-      <text x="0" y="14" fill="#94a3b8" font-size="11" font-weight="700">• 美 연준 금리 인하 사이클</text>
-      <text x="0" y="36" fill="#cbd5e1" font-size="12" font-weight="700">• DXY 달러 인덱스 약세 기조</text>
-      <text x="0" y="58" fill="#c084fc" font-size="12" font-weight="800">• 원/달러 ${m.usdKrwRate}원 레벨</text>
+      <text x="0" y="14" fill="#94a3b8" font-size="11" font-weight="700">• 글로벌 금리 인하 피벗 개시</text>
+      <text x="0" y="36" fill="#cbd5e1" font-size="12" font-weight="700">• 글로벌 M2 통화량 사상 최고</text>
+      <text x="0" y="58" fill="#c084fc" font-size="12" font-weight="800">• 위험자산 선호 심리 재점화</text>
     </g>
 
     <g transform="translate(18, 245)">
-      <rect width="200" height="48" rx="8" fill="#250d3a"/>
-      <text x="10" y="20" fill="#f472b6" font-size="11" font-weight="800">✓ 글로벌 유동성 재팽창 국면</text>
-      <text x="10" y="38" fill="#e9d5ff" font-size="10" font-weight="700">✓ 위험자산 전반에 우호적 환경</text>
+      <rect width="200" height="48" rx="8" fill="#24113a"/>
+      <text x="10" y="20" fill="#facc15" font-size="11" font-weight="800">✓ 풍부한 법정화폐 유동성 유입</text>
+      <text x="10" y="38" fill="#d8b4fe" font-size="10" font-weight="700">✓ 인플레이션 헷지 자산 부각</text>
     </g>
   </g>
 
-  <!-- Card 3: 온체인 공급 쇼티지 -->
+  <!-- Card 3: 온체인 락업 & 쇼티지 -->
   <g transform="translate(539, 78)">
     <rect width="236" height="320" rx="16" fill="url(#grad_emerald_card)" stroke="#10b981" stroke-width="1.8" filter="url(#f_shadow)"/>
-    <rect x="18" y="18" width="75" height="24" rx="6" fill="#059669"/>
+    <rect x="18" y="18" width="75" height="24" rx="6" fill="#047857"/>
     <text x="55" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">동인 03</text>
-    <text x="18" y="66" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">온체인 공급 쇼티지</text>
+    <text x="18" y="66" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${driver3Title}</text>
 
     <g transform="translate(18, 90)">
-      <rect width="200" height="62" rx="10" fill="#061f18" stroke="#10b981" stroke-width="1"/>
-      <text x="100" y="24" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">LTH 장기보유 락업</text>
-      <text x="100" y="50" fill="#34d399" font-size="22" font-weight="900" font-family="monospace" text-anchor="middle">${m.lthRatio}% 락업</text>
+      <rect width="200" height="62" rx="10" fill="#08201a" stroke="#10b981" stroke-width="1"/>
+      <text x="100" y="24" fill="#a7f3d0" font-size="11" font-weight="700" text-anchor="middle">LTH 장기보유 비중</text>
+      <text x="100" y="50" fill="#34d399" font-size="20" font-weight="900" font-family="monospace" text-anchor="middle">${m.lthRatio}% (${m.lthAmount})</text>
     </g>
 
     <g transform="translate(18, 168)">
@@ -718,7 +735,7 @@ function generateReportImage3(dStr, m) {
 }
 
 // SVG 4: 주요 코인/자산군별 체감 온도차 다이버전스 (16:9 800x450)
-function generateReportImage4(dStr, m) {
+function generateReportImage4(dStr, m, aiInfo = null) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="bg_div" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -836,7 +853,14 @@ function generateReportImage4(dStr, m) {
 }
 
 // SVG 5: 투자자 심리 사이클 로드맵 & 실전 행동 수칙 (16:9 800x450)
-function generateReportImage5(dStr, m) {
+function generateReportImage5(dStr, m, aiInfo = null) {
+  const rules = aiInfo?.actionRules || [
+    { code: '01', title: '분할 매수 원칙', sub: '지지선 확인 매매', desc: '추격 매수 차단 및 분할 진입', tag: '✓ 뇌동매매 차단' },
+    { code: '02', title: '현금 비중 유지', sub: '20~30% 실탄 확보', desc: '단기 딥(Dip) 발생 시 줍줍 기회', tag: '✓ 심리적 안정' },
+    { code: '03', title: '도미넌스 주시', sub: 'BTC 선행 후 순환매', desc: '비트코인 안착 후 알트 선별', tag: '✓ 포트폴리오 최적화' },
+    { code: '04', title: '온체인 팩트 중심', sub: '단기 소음 배제', desc: '장기 락업 및 펀딩비 확인', tag: '✓ 원칙 고수' }
+  ];
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="bg_cycle" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -893,44 +917,44 @@ function generateReportImage5(dStr, m) {
     <g transform="translate(0, 0)">
       <rect width="175" height="135" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.2" filter="url(#c_drop)"/>
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#0284c7"/>
-      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 01</text>
-      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">분할 매수 원칙</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 일시 몰빵 매수 금지</text>
-      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 주요 지지선 분할 진입</text>
-      <text x="12" y="112" fill="#38bdf8" font-size="11" font-weight="800">✓ FOMO 뇌동매매 차단</text>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rules[0]?.code || '01'}</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">${rules[0]?.title || '분할 매수 원칙'}</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[0]?.sub || '일시 몰빵 매수 금지'}</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[0]?.desc || '주요 지지선 분할 진입'}</text>
+      <text x="12" y="112" fill="#38bdf8" font-size="11" font-weight="800">${rules[0]?.tag || '✓ 뇌동매매 차단'}</text>
     </g>
 
     <!-- Guideline 2 -->
     <g transform="translate(188, 0)">
       <rect width="175" height="135" rx="12" fill="#061d19" stroke="#10b981" stroke-width="1.2" filter="url(#c_drop)"/>
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#059669"/>
-      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 02</text>
-      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">현금 비중 20~30%</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 조정 시 줍줍 총알 확보</text>
-      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 심리적 평정심의 근원</text>
-      <text x="12" y="112" fill="#34d399" font-size="11" font-weight="800">✓ 멘탈 붕괴 사전 예방</text>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rules[1]?.code || '02'}</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">${rules[1]?.title || '현금 비중 유지'}</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[1]?.sub || '조정 시 줍줍 총알 확보'}</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[1]?.desc || '심리적 평정심의 근원'}</text>
+      <text x="12" y="112" fill="#34d399" font-size="11" font-weight="800">${rules[1]?.tag || '✓ 멘탈 붕괴 예방'}</text>
     </g>
 
     <!-- Guideline 3 -->
     <g transform="translate(376, 0)">
       <rect width="175" height="135" rx="12" fill="#1a1128" stroke="#a855f7" stroke-width="1.2" filter="url(#c_drop)"/>
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#7e22ce"/>
-      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 03</text>
-      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">온체인 팩트 신뢰</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• LTH 락업 및 MVRV 확인</text>
-      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 단기 뉴스 소음 무시</text>
-      <text x="12" y="112" fill="#c084fc" font-size="11" font-weight="800">✓ 스마트머니 발자국 추적</text>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rules[2]?.code || '03'}</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">${rules[2]?.title || '온체인 팩트 신뢰'}</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[2]?.sub || 'LTH 락업 및 MVRV 확인'}</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[2]?.desc || '단기 뉴스 소음 무시'}</text>
+      <text x="12" y="112" fill="#c084fc" font-size="11" font-weight="800">${rules[2]?.tag || '✓ 스마트머니 추적'}</text>
     </g>
 
     <!-- Guideline 4 -->
     <g transform="translate(565, 0)">
       <rect width="175" height="135" rx="12" fill="#241506" stroke="#f59e0b" stroke-width="1.2" filter="url(#c_drop)"/>
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#d97706"/>
-      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 04</text>
-      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">수익 실현 계획</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 환희의 정점 오기 전</text>
-      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 목표가별 단계적 분할익절</text>
-      <text x="12" y="112" fill="#fbbf24" font-size="11" font-weight="800">✓ 확정 수익만이 진짜 내 돈</text>
+      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rules[3]?.code || '04'}</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">${rules[3]?.title || '수익 실현 계획'}</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[3]?.sub || '환희의 정점 오기 전'}</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• ${rules[3]?.desc || '목표가별 단계적 분할익절'}</text>
+      <text x="12" y="112" fill="#fbbf24" font-size="11" font-weight="800">${rules[3]?.tag || '✓ 확정 수익만이 내 돈'}</text>
     </g>
   </g>
 
@@ -957,6 +981,8 @@ async function callGeminiAPI(dateStr, dateKorean, m, apiKey) {
 
 [글 구조 및 필수 섹션 태그]
 반드시 아래 태그 규격을 지켜 1,800자~2,200자 내외로 충실하고 흥미진진하게 작성하세요.
+최상단 첫 줄에는 반드시 실시간 시장 상황과 심리 지표의 핵심을 반영한 독창적인 제목을 작성하세요:
+<TITLE>[시장 심리 분석] ${dateKorean} (오늘 시황의 핵심을 찌르는 전문적이고 흥미로운 제목)</TITLE>
 
 <INTRO>
 1. 흥미로운 도입 (현재 시장 분위기를 한 문장으로 강력하게 요약하고 독자의 시선을 사로잡는 오프닝 2~3문단)
@@ -1000,6 +1026,29 @@ Fear &amp; Greed 지수(${m.fngScore}P, ${m.fngText}), 김치프리미엄, 선�
   </p>
 </div>
 </CONCLUSION>
+
+[글 최하단 필수 인포그래픽 데이터 JSON]
+글 본문 맨 끝에 반드시 오늘 시장의 실제 분석 결과를 바탕으로 인포그래픽용 데이터를 아래 JSON 규격으로 출력하세요:
+<MARKET_INFOGRAPHIC>
+{
+  "headlineTag": "오늘의 시장 핵심 테마 태그 (15자 이내)",
+  "headlineMain": "오늘 시장 메인 한 줄 헤드라인 (20자 이내)",
+  "headlineSub": "오늘 시장 서브 헤드라인 (20자 이내)",
+  "badgeText": "심리 진단 배지 (15자 이내, 예: 중립 관망세, 탐욕 안도랠리 등)",
+  "smartMoneyTone": "스마트머니 진단 (15자 이내, 예: 조용한 분할 축적기, 저항 확인 등)",
+  "keyDrivers": [
+    "기관 현물 ETF 동향 요약 (15자 이내)",
+    "거시 경제 및 글로벌 유동성 요약 (15자 이내)",
+    "온체인 공급 및 락업 현황 요약 (15자 이내)"
+  ],
+  "actionRules": [
+    { "code": "01", "title": "분할 매수 원칙", "sub": "지지선 확인 매매", "desc": "추격 매수 차단 및 분할 진입", "tag": "✓ 뇌동매매 방어" },
+    { "code": "02", "title": "현금 비중 유지", "sub": "20~30% 실탄 확보", "desc": "단기 딥(Dip) 발생 시 줍줍 기회", "tag": "✓ 심리적 안정" },
+    { "code": "03", "title": "도미넌스 주시", "sub": "BTC 선행 후 순환매", "desc": "비트코인 안착 후 알트 선별", "tag": "✓ 포트폴리오 최적화" },
+    { "code": "04", "title": "온체인 팩트 중심", "sub": "단기 소음 배제", "desc": "장기 락업 및 펀딩비 확인", "tag": "✓ 원칙 고수" }
+  ]
+}
+</MARKET_INFOGRAPHIC>
 
 [글 톤앤매너 및 필수 작성 규칙]
 1. 전문적이면서도 친근한 블로그 어조 (~합니다, ~로 분석됩니다, ~를 기억해야 합니다 체). 초보자도 쉽게 이해할 수 있는 비유와 설명.
@@ -1243,6 +1292,8 @@ function assembleGeminiHtml(rawText, img1, img2, img3, img4, img5) {
 
   // Cleanup helper tags
   processed = processed
+    .replace(/<TITLE>[\s\S]*?<\/TITLE>/gi, '')
+    .replace(/<MARKET_INFOGRAPHIC>[\s\S]*?<\/MARKET_INFOGRAPHIC>/gi, '')
     .replace(/<\/?INTRO>/gi, '')
     .replace(/<\/?SECTION_[1-4]>/gi, '')
     .replace(/<\/?CONCLUSION>/gi, '');
@@ -1263,12 +1314,8 @@ async function buildDailyMarketReport(targetDate = null) {
   console.log(`[Daily Report Generator] Ingesting real-time market data for ${dateStr} ${timeFormatted}...`);
   const marketData = await fetchLiveMarketData(dateStr);
 
-  const img1 = generateReportImage1(dateStr, marketData);
-  const img2 = generateReportImage2(dateStr, marketData);
-  const img3 = generateReportImage3(dateStr, marketData);
-  const img4 = generateReportImage4(dateStr, marketData);
-  const img5 = generateReportImage5(dateStr, marketData);
-
+  let aiMarketInfographic = null;
+  let aiTitle = null;
   let contentHtml = null;
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -1277,6 +1324,31 @@ async function buildDailyMarketReport(targetDate = null) {
       console.log('[Daily Report Generator] GEMINI_API_KEY detected. Requesting AI report synthesis...');
       const aiText = await callGeminiAPI(dateStr, dateKorean, marketData, apiKey);
       if (aiText) {
+        // Extract Title from <TITLE> tag
+        const titleMatch = aiText.match(/<TITLE>(.*?)<\/TITLE>/i);
+        if (titleMatch && titleMatch[1].trim()) {
+          aiTitle = titleMatch[1].replace(/<\/?.*?>/g, '').trim();
+          console.log(`[Daily Report Generator] Extracted dynamic AI title: "${aiTitle}"`);
+        }
+
+        // Extract MARKET_INFOGRAPHIC JSON
+        const infoMatch = aiText.match(/<MARKET_INFOGRAPHIC>([\s\S]*?)<\/MARKET_INFOGRAPHIC>/i);
+        if (infoMatch && infoMatch[1]) {
+          try {
+            const cleanJson = infoMatch[1].replace(/```json/gi, '').replace(/```/g, '').trim();
+            aiMarketInfographic = JSON.parse(cleanJson);
+            console.log('[Daily Report Generator] Successfully parsed <MARKET_INFOGRAPHIC> JSON');
+          } catch(err) {
+            console.warn('[Daily Report Generator] Failed to parse <MARKET_INFOGRAPHIC> JSON:', err.message);
+          }
+        }
+
+        const img1 = generateReportImage1(dateStr, marketData, aiMarketInfographic);
+        const img2 = generateReportImage2(dateStr, marketData, aiMarketInfographic);
+        const img3 = generateReportImage3(dateStr, marketData, aiMarketInfographic);
+        const img4 = generateReportImage4(dateStr, marketData, aiMarketInfographic);
+        const img5 = generateReportImage5(dateStr, marketData, aiMarketInfographic);
+
         contentHtml = assembleGeminiHtml(aiText, img1, img2, img3, img4, img5);
       }
     } catch (e) {
@@ -1288,6 +1360,11 @@ async function buildDailyMarketReport(targetDate = null) {
 
   // Fallback to dynamic quant engine if AI was not available
   if (!contentHtml) {
+    const img1 = generateReportImage1(dateStr, marketData, aiMarketInfographic);
+    const img2 = generateReportImage2(dateStr, marketData, aiMarketInfographic);
+    const img3 = generateReportImage3(dateStr, marketData, aiMarketInfographic);
+    const img4 = generateReportImage4(dateStr, marketData, aiMarketInfographic);
+    const img5 = generateReportImage5(dateStr, marketData, aiMarketInfographic);
     contentHtml = generateDynamicQuantReport(dateStr, dateKorean, marketData, img1, img2, img3, img4, img5);
   }
 
@@ -1303,13 +1380,14 @@ async function buildDailyMarketReport(targetDate = null) {
   const timeStr = `${dateStr} ${timeFormatted}`;
 
   const fngNum = parseInt(marketData.fngScore) || 69;
-  const titleTopic = fngNum >= 75 ? '극단적 탐욕의 유혹과 과열 리스크' : (fngNum >= 55 ? `비트코인 탐욕 지수 ${fngNum}P... 폭풍 전야인가 대세 상승의 서막인가?` : `공포와 관망 사이... 스마트머니는 왜 조용히 지갑을 채울까?`);
+  const defaultTitleTopic = fngNum >= 75 ? '극단적 탐욕의 유혹과 과열 리스크' : (fngNum >= 55 ? `비트코인 탐욕 지수 ${fngNum}P... 폭풍 전야인가 대세 상승의 서막인가?` : `공포와 관망 사이... 스마트머니는 왜 조용히 지갑을 채울까?`);
+  const finalTitle = aiTitle || `[시장 심리 분석] ${dateKorean} ${defaultTitleTopic}`;
 
   return {
     id: reportId,
     category: 'altcoin',
     categoryName: '📊 시장 분위기',
-    title: `[시장 심리 분석] ${dateKorean} ${titleTopic}`,
+    title: finalTitle,
     author: '시황분석팀 (AI)',
     authorRank: 'VERIFIED',
     timestamp: timestamp,
@@ -1603,7 +1681,7 @@ async function fetchBinance4hTechnicals() {
 
 // 16:9 High-Definition Perspective Infographics (800x450)
 // SVG 1: 메인 썸네일 & 기술적 셋업 카드 (16:9 800x450)
-function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
+function generatePerspectiveImage1(dateStr, tech, slotInfo = null, aiPerspective = null) {
   const curP = Number(tech.currentPrice || 77500);
   const slotBadge = slotInfo?.timeFormatted ? slotInfo.timeFormatted : (slotInfo ? slotInfo.slotHour + '시' : '4H');
   const slotTimestampStr = slotInfo ? slotInfo.timeStr : `${dateStr} 실시간`;
@@ -1619,6 +1697,12 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
   };
   const dirColor = setup.direction === 'LONG' ? '#10b981' : (setup.direction === 'SHORT' ? '#f43f5e' : '#f59e0b');
   const dirLabel = setup.direction === 'LONG' ? 'LONG (상방 돌파 우위)' : (setup.direction === 'SHORT' ? 'SHORT (하방 리테스트)' : 'RANGE (수렴 박스권)');
+
+  const headlineTag = aiPerspective?.headlineTag ? String(aiPerspective.headlineTag).slice(0, 24) : '⚠️ 4H 대형 수렴 이탈 & 파동 변곡점';
+  const headlineMain = aiPerspective?.headlineMain ? String(aiPerspective.headlineMain).slice(0, 26) : '비트코인 4H 삼각수렴 막바지...';
+  const headlineSub = aiPerspective?.headlineSub ? String(aiPerspective.headlineSub).slice(0, 26) : '엘리엇 5파 분출인가, 플랫 조정인가?';
+  const resTarget = aiPerspective?.primaryTarget || `$${Math.round(curP * 1.03).toLocaleString()}`;
+  const supLine = `$${Number(tech.ema50 || Math.round(curP * 0.97)).toLocaleString()}`;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -1664,14 +1748,14 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
 
   <g transform="translate(35, 90)">
     <rect x="0" y="0" width="230" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="14" y="19" fill="#94a3b8" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif">⚠️ 4H 대형 수렴 이탈 &amp; 파동 변곡점</text>
+    <text x="14" y="19" fill="#94a3b8" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif">${headlineTag}</text>
 
     <text x="0" y="66" fill="#ffffff" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#p1_drop)">
-      비트코인 4H 삼각수렴 막바지...
+      ${headlineMain}
     </text>
 
     <text x="0" y="112" fill="url(#p1_gold)" font-size="32" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#p1_drop)">
-      엘리엇 5파 분출인가, 플랫 조정인가?
+      ${headlineSub}
     </text>
 
     <g transform="translate(0, 138)">
@@ -1691,7 +1775,7 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
       <text x="18" y="39" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">② 엘리엇 파동: 4파 수렴 조정 완료 후 충격 5파 상방 분기점</text>
 
       <circle cx="6" cy="62" r="4" fill="#34d399"/>
-      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ 핵심 분기선: 상방 $80,000 돌파 vs 하방 $76,400 방어</text>
+      <text x="18" y="67" fill="#cbd5e1" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">③ 핵심 분기선: 상방 ${resTarget} 돌파 vs 하방 ${supLine} 방어</text>
     </g>
   </g>
 
@@ -1734,10 +1818,20 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null) {
 }
 
 // SVG 2: 중장기 추세 구조 & 50/200 이평선 분석 (16:9 800x450)
-function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
+function generatePerspectiveImage2(dateStr, tech, slotInfo = null, aiPerspective = null) {
   const curP = Number(tech.currentPrice || 77500);
-  const ema50 = Number(tech.ema50 || 76800);
-  const ema200 = Number(tech.ema200 || 71200);
+  const ema50 = Number(tech.ema50 || Math.round(curP * 0.99));
+  const ema200 = Number(tech.ema200 || Math.round(curP * 0.92));
+
+  const chTop = Math.round(curP * 1.08);
+  const chMid = Math.round(curP * 1.00);
+  const chBot = Math.round(curP * 0.92);
+
+  const resMin = Math.round(curP * 1.03);
+  const resMax = Math.round(curP * 1.06);
+
+  const supMin = Math.round(curP * 0.92);
+  const supMax = Math.round(curP * 0.95);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -1770,17 +1864,17 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
     <rect width="360" height="325" rx="16" fill="url(#p2_grad_blue)" stroke="#0284c7" stroke-width="1.8" filter="url(#p2_drop)"/>
     <rect x="20" y="18" width="135" height="24" rx="6" fill="#0284c7"/>
     <text x="87" y="34" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">BULL CHANNEL</text>
-    <text x="20" y="70" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">거대 상승 채널 (2024~2026)</text>
+    <text x="20" y="70" fill="#ffffff" font-size="17" font-weight="900" font-family="'Pretendard', sans-serif">거대 상승 채널 구조</text>
 
     <!-- Visual channel diagram -->
     <g transform="translate(20, 85)">
       <rect width="320" height="135" rx="10" fill="#081b2c" stroke="#0ea5e9" stroke-width="1"/>
       <line x1="20" y1="110" x2="300" y2="25" stroke="#34d399" stroke-width="2.5" stroke-dasharray="4,3"/>
-      <text x="290" y="18" fill="#34d399" font-size="10" font-weight="800" text-anchor="end">상단 저항선: $84,500</text>
+      <text x="290" y="18" fill="#34d399" font-size="10" font-weight="800" text-anchor="end">상단 저항선: $${chTop.toLocaleString()}</text>
       <line x1="20" y1="125" x2="300" y2="40" stroke="#38bdf8" stroke-width="2"/>
-      <text x="290" y="55" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="end">중심값(Median): $78,500</text>
+      <text x="290" y="55" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="end">중심값(Median): $${chMid.toLocaleString()}</text>
       <line x1="20" y1="140" x2="300" y2="55" stroke="#818cf8" stroke-width="2.5" stroke-dasharray="4,3"/>
-      <text x="290" y="72" fill="#818cf8" font-size="10" font-weight="800" text-anchor="end">하단 지지선: $71,200</text>
+      <text x="290" y="72" fill="#818cf8" font-size="10" font-weight="800" text-anchor="end">하단 지지선: $${chBot.toLocaleString()}</text>
       <!-- Current price dot -->
       <circle cx="210" cy="53" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
       <text x="210" y="42" fill="#fef08a" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">현재 위치 ($${curP.toLocaleString()})</text>
@@ -1802,7 +1896,7 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
       <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">골든크로스</text>
       <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">50 EMA vs 200 EMA 정배열</text>
       <text x="18" y="60" fill="#38bdf8" font-size="20" font-weight="900" font-family="monospace">50 EMA: $${ema50.toLocaleString()}</text>
-      <text x="18" y="82" fill="#a78bfa" font-size="13" font-weight="800" font-family="monospace">200 EMA: $${ema200.toLocaleString()} (+10.2% 이격)</text>
+      <text x="18" y="82" fill="#a78bfa" font-size="13" font-weight="800" font-family="monospace">200 EMA: $${ema200.toLocaleString()}</text>
     </g>
 
     <g transform="translate(0, 112)">
@@ -1810,16 +1904,16 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null) {
       <rect x="18" y="14" width="90" height="20" rx="5" fill="#d97706"/>
       <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">매물벽 저항</text>
       <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">주요 라운드 넘버 저항대</text>
-      <text x="18" y="58" fill="#fbbf24" font-size="20" font-weight="900" font-family="monospace">$80,000 ~ $84,500</text>
-      <text x="18" y="82" fill="#94a3b8" font-size="11" font-weight="600">• $80K 라운드 넘버 심리 매물 + 2024년 역사적 전고점</text>
+      <text x="18" y="58" fill="#fbbf24" font-size="20" font-weight="900" font-family="monospace">$${resMin.toLocaleString()} ~ $${resMax.toLocaleString()}</text>
+      <text x="18" y="82" fill="#94a3b8" font-size="11" font-weight="600">• 상방 주요 저항 매물벽 및 피보나치 확장 목표 구간</text>
     </g>
 
     <g transform="translate(0, 224)">
       <rect width="360" height="101" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#p2_drop)"/>
       <rect x="18" y="14" width="90" height="20" rx="5" fill="#7e22ce"/>
       <text x="63" y="28" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">추세 생명선</text>
-      <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">장기 지지 방어선 (200 SMA/EMA)</text>
-      <text x="18" y="58" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">$71,200 ~ $73,800</text>
+      <text x="120" y="28" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">장기 지지 방어선 (200 EMA)</text>
+      <text x="18" y="58" fill="#34d399" font-size="20" font-weight="900" font-family="monospace">$${supMin.toLocaleString()} ~ $${supMax.toLocaleString()}</text>
       <text x="18" y="82" fill="#cbd5e1" font-size="11" font-weight="600">• 해당 레벨 상회 시 거시 상승 파동 무효화 가능성 극히 희박</text>
     </g>
   </g>
@@ -1973,11 +2067,21 @@ function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
 }
 
 // SVG 4: 엘리엇 파동 카운팅 & 피보나치 되돌림 로드맵 (16:9 800x450)
-function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
+function generatePerspectiveImage4(dateStr, tech, slotInfo = null, aiPerspective = null) {
   const curP = Number(tech.currentPrice || 77500);
   const fib = tech.technicalConfluence?.fib || {};
   const f618 = Number(fib.fib618 || Math.round(curP * 0.965));
+  const f500 = Number(fib.fib500 || Math.round(curP * 0.975));
   const f382 = Number(fib.fib382 || Math.round(curP * 0.985));
+
+  const w1Price = Math.round(curP * 0.94);
+  const w3Price = Math.round(curP * 1.02);
+  const w5Price = aiPerspective?.primaryTarget ? aiPerspective.primaryTarget : `$${Math.round(curP * 1.07 / 1000)}K`;
+
+  const tp1 = Math.round(curP * 1.04);
+  const tp2 = Math.round(curP * 1.07);
+  const slP = Math.round(curP * 0.96);
+  const invP = Math.round(curP * 0.94);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -2010,7 +2114,7 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
       
       <!-- Wave 1 -->
       <circle cx="100" cy="-20" r="7" fill="#0284c7"/>
-      <text x="100" y="-32" fill="#38bdf8" font-size="12" font-weight="900" text-anchor="middle">(1)파 $73.8K</text>
+      <text x="100" y="-32" fill="#38bdf8" font-size="12" font-weight="900" text-anchor="middle">(1)파 $${Math.round(w1Price / 1000)}K</text>
       
       <!-- Wave 2 -->
       <circle cx="180" cy="25" r="7" fill="#64748b"/>
@@ -2018,7 +2122,7 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
       
       <!-- Wave 3 -->
       <circle cx="380" cy="-50" r="7" fill="#10b981"/>
-      <text x="380" y="-62" fill="#34d399" font-size="12" font-weight="900" text-anchor="middle">(3)파 확장 $80.2K</text>
+      <text x="380" y="-62" fill="#34d399" font-size="12" font-weight="900" text-anchor="middle">(3)파 확장 $${Math.round(w3Price / 1000)}K</text>
       
       <!-- Wave 4 (Current) -->
       <circle cx="480" cy="-10" r="13" fill="#f59e0b" stroke="#ffffff" stroke-width="3"/>
@@ -2027,7 +2131,7 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
       
       <!-- Wave 5 Target -->
       <circle cx="650" cy="-65" r="9" fill="#e11d48" stroke="#ffffff" stroke-width="2"/>
-      <text x="650" y="-78" fill="#f43f5e" font-size="13" font-weight="900" text-anchor="middle">(5)파 목표 $84.5K</text>
+      <text x="650" y="-78" fill="#f43f5e" font-size="13" font-weight="900" text-anchor="middle">(5)파 목표 ${w5Price}</text>
     </g>
   </g>
 
@@ -2039,8 +2143,8 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
       <rect x="18" y="14" width="135" height="22" rx="6" fill="#059669"/>
       <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">주 시나리오 (65% 유력)</text>
       <text x="18" y="62" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">4파 삼각수렴 후 5파 임펄스 분출</text>
-      <text x="18" y="86" fill="#a7f3d0" font-size="12" font-weight="700">• 4파 수렴 완료 후 $80K 라운드 넘버 돌파 시 5파 전개</text>
-      <text x="18" y="106" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 목표 $82,400 / 2차 목표 $84,500 (Fib 1.618)</text>
+      <text x="18" y="86" fill="#a7f3d0" font-size="12" font-weight="700">• 4파 수렴 완료 후 $${w3Price.toLocaleString()} 돌파 시 5파 전개</text>
+      <text x="18" y="106" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 목표 $${tp1.toLocaleString()} / 2차 목표 $${tp2.toLocaleString()} (Fib 1.618)</text>
       <text x="18" y="128" fill="#6ee7b7" font-size="11" font-weight="800">✓ 50 EMA($${Number(tech.ema50).toLocaleString()}) 위에서 매수 모멘텀 유지 시 발동</text>
     </g>
 
@@ -2050,25 +2154,35 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null) {
       <rect x="18" y="14" width="135" height="22" rx="6" fill="#e11d48"/>
       <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">대안 시나리오 (35%)</text>
       <text x="18" y="62" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">4파 복합 플랫(Flat) 조정 연장</text>
-      <text x="18" y="86" fill="#fda4af" font-size="12" font-weight="700">• $76,400 이탈 시 4파가 ABC 불규칙 플랫으로 연장</text>
-      <text x="18" y="106" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">Fib 0.5 되돌림: $75,200 / Fib 0.618: $74,100</text>
-      <text x="18" y="128" fill="#fda4af" font-size="11" font-weight="800">⚠️ 무효화 레벨: $73,800 이탈 시 5파 가설 전체 폐기</text>
+      <text x="18" y="86" fill="#fda4af" font-size="12" font-weight="700">• $${slP.toLocaleString()} 이탈 시 4파가 ABC 불규칙 플랫으로 연장</text>
+      <text x="18" y="106" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">Fib 0.5 되돌림: $${f500.toLocaleString()} / Fib 0.618: $${f618.toLocaleString()}</text>
+      <text x="18" y="128" fill="#fda4af" font-size="11" font-weight="800">⚠️ 무효화 레벨: $${invP.toLocaleString()} 이탈 시 5파 가설 전체 폐기</text>
     </g>
   </g>
 
   <!-- Bottom Invalidation Bar -->
   <g transform="translate(30, 395)">
     <rect width="740" height="36" rx="8" fill="#18132b" stroke="#8b5cf6" stroke-width="1.2"/>
-    <text x="20" y="22" fill="#c084fc" font-size="12" font-weight="900">🚨 파동 무효화 레벨 (Invalidation Level): $73,800</text>
-    <text x="720" y="22" fill="#e9d5ff" font-size="11" font-weight="700" text-anchor="end">1파 고점($73,800) 침범 금지 원칙 • 도달 시 손절매 필수</text>
+    <text x="20" y="22" fill="#c084fc" font-size="12" font-weight="900">🚨 파동 무효화 레벨 (Invalidation Level): $${invP.toLocaleString()}</text>
+    <text x="720" y="22" fill="#e9d5ff" font-size="11" font-weight="700" text-anchor="end">1파 고점($${invP.toLocaleString()}) 침범 금지 원칙 • 도달 시 손절매 필수</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
 
 // SVG 5: 핵심 지지·저항 맵 & 양방향 시나리오 매트릭스 (16:9 800x450)
-function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
+function generatePerspectiveImage5(dateStr, tech, slotInfo = null, aiPerspective = null) {
   const curP = Number(tech.currentPrice || 77500);
+  const ema50 = Number(tech.ema50 || Math.round(curP * 0.99));
+  const fib = tech.technicalConfluence?.fib || {};
+  const f618 = Number(fib.fib618 || Math.round(curP * 0.965));
+  const f500 = Number(fib.fib500 || Math.round(curP * 0.975));
+
+  const breakoutP = Math.round(curP * 1.02);
+  const tp1 = Math.round(curP * 1.04);
+  const tp2 = Math.round(curP * 1.07);
+  const tp3 = Math.round(curP * 1.10);
+  const invP = Math.round(curP * 0.94);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -2097,9 +2211,9 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
       <rect width="360" height="150" rx="14" fill="#06221b" stroke="#10b981" stroke-width="1.6" filter="url(#p5_drop)"/>
       <rect x="18" y="14" width="135" height="22" rx="6" fill="#059669"/>
       <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">상승 시나리오 (65% 유력)</text>
-      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 4H 종가 $80,000 라운드 넘버 돌파</text>
+      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 4H 종가 $${breakoutP.toLocaleString()} 돌파 안착</text>
       <g transform="translate(18, 76)">
-        <text x="0" y="15" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 $82,400 ➔ 2차 $85,000 ➔ 3차 $88,000</text>
+        <text x="0" y="15" fill="#34d399" font-size="13" font-weight="900" font-family="monospace">1차 $${tp1.toLocaleString()} ➔ 2차 $${tp2.toLocaleString()} ➔ 3차 $${tp3.toLocaleString()}</text>
         <text x="0" y="38" fill="#cbd5e1" font-size="11" font-weight="600">• 50/200 EMA 정배열 + MACD 양봉 확장 컨플루언스</text>
         <text x="0" y="56" fill="#a7f3d0" font-size="11" font-weight="700">✓ 행동: 돌파 후 리테스트 지지 확인 시 분할 진입</text>
       </g>
@@ -2110,11 +2224,11 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
       <rect width="360" height="150" rx="14" fill="#29121a" stroke="#f43f5e" stroke-width="1.6" filter="url(#p5_drop)"/>
       <rect x="18" y="14" width="135" height="22" rx="6" fill="#e11d48"/>
       <text x="85" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">하락/조정 시나리오 (35%)</text>
-      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 50 EMA 및 $76,400 이탈 마감</text>
+      <text x="18" y="62" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">조건: 50 EMA($${ema50.toLocaleString()}) 이탈 마감</text>
       <g transform="translate(18, 76)">
-        <text x="0" y="15" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">1차 $75,200 ➔ 2차 $74,100 ➔ 3차 $71,800</text>
+        <text x="0" y="15" fill="#f43f5e" font-size="13" font-weight="900" font-family="monospace">1차 $${f500.toLocaleString()} ➔ 2차 $${f618.toLocaleString()} ➔ 3차 $${Math.round(curP * 0.92).toLocaleString()}</text>
         <text x="0" y="38" fill="#cbd5e1" font-size="11" font-weight="600">• 4파 플랫 조정 연장 및 유동성 스윕 발생 가능성</text>
-        <text x="0" y="56" fill="#fda4af" font-size="11" font-weight="700">✓ 행동: 섣부른 물타기 금지, $74K 매물대 지지 관망</text>
+        <text x="0" y="56" fill="#fda4af" font-size="11" font-weight="700">✓ 행동: 섣부른 물타기 금지, 지지선 확인 매매</text>
       </g>
     </g>
   </g>
@@ -2126,7 +2240,7 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#0284c7"/>
       <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 01</text>
       <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">확인 매매 원칙</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• $80K 돌파 후 지지 시 진입</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• $${breakoutP.toLocaleString()} 돌파 후 지지 진입</text>
       <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 섣부른 예측 숏/롱 금지</text>
       <text x="12" y="112" fill="#38bdf8" font-size="11" font-weight="800">✓ FOMO 뇌동매매 차단</text>
     </g>
@@ -2135,8 +2249,8 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
       <rect width="175" height="135" rx="12" fill="#061d19" stroke="#10b981" stroke-width="1.2" filter="url(#p5_drop)"/>
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#059669"/>
       <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 02</text>
-      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">손절선 $73.8K 엄수</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• 파동 무효화 시 미련 없이 컷</text>
+      <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">손절선 엄수</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• SL $${invP.toLocaleString()} 이탈 시</text>
       <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 1회 손실 1~2%로 제한</text>
       <text x="12" y="112" fill="#34d399" font-size="11" font-weight="800">✓ 시드 보존이 제1원칙</text>
     </g>
@@ -2156,7 +2270,7 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null) {
       <rect x="12" y="12" width="60" height="20" rx="5" fill="#d97706"/>
       <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 04</text>
       <text x="12" y="52" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">단계적 분할 익절</text>
-      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• TP1 $82.4K 도달 시 40% 실현</text>
+      <text x="12" y="74" fill="#94a3b8" font-size="11" font-weight="600">• TP1 $${tp1.toLocaleString()} 40%</text>
       <text x="12" y="92" fill="#94a3b8" font-size="11" font-weight="600">• 잔여 물량 본절 스탑 로스</text>
       <text x="12" y="112" fill="#fbbf24" font-size="11" font-weight="800">✓ 확정 수익만이 진짜 내 돈</text>
     </g>
@@ -2228,7 +2342,20 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 - 소제목을 적절히 활용하여 시각적으로 읽기 편하게 구성
 - 5장의 이미지 플레이스홀더(<!-- PERSPECTIVE_IMAGE_1 --> ~ <!-- PERSPECTIVE_IMAGE_5 -->)를 각 섹션 사이에 누락 없이 배치
 - 투자 권유 금지: '가능성'과 '조건'을 명확히 구분하고 무효화 기준 엄수 안내
-- 첫 줄에 반드시 <TITLE>[BTC/USDT 차트 관점] (창의적이고 직관적인 전문 분석 제목)</TITLE> 태그를 출력하세요.`;
+- 첫 줄에 반드시 <TITLE>[BTC/USDT 차트 관점] (창의적이고 직관적인 전문 분석 제목)</TITLE> 태그를 출력하세요.
+
+[글 최하단 필수 인포그래픽 데이터 JSON]
+글 본문 맨 끝에 반드시 오늘 차트 분석 결과를 바탕으로 인포그래픽용 데이터를 아래 JSON 규격으로 출력하세요:
+<PERSPECTIVE_INFOGRAPHIC>
+{
+  "headlineTag": "단기 4H 기술적 변곡점 (15자 이내)",
+  "headlineMain": "차트 메인 헤드라인 (20자 이내)",
+  "headlineSub": "차트 서브 헤드라인 (20자 이내)",
+  "primaryTarget": "$${Math.round(curP * 1.04).toLocaleString()}",
+  "secondaryTarget": "$${Math.round(curP * 1.07).toLocaleString()}",
+  "invalidationLevel": "$${Math.round(curP * 0.94).toLocaleString()}"
+}
+</PERSPECTIVE_INFOGRAPHIC>`;
 
   const userPrompt = `[실시간 BTC/USDT 4시간봉 정밀 기술 데이터 (${dateKorean} ${slotName} 기준)]
 - 현재가: $${curP.toLocaleString()}
@@ -2241,8 +2368,8 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
   * 0.618 골든 레벨: $${Number(fib.fib618 || Math.round(curP * 0.965)).toLocaleString()}
   * 1.618 확장 목표: $${Math.round(curP * 1.075).toLocaleString()}
 - 파동 및 패턴: 4H 대칭 삼각수렴(Symmetrical Triangle) 상단 돌파 시험, 엘리엇 (4)파 수렴 후 (5)파 분출 분기점
-- 핵심 가격대: 상방 $80,000 라운드 넘버 및 $84,500 전고점 / 하방 지지선 $76,400 (50 EMA)
-- 무효화 기준선: $73,800 (1파 고점 침범 금지선)
+- 핵심 가격대: 상방 1차 $${Math.round(curP * 1.03).toLocaleString()} / 2차 $${Math.round(curP * 1.06).toLocaleString()} / 하방 지지선 $${Number(tech.ema50).toLocaleString()} (50 EMA)
+- 무효화 기준선: $${Math.round(curP * 0.94).toLocaleString()} (파동 지지선)
 - 셋업 가이드: 방향 ${setup.direction}, 1차 목표 $${Number(setup.tp1).toLocaleString()}, 2차 목표 $${Number(setup.tp2).toLocaleString()}, 손절 $${Number(setup.sl).toLocaleString()}
 
 위 데이터를 바탕으로 10년 경력의 차트 전문 분석가로서 6개 섹션 구조와 5개 이미지 플레이스홀더를 정확히 포함하여 1,800~2,500자 분량의 고품질 분석 보고서를 작성해주세요.`;
@@ -2672,13 +2799,8 @@ async function buildDailyPerspectiveReport(targetDate = null) {
   console.log(`[Daily Perspective Generator] Analyzing 4H Technicals for ${slotInfo.timeStr} [${slotInfo.slotName}]...`);
   const techData = await fetchBinance4hTechnicals();
   
-  const img1 = generatePerspectiveImage1(dateStr, techData, slotInfo);
-  const img2 = generatePerspectiveImage2(dateStr, techData, slotInfo);
-  const img3 = generatePerspectiveImage3(dateStr, techData, slotInfo);
-  const img4 = generatePerspectiveImage4(dateStr, techData, slotInfo);
-  const img5 = generatePerspectiveImage5(dateStr, techData, slotInfo);
-  const imgUris = [img1, img2, img3, img4, img5];
-
+  let aiPerspective = null;
+  let rawAiText = null;
   let contentHtml = null;
   let postTitle = `[BTC/USDT ${slotInfo.slotName}] ${dateKorean} 비트코인 기술적 분석: ${techData.setup?.theme || '대칭 삼각수렴 이탈과 엘리엇 5파 분기점'}`;
   const apiKey = process.env.GEMINI_API_KEY;
@@ -2686,8 +2808,19 @@ async function buildDailyPerspectiveReport(targetDate = null) {
   if (apiKey) {
     try {
       console.log(`[Daily Perspective Generator] Requesting AI TradingView analysis from Gemini for ${slotInfo.slotName}...`);
-      const rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, slotInfo, apiKey);
+      rawAiText = await callGeminiPerspectiveAPI(dateStr, dateKorean, techData, slotInfo, apiKey);
       if (rawAiText) {
+        // Extract perspective infographic JSON if present
+        const pInfoMatch = rawAiText.match(/<PERSPECTIVE_INFOGRAPHIC>([\s\S]*?)<\/PERSPECTIVE_INFOGRAPHIC>/i);
+        if (pInfoMatch && pInfoMatch[1]) {
+          try {
+            aiPerspective = JSON.parse(pInfoMatch[1].replace(/```json/gi, '').replace(/```/g, '').trim());
+            console.log('[Daily Perspective Generator] Successfully parsed AI perspective infographic JSON.');
+          } catch(e) {
+            console.warn('[Daily Perspective Generator] Failed to parse perspective infographic JSON:', e.message);
+          }
+        }
+
         // Extract dynamic title from <TITLE> tag if present
         const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
         if (titleMatch && titleMatch[1].trim()) {
@@ -2698,28 +2831,39 @@ async function buildDailyPerspectiveReport(targetDate = null) {
           postTitle = extractedTitle;
           console.log(`[Daily Perspective Generator] Extracted dynamic AI title: "${postTitle}"`);
         }
-
-        const imgTags = [
-          `<div class="post-img-container text-center my-4"><img src="${img1}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-          `<div class="post-img-container text-center my-4"><img src="${img2}" alt="BTC/USDT 거시 추세 및 이평선 구조 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-          `<div class="post-img-container text-center my-4"><img src="${img3}" alt="BTC/USDT 4H 캔들 패턴 및 4대 모멘텀 지표 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-          `<div class="post-img-container text-center my-4"><img src="${img4}" alt="BTC/USDT 엘리엇 파동 및 피보나치 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
-          `<div class="post-img-container text-center my-4"><img src="${img5}" alt="BTC/USDT 매매 시나리오 및 핵심 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
-        ];
-
-        let processed = rawAiText.replace(/<TITLE>.*?<\/TITLE>/gi, '').trim();
-        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_1 -->', imgTags[0]);
-        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_2 -->', imgTags[1]);
-        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_3 -->', imgTags[2]);
-        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_4 -->', imgTags[3]);
-        processed = processed.replace('<!-- PERSPECTIVE_IMAGE_5 -->', imgTags[4]);
-        processed = processed.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', imgTags[0]);
-        processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-6]|INVALIDATION|RISK_GUIDE)>/gi, '');
-        contentHtml = formatMarkdownToCleanHtml(processed);
       }
     } catch(e) {
       console.warn('[Daily Perspective Generator] AI synthesis failed, using dynamic quant perspective:', e.message);
     }
+  }
+
+  const img1 = generatePerspectiveImage1(dateStr, techData, slotInfo, aiPerspective);
+  const img2 = generatePerspectiveImage2(dateStr, techData, slotInfo, aiPerspective);
+  const img3 = generatePerspectiveImage3(dateStr, techData, slotInfo);
+  const img4 = generatePerspectiveImage4(dateStr, techData, slotInfo, aiPerspective);
+  const img5 = generatePerspectiveImage5(dateStr, techData, slotInfo, aiPerspective);
+  const imgUris = [img1, img2, img3, img4, img5];
+
+  if (rawAiText) {
+    const imgTags = [
+      `<div class="post-img-container text-center my-4"><img src="${img1}" alt="BTC/USDT 4H 트레이딩뷰 기술적 셋업 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+      `<div class="post-img-container text-center my-4"><img src="${img2}" alt="BTC/USDT 거시 추세 및 이평선 구조 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+      `<div class="post-img-container text-center my-4"><img src="${img3}" alt="BTC/USDT 4H 캔들 패턴 및 4대 모멘텀 지표 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+      `<div class="post-img-container text-center my-4"><img src="${img4}" alt="BTC/USDT 엘리엇 파동 및 피보나치 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+      `<div class="post-img-container text-center my-4"><img src="${img5}" alt="BTC/USDT 매매 시나리오 및 핵심 레벨 - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
+    ];
+
+    let processed = rawAiText.replace(/<TITLE>.*?<\/TITLE>/gi, '')
+                             .replace(/<PERSPECTIVE_INFOGRAPHIC>[\s\S]*?<\/PERSPECTIVE_INFOGRAPHIC>/gi, '')
+                             .trim();
+    processed = processed.replace('<!-- PERSPECTIVE_IMAGE_1 -->', imgTags[0]);
+    processed = processed.replace('<!-- PERSPECTIVE_IMAGE_2 -->', imgTags[1]);
+    processed = processed.replace('<!-- PERSPECTIVE_IMAGE_3 -->', imgTags[2]);
+    processed = processed.replace('<!-- PERSPECTIVE_IMAGE_4 -->', imgTags[3]);
+    processed = processed.replace('<!-- PERSPECTIVE_IMAGE_5 -->', imgTags[4]);
+    processed = processed.replace('<!-- TRADINGVIEW_CHART_IMAGE -->', imgTags[0]);
+    processed = processed.replace(/<\/?(HEADER|SETUP_BOX|SECTION_[1-6]|INVALIDATION|RISK_GUIDE)>/gi, '');
+    contentHtml = formatMarkdownToCleanHtml(processed);
   }
 
   if (!contentHtml) {

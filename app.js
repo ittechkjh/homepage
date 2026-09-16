@@ -2273,6 +2273,22 @@ window.openManualReportModal = openManualReportModal;
 function toggleManualReportInputs() {
   const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
   const selectedType = typeRadio ? typeRadio.value : 'all';
+
+  // Highlight active radio card dynamically
+  document.querySelectorAll('input[name="manual-report-type"]').forEach(r => {
+    const parentLabel = r.closest('label');
+    if (!parentLabel) return;
+    if (r.checked) {
+      if (r.value === 'finance') {
+        parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-amber-950/30 border-2 border-amber-500 cursor-pointer transition shadow-lg shadow-amber-500/10';
+      } else {
+        parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-purple-950/30 border-2 border-purple-500 cursor-pointer transition shadow-lg shadow-purple-500/10';
+      }
+    } else {
+      parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-navy-950 border border-navy-800 hover:border-slate-600 cursor-pointer transition';
+    }
+  });
+
   const ytContainer = document.getElementById('manual-report-youtube-container');
   if (ytContainer) {
     if (selectedType === 'finance') {
@@ -2486,7 +2502,7 @@ async function executeManualReportTrigger() {
                 const isRecent = rTime >= (triggerTime - 30000);
                 if (!isRecent) return false;
                 if (selectedType === 'perspective') return r.category === 'perspective';
-                if (selectedType === 'market') return r.category === 'market';
+                if (selectedType === 'market') return r.category === 'market' || r.category === 'altcoin';
                 if (selectedType === 'finance') return r.category === 'finance';
                 return true;
               });
@@ -2765,6 +2781,8 @@ function renderForumPosts() {
   if (activeCategory !== 'all') {
     posts = posts.filter(p => {
       if (p.category === activeCategory) return true;
+      if (activeCategory === 'altcoin' && p.category === 'market') return true;
+      if (activeCategory === 'market' && p.category === 'altcoin') return true;
       if (activeCategory === 'trading' && (p.category === 'market' || p.category === 'trading')) return true;
       if (activeCategory === 'feature' && p.category === 'qna') return true;
       return false;
