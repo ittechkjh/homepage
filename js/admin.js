@@ -10,6 +10,7 @@
 const AdminAnalytics = {
     STORAGE_KEY: 'coinhub_admin_real_analytics',
     cloudStatsCache: null,
+    lastVisitPromise: null,
 
     getKstDateStr: function (d = new Date()) {
         try {
@@ -187,13 +188,19 @@ const AdminAnalytics = {
                 const p2 = firestore.collection('site_analytics').doc('totals').set(totalsObj, { merge: true })
                     .catch(e => console.warn('Firestore totals sync note:', e));
 
-                return Promise.all([p1, p2]);
+                const prom = Promise.all([p1, p2]);
+                this.lastVisitPromise = prom;
+                return prom;
             }
         } catch (e) {}
         return Promise.resolve();
     },
 
     fetchCloudStats: async function () {
+        if (this.lastVisitPromise) {
+            try { await this.lastVisitPromise; } catch (e) {}
+        }
+
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
             try {
@@ -229,8 +236,24 @@ const AdminAnalytics = {
             const dayMap = {};
             let aggMobile = 0;
             let aggDesktop = 0;
-            const aggBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Other: 0 };
+            let todayMobile = 0;
+            let todayDesktop = 0;
+
+            const aggBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
+            const todayBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
+
             const aggFeatures = {
+                analyzer: 0,
+                market: 0,
+                onchain: 0,
+                patterns: 0,
+                calculators: 0,
+                news: 0,
+                policy: 0,
+                community: 0,
+                calendar: 0
+            };
+            const todayFeatures = {
                 analyzer: 0,
                 market: 0,
                 onchain: 0,
@@ -246,6 +269,7 @@ const AdminAnalytics = {
                 const d = doc.data();
                 if (d) {
                     dayMap[doc.id] = d;
+                    const isTodayDoc = (doc.id === todayStr);
 
                     // 1. Devices: Read nested map + flat dot keys (for backwards compatibility)
                     let mob = (d.devices && d.devices.mobile !== undefined) ? Number(d.devices.mobile || 0) : 0;
@@ -254,30 +278,42 @@ const AdminAnalytics = {
                     if (d['devices.desktop'] !== undefined) dsk += Number(d['devices.desktop'] || 0);
                     aggMobile += mob;
                     aggDesktop += dsk;
+                    if (isTodayDoc) {
+                        todayMobile += mob;
+                        todayDesktop += dsk;
+                    }
 
                     // 2. Browsers: Read nested map + flat dot keys
                     if (d.browsers && typeof d.browsers === 'object') {
                         Object.keys(d.browsers).forEach(b => {
-                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(d.browsers[b] || 0);
+                            const val = Number(d.browsers[b] || 0);
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
+                            if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
                         });
                     }
                     Object.keys(d).forEach(k => {
                         if (k.startsWith('browsers.')) {
                             const b = k.slice(9);
-                            aggBrowsers[b] = (aggBrowsers[b] || 0) + Number(d[k] || 0);
+                            const val = Number(d[k] || 0);
+                            aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
+                            if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
                         }
                     });
 
                     // 3. Features: Read nested map + flat dot keys
                     if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
-                            aggFeatures[f] = (aggFeatures[f] || 0) + Number(d.features[f] || 0);
+                            const val = Number(d.features[f] || 0);
+                            aggFeatures[f] = (aggFeatures[f] || 0) + val;
+                            if (isTodayDoc) todayFeatures[f] = (todayFeatures[f] || 0) + val;
                         });
                     }
                     Object.keys(d).forEach(k => {
                         if (k.startsWith('features.')) {
                             const f = k.slice(9);
-                            aggFeatures[f] = (aggFeatures[f] || 0) + Number(d[k] || 0);
+                            const val = Number(d[k] || 0);
+                            aggFeatures[f] = (aggFeatures[f] || 0) + val;
+                            if (isTodayDoc) todayFeatures[f] = (todayFeatures[f] || 0) + val;
                         }
                     });
                 }
@@ -287,18 +323,25 @@ const AdminAnalytics = {
             try {
                 const localData = this.getAnalyticsData();
                 if (localData) {
-                    // features: always merge LocalStorage (current user tab activity)
                     if (localData.features) {
                         Object.keys(localData.features).forEach(f => {
                             aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
+                            todayFeatures[f] = Math.max(todayFeatures[f] || 0, Number(localData.features[f] || 0));
                         });
                     }
-                    // devices/browsers: Firestore is the multi-user source of truth.
-                    // devices/browsers: Firestore is the multi-user source of truth.
-                    // If Firestore has no device record for today or total is 0, merge from localData
+                    if (todayMobile + todayDesktop === 0 && localData.devices) {
+                        todayMobile = Number(localData.devices.mobile || 0);
+                        todayDesktop = Number(localData.devices.desktop || 0);
+                    }
                     if (aggMobile + aggDesktop === 0 && localData.devices) {
                         aggMobile = Number(localData.devices.mobile || 0);
                         aggDesktop = Number(localData.devices.desktop || 0);
+                    }
+                    const curTodayBTotal = Object.values(todayBrowsers).reduce((a, b) => a + Number(b || 0), 0);
+                    if (curTodayBTotal === 0 && localData.browsers) {
+                        Object.keys(localData.browsers).forEach(b => {
+                            todayBrowsers[b] = (todayBrowsers[b] || 0) + Number(localData.browsers[b] || 0);
+                        });
                     }
                     const curBTotal = Object.values(aggBrowsers).reduce((a, b) => a + Number(b || 0), 0);
                     if (curBTotal === 0 && localData.browsers) {
@@ -365,7 +408,12 @@ const AdminAnalytics = {
             const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0);
             const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
 
-            // Real device breakdown (0% if total is 0)
+            // Today device breakdown
+            let todayDevTotal = todayMobile + todayDesktop;
+            const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 0;
+            const todayDesktopPct = todayDevTotal > 0 ? 100 - todayMobilePct : 0;
+
+            // Cumulative device breakdown (0% if total is 0)
             let totalDev = aggMobile + aggDesktop;
             const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 0;
             const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
@@ -400,10 +448,22 @@ const AdminAnalytics = {
                 totalVisitorsAllTime: Math.max(cloudTotalVisitors, monthlyVisitors),
                 totalPageviewsAllTime: Math.max(cloudTotalPV, todayPageviews),
                 history: history14,
+                // Cumulative
                 mobilePct,
                 desktopPct,
+                cumMobilePct: mobilePct,
+                cumDesktopPct: desktopPct,
+                cumDevices: { mobile: aggMobile, desktop: aggDesktop },
                 browsers: aggBrowsers,
-                features: aggFeatures
+                features: aggFeatures,
+                cumBrowsers: aggBrowsers,
+                cumFeatures: aggFeatures,
+                // Today
+                todayMobilePct,
+                todayDesktopPct,
+                todayDevices: { mobile: todayMobile, desktop: todayDesktop },
+                todayBrowsers: todayBrowsers,
+                todayFeatures: todayFeatures
             };
 
             this.cloudStatsCache = stats;
@@ -499,8 +559,18 @@ const AdminAnalytics = {
             history: history14,
             mobilePct,
             desktopPct,
+            cumMobilePct: mobilePct,
+            cumDesktopPct: desktopPct,
+            cumDevices: { mobile: mCount, desktop: dCount },
             browsers: data.browsers || {},
-            features: f
+            features: f,
+            cumBrowsers: data.browsers || {},
+            cumFeatures: f,
+            todayMobilePct: mobilePct,
+            todayDesktopPct: desktopPct,
+            todayDevices: { mobile: mCount, desktop: dCount },
+            todayBrowsers: data.browsers || {},
+            todayFeatures: f
         };
     }
 };
@@ -963,9 +1033,26 @@ const AdminUserManager = {
 
 const AdminApp = {
     activeSubTab: 'analytics',
+    featureScope: 'all',
+    deviceScope: 'all',
+    lastStats: null,
     userSearchQuery: '',
     userRoleFilter: 'ALL',
     userStatusFilter: 'ALL',
+
+    setFeatureScope: function (scope) {
+        this.featureScope = scope;
+        if (this.lastStats && this.renderStatsUI) {
+            this.renderStatsUI(this.lastStats);
+        }
+    },
+
+    setDeviceScope: function (scope) {
+        this.deviceScope = scope;
+        if (this.lastStats && this.renderStatsUI) {
+            this.renderStatsUI(this.lastStats);
+        }
+    },
 
     init: function () {
         AdminAnalytics.init();
@@ -1296,8 +1383,9 @@ const AdminApp = {
     },
 
     renderAnalytics: async function () {
-        const renderStatsUI = (stats) => {
+        this.renderStatsUI = (stats) => {
             if (!stats) return;
+            this.lastStats = stats;
 
             // 1. Real KPI Cards
             const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -1336,6 +1424,7 @@ const AdminApp = {
                     `;
                 }).join('');
             }
+
             // 3. Update Feature Distribution (9 Core Platform Features)
             const featKeys = [
                 { key: 'analyzer', id: 'admin-feat-analyzer' },
@@ -1349,37 +1438,92 @@ const AdminApp = {
                 { key: 'calendar', id: 'admin-feat-calendar' }
             ];
 
-            let f = stats.features || {};
-            let totalF = featKeys.reduce((sum, item) => sum + (Number(f[item.key]) || 0), 0);
-            if (totalF === 0) {
-                totalF = 1; // 0 나누기 방지용. 실측 데이터 없으면 모든 항목 0%
+            const todayF = stats.todayFeatures || stats.features || {};
+            const cumF = stats.cumFeatures || stats.features || {};
+            const todayTotalF = Math.max(1, featKeys.reduce((sum, item) => sum + (Number(todayF[item.key]) || 0), 0));
+            const cumTotalF = Math.max(1, featKeys.reduce((sum, item) => sum + (Number(cumF[item.key]) || 0), 0));
+
+            const isFeatToday = (this.featureScope === 'today');
+            const activeF = isFeatToday ? todayF : cumF;
+            const altF = isFeatToday ? cumF : todayF;
+            const activeTotalF = isFeatToday ? todayTotalF : cumTotalF;
+            const altTotalF = isFeatToday ? cumTotalF : todayTotalF;
+
+            // Update feature scope toggle button styles
+            const btnFeatToday = document.getElementById('admin-feat-scope-today');
+            const btnFeatAll = document.getElementById('admin-feat-scope-all');
+            if (btnFeatToday && btnFeatAll) {
+                btnFeatToday.className = isFeatToday 
+                    ? 'px-2.5 py-1 rounded font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm' 
+                    : 'px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent';
+                btnFeatAll.className = !isFeatToday 
+                    ? 'px-2.5 py-1 rounded font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm' 
+                    : 'px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent';
             }
-            const getPct = (val) => Math.round(((Number(val) || 0) / totalF) * 100);
-            const setFeat = (id, pct) => {
-                const elPct = document.getElementById(id + '-pct');
-                const elBar = document.getElementById(id + '-bar');
-                if (elPct) elPct.innerText = pct + '%';
-                if (elBar) elBar.style.width = pct + '%';
-            };
+            const featDescEl = document.getElementById('admin-feat-scope-desc');
+            if (featDescEl) {
+                featDescEl.textContent = isFeatToday 
+                    ? `오늘 하루 실측치 기준 (총 ${todayTotalF.toLocaleString()}회 이용)` 
+                    : `최근 14일 누적 실측치 기준 (총 ${cumTotalF.toLocaleString()}회 이용)`;
+            }
+
+            const getPct = (val, total) => Math.round(((Number(val) || 0) / total) * 100);
             featKeys.forEach(item => {
-                setFeat(item.id, getPct(f[item.key]));
+                const mainPct = getPct(activeF[item.key], activeTotalF);
+                const altPct = getPct(altF[item.key], altTotalF);
+                const elPct = document.getElementById(item.id + '-pct');
+                const elBar = document.getElementById(item.id + '-bar');
+                const elSub = document.getElementById(item.id + '-sub');
+                if (elPct) elPct.innerText = mainPct + '%';
+                if (elBar) elBar.style.width = mainPct + '%';
+                if (elSub) {
+                    elSub.innerText = isFeatToday ? `(누적 ${altPct}%)` : `(오늘 ${altPct}%)`;
+                }
             });
 
-            // 4. Update Device Share (real aggregated data only)
+            // 4. Update Device Share (Today vs Cumulative)
+            const isDevToday = (this.deviceScope === 'today');
+            const mobilePct = isDevToday ? (stats.todayMobilePct ?? stats.mobilePct ?? 0) : (stats.cumMobilePct ?? stats.mobilePct ?? 0);
+            const desktopPct = isDevToday ? (stats.todayDesktopPct ?? stats.desktopPct ?? 0) : (stats.cumDesktopPct ?? stats.desktopPct ?? 0);
+            const altMobilePct = !isDevToday ? (stats.todayMobilePct ?? stats.mobilePct ?? 0) : (stats.cumMobilePct ?? stats.mobilePct ?? 0);
+            const altDesktopPct = !isDevToday ? (stats.todayDesktopPct ?? stats.desktopPct ?? 0) : (stats.cumDesktopPct ?? stats.desktopPct ?? 0);
+
+            // Update device scope toggle button styles
+            const btnDevToday = document.getElementById('admin-device-scope-today');
+            const btnDevAll = document.getElementById('admin-device-scope-all');
+            if (btnDevToday && btnDevAll) {
+                btnDevToday.className = isDevToday 
+                    ? 'px-2.5 py-1 rounded font-semibold transition bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm' 
+                    : 'px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent';
+                btnDevAll.className = !isDevToday 
+                    ? 'px-2.5 py-1 rounded font-semibold transition bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm' 
+                    : 'px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent';
+            }
+            const devDescEl = document.getElementById('admin-device-scope-desc');
+            if (devDescEl) {
+                devDescEl.textContent = isDevToday ? '오늘 하루 접속 기기 및 브라우저 환경 기준' : '최근 14일 누적 접속 기기 및 브라우저 환경 기준';
+            }
+
             const setDev = (id, pct) => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = pct + '%';
             };
-            setDev('admin-dev-mobile-pct', stats.mobilePct);
-            setDev('admin-dev-desktop-pct', stats.desktopPct);
+            setDev('admin-dev-mobile-pct', mobilePct);
+            setDev('admin-dev-desktop-pct', desktopPct);
+            const subMobileEl = document.getElementById('admin-dev-mobile-sub');
+            const subDesktopEl = document.getElementById('admin-dev-desktop-sub');
+            if (subMobileEl) subMobileEl.innerText = isDevToday ? `오늘 실측 (누적: ${altMobilePct}%)` : `전체 누적 (오늘: ${altMobilePct}%)`;
+            if (subDesktopEl) subDesktopEl.innerText = isDevToday ? `오늘 실측 (누적: ${altDesktopPct}%)` : `전체 누적 (오늘: ${altDesktopPct}%)`;
 
             // 5. Update Dynamic Browser Environment Breakdown
             const bContainer = document.getElementById('admin-browser-breakdown');
             if (bContainer) {
-                let bMap = stats.browsers || {};
-                let bTotal = Object.values(bMap).reduce((a, b) => a + Number(b || 0), 0);
-                // Real aggregated browser data only - no fake baseline
-                if (bTotal === 0) {
+                const activeBMap = isDevToday ? (stats.todayBrowsers || stats.browsers || {}) : (stats.cumBrowsers || stats.browsers || {});
+                const altBMap = isDevToday ? (stats.cumBrowsers || stats.browsers || {}) : (stats.todayBrowsers || stats.browsers || {});
+                const activeBTotal = Object.values(activeBMap).reduce((a, b) => a + Number(b || 0), 0);
+                const altBTotal = Object.values(altBMap).reduce((a, b) => a + Number(b || 0), 0);
+
+                if (activeBTotal === 0 && altBTotal === 0) {
                     bContainer.innerHTML = '<div class="col-span-full text-center text-slate-500 text-[11px] py-2">브라우저 데이터 없음 (0%)</div>';
                 } else {
                     const bNames = [
@@ -1392,14 +1536,20 @@ const AdminApp = {
                         { key: 'Other', name: '기타', color: 'text-slate-400', dot: 'bg-slate-400' }
                     ];
                     bContainer.innerHTML = bNames.map(b => {
-                        const cnt = Number(bMap[b.key] || 0);
-                        if (cnt === 0) return '';
-                        const pct = Math.round((cnt / bTotal) * 100);
+                        const cnt = Number(activeBMap[b.key] || 0);
+                        const altCnt = Number(altBMap[b.key] || 0);
+                        if (cnt === 0 && altCnt === 0) return '';
+                        const pct = activeBTotal > 0 ? Math.round((cnt / activeBTotal) * 100) : 0;
+                        const altPct = altBTotal > 0 ? Math.round((altCnt / altBTotal) * 100) : 0;
+                        const subLabel = isDevToday ? `(누적 ${altPct}%)` : `(오늘 ${altPct}%)`;
                         return `
                           <div class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-navy-950/70 border border-navy-800">
                             <span class="w-2 h-2 rounded-full ${b.dot}"></span>
                             <span class="text-slate-300 text-[11px]">${b.name}:</span>
-                            <span class="${b.color} font-bold text-[11px] ml-auto">${pct}%</span>
+                            <div class="ml-auto text-right">
+                              <span class="${b.color} font-bold text-[11px]">${pct}%</span>
+                              <span class="text-[9px] text-slate-500 font-normal ml-1">${subLabel}</span>
+                            </div>
                           </div>
                         `;
                     }).join('');
@@ -1411,13 +1561,13 @@ const AdminApp = {
         try {
             const instantStats = AdminAnalytics.getTodayStats();
             if (instantStats) {
-                renderStatsUI(instantStats);
+                this.renderStatsUI(instantStats);
             }
         } catch (e) {}
 
         // 2. Fetch and render aggregated multi-user cloud stats from Firestore
         const stats = await AdminAnalytics.fetchCloudStats();
-        renderStatsUI(stats);
+        this.renderStatsUI(stats);
     },
 
     renderUsers: async function () {

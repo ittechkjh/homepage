@@ -6628,86 +6628,120 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Popular Feature Usage -->
           <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 방문 점유율
-            </h3>
+            <div class="flex items-center justify-between pb-1 border-b border-navy-800/60">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 방문 점유율
+              </h3>
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-navy-950 border border-navy-800 text-[11px]">
+                <button type="button" id="admin-feat-scope-today" onclick="AdminApp.setFeatureScope('today')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">오늘 하루</button>
+                <button type="button" id="admin-feat-scope-all" onclick="AdminApp.setFeatureScope('all')" class="px-2.5 py-1 rounded font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm">전체 누적</button>
+              </div>
+            </div>
+            <div id="admin-feat-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">전체 누적 실측치 기준</div>
             <div id="admin-features-container" class="space-y-3 text-xs">
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>📊 거래내역 손익 분석기 (Excel/FIFO)</span>
-                  <span id="admin-feat-analyzer-pct" class="text-cyan-400 font-bold">28%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-analyzer-pct" class="text-cyan-400 font-bold">28%</span>
+                    <span id="admin-feat-analyzer-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 28%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-analyzer-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width: 28%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>📈 가상자산 실시간 시세 & 차트</span>
-                  <span id="admin-feat-market-pct" class="text-purple-400 font-bold">18%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-market-pct" class="text-purple-400 font-bold">18%</span>
+                    <span id="admin-feat-market-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 18%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-market-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style="width: 18%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>🐋 온체인 & 고래 레이더 (Whale Radar)</span>
-                  <span id="admin-feat-onchain-pct" class="text-cyan-300 font-bold">14%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-onchain-pct" class="text-cyan-300 font-bold">14%</span>
+                    <span id="admin-feat-onchain-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 14%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-onchain-bar" class="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full" style="width: 14%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>🤖 AI 차트패턴 실시간 스캐너</span>
-                  <span id="admin-feat-patterns-pct" class="text-emerald-400 font-bold">12%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-patterns-pct" class="text-emerald-400 font-bold">12%</span>
+                    <span id="admin-feat-patterns-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 12%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-patterns-bar" class="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full" style="width: 12%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>🧮 투자 보조 계산기 5종 (물타기·김프·세금·선물)</span>
-                  <span id="admin-feat-calculators-pct" class="text-amber-400 font-bold">8%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-calculators-pct" class="text-amber-400 font-bold">8%</span>
+                    <span id="admin-feat-calculators-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 8%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-calculators-bar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style="width: 8%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>⚡ 글로벌 암호화폐 실시간 속보</span>
-                  <span id="admin-feat-news-pct" class="text-yellow-400 font-bold">7%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-news-pct" class="text-yellow-400 font-bold">7%</span>
+                    <span id="admin-feat-news-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 7%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-news-bar" class="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full" style="width: 7%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>🏛️ 2026 정부 지원 & 청년 정책 가이드</span>
-                  <span id="admin-feat-policy-pct" class="text-teal-400 font-bold">5%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-policy-pct" class="text-teal-400 font-bold">5%</span>
+                    <span id="admin-feat-policy-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 5%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-policy-bar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full" style="width: 5%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>💬 커뮤니티 포럼 & 실시간 채팅</span>
-                  <span id="admin-feat-community-pct" class="text-indigo-400 font-bold">5%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-community-pct" class="text-indigo-400 font-bold">5%</span>
+                    <span id="admin-feat-community-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 5%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-community-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style="width: 5%;"></div>
                 </div>
               </div>
               <div>
-                <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
                   <span>📅 코인 일정 & 거시경제 캘린더</span>
-                  <span id="admin-feat-calendar-pct" class="text-rose-400 font-bold">3%</span>
+                  <div class="text-right">
+                    <span id="admin-feat-calendar-pct" class="text-rose-400 font-bold">3%</span>
+                    <span id="admin-feat-calendar-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 3%)</span>
+                  </div>
                 </div>
                 <div class="w-full h-2 rounded-full bg-navy-950 overflow-hidden">
                   <div id="admin-feat-calendar-bar" class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full" style="width: 3%;"></div>
@@ -6718,19 +6752,26 @@
 
           <!-- Device & Browser Stats -->
           <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i> 기기 및 브라우저 환경 분석
-            </h3>
+            <div class="flex items-center justify-between pb-1 border-b border-navy-800/60">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i> 기기 및 브라우저 환경 분석
+              </h3>
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-navy-950 border border-navy-800 text-[11px]">
+                <button type="button" id="admin-device-scope-today" onclick="AdminApp.setDeviceScope('today')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">오늘 하루</button>
+                <button type="button" id="admin-device-scope-all" onclick="AdminApp.setDeviceScope('all')" class="px-2.5 py-1 rounded font-semibold transition bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm">전체 누적</button>
+              </div>
+            </div>
+            <div id="admin-device-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">전체 누적 접속 환경 실측치 기준</div>
             <div class="grid grid-cols-2 gap-4 text-center">
               <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
                 <div class="text-slate-400 text-xs font-semibold mb-1">📱 모바일 기기 (스마트폰)</div>
                 <div id="admin-dev-mobile-pct" class="text-xl font-extrabold text-cyan-400">--%</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">iOS Safari & Android Chrome</div>
+                <div class="text-[10px] text-slate-500 mt-0.5" id="admin-dev-mobile-sub">iOS Safari & Android Chrome</div>
               </div>
               <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
                 <div class="text-slate-400 text-xs font-semibold mb-1">💻 데스크톱 (PC / Mac)</div>
                 <div id="admin-dev-desktop-pct" class="text-xl font-extrabold text-purple-400">--%</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Windows & macOS 브라우저</div>
+                <div class="text-[10px] text-slate-500 mt-0.5" id="admin-dev-desktop-sub">Windows & macOS 브라우저</div>
               </div>
             </div>
             <div id="admin-browser-breakdown" class="text-xs text-slate-400 pt-2 border-t border-navy-800 grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono">
@@ -7336,7 +7377,7 @@
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260916_01"></script>
 
-  <script src="js/admin.js?v=20260910_02"></script>
+  <script src="js/admin.js?v=20260916_03"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
   <script src="js/preview-app-v2.js?v=20260913_13"></script>
