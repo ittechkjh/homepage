@@ -3259,16 +3259,135 @@ function sanitizeSvgXml(svg) {
   return svg.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
 }
 
+// Visual character width calculator for Hangul/CJK vs Latin
+function getVisualCharWidth(char) {
+  const code = char.charCodeAt(0);
+  if ((code >= 0x1100 && code <= 0x11ff) ||
+      (code >= 0x3130 && code <= 0x318f) ||
+      (code >= 0xac00 && code <= 0xd7a3) ||
+      (code >= 0x4e00 && code <= 0x9fff) ||
+      (code >= 0xff01 && code <= 0xff60)) {
+    return 1.0;
+  }
+  if (char === ' ' || char === '.' || char === ',' || char === ':' || char === ';' || char === '!' || char === "'") {
+    return 0.35;
+  }
+  if (code >= 65 && code <= 90) {
+    return 0.65;
+  }
+  return 0.55;
+}
+
+function getVisualLength(str) {
+  if (!str) return 0;
+  let len = 0;
+  for (const ch of str) {
+    len += getVisualCharWidth(ch);
+  }
+  return len;
+}
+
+function wrapSvgText(text, maxVisualWidth, maxLines = 2) {
+  if (!text) return [];
+  const clean = String(text).replace(/<[^>]+>/g, '').trim();
+  const words = clean.split(' ');
+  const lines = [];
+  let currentLine = '';
+  let currentWidth = 0;
+
+  for (const word of words) {
+    const wordWidth = getVisualLength(word);
+    const spaceWidth = currentLine ? 0.35 : 0;
+    
+    if (currentWidth + spaceWidth + wordWidth <= maxVisualWidth) {
+      currentLine += (currentLine ? ' ' : '') + word;
+      currentWidth += spaceWidth + wordWidth;
+    } else {
+      if (!currentLine) {
+        let chunk = '';
+        let chunkWidth = 0;
+        for (const ch of word) {
+          const cw = getVisualCharWidth(ch);
+          if (chunkWidth + cw > maxVisualWidth) {
+            lines.push(chunk);
+            chunk = ch;
+            chunkWidth = cw;
+          } else {
+            chunk += ch;
+            chunkWidth += cw;
+          }
+        }
+        currentLine = chunk;
+        currentWidth = chunkWidth;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+        currentWidth = wordWidth;
+      }
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length > maxLines) {
+    const kept = lines.slice(0, maxLines);
+    let last = kept[maxLines - 1];
+    while (getVisualLength(last) + 1.2 > maxVisualWidth && last.length > 0) {
+      last = last.slice(0, -1);
+    }
+    kept[maxLines - 1] = last.trim() + '...';
+    return kept;
+  }
+  return lines;
+}
+
+function clampSvgText(text, maxVisualWidth) {
+  if (!text) return '';
+  const clean = String(text).replace(/<[^>]+>/g, '').trim();
+  if (getVisualLength(clean) <= maxVisualWidth) return clean;
+  let res = clean;
+  while (getVisualLength(res) + 1.2 > maxVisualWidth && res.length > 0) {
+    res = res.slice(0, -1);
+  }
+  return res.trim() + '...';
+}
+
+function renderSvgDesc(text, x = 12, y = 86, maxVisualWidth = 13.5, maxLines = 2, lineHeight = 15) {
+  const clean = (text || '').replace(/^[•\-\*\s]+/, '').trim();
+  const lines = wrapSvgText(clean, maxVisualWidth, maxLines);
+  if (!lines || lines.length === 0) return '';
+  
+  let xml = `<text x="${x}" y="${y}" fill="#cbd5e1" font-size="10" font-weight="500" font-family="'Pretendard', sans-serif">`;
+  lines.forEach((line, idx) => {
+    if (idx === 0) {
+      xml += `<tspan x="${x}" dy="0">• ${line}</tspan>`;
+    } else {
+      xml += `<tspan x="${x + 9}" dy="${lineHeight}">${line}</tspan>`;
+    }
+  });
+  xml += `</text>`;
+  return xml;
+}
+
 // SVG 1: 메인 썸네일 & 핵심 브리핑 카드 (16:9 800x450)
 function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const safeTitle = (customTitle || videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
   const cleanTitle = safeTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
-  const displayTitle1 = cleanTitle.length > 25 ? cleanTitle.slice(0, 25) + '...' : cleanTitle;
+  const displayTitle1 = clampSvgText(cleanTitle, 22);
 
-  const b1 = tData.bullets[0] || '① 지출 통제 및 시드머니 방어';
-  const b2 = tData.bullets[1] || '② 절세 계좌 활용 혜택 극대화';
-  const b3 = tData.bullets[2] || '③ 장기 복리 성장 시스템 구축';
+  const b1 = clampSvgText(tData.bullets[0] || '① 지출 통제 및 시드머니 방어', 33);
+  const b2 = clampSvgText(tData.bullets[1] || '② 절세 계좌 활용 혜택 극대화', 33);
+  const b3 = clampSvgText(tData.bullets[2] || '③ 장기 복리 성장 시스템 구축', 33);
+
+  const safeBadge = clampSvgText(tData.badge, 16);
+  const safeHeroSub = clampSvgText(tData.heroSub, 17);
+  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 15);
+  const safeTarget = clampSvgText(tData.target, 13);
+  const safeBenefit = clampSvgText(tData.benefit, 13);
+  const safeBenefitSub = clampSvgText(tData.benefitSub, 16);
+  const safeCaution = clampSvgText(tData.caution, 14);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -3287,6 +3406,9 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
     <filter id="f1_drop" x="-10%" y="-10%" width="130%" height="130%">
       <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.75"/>
     </filter>
+    <clipPath id="f1_right_clip">
+      <rect width="245" height="280" rx="20"/>
+    </clipPath>
   </defs>
 
   <rect width="800" height="450" fill="url(#f1_bg)"/>
@@ -3305,7 +3427,7 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
   <g transform="translate(30, 24)">
     <rect width="225" height="30" rx="8" fill="#d97706" filter="url(#f1_drop)"/>
     <circle cx="18" cy="15" r="5" fill="#ffffff"/>
-    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${tData.badge}</text>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${safeBadge}</text>
 
     <rect x="235" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2"/>
     <text x="302" y="20" fill="#fbbf24" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 블로거 뷰</text>
@@ -3317,10 +3439,10 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
   <!-- Main Hero Title -->
   <g transform="translate(35, 90)">
     <rect x="0" y="0" width="250" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 ${tData.badge}</text>
+    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 ${safeBadge}</text>
 
     <text x="0" y="66" fill="#ffffff" font-size="27" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${displayTitle1}</text>
-    <text x="0" y="106" fill="url(#f1_gold)" font-size="26" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${tData.heroSub}</text>
+    <text x="0" y="106" fill="url(#f1_gold)" font-size="26" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${safeHeroSub}</text>
 
     <g transform="translate(0, 134)">
       <rect width="460" height="46" rx="12" fill="#1b1c2b" stroke="#f59e0b" stroke-width="1.8" filter="url(#f1_drop)"/>
@@ -3343,28 +3465,28 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
   </g>
 
   <!-- Right Floating Matrix Card -->
-  <g transform="translate(525, 88)">
+  <g transform="translate(525, 88)" clip-path="url(#f1_right_clip)">
     <rect x="0" y="0" width="245" height="280" rx="20" fill="#0f172a" fill-opacity="0.95" stroke="#334155" stroke-width="2" filter="url(#f1_drop)"/>
     <rect x="0" y="0" width="245" height="42" rx="20" fill="#1e293b"/>
-    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${tData.matrixTitle}</text>
+    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${safeMatrixTitle}</text>
 
     <g transform="translate(18, 54)">
       <rect width="210" height="66" rx="12" fill="#181e2b" stroke="#f59e0b" stroke-width="1.2"/>
       <text x="14" y="22" fill="#94a3b8" font-size="11" font-weight="700">권장 타깃 (Target)</text>
-      <text x="14" y="48" fill="#fbbf24" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.target}</text>
+      <text x="14" y="48" fill="#fbbf24" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeTarget}</text>
     </g>
 
     <g transform="translate(18, 130)">
       <rect width="210" height="68" rx="12" fill="#0b241c" stroke="#10b981" stroke-width="1.2"/>
       <text x="14" y="22" fill="#a7f3d0" font-size="11" font-weight="700">핵심 기대 효과 (Benefits)</text>
-      <text x="14" y="46" fill="#34d399" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.benefit}</text>
-      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">${tData.benefitSub}</text>
+      <text x="14" y="46" fill="#34d399" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeBenefit}</text>
+      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">${safeBenefitSub}</text>
     </g>
 
     <g transform="translate(18, 208)">
       <rect width="210" height="54" rx="10" fill="#24141d" stroke="#f43f5e" stroke-width="1.2"/>
       <text x="14" y="20" fill="#fda4af" font-size="11" font-weight="800">주의사항 (Caution)</text>
-      <text x="14" y="40" fill="#f43f5e" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${tData.caution}</text>
+      <text x="14" y="40" fill="#f43f5e" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${safeCaution}</text>
     </g>
   </g>
 
@@ -3388,6 +3510,8 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
   const s2 = tData.steps?.[1] || { title: '2단계 절세 계좌', sub: '세액공제 납입', items: ['✓ 연금저축 600만', '• 16.5% 세액공제', '✓ 개인형 IRP 300만', '• 합산 900만 공제', '✓ 중개형 ISA 2000만', '• 배당 비과세'] };
   const s3 = tData.steps?.[2] || { title: '3단계 자산 증식', sub: '복리 엔진 탑재', items: ['✓ 지수 ETF 매수', '• 글로벌 우량주', '✓ 분할 적립식(DCA)', '• 매월 자동이체', '✓ 배당금 재투자', '• 스노우볼 복리'] };
 
+  const safeRoadmapTitle = clampSvgText(tData.roadmapTitle, 28);
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3396,6 +3520,9 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
     <filter id="f2_drop">
       <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
     </filter>
+    <clipPath id="f2_step_clip">
+      <rect width="230" height="315" rx="16"/>
+    </clipPath>
   </defs>
 
   <rect width="800" height="450" rx="16" fill="url(#f2_bg)"/>
@@ -3405,7 +3532,7 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
   <g transform="translate(25, 20)">
     <rect width="150" height="28" rx="7" fill="#d97706" filter="url(#f2_drop)"/>
     <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ACTION ROADMAP</text>
-    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.roadmapTitle}</text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeRoadmapTitle}</text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -3414,59 +3541,59 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
   <!-- 3 Steps -->
   <g transform="translate(30, 80)">
     <!-- Step 1 -->
-    <g transform="translate(0, 0)">
+    <g transform="translate(0, 0)" clip-path="url(#f2_step_clip)">
       <rect width="230" height="315" rx="16" fill="#0b172a" stroke="#0284c7" stroke-width="1.8" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#0284c7"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">1단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s1.title}</text>
-      <text x="18" y="94" fill="#38bdf8" font-size="12" font-weight="800">${s1.sub}</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s1.title, 13)}</text>
+      <text x="18" y="94" fill="#38bdf8" font-size="12" font-weight="800">${clampSvgText(s1.sub, 15)}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#071320" stroke="#0ea5e9" stroke-width="1"/>
-        <text x="12" y="26" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[0] || ''}</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[1] || ''}</text>
-        <text x="12" y="72" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[2] || ''}</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[3] || ''}</text>
-        <text x="12" y="120" fill="#bae6fd" font-size="12" font-weight="800">${s1.items[4] || ''}</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s1.items[5] || ''}</text>
+        <text x="12" y="26" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[5] || '', 15)}</text>
       </g>
     </g>
 
     <!-- Step 2 -->
-    <g transform="translate(255, 0)">
+    <g transform="translate(255, 0)" clip-path="url(#f2_step_clip)">
       <rect width="230" height="315" rx="16" fill="#0c1e18" stroke="#10b981" stroke-width="2" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#059669"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">2단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s2.title}</text>
-      <text x="18" y="94" fill="#34d399" font-size="12" font-weight="800">${s2.sub}</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s2.title, 13)}</text>
+      <text x="18" y="94" fill="#34d399" font-size="12" font-weight="800">${clampSvgText(s2.sub, 15)}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#051d16" stroke="#10b981" stroke-width="1"/>
-        <text x="12" y="26" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[0] || ''}</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[1] || ''}</text>
-        <text x="12" y="72" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[2] || ''}</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[3] || ''}</text>
-        <text x="12" y="120" fill="#a7f3d0" font-size="12" font-weight="800">${s2.items[4] || ''}</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s2.items[5] || ''}</text>
+        <text x="12" y="26" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[5] || '', 15)}</text>
       </g>
     </g>
 
     <!-- Step 3 -->
-    <g transform="translate(510, 0)">
+    <g transform="translate(510, 0)" clip-path="url(#f2_step_clip)">
       <rect width="230" height="315" rx="16" fill="#191329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f2_drop)"/>
       <rect x="18" y="18" width="80" height="26" rx="6" fill="#7e22ce"/>
       <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">3단계</text>
-      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${s3.title}</text>
-      <text x="18" y="94" fill="#c084fc" font-size="12" font-weight="800">${s3.sub}</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s3.title, 13)}</text>
+      <text x="18" y="94" fill="#c084fc" font-size="12" font-weight="800">${clampSvgText(s3.sub, 15)}</text>
 
       <g transform="translate(16, 115)">
         <rect width="198" height="175" rx="10" fill="#140e24" stroke="#8b5cf6" stroke-width="1"/>
-        <text x="12" y="26" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[0] || ''}</text>
-        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[1] || ''}</text>
-        <text x="12" y="72" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[2] || ''}</text>
-        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[3] || ''}</text>
-        <text x="12" y="120" fill="#e9d5ff" font-size="12" font-weight="800">${s3.items[4] || ''}</text>
-        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${s3.items[5] || ''}</text>
+        <text x="12" y="26" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[5] || '', 15)}</text>
       </g>
     </g>
   </g>
@@ -3486,6 +3613,8 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
     { tag: '미국 지수 ETF', sub: 'S&P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 우량 기업 묶음 투자', '• 분기 배당 지급', '✓ 장기 복리 효과'] }
   ];
 
+  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 24);
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3494,6 +3623,9 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
     <filter id="f3_drop">
       <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
     </filter>
+    <clipPath id="f3_card_clip">
+      <rect width="360" height="150" rx="14"/>
+    </clipPath>
   </defs>
 
   <rect width="800" height="450" rx="16" fill="url(#f3_bg)"/>
@@ -3503,7 +3635,7 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
   <g transform="translate(25, 20)">
     <rect width="150" height="28" rx="7" fill="#0284c7" filter="url(#f3_drop)"/>
     <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ANALYSIS MATRIX</text>
-    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.matrixTitle} <tspan fill="#38bdf8">심층 비교 분석</tspan></text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeMatrixTitle} <tspan fill="#38bdf8">심층 비교 분석</tspan></text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -3512,51 +3644,51 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
   <!-- 4 Comparison Cards (2x2 Grid) -->
   <g transform="translate(30, 80)">
     <!-- Card 1 -->
-    <g transform="translate(0, 0)">
+    <g transform="translate(0, 0)" clip-path="url(#f3_card_clip)">
       <rect width="360" height="150" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="95" height="22" rx="6" fill="#475569"/>
-      <text x="65" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[0]?.tag || ''}</text>
-      <text x="125" y="30" fill="#94a3b8" font-size="13" font-weight="700">${cards[0]?.sub || ''}</text>
-      <text x="18" y="65" fill="#f8fafc" font-size="18" font-weight="900" font-family="monospace">${cards[0]?.main || ''}</text>
-      <text x="18" y="90" fill="#cbd5e1" font-size="12" font-weight="600">${cards[0]?.bullets?.[0] || ''}</text>
-      <text x="18" y="110" fill="#cbd5e1" font-size="12" font-weight="600">${cards[0]?.bullets?.[1] || ''}</text>
-      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="800">${cards[0]?.bullets?.[2] || ''}</text>
+      <text x="65" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[0]?.tag || '', 10)}</text>
+      <text x="125" y="30" fill="#94a3b8" font-size="13" font-weight="700">${clampSvgText(cards[0]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#f8fafc" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[0]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#cbd5e1" font-size="12" font-weight="600">${clampSvgText(cards[0]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#cbd5e1" font-size="12" font-weight="600">${clampSvgText(cards[0]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="800">${clampSvgText(cards[0]?.bullets?.[2] || '', 26)}</text>
     </g>
 
     <!-- Card 2 -->
-    <g transform="translate(380, 0)">
+    <g transform="translate(380, 0)" clip-path="url(#f3_card_clip)">
       <rect width="360" height="150" rx="14" fill="#072018" stroke="#10b981" stroke-width="1.8" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="105" height="22" rx="6" fill="#059669"/>
-      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[1]?.tag || ''}</text>
-      <text x="135" y="30" fill="#34d399" font-size="13" font-weight="800">${cards[1]?.sub || ''}</text>
-      <text x="18" y="65" fill="#34d399" font-size="18" font-weight="900" font-family="monospace">${cards[1]?.main || ''}</text>
-      <text x="18" y="90" fill="#a7f3d0" font-size="12" font-weight="600">${cards[1]?.bullets?.[0] || ''}</text>
-      <text x="18" y="110" fill="#a7f3d0" font-size="12" font-weight="600">${cards[1]?.bullets?.[1] || ''}</text>
-      <text x="18" y="132" fill="#34d399" font-size="11" font-weight="900">${cards[1]?.bullets?.[2] || ''}</text>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[1]?.tag || '', 10)}</text>
+      <text x="135" y="30" fill="#34d399" font-size="13" font-weight="800">${clampSvgText(cards[1]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#34d399" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[1]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#a7f3d0" font-size="12" font-weight="600">${clampSvgText(cards[1]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#a7f3d0" font-size="12" font-weight="600">${clampSvgText(cards[1]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#34d399" font-size="11" font-weight="900">${clampSvgText(cards[1]?.bullets?.[2] || '', 26)}</text>
     </g>
 
     <!-- Card 3 -->
-    <g transform="translate(0, 165)">
+    <g transform="translate(0, 165)" clip-path="url(#f3_card_clip)">
       <rect width="360" height="150" rx="14" fill="#091b2c" stroke="#0284c7" stroke-width="1.8" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="100" height="22" rx="6" fill="#0284c7"/>
-      <text x="68" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[2]?.tag || ''}</text>
-      <text x="130" y="30" fill="#38bdf8" font-size="13" font-weight="800">${cards[2]?.sub || ''}</text>
-      <text x="18" y="65" fill="#38bdf8" font-size="18" font-weight="900" font-family="monospace">${cards[2]?.main || ''}</text>
-      <text x="18" y="90" fill="#bae6fd" font-size="12" font-weight="600">${cards[2]?.bullets?.[0] || ''}</text>
-      <text x="18" y="110" fill="#bae6fd" font-size="12" font-weight="600">${cards[2]?.bullets?.[1] || ''}</text>
-      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="900">${cards[2]?.bullets?.[2] || ''}</text>
+      <text x="68" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[2]?.tag || '', 10)}</text>
+      <text x="130" y="30" fill="#38bdf8" font-size="13" font-weight="800">${clampSvgText(cards[2]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#38bdf8" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[2]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#bae6fd" font-size="12" font-weight="600">${clampSvgText(cards[2]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#bae6fd" font-size="12" font-weight="600">${clampSvgText(cards[2]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="900">${clampSvgText(cards[2]?.bullets?.[2] || '', 26)}</text>
     </g>
 
     <!-- Card 4 -->
-    <g transform="translate(380, 165)">
+    <g transform="translate(380, 165)" clip-path="url(#f3_card_clip)">
       <rect width="360" height="150" rx="14" fill="#181329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f3_drop)"/>
       <rect x="18" y="14" width="105" height="22" rx="6" fill="#7e22ce"/>
-      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${cards[3]?.tag || ''}</text>
-      <text x="135" y="30" fill="#c084fc" font-size="13" font-weight="800">${cards[3]?.sub || ''}</text>
-      <text x="18" y="65" fill="#c084fc" font-size="18" font-weight="900" font-family="monospace">${cards[3]?.main || ''}</text>
-      <text x="18" y="90" fill="#e9d5ff" font-size="12" font-weight="600">${cards[3]?.bullets?.[0] || ''}</text>
-      <text x="18" y="110" fill="#e9d5ff" font-size="12" font-weight="600">${cards[3]?.bullets?.[1] || ''}</text>
-      <text x="18" y="132" fill="#c084fc" font-size="11" font-weight="900">${cards[3]?.bullets?.[2] || ''}</text>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[3]?.tag || '', 10)}</text>
+      <text x="135" y="30" fill="#c084fc" font-size="13" font-weight="800">${clampSvgText(cards[3]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#c084fc" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[3]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#e9d5ff" font-size="12" font-weight="600">${clampSvgText(cards[3]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#e9d5ff" font-size="12" font-weight="600">${clampSvgText(cards[3]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#c084fc" font-size="11" font-weight="900">${clampSvgText(cards[3]?.bullets?.[2] || '', 26)}</text>
     </g>
   </g>
 
@@ -3575,6 +3707,39 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
     { code: '04', title: '숨은 보수·비용', sub: '총보수비용(TER)', desc: '매매중개수수료 합산', tag: '✓ 실질부담비용 최저 선택' }
   ];
 
+  const colors = [
+    { bg: '#25121a', stroke: '#f43f5e', badge: '#e11d48', sub: '#fda4af', tag: '#fda4af' },
+    { bg: '#20150a', stroke: '#f59e0b', badge: '#d97706', sub: '#fde68a', tag: '#fde68a' },
+    { bg: '#0b172a', stroke: '#0284c7', badge: '#0284c7', sub: '#bae6fd', tag: '#bae6fd' },
+    { bg: '#0b201a', stroke: '#10b981', badge: '#059669', sub: '#a7f3d0', tag: '#a7f3d0' }
+  ];
+
+  const xPositions = [0, 188, 376, 565];
+
+  const cardsSvg = rList.slice(0, 4).map((r, i) => {
+    const xPos = xPositions[i];
+    const c = colors[i] || colors[0];
+    const safeTitle = clampSvgText(r.title, 11.5);
+    const safeSub = clampSvgText(r.sub, 13);
+    const descXml = renderSvgDesc(r.desc, 12, 86, 13.5, 2, 15);
+    const safeTag = clampSvgText(r.tag, 14);
+
+    return `
+    <g transform="translate(${xPos}, 0)" clip-path="url(#f4_card_clip)">
+      <rect width="175" height="150" rx="12" fill="${c.bg}" stroke="${c.stroke}" stroke-width="1.4" filter="url(#f4_drop)"/>
+      <rect x="12" y="12" width="65" height="20" rx="5" fill="${c.badge}"/>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${r.code || ('0' + (i + 1))}</text>
+      <text x="12" y="50" fill="#ffffff" font-size="12.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeTitle}</text>
+      <text x="12" y="68" fill="${c.sub}" font-size="10.5" font-weight="700">• ${safeSub}</text>
+      ${descXml}
+      <text x="12" y="126" fill="${c.tag}" font-size="10.5" font-weight="800">${safeTag}</text>
+    </g>`;
+  }).join('');
+
+  const safeQuote = clampSvgText(tData.summaryQuote || '', 52);
+  const safeBullet0 = clampSvgText(tData.summaryBullets?.[0] || '', 55);
+  const safeBullet1 = clampSvgText(tData.summaryBullets?.[1] || '', 55);
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
     <linearGradient id="f4_bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3583,6 +3748,12 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
     <filter id="f4_drop">
       <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
     </filter>
+    <clipPath id="f4_card_clip">
+      <rect width="175" height="150" rx="12"/>
+    </clipPath>
+    <clipPath id="f4_callout_clip">
+      <rect width="740" height="135" rx="14"/>
+    </clipPath>
   </defs>
 
   <rect width="800" height="450" rx="16" fill="url(#f4_bg)"/>
@@ -3591,8 +3762,8 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
   <!-- Header -->
   <g transform="translate(25, 20)">
     <rect width="145" height="28" rx="7" fill="#e11d48" filter="url(#f4_drop)"/>
-    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${tData.riskBadge}</text>
-    <text x="160" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${tData.riskTitle}</text>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge, 14)}</text>
+    <text x="160" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle, 30)}</text>
     <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
     <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
@@ -3600,54 +3771,16 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
 
   <!-- 4 Danger Rules -->
   <g transform="translate(30, 80)">
-    <g transform="translate(0, 0)">
-      <rect width="175" height="150" rx="12" fill="#25121a" stroke="#f43f5e" stroke-width="1.4" filter="url(#f4_drop)"/>
-      <rect x="12" y="12" width="65" height="20" rx="5" fill="#e11d48"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[0].code}</text>
-      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[0].title}</text>
-      <text x="12" y="78" fill="#fda4af" font-size="11" font-weight="700">• ${rList[0].sub}</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[0].desc}</text>
-      <text x="12" y="118" fill="#fda4af" font-size="10.5" font-weight="800">${rList[0].tag}</text>
-    </g>
-
-    <g transform="translate(188, 0)">
-      <rect width="175" height="150" rx="12" fill="#20150a" stroke="#f59e0b" stroke-width="1.4" filter="url(#f4_drop)"/>
-      <rect x="12" y="12" width="65" height="20" rx="5" fill="#d97706"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[1].code}</text>
-      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[1].title}</text>
-      <text x="12" y="78" fill="#fde68a" font-size="11" font-weight="700">• ${rList[1].sub}</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[1].desc}</text>
-      <text x="12" y="118" fill="#fde68a" font-size="10.5" font-weight="800">${rList[1].tag}</text>
-    </g>
-
-    <g transform="translate(376, 0)">
-      <rect width="175" height="150" rx="12" fill="#0b172a" stroke="#0284c7" stroke-width="1.4" filter="url(#f4_drop)"/>
-      <rect x="12" y="12" width="65" height="20" rx="5" fill="#0284c7"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[2].code}</text>
-      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[2].title}</text>
-      <text x="12" y="78" fill="#bae6fd" font-size="11" font-weight="700">• ${rList[2].sub}</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[2].desc}</text>
-      <text x="12" y="118" fill="#bae6fd" font-size="10.5" font-weight="800">${rList[2].tag}</text>
-    </g>
-
-    <g transform="translate(565, 0)">
-      <rect width="175" height="150" rx="12" fill="#0b201a" stroke="#10b981" stroke-width="1.4" filter="url(#f4_drop)"/>
-      <rect x="12" y="12" width="65" height="20" rx="5" fill="#059669"/>
-      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${rList[3].code}</text>
-      <text x="12" y="54" fill="#ffffff" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${rList[3].title}</text>
-      <text x="12" y="78" fill="#a7f3d0" font-size="11" font-weight="700">• ${rList[3].sub}</text>
-      <text x="12" y="96" fill="#cbd5e1" font-size="10.5" font-weight="500">• ${rList[3].desc}</text>
-      <text x="12" y="118" fill="#a7f3d0" font-size="10.5" font-weight="800">${rList[3].tag}</text>
-    </g>
+    ${cardsSvg}
   </g>
 
   <!-- Bottom Callout -->
-  <g transform="translate(30, 260)">
+  <g transform="translate(30, 260)" clip-path="url(#f4_callout_clip)">
     <rect width="740" height="135" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#f4_drop)"/>
     <text x="24" y="32" fill="#c084fc" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">💡 10년 차 재테크 에디터의 실전 총평</text>
-    <text x="24" y="60" fill="#e9d5ff" font-size="12.5" font-weight="700">"${tData.summaryQuote}"</text>
-    <text x="24" y="86" fill="#cbd5e1" font-size="11.5" font-weight="500">• ${tData.summaryBullets[0] || ''}</text>
-    <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${tData.summaryBullets[1] || ''}</text>
+    <text x="24" y="60" fill="#e9d5ff" font-size="12.5" font-weight="700">"${safeQuote}"</text>
+    <text x="24" y="86" fill="#cbd5e1" font-size="11.5" font-weight="500">• ${safeBullet0}</text>
+    <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${safeBullet1}</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
@@ -3709,26 +3842,26 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
        { "title": "3단계 제목", "sub": "3단계 소제목", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] }
      ],
      "matrixCards": [
-       { "tag": "구분 1", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "구분 2", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "구분 3", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "구분 4", "sub": "설명", "main": "핵심 수치/제도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] }
-     ],
-     "riskBadge": "RISK BADGE (영문 대문자)",
-     "riskTitle": "리스크 방어 수칙 제목 (HTML 태그 가능)",
-     "risks": [
-       { "code": "01", "title": "수칙 1 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
-       { "code": "02", "title": "수칙 2 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
-       { "code": "03", "title": "수칙 3 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" },
-       { "code": "04", "title": "수칙 4 제목", "sub": "상황", "desc": "위험 내용", "tag": "✓ 대처법" }
-     ],
-     "summaryQuote": "에디터 핵심 총평 한 줄",
-     "summaryBullets": [
-       "실천 수칙 1",
-       "실천 수칙 2"
-     ]
-   }
-   </INFOGRAPHIC_DATA>`;
+        { "tag": "구분 1 (8자 이내)", "sub": "설명 (14자 이내)", "main": "핵심 수치/제도", "bullets": ["• 설명 1 (22자 이내)", "• 설명 2 (22자 이내)", "✓ 실전 팁 (22자 이내)"] },
+        { "tag": "구분 2 (8자 이내)", "sub": "설명 (14자 이내)", "main": "핵심 수치/제도", "bullets": ["• 설명 1 (22자 이내)", "• 설명 2 (22자 이내)", "✓ 실전 팁 (22자 이내)"] },
+        { "tag": "구분 3 (8자 이내)", "sub": "설명 (14자 이내)", "main": "핵심 수치/제도", "bullets": ["• 설명 1 (22자 이내)", "• 설명 2 (22자 이내)", "✓ 실전 팁 (22자 이내)"] },
+        { "tag": "구분 4 (8자 이내)", "sub": "설명 (14자 이내)", "main": "핵심 수치/제도", "bullets": ["• 설명 1 (22자 이내)", "• 설명 2 (22자 이내)", "✓ 실전 팁 (22자 이내)"] }
+      ],
+      "riskBadge": "RISK BADGE (영문 대문자 15자 이내)",
+      "riskTitle": "리스크 방어 수칙 제목 (25자 이내)",
+      "risks": [
+        { "code": "01", "title": "수칙 1 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내, 2줄로 표시됨)", "tag": "✓ 대처법 (13자 이내)" },
+        { "code": "02", "title": "수칙 2 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내, 2줄로 표시됨)", "tag": "✓ 대처법 (13자 이내)" },
+        { "code": "03", "title": "수칙 3 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내, 2줄로 표시됨)", "tag": "✓ 대처법 (13자 이내)" },
+        { "code": "04", "title": "수칙 4 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내, 2줄로 표시됨)", "tag": "✓ 대처법 (13자 이내)" }
+      ],
+      "summaryQuote": "에디터 핵심 총평 한 줄 (45자 이내)",
+      "summaryBullets": [
+        "실천 수칙 1 (45자 이내)",
+        "실천 수칙 2 (45자 이내)"
+      ]
+    }
+    </INFOGRAPHIC_DATA>`;
 
   const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 요약)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
