@@ -1072,6 +1072,8 @@ const UpbitAPI = {
         let totalUnrealizedProfit = 0;
 
         (coinSummaries || []).forEach(coin => {
+            const market = coin.market || (coin.coinSymbol ? 'KRW-' + coin.coinSymbol : '');
+            const symbol = (coin.coinSymbol || (coin.market ? coin.market.replace('KRW-', '') : '')).toUpperCase();
             const isBithumb = coin.exchange === 'BITHUMB' || (coin.market && coin.market.includes('BITHUMB'));
             const ticker = (isBithumb ? (tickerMap['BITHUMB:::' + symbol] || tickerMap['BITHUMB:::KRW-' + symbol] || tickerMap['BITHUMB:::' + market]) : null) ||
                            tickerMap[market] || tickerMap[symbol] || tickerMap['KRW-' + symbol] ||

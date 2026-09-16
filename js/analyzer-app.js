@@ -1293,12 +1293,16 @@ const App = {
 
         // Immediately enrich with baseline/known prices synchronously so cards never start at 0
         if (typeof UpbitAPI !== 'undefined' && this.state.reportData && this.state.reportData.coinSummaries) {
-            const initialEnriched = UpbitAPI.enrichCoinSummariesWithTickers(this.state.reportData.coinSummaries);
-            this.state.reportData.totalCurrentValue = initialEnriched.totalCurrentValue;
-            this.state.reportData.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
-            if (this.state.reportData.summary) {
-                this.state.reportData.summary.totalCurrentValue = initialEnriched.totalCurrentValue;
-                this.state.reportData.summary.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
+            try {
+                const initialEnriched = UpbitAPI.enrichCoinSummariesWithTickers(this.state.reportData.coinSummaries);
+                this.state.reportData.totalCurrentValue = initialEnriched.totalCurrentValue;
+                this.state.reportData.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
+                if (this.state.reportData.summary) {
+                    this.state.reportData.summary.totalCurrentValue = initialEnriched.totalCurrentValue;
+                    this.state.reportData.summary.totalUnrealizedProfit = initialEnriched.totalUnrealizedProfit;
+                }
+            } catch (err) {
+                console.warn('recalculate initialEnriched error:', err);
             }
         }
 
@@ -1374,11 +1378,30 @@ const App = {
     renderSummaryCards: function () {
         const s = this.state.reportData ? this.state.reportData.summary : ProfitCalculator.getEmptyResult().summary;
 
-        // Sum coin unrealized if not populated
+        // Sum coin metrics directly from coinSummaries as fallback
         let calculatedUnrealized = 0;
         let calculatedCurrentVal = 0;
+        let sumHoldingCost = 0;
+        let sumRealized = 0;
+        let sumFees = 0;
+        let sumCumBuy = 0;
+        let sumTrades = 0;
+        let sumWins = 0;
+        let sumLosses = 0;
+        let sumSells = 0;
+
         if (this.state.reportData && this.state.reportData.coinSummaries) {
             this.state.reportData.coinSummaries.forEach(c => {
+                const hCost = parseFloat(c.holdingCost) || 0;
+                sumHoldingCost += hCost;
+                sumRealized += (parseFloat(c.realizedProfit) || 0);
+                sumFees += (parseFloat(c.totalFee) || 0);
+                sumCumBuy += (parseFloat(c.totalBuyAmount) || 0);
+                sumWins += (c.winTrades || 0);
+                sumLosses += (c.lossTrades || 0);
+                sumSells += (c.sellTrades || 0);
+                sumTrades += (c.totalTrades || 0);
+
                 if (c.holdingQty > 1e-8) {
                     const sym = (c.coinSymbol || (c.market ? c.market.replace('KRW-', '') : '')).toUpperCase();
                     let price = 0;
@@ -1391,25 +1414,34 @@ const App = {
                     }
 
                     const val = c.holdingQty * price;
-                    const upnl = val - (c.holdingCost || 0);
+                    const upnl = val - hCost;
                     calculatedCurrentVal += val;
                     calculatedUnrealized += upnl;
                 }
             });
         }
 
-        const totalUnrealized = calculatedUnrealized;
-        const unrealizedRoi = s.currentPortfolioCost > 0 ? (totalUnrealized / s.currentPortfolioCost) * 100 : 0;
+        const totalUnrealized = (this.state.reportData && this.state.reportData.totalUnrealizedProfit !== undefined && this.state.reportData.totalUnrealizedProfit !== 0)
+            ? this.state.reportData.totalUnrealizedProfit
+            : calculatedUnrealized;
+        const currentPortfolioCost = (s.currentPortfolioCost && s.currentPortfolioCost > 0) ? s.currentPortfolioCost : sumHoldingCost;
+        const totalRealizedProfit = (s.totalRealizedProfit !== undefined && s.totalRealizedProfit !== 0) ? s.totalRealizedProfit : sumRealized;
+        const totalRealizedRoi = currentPortfolioCost > 0 ? (totalRealizedProfit / currentPortfolioCost) * 100 : (s.totalRealizedRoi || 0);
+        const unrealizedRoi = currentPortfolioCost > 0 ? (totalUnrealized / currentPortfolioCost) * 100 : 0;
+        const totalFees = (s.totalFees !== undefined && s.totalFees !== 0) ? s.totalFees : sumFees;
+        const totalCumulativeBuy = (s.totalCumulativeBuyAmount && s.totalCumulativeBuyAmount > 0) ? s.totalCumulativeBuyAmount : sumCumBuy;
+        const totalTradesCount = (s.totalTradesCount && s.totalTradesCount > 0) ? s.totalTradesCount : sumTrades;
+        const netDeposits = (s.netKrwDeposits !== undefined) ? s.netKrwDeposits : 0;
 
         const realizedEl = document.getElementById('cardRealizedProfit');
         const realizedRoiEl = document.getElementById('cardRealizedRoi');
         if (realizedEl) {
-            realizedEl.textContent = (s.totalRealizedProfit > 0 ? '+' : '') + this.formatCurrency(s.totalRealizedProfit);
-            realizedEl.className = 'stat-value ' + this.getProfitColorClass(s.totalRealizedProfit);
+            realizedEl.textContent = (totalRealizedProfit > 0 ? '+' : '') + this.formatCurrency(totalRealizedProfit);
+            realizedEl.className = 'stat-value ' + this.getProfitColorClass(totalRealizedProfit);
         }
         if (realizedRoiEl) {
-            realizedRoiEl.textContent = (s.totalRealizedRoi > 0 ? '+' : '') + s.totalRealizedRoi.toFixed(2) + '%';
-            realizedRoiEl.className = 'stat-badge ' + this.getProfitColorClass(s.totalRealizedProfit);
+            realizedRoiEl.textContent = (totalRealizedRoi > 0 ? '+' : '') + totalRealizedRoi.toFixed(2) + '%';
+            realizedRoiEl.className = 'stat-badge ' + this.getProfitColorClass(totalRealizedProfit);
         }
 
         const unrealizedEl = document.getElementById('cardUnrealizedProfit');
@@ -1426,11 +1458,11 @@ const App = {
         const investedEl = document.getElementById('cardCurrentHoldingCost');
         const cumBuyEl = document.getElementById('cardCumulativeBuy');
         const netDepositEl = document.getElementById('cardNetDeposit');
-        if (investedEl) investedEl.textContent = this.formatCurrency(s.currentPortfolioCost);
-        if (cumBuyEl) cumBuyEl.textContent = this.formatCurrency(s.totalCumulativeBuyAmount);
-        if (netDepositEl) netDepositEl.textContent = this.formatCurrency(s.netKrwDeposits);
+        if (investedEl) investedEl.textContent = this.formatCurrency(currentPortfolioCost);
+        if (cumBuyEl) cumBuyEl.textContent = this.formatCurrency(totalCumulativeBuy);
+        if (netDepositEl) netDepositEl.textContent = this.formatCurrency(netDeposits);
 
-        const totalEvaluatedValue = Math.max(0, (s.currentPortfolioCost || 0) + totalUnrealized);
+        const totalEvaluatedValue = Math.max(0, currentPortfolioCost + totalUnrealized);
         const totalEvalEl = document.getElementById('cardTotalEvaluatedValue');
         const holdValEl = document.getElementById('cardCurrentHoldingValue');
         if (totalEvalEl) totalEvalEl.textContent = this.formatCurrency(totalEvaluatedValue);
@@ -1438,8 +1470,12 @@ const App = {
 
         const feesEl = document.getElementById('cardTotalFees');
         const winRateEl = document.getElementById('cardWinRate');
-        if (feesEl) feesEl.textContent = this.formatCurrency(s.totalFees);
-        if (winRateEl) winRateEl.textContent = s.totalWinRate.toFixed(1) + '% (' + s.totalWinTrades + '승 ' + s.totalLossTrades + '패 / 청산 ' + s.totalSellTrades + '건, 총 ' + s.totalTradesCount + '건)';
+        if (feesEl) feesEl.textContent = this.formatCurrency(totalFees);
+        const winTrades = (s.totalWinTrades !== undefined && s.totalWinTrades > 0) ? s.totalWinTrades : sumWins;
+        const lossTrades = (s.totalLossTrades !== undefined && s.totalLossTrades > 0) ? s.totalLossTrades : sumLosses;
+        const sellTrades = (s.totalSellTrades !== undefined && s.totalSellTrades > 0) ? s.totalSellTrades : sumSells;
+        const winRate = (winTrades + lossTrades > 0) ? (winTrades / (winTrades + lossTrades)) * 100 : (s.totalWinRate || 0);
+        if (winRateEl) winRateEl.textContent = winRate.toFixed(1) + '% (' + winTrades + '승 ' + lossTrades + '패 / 청산 ' + sellTrades + '건, 총 ' + totalTradesCount + '건)';
     },
 
     renderCoinsTable: function () {
