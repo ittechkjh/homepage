@@ -2020,15 +2020,10 @@ function ensureDailyMarketReportPost(posts) {
   const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
   const targetReportId = `report-${year}${month}${day}`;
 
-  // If real report exists for today (e.g. report-YYYYMMDD-HHmm), remove any fallback dummy report (report-YYYYMMDD)
-  const hasRealReportForToday = posts.some(p => String(p.id).startsWith(targetReportId + '-'));
-  if (hasRealReportForToday) {
-    const dummyIdx = posts.findIndex(p => String(p.id) === targetReportId);
-    if (dummyIdx !== -1) {
-      posts.splice(dummyIdx, 1);
-    }
-  } else if (!deletedIds.includes(targetReportId) && !posts.some(p => String(p.id).startsWith(targetReportId))) {
-    posts.push(buildDefaultDailyMarketReport(dateStr, dateKorean));
+  // Clean up any old dummy fallback report (report-YYYYMMDD) if present
+  const dummyIdx = posts.findIndex(p => String(p.id) === targetReportId);
+  if (dummyIdx !== -1) {
+    posts.splice(dummyIdx, 1);
   }
 
   // Restore persistent views and upvotes from local storage and firestore cache
