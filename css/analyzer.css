@@ -302,13 +302,48 @@
 
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: clamp(400px, 70vh, 800px);
     width: 100%;
     scrollbar-width: thin;
+    position: relative;
+    overscroll-behavior-y: contain;
+}
+
+.table-responsive::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+html.theme-light .table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+html.theme-light .table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.theme-light .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.82rem;
 }
 
@@ -317,12 +352,17 @@ table th, table td {
     white-space: nowrap !important;
 }
 
+table thead th,
 table th {
+    position: sticky !important;
+    top: 0;
+    z-index: 20;
     background: var(--bg-secondary);
     color: var(--text-secondary);
     font-weight: 600;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 0 var(--border-color);
     cursor: pointer;
     user-select: none;
     transition: color var(--transition-fast);
@@ -333,7 +373,9 @@ table th:hover {
 }
 
 table th.resizable-th {
-    position: relative;
+    position: sticky !important;
+    top: 0;
+    z-index: 20;
 }
 
 .col-resizer {
@@ -344,7 +386,7 @@ table th.resizable-th {
     width: 8px;
     cursor: col-resize;
     user-select: none;
-    z-index: 10;
+    z-index: 25;
     touch-action: none;
 }
 
@@ -940,11 +982,13 @@ html.theme-light .select-control {
     color: #0f172a !important;
 }
 
+html.theme-light table th,
 html.theme-light .table th {
     background: #f1f5f9 !important;
     color: #0f172a !important;
     font-weight: 700 !important;
     border-bottom: 2px solid #cbd5e1 !important;
+    box-shadow: 0 1px 0 #cbd5e1 !important;
 }
 
 html.theme-light .table td {
