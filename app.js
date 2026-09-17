@@ -1620,24 +1620,28 @@ let isCafeEditMode = false;
 let currentViewingPostId = null;
 
 function getDeletedPostIds() {
+  let localIds = [];
   try {
     const raw = localStorage.getItem('crytopnl_deleted_post_ids');
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) {
-    return [];
-  }
+    if (raw) localIds = JSON.parse(raw);
+  } catch(e) {}
+  const remoteSet = window._remoteDeletedPostIdsSet || new Set();
+  const merged = Array.from(new Set([...(Array.isArray(localIds) ? localIds.map(String) : []), ...remoteSet]));
+  return merged;
 }
 window.getDeletedPostIds = getDeletedPostIds;
 
 function addDeletedPostId(id) {
   if (!id) return;
+  const sId = String(id);
+  if (!window._remoteDeletedPostIdsSet) window._remoteDeletedPostIdsSet = new Set();
+  window._remoteDeletedPostIdsSet.add(sId);
   try {
     const ids = getDeletedPostIds();
-    const sId = String(id);
     if (!ids.includes(sId)) {
       ids.push(sId);
-      localStorage.setItem('crytopnl_deleted_post_ids', JSON.stringify(ids));
     }
+    localStorage.setItem('crytopnl_deleted_post_ids', JSON.stringify(ids));
   } catch(e) {}
 }
 window.addDeletedPostId = addDeletedPostId;
@@ -1966,9 +1970,40 @@ function buildDefaultDailyMarketReport(dateStr, dateKorean) {
   };
 }
 
+function getPostTimestamp(p) {
+  if (!p) return 0;
+  if (typeof p.timestamp === 'number' && !isNaN(p.timestamp)) return p.timestamp;
+  if (p.timestamp && typeof p.timestamp.toMillis === 'function') return p.timestamp.toMillis();
+  if (p.timestamp && typeof p.timestamp.seconds === 'number') return p.timestamp.seconds * 1000;
+  if (typeof p.timestamp === 'string') {
+    const t = Date.parse(p.timestamp);
+    if (!isNaN(t)) return t;
+  }
+  if (typeof p.id === 'number') return p.id;
+  if (typeof p.id === 'string') {
+    const m = p.id.match(/(\d{4})(\d{2})(\d{2})(?:-(\d{2})(\d{2}))?/);
+    if (m) {
+      const yr = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const dy = parseInt(m[3], 10);
+      const hr = m[4] ? parseInt(m[4], 10) : 8;
+      const min = m[5] ? parseInt(m[5], 10) : 0;
+      return new Date(yr, mo, dy, hr, min).getTime();
+    }
+    const num = parseInt(p.id, 10);
+    if (!isNaN(num) && num > 1000000000) return num;
+  }
+  if (p.time) {
+    const t = Date.parse(String(p.time).replace(/\./g, '-'));
+    if (!isNaN(t)) return t;
+  }
+  return 0;
+}
+window.getPostTimestamp = getPostTimestamp;
+
 function ensureDailyMarketReportPost(posts) {
   if (!Array.isArray(posts)) posts = [];
-  const deletedIds = getDeletedPostIds();
+  const deletedIds = (typeof getDeletedPostIds === 'function') ? getDeletedPostIds() : [];
 
   // 1. Resolve daily market reports from memory cache or localStorage
   let cachedReports = window._dailyMarketReportsCache;
@@ -1985,26 +2020,53 @@ function ensureDailyMarketReportPost(posts) {
     } catch(e) {}
   }
 
-  if (Array.isArray(cachedReports) && cachedReports.length > 0) {
-    cachedReports.forEach(rep => {
-      if (rep && rep.id && !deletedIds.includes(String(rep.id))) {
-        const existingIdx = posts.findIndex(p => String(p.id) === String(rep.id));
-        if (existingIdx === -1) {
-          posts.push(rep);
-        } else {
-          const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
-          posts[existingIdx].comments = (posts[existingIdx].comments || []).filter(c => c && !mockAuthors.includes(c.author));
-          posts[existingIdx].content = rep.content;
-          posts[existingIdx].title = rep.title;
-          if (rep.category) posts[existingIdx].category = rep.category;
-          if (rep.categoryName) posts[existingIdx].categoryName = rep.categoryName;
-          if (rep.image !== undefined) posts[existingIdx].image = rep.image;
-          if (rep.views !== undefined) posts[existingIdx].views = rep.views;
-          if (rep.upvotes !== undefined) posts[existingIdx].upvotes = rep.upvotes;
+  // 2. Build map preserving incoming posts, cached reports, and memory reports
+  const postMap = new Map();
+
+  // First, add all incoming posts
+  posts.forEach(p => {
+    if (p && p.id && !deletedIds.includes(String(p.id))) {
+      postMap.set(String(p.id), p);
+    }
+  });
+
+  // Next, if inMemoryForumPosts has reports that incoming posts missed (e.g. fresh Firestore snapshot), preserve them
+  if (Array.isArray(inMemoryForumPosts)) {
+    inMemoryForumPosts.forEach(p => {
+      if (p && p.id && !deletedIds.includes(String(p.id)) && !postMap.has(String(p.id))) {
+        const isReport = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        if (isReport) {
+          postMap.set(String(p.id), p);
         }
       }
     });
   }
+
+  // Next, merge cachedReports
+  if (Array.isArray(cachedReports) && cachedReports.length > 0) {
+    cachedReports.forEach(rep => {
+      if (rep && rep.id && !deletedIds.includes(String(rep.id))) {
+        const existing = postMap.get(String(rep.id));
+        if (!existing) {
+          postMap.set(String(rep.id), rep);
+        } else {
+          const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
+          existing.comments = (existing.comments || []).filter(c => c && !mockAuthors.includes(c.author));
+          existing.content = rep.content;
+          existing.title = rep.title;
+          if (rep.category) existing.category = rep.category;
+          if (rep.categoryName) existing.categoryName = rep.categoryName;
+          if (rep.image !== undefined) existing.image = rep.image;
+          if (rep.views !== undefined) existing.views = rep.views;
+          if (rep.upvotes !== undefined) existing.upvotes = rep.upvotes;
+          if (rep.timestamp !== undefined) existing.timestamp = rep.timestamp;
+          if (rep.time !== undefined) existing.time = rep.time;
+        }
+      }
+    });
+  }
+
+  let resultPosts = Array.from(postMap.values());
 
   // Determine active report date (KST) - Ensure TODAY's report is ALWAYS present after 08:00 KST
   const now = new Date();
@@ -2016,14 +2078,12 @@ function ensureDailyMarketReportPost(posts) {
   const year = kst.getFullYear();
   const month = String(kst.getMonth() + 1).padStart(2, '0');
   const day = String(kst.getDate()).padStart(2, '0');
-  const dateStr = `${year}-${month}-${day}`;
-  const dateKorean = `${year}년 ${kst.getMonth() + 1}월 ${kst.getDate()}일`;
   const targetReportId = `report-${year}${month}${day}`;
 
   // Clean up any old dummy fallback report (report-YYYYMMDD) if present
-  const dummyIdx = posts.findIndex(p => String(p.id) === targetReportId);
+  const dummyIdx = resultPosts.findIndex(p => String(p.id) === targetReportId);
   if (dummyIdx !== -1) {
-    posts.splice(dummyIdx, 1);
+    resultPosts.splice(dummyIdx, 1);
   }
 
   // Restore persistent views and upvotes from local storage and firestore cache
@@ -2031,7 +2091,7 @@ function ensureDailyMarketReportPost(posts) {
     const votesMap = JSON.parse(localStorage.getItem('crytopnl_post_votes') || '{}');
     const viewsMap = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
     let viewsChanged = false;
-    posts.forEach(p => {
+    resultPosts.forEach(p => {
       if (p && p.id) {
         if (votesMap[p.id] !== undefined) {
           p.upvotes = votesMap[p.id];
@@ -2060,32 +2120,49 @@ function ensureDailyMarketReportPost(posts) {
     }
   } catch(e) {}
 
-  return posts;
+  // Filter out any dummy fallback post (e.g. report-YYYYMMDD) if a real timestamped report (report-YYYYMMDD-HHmm) exists
+  resultPosts = resultPosts.filter(p => {
+    if (p && p.id && /^report-\d{8}$/.test(String(p.id))) {
+      return !resultPosts.some(x => String(x.id).startsWith(String(p.id) + '-'));
+    }
+    return true;
+  });
+
+  // Deterministic sort: notices first, then newest timestamp first, tie-break by ID
+  resultPosts.sort((a, b) => {
+    const isANotice = a.isNotice === true;
+    const isBNotice = b.isNotice === true;
+    if (isANotice && !isBNotice) return -1;
+    if (!isANotice && isBNotice) return 1;
+    const tB = getPostTimestamp(b);
+    const tA = getPostTimestamp(a);
+    if (tB !== tA) return tB - tA;
+    return String(b.id || '').localeCompare(String(a.id || ''));
+  });
+
+  return resultPosts;
 }
 
 let _lastDailyMarketReportsFetchTime = 0;
 async function loadDailyMarketReports(force = false) {
   const now = Date.now();
-  // Allow refetch if forced or if 5 minutes have elapsed since last fetch
-  if (!force && _lastDailyMarketReportsFetchTime > 0 && (now - _lastDailyMarketReportsFetchTime) < 300000) {
+  // Allow refetch if forced or if 1 minute has elapsed since last fetch
+  if (!force && _lastDailyMarketReportsFetchTime > 0 && (now - _lastDailyMarketReportsFetchTime) < 60000) {
     return;
   }
   _lastDailyMarketReportsFetchTime = now;
   try {
     let res = null;
-    if (force) {
-      try {
-        const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
-        if (rawRes.ok) res = rawRes;
-      } catch(e) {}
-    }
-    if (!res || !res.ok) {
-      res = await fetch('data/daily-market-reports.json?v=' + Date.now());
-    }
+    // 1. First priority: GitHub raw (always latest commit, bypasses CDN deployment lag)
+    try {
+      const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+      if (rawRes && rawRes.ok) res = rawRes;
+    } catch(e) {}
+    // 2. Second priority: Local relative path with cache-busting
     if (!res || !res.ok) {
       try {
-        const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
-        if (rawRes.ok) res = rawRes;
+        const localRes = await fetch('data/daily-market-reports.json?v=' + Date.now());
+        if (localRes && localRes.ok) res = localRes;
       } catch(e) {}
     }
     if (res && res.ok) {
@@ -2097,54 +2174,26 @@ async function loadDailyMarketReports(force = false) {
           localStorage.setItem('crytopnl_daily_market_reports_cache', JSON.stringify(reports));
         } catch(e) {}
         const currentPosts = getStoredPosts();
-        // Remove any obsolete fallback dummy post (e.g. report-20260915) if a real timestamped report exists
-        reports.forEach(rep => {
-          if (rep && rep.id && String(rep.id).startsWith('report-')) {
-            const parts = String(rep.id).split('-');
-            if (parts.length >= 3) {
-              const fallbackDummyId = `report-${parts[1]}`;
-              const dummyIdx = currentPosts.findIndex(p => String(p.id) === fallbackDummyId);
-              if (dummyIdx !== -1) {
-                currentPosts.splice(dummyIdx, 1);
-              }
-            }
-          }
-        });
-        reports.forEach(rep => {
-          if (!rep || !rep.id) return;
-          const p = currentPosts.find(x => String(x.id) === String(rep.id));
-          if (p) {
-            const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
-            p.comments = (p.comments || []).filter(c => c && !mockAuthors.includes(c.author));
-            p.title = rep.title;
-            p.content = rep.content;
-            p.image = rep.image;
-            p.category = rep.category;
-            p.categoryName = rep.categoryName;
-            p.time = rep.time;
-            p.timestamp = rep.timestamp;
-            p.author = rep.author;
-            p.authorRank = rep.authorRank;
-            if (rep.views !== undefined) {
-              p.views = rep.views;
-            }
-            if (rep.upvotes !== undefined) {
-              p.upvotes = rep.upvotes;
-            }
-          } else {
-            currentPosts.unshift(rep);
-          }
+        const mergedPosts = ensureDailyMarketReportPost(currentPosts);
+        saveStoredPosts(mergedPosts);
+        if (typeof renderForumPosts === 'function') {
+          renderForumPosts();
+        }
 
-          // Sync / Seed initial views with Firestore forum_views (방안 C)
-          if (typeof db !== 'undefined' && db && rep.id) {
+        // Sync / Seed initial views with Firestore forum_views (방안 C)
+        if (typeof db !== 'undefined' && db) {
+          reports.slice(0, 15).forEach(rep => {
+            if (!rep || !rep.id) return;
             const repIdStr = String(rep.id);
             db.collection('forum_views').doc(repIdStr).get().then(docSnap => {
               if (docSnap.exists) {
                 const fData = docSnap.data();
-                if (fData && typeof fData.views === 'number' && fData.views > (p ? p.views : rep.views)) {
+                if (fData && typeof fData.views === 'number' && fData.views > (rep.views || 0)) {
                   const higherViews = fData.views;
-                  if (p) p.views = higherViews;
                   rep.views = higherViews;
+                  const allPosts = (typeof inMemoryForumPosts !== 'undefined' && Array.isArray(inMemoryForumPosts)) ? inMemoryForumPosts : [];
+                  const target = allPosts.find(p => p && String(p.id) === repIdStr);
+                  if (target) target.views = higherViews;
                   try {
                     const vm = JSON.parse(localStorage.getItem('crytopnl_post_views') || '{}');
                     vm[repIdStr] = higherViews;
@@ -2159,11 +2208,7 @@ async function loadDailyMarketReports(force = false) {
                 }, { merge: true }).catch(() => {});
               }
             }).catch(() => {});
-          }
-        });
-        saveStoredPosts(currentPosts);
-        if (typeof renderForumPosts === 'function') {
-          renderForumPosts();
+          });
         }
       }
     }
@@ -2872,11 +2917,17 @@ function renderForumPosts() {
     if (!isANotice && isBNotice) return 1;
 
     if (sortType === 'popular') {
-      return (b.upvotes || 0) - (a.upvotes || 0);
+      const diff = (b.upvotes || 0) - (a.upvotes || 0);
+      if (diff !== 0) return diff;
+      return getPostTimestamp(b) - getPostTimestamp(a);
     } else if (sortType === 'comments') {
-      return ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0);
+      const diff = ((b.comments && b.comments.length) || 0) - ((a.comments && a.comments.length) || 0);
+      if (diff !== 0) return diff;
+      return getPostTimestamp(b) - getPostTimestamp(a);
     } else {
-      return (b.timestamp || 0) - (a.timestamp || 0);
+      const tDiff = getPostTimestamp(b) - getPostTimestamp(a);
+      if (tDiff !== 0) return tDiff;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     }
   });
 
@@ -5847,6 +5898,31 @@ window.addEventListener('hashchange', handleRoute);
 
 // Sync with Firestore
 if (db) {
+  // 1. Real-time sync for deleted posts across all computers & browsers
+  db.collection('deleted_forum_posts').onSnapshot(snap => {
+    if (!window._remoteDeletedPostIdsSet) window._remoteDeletedPostIdsSet = new Set();
+    let hasNew = false;
+    snap.forEach(doc => {
+      const idStr = String(doc.id);
+      if (!window._remoteDeletedPostIdsSet.has(idStr)) {
+        window._remoteDeletedPostIdsSet.add(idStr);
+        hasNew = true;
+      }
+    });
+    if (hasNew) {
+      try {
+        const allDeleted = getDeletedPostIds();
+        localStorage.setItem('crytopnl_deleted_post_ids', JSON.stringify(allDeleted));
+      } catch(e) {}
+      const posts = getStoredPosts();
+      saveStoredPosts(posts);
+      if (typeof renderForumPosts === 'function') renderForumPosts();
+    }
+  }, err => {
+    console.warn('Firestore deleted_forum_posts onSnapshot error:', err);
+  });
+
+  // 2. Real-time sync for forum posts
   db.collection('forum_posts').onSnapshot(snapshot => {
     let posts = [];
     const dummyIds = ['101', '102', '103', 101, 102, 103];
@@ -5868,7 +5944,6 @@ if (db) {
       }
     });
 
-    posts.sort((a,b) => (b.id || 0) - (a.id || 0));
     posts = ensureDailyMarketReportPost(posts);
     saveStoredPosts(posts);
     if (typeof renderForumPosts === 'function') renderForumPosts();
