@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-09-17",
-  "lastUpdatedTimeKst": "09. 17. 09:02",
-  "timestamp": 1789603349732,
+  "lastUpdatedTimeKst": "09. 18. 08:52",
+  "timestamp": 1789689158794,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -46,15 +46,15 @@
       "lastUpdated": "2026-09-17"
     },
     "dxy": {
-      "value": 100.26,
-      "change": 1.15,
+      "value": 100.24,
+      "change": 0.78,
       "text": "달러 강세 (긴축 부담)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
       "lastUpdated": "2026-09-17"
     },
     "highYieldSpread": {
-      "value": 3.31,
+      "value": 3.23,
       "badge": "위험선호",
       "text": "글로벌 유동성 안정",
       "source": "ICE BofA US High Yield Spread",
@@ -62,23 +62,23 @@
       "lastUpdated": "2026-09-17"
     },
     "nasdaqSpot": {
-      "value": 28945.1,
-      "change": -1.62,
-      "text": "기술주 숨고르기",
+      "value": 29447,
+      "change": 1.18,
+      "text": "기술주 상승 모멘텀",
       "source": "NASDAQ-100 (^NDX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-17"
     },
     "sox": {
-      "value": 11246.1,
-      "change": -5.74,
+      "value": 11599.5,
+      "change": -0.13,
       "text": "반도체 조정",
       "source": "PHLX Semiconductor Index (^SOX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-17"
     },
     "vix": {
-      "value": 17.71,
+      "value": 15.44,
       "badge": "안정권",
       "text": "시장 심리 안정",
       "source": "CBOE Volatility Index (^VIX)",
@@ -86,16 +86,16 @@
       "lastUpdated": "2026-09-17"
     },
     "goldFut": {
-      "value": 4311.4,
-      "change": -2.21,
-      "text": "금값 조정",
+      "value": 4382.8,
+      "change": 0.71,
+      "text": "안전자산 수요 견조",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-09-17"
     },
     "wti": {
-      "value": 101.72,
-      "change": 1.67,
+      "value": 101.13,
+      "change": -0.26,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
