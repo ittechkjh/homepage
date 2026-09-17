@@ -6633,11 +6633,11 @@
                 <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i> 메뉴 및 기능별 이용 횟수
               </h3>
               <div class="inline-flex items-center p-0.5 rounded-lg bg-navy-950 border border-navy-800 text-[11px]">
-                <button type="button" id="admin-feat-scope-today" onclick="AdminApp.setFeatureScope('today')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">오늘 하루</button>
-                <button type="button" id="admin-feat-scope-all" onclick="AdminApp.setFeatureScope('all')" class="px-2.5 py-1 rounded font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm">전체 누적</button>
+                <button type="button" id="admin-feat-scope-today" onclick="AdminApp.setFeatureScope('today')" class="px-2.5 py-1 rounded font-semibold transition bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm">오늘 하루</button>
+                <button type="button" id="admin-feat-scope-all" onclick="AdminApp.setFeatureScope('all')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">전체 누적</button>
               </div>
             </div>
-            <div id="admin-feat-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">전체 누적 실측 이용 횟수 기준</div>
+            <div id="admin-feat-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">오늘 하루 실측 이용 횟수 기준</div>
             <div id="admin-features-container" class="space-y-3 text-xs">
               <div>
                 <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
@@ -6689,7 +6689,7 @@
               </div>
               <div>
                 <div class="flex justify-between items-center text-slate-300 font-semibold mb-1">
-                  <span>🧮 투자 보조 계산기 5종 (물타기·김프·세금·선물)</span>
+                  <span>🧮 투자 보조 계산기 (물타기·김프·세금·선물·연말정산)</span>
                   <div class="text-right">
                     <span id="admin-feat-calculators-pct" class="text-amber-400 font-bold">0회</span>
                     <span id="admin-feat-calculators-sub" class="text-[10px] text-slate-500 font-normal ml-1">(오늘: 0회)</span>
@@ -6757,11 +6757,11 @@
                 <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i> 기기 및 브라우저 환경 분석
               </h3>
               <div class="inline-flex items-center p-0.5 rounded-lg bg-navy-950 border border-navy-800 text-[11px]">
-                <button type="button" id="admin-device-scope-today" onclick="AdminApp.setDeviceScope('today')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">오늘 하루</button>
-                <button type="button" id="admin-device-scope-all" onclick="AdminApp.setDeviceScope('all')" class="px-2.5 py-1 rounded font-semibold transition bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm">전체 누적</button>
+                <button type="button" id="admin-device-scope-today" onclick="AdminApp.setDeviceScope('today')" class="px-2.5 py-1 rounded font-semibold transition bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-sm">오늘 하루</button>
+                <button type="button" id="admin-device-scope-all" onclick="AdminApp.setDeviceScope('all')" class="px-2.5 py-1 rounded font-semibold transition text-slate-400 hover:text-white border border-transparent">전체 누적</button>
               </div>
             </div>
-            <div id="admin-device-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">전체 누적 실측 접속자 수 기준</div>
+            <div id="admin-device-scope-desc" class="text-[11px] text-slate-400 font-medium -mt-2">오늘 하루 실측치 기준</div>
             <div class="grid grid-cols-2 gap-4 text-center">
               <div class="p-3.5 rounded-xl bg-navy-950 border border-navy-800">
                 <div class="text-slate-400 text-xs font-semibold mb-1">📱 모바일 기기 (스마트폰)</div>

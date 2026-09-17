@@ -116,7 +116,7 @@ const AdminAnalytics = {
 
     init: function () {
         if (this.isAdminSession()) return;
-        this.recordVisit('analyzer');
+        // Do not auto-record 'analyzer' on init. Actual routed visit is handled by switchTab().
     },
 
     getAnalyticsData: function () {
@@ -177,8 +177,14 @@ const AdminAnalytics = {
 
             // Normalize feature name across all 9 functional areas
             let targetFeature = featureName || 'analyzer';
+            if (targetFeature === 'admin') {
+                return Promise.resolve();
+            }
             if (targetFeature === 'forum' || targetFeature === 'chat' || targetFeature === 'guides') {
                 targetFeature = 'community';
+            }
+            if (targetFeature === 'yearend-tax') {
+                targetFeature = 'calculators';
             }
 
             // 1. Session-based unique visitor check
@@ -386,30 +392,37 @@ const AdminAnalytics = {
                     // 3. Features: Read nested map + flat dot keys
                     if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
+                            if (f === 'admin') return;
+                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
                             const val = Number(d.features[f] || 0);
-                            aggFeatures[f] = (aggFeatures[f] || 0) + val;
-                            if (isTodayDoc) todayFeatures[f] = (todayFeatures[f] || 0) + val;
+                            aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
+                            if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
                         });
                     }
                     Object.keys(d).forEach(k => {
                         if (k.startsWith('features.')) {
                             const f = k.slice(9);
+                            if (f === 'admin') return;
+                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
                             const val = Number(d[k] || 0);
-                            aggFeatures[f] = (aggFeatures[f] || 0) + val;
-                            if (isTodayDoc) todayFeatures[f] = (todayFeatures[f] || 0) + val;
+                            aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
+                            if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
                         }
                     });
                 }
             });
 
-            // Merge LocalStorage data for supplemental accuracy
+            // Merge LocalStorage data for supplemental accuracy only when cloud has no feature data
             try {
                 const localData = this.getAnalyticsData();
                 if (localData) {
-                    if (localData.features) {
+                    const curCloudFeatTotal = Object.values(aggFeatures).reduce((a, b) => a + Number(b || 0), 0);
+                    if (curCloudFeatTotal === 0 && localData.features) {
                         Object.keys(localData.features).forEach(f => {
-                            aggFeatures[f] = Math.max(aggFeatures[f] || 0, Number(localData.features[f] || 0));
-                            todayFeatures[f] = Math.max(todayFeatures[f] || 0, Number(localData.features[f] || 0));
+                            if (f === 'admin') return;
+                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
+                            aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + Number(localData.features[f] || 0);
+                            todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + Number(localData.features[f] || 0);
                         });
                     }
                     if (todayMobile + todayDesktop === 0 && localData.devices) {
@@ -623,7 +636,12 @@ const AdminAnalytics = {
         const mobilePct = totalDev > 0 ? Math.round((mCount / totalDev) * 100) : 0;
         const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
 
-        let f = data.features || {};
+        let f = { ...(data.features || {}) };
+        if (f['yearend-tax']) {
+            f.calculators = (f.calculators || 0) + Number(f['yearend-tax'] || 0);
+            delete f['yearend-tax'];
+        }
+        delete f.admin;
 
         let realLiveCount = 1;
         const activeListEl = document.getElementById('chat-active-users-list');
@@ -1118,8 +1136,8 @@ const AdminUserManager = {
 
 const AdminApp = {
     activeSubTab: 'analytics',
-    featureScope: 'all',
-    deviceScope: 'all',
+    featureScope: 'today',
+    deviceScope: 'today',
     lastStats: null,
     userSearchQuery: '',
     userRoleFilter: 'ALL',

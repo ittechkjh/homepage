@@ -6134,7 +6134,10 @@ function switchTab(tabId, updateHash = true) {
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     let fName = tabId;
     if (tabId === 'forum' || tabId === 'chat' || tabId === 'guides') fName = 'community';
-    AdminAnalytics.recordVisit(fName);
+    if (tabId === 'yearend-tax') fName = 'calculators';
+    if (tabId !== 'admin') {
+      AdminAnalytics.recordVisit(fName);
+    }
   }
 
   const isCommunityTab = (tabId === 'forum' || tabId === 'chat' || tabId === 'guides');

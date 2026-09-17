@@ -5534,13 +5534,16 @@ function updatePageSEO(tabId) {
 window.updatePageSEO = updatePageSEO;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
+  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     let fName = tabId;
     if (tabId === 'forum' || tabId === 'chat' || tabId === 'guides') fName = 'community';
-    AdminAnalytics.recordVisit(fName);
+    if (tabId === 'yearend-tax') fName = 'calculators';
+    if (tabId !== 'admin') {
+      AdminAnalytics.recordVisit(fName);
+    }
   }
 
   tabs.forEach(t => {
