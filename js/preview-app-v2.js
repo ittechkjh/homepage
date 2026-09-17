@@ -901,6 +901,9 @@ async function fetchMarketAnalysisData() {
         else if (score <= 44) text = '공포';
         marketAnalysisState.fng.score = score;
         marketAnalysisState.fng.text = text;
+        if (typeof renderFearAndGreedCard === 'function') {
+          renderFearAndGreedCard(marketAnalysisState.fng);
+        }
       }
     }
   } catch (e) {}
@@ -1449,8 +1452,72 @@ function renderMarketAnalysisAndIndicators() {
     ethbtcRate.innerText = `${isUp ? '+' : ''}${s.ethBtc.change.toFixed(2)}%`;
   }
   if (ethbtcVal) ethbtcVal.innerText = s.ethBtc.value.toFixed(4);
+
+  // Card 5: Top Summary - Real-time Fear & Greed Index
+  renderFearAndGreedCard(s.fng);
 }
 window.renderMarketAnalysisAndIndicators = renderMarketAnalysisAndIndicators;
+
+function renderFearAndGreedCard(fng) {
+  const score = (fng && fng.score !== undefined) ? fng.score : 50;
+  const scoreEl = document.getElementById('market-fng-score');
+  const statusEl = document.getElementById('market-fng-status');
+  const containerEl = document.getElementById('market-fng-icon-container');
+
+  let label = '중립 (Neutral) 상태';
+  let scoreColor = 'text-amber-400';
+  let statusColor = 'text-amber-400';
+  let containerClass = 'w-12 h-12 rounded-full bg-amber-500/10 border-2 border-amber-400 flex items-center justify-center';
+  let iconName = 'minus';
+  let iconColor = 'text-amber-400';
+
+  if (score >= 76) {
+    label = '극도 탐욕 (Extreme Greed) 상태';
+    scoreColor = 'text-emerald-400';
+    statusColor = 'text-emerald-400';
+    containerClass = 'w-12 h-12 rounded-full bg-emerald-500/15 border-2 border-emerald-400 flex items-center justify-center';
+    iconName = 'trending-up';
+    iconColor = 'text-emerald-400';
+  } else if (score >= 56) {
+    label = '탐욕 (Greed) 상태';
+    scoreColor = 'text-emerald-400';
+    statusColor = 'text-emerald-400';
+    containerClass = 'w-12 h-12 rounded-full bg-emerald-500/10 border-2 border-emerald-400 flex items-center justify-center';
+    iconName = 'trending-up';
+    iconColor = 'text-emerald-400';
+  } else if (score <= 24) {
+    label = '극도 공포 (Extreme Fear) 상태';
+    scoreColor = 'text-rose-500';
+    statusColor = 'text-rose-400';
+    containerClass = 'w-12 h-12 rounded-full bg-rose-500/15 border-2 border-rose-500 flex items-center justify-center';
+    iconName = 'trending-down';
+    iconColor = 'text-rose-400';
+  } else if (score <= 44) {
+    label = '공포 (Fear) 상태';
+    scoreColor = 'text-orange-400';
+    statusColor = 'text-orange-400';
+    containerClass = 'w-12 h-12 rounded-full bg-orange-500/10 border-2 border-orange-400 flex items-center justify-center';
+    iconName = 'trending-down';
+    iconColor = 'text-orange-400';
+  }
+
+  if (scoreEl) {
+    scoreEl.innerText = score;
+    scoreEl.className = scoreColor;
+  }
+  if (statusEl) {
+    statusEl.innerText = label;
+    statusEl.className = `text-xs font-semibold ${statusColor}`;
+  }
+  if (containerEl) {
+    containerEl.className = containerClass;
+    containerEl.innerHTML = `<i data-lucide="${iconName}" class="w-6 h-6 ${iconColor}"></i>`;
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch (e) {}
+    }
+  }
+}
+window.renderFearAndGreedCard = renderFearAndGreedCard;
 
 let currentMarketCategoryFilter = 'all';
 
