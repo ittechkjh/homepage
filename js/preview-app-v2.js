@@ -5600,17 +5600,18 @@ function renderCalendarEvents() {
     const isPast = dday === '종료';
 
     return `
-    <div class="crypto-card bg-navy-900 border ${isToday ? 'border-cyan-400/80 ring-1 ring-cyan-400/30' : 'border-navy-800'} rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
+    <div class="crypto-card ${isToday ? 'calendar-today-card border-cyan-400 ring-2 ring-cyan-400/40 shadow-xl' : 'bg-navy-900 border-navy-800'} rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
       <div class="flex items-start gap-4 flex-1">
         <!-- Date Badge -->
-        <div class="w-16 h-16 rounded-2xl ${isToday ? 'bg-cyan-950/40 border-cyan-400' : 'bg-navy-950 border-navy-800'} border flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
-          <span class="text-[11px] font-black ${isToday ? 'text-cyan-300 font-extrabold animate-pulse' : (isPast ? 'text-slate-500' : 'text-cyan-400')} font-mono">${dday}</span>
-          <span class="text-xs font-bold text-slate-200 mt-0.5 font-mono">${ev.date.slice(5)}</span>
+        <div class="w-16 h-16 rounded-2xl ${isToday ? 'calendar-today-badge ring-2 ring-cyan-400/50' : (isPast ? 'bg-navy-950 border-navy-800/60 opacity-60' : 'bg-navy-950 border-navy-800')} border flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
+          ${isToday ? `<span class="text-[10px] font-black text-white bg-rose-500 px-1.5 py-0.5 rounded-full shadow-sm animate-pulse tracking-tight font-mono">D-Day</span>` : `<span class="text-[11px] font-black ${isPast ? 'text-slate-500' : 'text-cyan-400'} font-mono">${dday}</span>`}
+          <span class="text-xs font-black ${isToday ? 'text-white' : 'text-slate-200'} mt-0.5 font-mono">${ev.date.slice(5)}</span>
         </div>
 
         <!-- Info -->
         <div class="space-y-1.5 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
+            ${isToday ? `<span class="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-rose-500/25"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>오늘 진행 (TODAY)</span>` : ''}
             <span class="px-2.5 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-bold font-mono">${ev.coin}</span>
             <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold">${ev.categoryName}</span>
             <span class="text-xs text-slate-500 font-mono">${ev.time}</span>
@@ -5693,7 +5694,7 @@ function renderMonthCalendar() {
 
     let borderClass = 'border-navy-800/80 bg-navy-950';
     if (isToday) {
-      borderClass = 'border-cyan-400 bg-cyan-950/30 ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/10';
+      borderClass = 'calendar-month-today-cell border-cyan-400 bg-cyan-950/30 ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/10';
     } else if (hasEvents) {
       borderClass = 'border-cyan-500/40 bg-cyan-950/20';
     }
@@ -5705,7 +5706,7 @@ function renderMonthCalendar() {
             <span class="text-xs font-bold font-mono ${isToday ? 'text-cyan-300 font-extrabold' : (isSunday ? 'text-rose-400 font-extrabold' : (isSaturday ? 'text-cyan-400 font-extrabold' : (hasEvents ? 'text-white' : 'text-slate-300')))}">${month}/${day}</span>
             <span class="text-[10px] font-semibold ${isSunday ? 'text-rose-400/90' : (isSaturday ? 'text-cyan-400/90' : 'text-slate-400')}">(${dayNames[dayOfWeek]})</span>
           </div>
-          ${isToday ? `<span class="px-1.5 py-0.5 rounded bg-cyan-500 text-navy-950 font-black text-[9px] leading-none shadow-sm">오늘</span>` : (hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : '')}
+          ${isToday ? `<span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-black text-[10px] leading-none shadow-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>오늘</span>` : (hasEvents ? `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>` : '')}
         </div>
         <div class="space-y-1 mt-1.5 flex-1 overflow-hidden">
           ${dayEvents.slice(0, 3).map(e => `
