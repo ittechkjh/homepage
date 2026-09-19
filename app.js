@@ -5707,65 +5707,83 @@ function switchTab(tabId, updateHash = true) {
     }
   });
 
-  if (tabId === 'analyzer' && typeof App !== 'undefined' && typeof App.loadSavedTrades === 'function') {
-    App.loadSavedTrades();
-  }
-
-  if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
-    CoinCalculators.init();
-    const loggedUser = typeof CoinCalculators.getLoggedInUsername === 'function' ? CoinCalculators.getLoggedInUsername() : null;
-    const nickEl = document.getElementById('cardNick');
-    if (nickEl && loggedUser) {
-      nickEl.value = loggedUser;
-      if (typeof CoinCalculators.renderProfitCard === 'function') {
-        CoinCalculators.renderProfitCard();
-      }
-    }
-  }
-
-  if (tabId === 'market') {
-    fetchMarketData();
-    initChart();
-  }
-
-  if (tabId === 'forum') {
-    if (typeof loadDailyMarketReports === 'function') {
-      loadDailyMarketReports(true);
-    }
-    showForumListView();
-    updateAdminNavVisibility();
-  }
-
-  if (tabId === 'calendar') {
-    renderCalendarEvents();
-    renderMonthCalendar();
-  }
-
-  if (tabId === 'news') {
-    renderNews();
-  }
-
-  if (tabId === 'admin' && typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') {
-    AdminApp.checkAdminAccess();
-  }
-
-  if (tabId === 'policy' && typeof PolicyHub !== 'undefined' && typeof PolicyHub.init === 'function') {
-    PolicyHub.init();
-  }
-
-  if (tabId === 'onchain' && typeof OnChainEngine !== 'undefined') {
-    OnChainEngine.init();
-  }
-
   if (updateHash && window.location.hash !== `#/${tabId}`) {
     history.pushState(null, '', `#/${tabId}`);
   }
 
   updatePageSEO(tabId);
 
-  if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try { lucide.createIcons(); } catch(e) {}
-  }
+  // Instant UI transition complete. Defer heavy data calculation and rendering to next frame
+  setTimeout(() => {
+    if (tabId === 'analyzer' && typeof App !== 'undefined' && typeof App.loadSavedTrades === 'function') {
+      if (!App._lastLoadedUid || App._lastLoadedUid !== (typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : '')) {
+        App.loadSavedTrades();
+        App._lastLoadedUid = typeof AnalyzerStorage !== 'undefined' ? AnalyzerStorage.getCurrentUserId() : '';
+      }
+    }
+
+    if (tabId === 'calculators' && typeof CoinCalculators !== 'undefined') {
+      if (!CoinCalculators._initialized) {
+        CoinCalculators.init();
+        CoinCalculators._initialized = true;
+      }
+      const loggedUser = typeof CoinCalculators.getLoggedInUsername === 'function' ? CoinCalculators.getLoggedInUsername() : null;
+      const nickEl = document.getElementById('cardNick');
+      if (nickEl && loggedUser) {
+        nickEl.value = loggedUser;
+        if (typeof CoinCalculators.renderProfitCard === 'function') {
+          CoinCalculators.renderProfitCard();
+        }
+      }
+    }
+
+    if (tabId === 'market') {
+      fetchMarketData();
+      initChart();
+    }
+
+    if (tabId === 'forum') {
+      if (typeof loadDailyMarketReports === 'function') {
+        loadDailyMarketReports(true);
+      }
+      showForumListView();
+      updateAdminNavVisibility();
+    }
+
+    if (tabId === 'calendar') {
+      renderCalendarEvents();
+      renderMonthCalendar();
+    }
+
+    if (tabId === 'news') {
+      renderNews();
+    }
+
+    if (tabId === 'admin' && typeof AdminApp !== 'undefined' && typeof AdminApp.checkAdminAccess === 'function') {
+      AdminApp.checkAdminAccess();
+    }
+
+    if (tabId === 'policy' && typeof PolicyHub !== 'undefined' && typeof PolicyHub.init === 'function') {
+      PolicyHub.init();
+    }
+
+    if (tabId === 'onchain' && typeof OnChainEngine !== 'undefined') {
+      OnChainEngine.init();
+    }
+
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try {
+        const activeTabEl = document.getElementById(`tab-${tabId}`);
+        if (activeTabEl) {
+          lucide.createIcons({ root: activeTabEl });
+        } else {
+          lucide.createIcons();
+        }
+      } catch(e) {
+        try { lucide.createIcons(); } catch(_) {}
+      }
+    }
+  }, 0);
 }
 window.switchTab = switchTab;
 
@@ -6751,6 +6769,11 @@ const OnChainEngine = {
   },
 
   updateLiveMetrics: function () {
+    const onchainTab = document.getElementById('tab-onchain');
+    if (onchainTab && (onchainTab.classList.contains('hidden') || onchainTab.style.display === 'none')) {
+      return; // Do not waste CPU rendering onchain metrics when tab is not active
+    }
+
     const coin = this.currentCoin;
     const d = this.data[coin];
     if (!d) return;
