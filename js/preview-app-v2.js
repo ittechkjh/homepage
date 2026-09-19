@@ -6348,6 +6348,8 @@ function switchTab(tabId, updateHash = true) {
       if (!CoinCalculators._initialized) {
         CoinCalculators.init();
         CoinCalculators._initialized = true;
+      } else if (typeof CoinCalculators.renderScenarioUI === 'function') {
+        CoinCalculators.renderScenarioUI();
       }
       const loggedUser = typeof CoinCalculators.getLoggedInUsername === 'function' ? CoinCalculators.getLoggedInUsername() : null;
       const nickEl = document.getElementById('cardNick');

@@ -112,16 +112,47 @@ const CoinCalculators = {
         return user ? `crytopnl_dca_scenarios_${user}` : 'crytopnl_dca_scenarios_guest';
     },
 
-    // 저장된 시나리오 목록 반환
+    // 저장된 시나리오 목록 반환 (현재 사용자 키 + 게스트/관리자/기타 키 전체 통합 복구)
     getSavedScenarios: function () {
-        try {
-            const raw = localStorage.getItem(this.getScenarioStorageKey());
-            if (raw) {
+        const primaryKey = this.getScenarioStorageKey();
+        const mergedList = [];
+        const seenIds = new Set();
+
+        const addItems = (raw) => {
+            if (!raw) return;
+            try {
                 const list = JSON.parse(raw);
-                if (Array.isArray(list)) return list;
+                if (Array.isArray(list)) {
+                    list.forEach(item => {
+                        if (item && item.id && !seenIds.has(item.id)) {
+                            seenIds.add(item.id);
+                            mergedList.push(item);
+                        }
+                    });
+                }
+            } catch (e) {}
+        };
+
+        // 1. 현재 사용자 키 우선 탐색
+        addItems(localStorage.getItem(primaryKey));
+
+        // 2. 다른 키(admin, guest, 레거시 키)에 보관된 시나리오 통합 스캔
+        const fallbackKeys = ['crytopnl_dca_scenarios_admin', 'crytopnl_dca_scenarios_guest', 'crytopnl_dca_scenarios'];
+        fallbackKeys.forEach(k => {
+            if (k !== primaryKey) addItems(localStorage.getItem(k));
+        });
+
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('crytopnl_dca_scenarios') && k !== primaryKey) {
+                    addItems(localStorage.getItem(k));
+                }
             }
         } catch (e) {}
-        return [];
+
+        // 최신 업데이트 순 정렬 유지
+        return mergedList;
     },
 
     // 현재 폼 상태를 시나리오로 저장 (신규 or 덮어쓰기)
