@@ -130,8 +130,10 @@ const CoinCalculators = {
         const curQty = this.parseNum(document.getElementById('waterCurrentQty')?.value);
         const feeRate = document.getElementById('waterFeeRate')?.value || '0.05';
 
-        if (curPrice <= 0 && curQty <= 0) {
-            alert('보유 평단가와 수량을 입력해주세요.');
+        // 보유 평단가와 수량이 없더라도(추가 매수 차수 계획만으로도) 저장 가능하도록 허용
+        const hasWaterTiers = this.waterTiers && this.waterTiers.length > 0;
+        if (curPrice <= 0 && curQty <= 0 && !hasWaterTiers) {
+            alert('저장할 매수 계획이나 보유 포지션을 입력해주세요.');
             return;
         }
 
