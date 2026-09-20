@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-09-20",
-  "lastUpdatedTimeKst": "09. 21. 24:34",
-  "timestamp": 1789918458292,
+  "lastUpdatedTimeKst": "09. 21. 08:49",
+  "timestamp": 1789948145299,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -46,8 +46,8 @@
       "lastUpdated": "2026-09-20"
     },
     "dxy": {
-      "value": 100.22,
-      "change": 0.57,
+      "value": 100.28,
+      "change": 0.63,
       "text": "달러 강세 (긴축 부담)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
@@ -86,16 +86,16 @@
       "lastUpdated": "2026-09-20"
     },
     "goldFut": {
-      "value": 4424.9,
-      "change": 2.13,
+      "value": 4413.8,
+      "change": 1.87,
       "text": "안전자산 수요 견조",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-09-20"
     },
     "wti": {
-      "value": 96.08,
-      "change": -9.21,
+      "value": 95.96,
+      "change": -9.33,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
@@ -108,16 +108,56 @@
       "puellMultiple": 0.9973
     },
     "cryptoSnapshot": {
-      "BTC": { "price": 133400000, "change24h": 0.8, "timestamp": 1789918458000 },
-      "ETH": { "price": 4720000, "change24h": 1.2, "timestamp": 1789918458000 },
-      "XRP": { "price": 930, "change24h": -0.4, "timestamp": 1789918458000 },
-      "SOL": { "price": 285000, "change24h": 2.5, "timestamp": 1789918458000 },
-      "DOGE": { "price": 210, "change24h": 0.5, "timestamp": 1789918458000 },
-      "ADA": { "price": 610, "change24h": -0.2, "timestamp": 1789918458000 },
-      "AVAX": { "price": 42000, "change24h": 1.1, "timestamp": 1789918458000 },
-      "SUI": { "price": 2750, "change24h": 3.4, "timestamp": 1789918458000 },
-      "LINK": { "price": 18500, "change24h": 0.9, "timestamp": 1789918458000 },
-      "DOT": { "price": 7200, "change24h": -0.8, "timestamp": 1789918458000 }
+      "BTC": {
+        "price": 111130000,
+        "change24h": 0.19203549,
+        "timestamp": 1789948145190
+      },
+      "ETH": {
+        "price": 3615000,
+        "change24h": 0.52836485,
+        "timestamp": 1789948142280
+      },
+      "XRP": {
+        "price": 1931,
+        "change24h": 0.2596054,
+        "timestamp": 1789948144222
+      },
+      "SOL": {
+        "price": 152100,
+        "change24h": 0.3960396,
+        "timestamp": 1789948145188
+      },
+      "DOGE": {
+        "price": 120,
+        "change24h": 0,
+        "timestamp": 1789948143569
+      },
+      "ADA": {
+        "price": 312,
+        "change24h": 0.32154341000000003,
+        "timestamp": 1789948121997
+      },
+      "AVAX": {
+        "price": 15500,
+        "change24h": 12.563543939999999,
+        "timestamp": 1789948139998
+      },
+      "SUI": {
+        "price": 1227,
+        "change24h": 4.7822374,
+        "timestamp": 1789948142294
+      },
+      "LINK": {
+        "price": 17100,
+        "change24h": 0.88495575,
+        "timestamp": 1789948144544
+      },
+      "DOT": {
+        "price": 1553,
+        "change24h": 1.17263844,
+        "timestamp": 1789948064067
+      }
     }
   }
 }
