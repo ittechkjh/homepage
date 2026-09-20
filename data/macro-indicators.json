@@ -106,6 +106,18 @@
       "mvrv": 1.454,
       "sopr": 1.0005,
       "puellMultiple": 0.9973
+    },
+    "cryptoSnapshot": {
+      "BTC": { "price": 133400000, "change24h": 0.8, "timestamp": 1789918458000 },
+      "ETH": { "price": 4720000, "change24h": 1.2, "timestamp": 1789918458000 },
+      "XRP": { "price": 930, "change24h": -0.4, "timestamp": 1789918458000 },
+      "SOL": { "price": 285000, "change24h": 2.5, "timestamp": 1789918458000 },
+      "DOGE": { "price": 210, "change24h": 0.5, "timestamp": 1789918458000 },
+      "ADA": { "price": 610, "change24h": -0.2, "timestamp": 1789918458000 },
+      "AVAX": { "price": 42000, "change24h": 1.1, "timestamp": 1789918458000 },
+      "SUI": { "price": 2750, "change24h": 3.4, "timestamp": 1789918458000 },
+      "LINK": { "price": 18500, "change24h": 0.9, "timestamp": 1789918458000 },
+      "DOT": { "price": 7200, "change24h": -0.8, "timestamp": 1789918458000 }
     }
   }
 }

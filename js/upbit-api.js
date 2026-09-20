@@ -801,7 +801,42 @@ const UpbitAPI = {
     },
 
     _dynamicPrices: null,
+    _snapshotPrices: null,
+    _fallbackStatus: {
+        isStale: false,
+        source: 'live', // 'live' | 'bithumb' | 'snapshot' | 'cache'
+        message: ''
+    },
+
+    // 15분 TTL (15 * 60 * 1000 = 900,000ms) 초과 시 Stale 처리
+    CACHE_TTL_MS: 15 * 60 * 1000,
+
     getFallbackPrice: function(symbol) {
+        if (!symbol) return 0;
+        const sym = symbol.toUpperCase();
+
+        // 1순위: 빗썸 실시간 시세가 이미 메모리에 로드되어 있는 경우 즉시 실시간 교차 활용
+        if (this._cachedTickerMap) {
+            const bKey = 'BITHUMB:::' + sym;
+            const bKeyKrw = 'BITHUMB:::KRW-' + sym;
+            const bEntry = this._cachedTickerMap[bKey] || this._cachedTickerMap[bKeyKrw] || this._cachedTickerMap[sym];
+            if (bEntry && bEntry.tradePrice > 0) {
+                this._fallbackStatus = { isStale: false, source: 'bithumb', message: '빗썸 실시간 시세 교차 연동' };
+                return bEntry.tradePrice;
+            }
+        }
+
+        // 2순위: 중앙 서버리스 스냅샷 데이터 확인 (data/macro-indicators.json 내 cryptoSnapshot)
+        if (this._snapshotPrices && this._snapshotPrices[sym] && this._snapshotPrices[sym].price > 0) {
+            const snap = this._snapshotPrices[sym];
+            const age = Date.now() - (snap.timestamp || 0);
+            if (age < 24 * 60 * 60 * 1000) { // 24시간 이내의 공인 일일 스냅샷
+                this._fallbackStatus = { isStale: true, source: 'snapshot', message: '공인 일일 스냅샷 시세' };
+                return snap.price;
+            }
+        }
+
+        // 3순위: localStorage 동적 캐시 (단, 15분 TTL 이내의 신선한 데이터만 엄격히 인정)
         if (!this._dynamicPrices) {
             this._dynamicPrices = {};
             try {
@@ -809,16 +844,41 @@ const UpbitAPI = {
                 if (stored) this._dynamicPrices = JSON.parse(stored) || {};
             } catch(e) {}
         }
-        if (this._dynamicPrices && this._dynamicPrices[symbol]) {
-            return this._dynamicPrices[symbol];
+
+        if (this._dynamicPrices && this._dynamicPrices[sym]) {
+            const entry = this._dynamicPrices[sym];
+            const price = typeof entry === 'object' ? entry.price : entry;
+            const timestamp = typeof entry === 'object' ? entry.timestamp : 0;
+            const age = Date.now() - timestamp;
+
+            // 15분 이내의 신선한 캐시만 허용
+            if (timestamp > 0 && age < this.CACHE_TTL_MS && price > 0) {
+                const minsAgo = Math.max(1, Math.round(age / 60000));
+                this._fallbackStatus = { isStale: true, source: 'cache', message: `최근 ${minsAgo}분 전 캐시 시세` };
+                return price;
+            }
         }
-        return this.fallbackPrices[symbol] || 0;
+
+        // 4순위: 15분이 경과한 만료 데이터 또는 알 수 없는 종목은 0 반환 (과거 데이터 왜곡 차단)
+        this._fallbackStatus = { isStale: true, source: 'none', message: '실시간 시세 수신 대기중' };
+        return 0;
     },
 
     saveDynamicPrice: function(symbol, price) {
         if (!symbol || !price || price <= 0) return;
-        if (!this._dynamicPrices) this.getFallbackPrice(symbol);
-        this._dynamicPrices[symbol] = price;
+        const sym = symbol.toUpperCase();
+        if (!this._dynamicPrices) {
+            this._dynamicPrices = {};
+            try {
+                const stored = localStorage.getItem('upbit_dynamic_fallback_prices');
+                if (stored) this._dynamicPrices = JSON.parse(stored) || {};
+            } catch(e) {}
+        }
+        // 가격과 함께 기록 시점(timestamp)을 반드시 저장하여 TTL 검증 지원
+        this._dynamicPrices[sym] = {
+            price: price,
+            timestamp: Date.now()
+        };
         if (!this._saveDynamicTimer) {
             this._saveDynamicTimer = setTimeout(() => {
                 this._saveDynamicTimer = null;
@@ -827,6 +887,20 @@ const UpbitAPI = {
                 } catch(e) {}
             }, 5000);
         }
+    },
+
+    // 중앙 서버리스 스냅샷 비동기 백그라운드 프리로드
+    loadServerlessSnapshot: async function() {
+        if (this._snapshotPrices) return;
+        try {
+            const res = await fetch('data/macro-indicators.json');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.indicators && data.indicators.cryptoSnapshot) {
+                    this._snapshotPrices = data.indicators.cryptoSnapshot;
+                }
+            }
+        } catch(e) {}
     },
 
     _cachedTickerMap: null,
@@ -1013,18 +1087,29 @@ const UpbitAPI = {
             return this._cachedTickerMap;
         }
 
-        // 7. 메모리 캐시도 없으면 localStorage 영구 저장 데이터 복구 (429/네트워크 오류 완벽 대응)
+        // 7. 메모리 캐시도 없으면 localStorage 영구 저장 데이터 복구 (단, 15분 TTL 엄격 준수)
         try {
             const stored = localStorage.getItem('UPBIT_PERSISTENT_TICKERS');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 if (parsed && parsed.tickers && Object.keys(parsed.tickers).length > 50) {
-                    console.warn('[UpbitAPI] 429/네트워크 오류 - localStorage 영구 캐시로 복구:', Object.keys(parsed.tickers).length, '개');
-                    this._cachedTickerMap = parsed.tickers;
-                    return this._cachedTickerMap;
+                    const cacheAge = Date.now() - (parsed.time || 0);
+                    if (cacheAge < this.CACHE_TTL_MS) {
+                        const mins = Math.max(1, Math.round(cacheAge / 60000));
+                        console.warn(`[UpbitAPI] 실시간 통신 지연 - 최근 ${mins}분 전 유효 캐시로 안전 복구:`, Object.keys(parsed.tickers).length, '개');
+                        this._cachedTickerMap = parsed.tickers;
+                        return this._cachedTickerMap;
+                    } else {
+                        console.warn('[UpbitAPI] 로컬 캐시 만료 (15분 초과) - 왜곡 방지를 위해 과거 데이터 폐기');
+                    }
                 }
             }
         } catch (e) {}
+
+        // 8. 백그라운드 서버리스 스냅샷 트리거
+        if (!this._snapshotPrices) {
+            this.loadServerlessSnapshot();
+        }
 
         return tickerMap;
     },
@@ -1118,21 +1203,32 @@ const UpbitAPI = {
             let livePrice = 0;
             let change24hVal = 0;
 
+            let priceSource = 'live';
+            let priceStatusText = '';
+
             if (ticker && ticker.tradePrice > 0) {
                 livePrice = ticker.tradePrice;
                 change24hVal = (ticker.signedChangeRate || 0) * 100;
+                priceSource = ticker.isBithumb ? 'bithumb' : 'upbit';
             } else if (parseFloat(coin.currentPrice) > 0 && parseFloat(coin.currentPrice) !== parseFloat(coin.avgBuyPrice)) {
                 livePrice = parseFloat(coin.currentPrice);
+                priceSource = 'recent';
             } else if (this.getFallbackPrice(symbol)) {
                 livePrice = this.getFallbackPrice(symbol);
                 change24hVal = 0;
+                priceSource = this._fallbackStatus?.source || 'fallback';
+                priceStatusText = this._fallbackStatus?.message || '';
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
                 livePrice = parseFloat(coin.avgBuyPrice);
                 change24hVal = 0;
+                priceSource = 'avg_buy';
+                priceStatusText = '매수가 대체 (실시간 수신 대기)';
             }
 
             coin.currentPrice = livePrice;
             coin.change24h = change24hVal;
+            coin.priceSource = priceSource;
+            coin.priceStatusText = priceStatusText;
 
             if (hQty > 1e-4 && livePrice > 0 && (hQty * livePrice >= 50)) {
                 coin.currentValue = hQty * livePrice;

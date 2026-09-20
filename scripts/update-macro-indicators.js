@@ -179,6 +179,24 @@ async function updateMacroIndicators() {
     if (puell && puell > 0.1 && puell < 10) onchain.puellMultiple = Math.round(puell * 1000) / 1000;
   } catch (ocErr) {}
 
+  // 1.3 Fetch Official KRW Market Snapshot (Top Coins Live Snapshot for Serverless Backup)
+  const cryptoSnapshot = {};
+  try {
+    const upbitSnap = await fetchUrlJson('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE,KRW-ADA,KRW-AVAX,KRW-SUI,KRW-LINK,KRW-DOT');
+    if (Array.isArray(upbitSnap)) {
+      upbitSnap.forEach(item => {
+        if (item && item.market && item.trade_price) {
+          const sym = item.market.replace('KRW-', '');
+          cryptoSnapshot[sym] = {
+            price: item.trade_price,
+            change24h: (item.signed_change_rate || 0) * 100,
+            timestamp: item.timestamp || Date.now()
+          };
+        }
+      });
+    }
+  } catch (snapErr) {}
+
   // 2. Load Existing Data as fallback baseline if needed
   let prevData = {};
   if (fs.existsSync(outputFile)) {
@@ -359,7 +377,8 @@ async function updateMacroIndicators() {
       vix,
       goldFut,
       wti,
-      onchain
+      onchain,
+      cryptoSnapshot
     }
   };
 
