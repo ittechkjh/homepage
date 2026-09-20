@@ -529,6 +529,10 @@ const CoinCalculators = {
             this.calcCompoundPlanner();
         } else if (tabId === 'staking') {
             this.calcStakingYield();
+        } else if (tabId === 'stocktax') {
+            this.calcStockTax();
+        } else if (tabId === 'dividend') {
+            this.calcStockDividend();
         }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -2502,6 +2506,283 @@ const CoinCalculators = {
 
         const threeYearEl = document.getElementById('stakingResultThreeYear');
         if (threeYearEl) threeYearEl.innerText = `+${threeYearRewardQty.toFixed(4)} ${symbol} (+${Math.round(threeYearRewardKrw).toLocaleString('ko-KR')}원)`;
+    },
+
+    // ========================================================
+    // 10. 해외(미국)주식 양도소득세 & 250만원 절세 계산기
+    // ========================================================
+    stockTaxCurrency: 'krw', // 'krw' | 'usd'
+    setStockTaxCurrency: function (curr) {
+        this.stockTaxCurrency = curr;
+        const krwBtn = document.getElementById('stockTaxBtnKrw');
+        const usdBtn = document.getElementById('stockTaxBtnUsd');
+        const unitEls = document.querySelectorAll('.stocktax-unit');
+
+        if (curr === 'krw') {
+            if (krwBtn) krwBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm';
+            if (usdBtn) usdBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            unitEls.forEach(el => el.innerText = '원');
+        } else {
+            if (krwBtn) krwBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (usdBtn) usdBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm';
+            unitEls.forEach(el => el.innerText = '$');
+        }
+        this.calcStockTax();
+    },
+
+    calcStockTax: function () {
+        const isUsd = (this.stockTaxCurrency === 'usd');
+        const rate = this.parseNum(document.getElementById('stockTaxExchangeRate')?.value, 1380);
+
+        let profit = this.parseNum(document.getElementById('stockTaxProfit')?.value, 5000000);
+        let loss = this.parseNum(document.getElementById('stockTaxLoss')?.value, 0);
+        let fee = this.parseNum(document.getElementById('stockTaxFee')?.value, 0);
+
+        // USD인 경우 원화로 환산
+        const profitKrw = isUsd ? (profit * rate) : profit;
+        const lossKrw = isUsd ? (loss * rate) : loss;
+        const feeKrw = isUsd ? (fee * rate) : fee;
+
+        // 순 실현 양도차익
+        const netGainKrw = Math.max(0, profitKrw - lossKrw - feeKrw);
+
+        // 기본 공제 250만원
+        const basicDeductionKrw = 2500000;
+        // 과세 표준 = max(0, 순양도차익 - 250만원)
+        const taxableKrw = Math.max(0, netGainKrw - basicDeductionKrw);
+
+        // 양도소득세 20% + 지방소득세 2% = 총 22%
+        const incomeTaxKrw = taxableKrw * 0.20;
+        const localTaxKrw = taxableKrw * 0.02;
+        const totalTaxKrw = incomeTaxKrw + localTaxKrw;
+
+        // 실효 세율 (%) = (총 세금 / 순수익) * 100
+        const effectiveTaxRate = netGainKrw > 0 ? ((totalTaxKrw / netGainKrw) * 100) : 0;
+
+        // 세후 순수익
+        const afterTaxProfitKrw = netGainKrw - totalTaxKrw;
+
+        // 손실 상계(Tax-Loss Harvesting) 필요 손실액: 세금을 0원으로 만들기 위해 연내 매도해야 할 손실
+        const neededLossKrw = Math.max(0, netGainKrw - basicDeductionKrw);
+        const neededLossUsd = rate > 0 ? (neededLossKrw / rate) : 0;
+
+        // UI 갱신
+        const netGainEl = document.getElementById('stockTaxResultNetGain');
+        if (netGainEl) netGainEl.innerText = `${Math.round(netGainKrw).toLocaleString('ko-KR')}원`;
+
+        const deductionEl = document.getElementById('stockTaxResultDeduction');
+        if (deductionEl) {
+            const actualDeduction = Math.min(netGainKrw, basicDeductionKrw);
+            deductionEl.innerText = `-${Math.round(actualDeduction).toLocaleString('ko-KR')}원`;
+        }
+
+        const taxableEl = document.getElementById('stockTaxResultTaxable');
+        if (taxableEl) taxableEl.innerText = `${Math.round(taxableKrw).toLocaleString('ko-KR')}원`;
+
+        const totalTaxEl = document.getElementById('stockTaxResultTotalTax');
+        if (totalTaxEl) totalTaxEl.innerText = `${Math.round(totalTaxKrw).toLocaleString('ko-KR')}원`;
+
+        const incomeTaxEl = document.getElementById('stockTaxResultIncomeTax');
+        if (incomeTaxEl) incomeTaxEl.innerText = `${Math.round(incomeTaxKrw).toLocaleString('ko-KR')}원`;
+
+        const localTaxEl = document.getElementById('stockTaxResultLocalTax');
+        if (localTaxEl) localTaxEl.innerText = `${Math.round(localTaxKrw).toLocaleString('ko-KR')}원`;
+
+        const effRateEl = document.getElementById('stockTaxResultEffectiveRate');
+        if (effRateEl) effRateEl.innerText = `${effectiveTaxRate.toFixed(1)}% (세전 대비)`;
+
+        const afterTaxEl = document.getElementById('stockTaxResultAfterTax');
+        if (afterTaxEl) afterTaxEl.innerText = `${Math.round(afterTaxProfitKrw).toLocaleString('ko-KR')}원`;
+
+        // 손실 상계 가이드 UI
+        const taxHarvestCard = document.getElementById('stockTaxHarvestCard');
+        const neededLossEl = document.getElementById('stockTaxResultNeededLoss');
+        const harvestStatusEl = document.getElementById('stockTaxHarvestStatus');
+
+        if (neededLossKrw > 0) {
+            if (taxHarvestCard) taxHarvestCard.className = 'p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40 space-y-2';
+            if (harvestStatusEl) harvestStatusEl.innerText = '💡 손실 상계 절세 기회 (세금 0원 플랜)';
+            if (neededLossEl) {
+                neededLossEl.innerHTML = `
+                  <div class="text-base font-black text-amber-300 font-mono">
+                    -${Math.round(neededLossKrw).toLocaleString('ko-KR')}원 (약 -$${Math.round(neededLossUsd).toLocaleString('ko-KR')})
+                  </div>
+                  <p class="text-xs text-slate-300 mt-1">
+                    현재 마이너스인 보유 종목을 12월 말까지 매도하여 위 금액만큼 손실을 확정지으면, <strong class="text-emerald-400">양도소득세 ${Math.round(totalTaxKrw).toLocaleString('ko-KR')}원이 전액 0원으로 절세</strong>됩니다!
+                  </p>
+                `;
+            }
+        } else {
+            if (taxHarvestCard) taxHarvestCard.className = 'p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-2';
+            if (harvestStatusEl) harvestStatusEl.innerText = '🎉 양도세 비과세 구간 (250만원 이하)';
+            if (neededLossEl) {
+                const remainingDeduction = basicDeductionKrw - netGainKrw;
+                neededLossEl.innerHTML = `
+                  <div class="text-base font-black text-emerald-300 font-mono">
+                    세금 0원 (잔여 비과세 한도: +${Math.round(remainingDeduction).toLocaleString('ko-KR')}원)
+                  </div>
+                  <p class="text-xs text-slate-300 mt-1">
+                    기본공제 250만 원 한도 이내이므로 납부할 양도소득세가 전혀 없습니다.
+                  </p>
+                `;
+            }
+        }
+    },
+
+    // ========================================================
+    // 11. 주식 배당금 & 배당소득세(15.4%) 실효수익 계산기
+    // ========================================================
+    dividendPresets: {
+        'SCHD': { name: 'SCHD (미국 배당성장 ETF)', market: 'us', price: 28.5, rate: 3.55, freq: 4 },
+        'O': { name: '리얼티인컴 (O, 미국 월배당 리츠)', market: 'us', price: 54.0, rate: 5.60, freq: 12 },
+        'JEPI': { name: 'JEPI (JP모건 월배당 커버드콜)', market: 'us', price: 57.2, rate: 7.40, freq: 12 },
+        '005935': { name: '삼성전자우 (국내 고배당)', market: 'kr', price: 47000, rate: 3.10, freq: 4 },
+        '088980': { name: '맥쿼리인프라 (국내 대표 인프라)', market: 'kr', price: 11500, rate: 6.80, freq: 2 }
+    },
+
+    applyDividendPreset: function (key) {
+        const p = this.dividendPresets[key];
+        if (!p) return;
+
+        const nameEl = document.getElementById('dividendStockName');
+        const marketEl = document.getElementById('dividendMarket');
+        const priceEl = document.getElementById('dividendPrice');
+        const rateEl = document.getElementById('dividendYieldRate');
+        const freqEl = document.getElementById('dividendFrequency');
+
+        if (nameEl) nameEl.value = p.name;
+        if (marketEl) marketEl.value = p.market;
+        if (priceEl) priceEl.value = this.formatNumber(p.price);
+        if (rateEl) rateEl.value = p.rate;
+        if (freqEl) freqEl.value = p.freq;
+
+        this.calcStockDividend();
+    },
+
+    calcStockDividend: function () {
+        const market = document.getElementById('dividendMarket')?.value || 'us';
+        const isUs = (market === 'us');
+        const exchangeRate = this.parseNum(document.getElementById('dividendExchangeRate')?.value, 1380);
+
+        const priceInput = this.parseNum(document.getElementById('dividendPrice')?.value, 28.5);
+        const shares = this.parseNum(document.getElementById('dividendShares')?.value, 500);
+        const yieldRate = this.parseNum(document.getElementById('dividendYieldRate')?.value, 3.55) / 100;
+        const freq = Math.max(1, parseInt(document.getElementById('dividendFrequency')?.value || '4', 10));
+
+        if (priceInput <= 0 || shares <= 0) return;
+
+        // 원화 환산 1주당 가격
+        const priceKrw = isUs ? (priceInput * exchangeRate) : priceInput;
+        // 총 투자 평가금액
+        const totalInvestedKrw = priceKrw * shares;
+
+        // 연간 세전 총 배당금
+        const annualGrossDividendKrw = totalInvestedKrw * yieldRate;
+        const annualGrossDividendUsd = (isUs && exchangeRate > 0) ? (annualGrossDividendKrw / exchangeRate) : 0;
+
+        // 배당소득세율: 국내 15.4%, 미국 15.0%
+        const taxRate = isUs ? 0.150 : 0.154;
+        const annualTaxKrw = annualGrossDividendKrw * taxRate;
+        // 세후 연간 실수령 배당금
+        const annualNetDividendKrw = annualGrossDividendKrw - annualTaxKrw;
+        const annualNetDividendUsd = (isUs && exchangeRate > 0) ? (annualNetDividendKrw / exchangeRate) : 0;
+
+        // 주기별 실수령액
+        const monthlyNetKrw = annualNetDividendKrw / 12;
+        const quarterlyNetKrw = annualNetDividendKrw / 4;
+        const perPayoutNetKrw = annualNetDividendKrw / freq;
+
+        // 금융소득종합과세 2,000만원 기준 진단
+        const financeTaxThresholdKrw = 20000000;
+        const isOverFinanceTax = (annualGrossDividendKrw >= financeTaxThresholdKrw);
+        const remainingSafetyKrw = Math.max(0, financeTaxThresholdKrw - annualGrossDividendKrw);
+
+        // UI 갱신
+        const totalInvestedEl = document.getElementById('dividendResultTotalInvested');
+        if (totalInvestedEl) {
+            totalInvestedEl.innerText = isUs
+                ? `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원 ($${Math.round(shares * priceInput).toLocaleString('ko-KR')})`
+                : `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원`;
+        }
+
+        const grossDivEl = document.getElementById('dividendResultGrossAnnual');
+        if (grossDivEl) grossDivEl.innerText = `${Math.round(annualGrossDividendKrw).toLocaleString('ko-KR')}원 (${(yieldRate * 100).toFixed(2)}%)`;
+
+        const taxEl = document.getElementById('dividendResultTax');
+        if (taxEl) taxEl.innerText = `-${Math.round(annualTaxKrw).toLocaleString('ko-KR')}원 (${(taxRate * 100).toFixed(1)}%)`;
+
+        const netAnnualEl = document.getElementById('dividendResultNetAnnual');
+        if (netAnnualEl) {
+            netAnnualEl.innerText = isUs
+                ? `${Math.round(annualNetDividendKrw).toLocaleString('ko-KR')}원 (약 $${annualNetDividendUsd.toFixed(1)})`
+                : `${Math.round(annualNetDividendKrw).toLocaleString('ko-KR')}원`;
+        }
+
+        const netMonthlyEl = document.getElementById('dividendResultNetMonthly');
+        if (netMonthlyEl) netMonthlyEl.innerText = `월평균 약 ${Math.round(monthlyNetKrw).toLocaleString('ko-KR')}원`;
+
+        const netPayoutEl = document.getElementById('dividendResultPerPayout');
+        if (netPayoutEl) netPayoutEl.innerText = `1회 지급 시 약 ${Math.round(perPayoutNetKrw).toLocaleString('ko-KR')}원 (연 ${freq}회)`;
+
+        // 금융소득 종합과세 경보 뱃지
+        const taxAlertCard = document.getElementById('dividendTaxAlertCard');
+        if (taxAlertCard) {
+            if (isOverFinanceTax) {
+                taxAlertCard.className = 'p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 space-y-1.5';
+                taxAlertCard.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                      🚨 금융소득 종합과세 대상 (2,000만 원 초과)
+                    </span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">종합소득 합산</span>
+                  </div>
+                  <p class="text-xs text-slate-300">
+                    연간 세전 배당금(${Math.round(annualGrossDividendKrw).toLocaleString()}원)이 2,000만 원을 초과하여 근로소득 등 다른 소득과 합산 과세되며, <strong>건강보험료 피부양자 자격이 박탈되어 지역가입자로 전환</strong>될 수 있습니다!
+                  </p>
+                `;
+            } else {
+                taxAlertCard.className = 'p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5';
+                taxAlertCard.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                      🛡️ 금융소득 종합과세 안전 구간 (2,000만 원 이하)
+                    </span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">분리과세 종결</span>
+                  </div>
+                  <p class="text-xs text-slate-300">
+                    종합과세 한도(2,000만원)까지 <strong class="text-emerald-400">+${Math.round(remainingSafetyKrw).toLocaleString()}원</strong>의 안전마진이 남아 있어, 15.4%(미국 15%) 원천징수 분리과세로 세무 신고가 깔끔하게 종결됩니다.
+                  </p>
+                `;
+            }
+        }
+
+        // DRIP (배당 재투자) 5년/10년 복리 시뮬레이션
+        const drip5YrBody = document.getElementById('dividendDrip5Yr');
+        const drip10YrBody = document.getElementById('dividendDrip10Yr');
+
+        // 매년 배당금으로 주식을 재매수할 경우 (주가 상승률 3%, 배당성장률 5% 보수적 가정)
+        let simShares5 = shares;
+        let simDiv5 = annualNetDividendKrw;
+        for (let y = 1; y <= 5; y++) {
+            const addedShares = simDiv5 / (priceKrw * Math.pow(1.03, y));
+            simShares5 += addedShares;
+            simDiv5 = simShares5 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - taxRate);
+        }
+
+        let simShares10 = shares;
+        let simDiv10 = annualNetDividendKrw;
+        for (let y = 1; y <= 10; y++) {
+            const addedShares = simDiv10 / (priceKrw * Math.pow(1.03, y));
+            simShares10 += addedShares;
+            simDiv10 = simShares10 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - taxRate);
+        }
+
+        if (drip5YrBody) {
+            drip5YrBody.innerText = `주식 수: ${Math.round(simShares5).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv5 / 12).toLocaleString('ko-KR')}원`;
+        }
+        if (drip10YrBody) {
+            drip10YrBody.innerText = `주식 수: ${Math.round(simShares10).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv10 / 12).toLocaleString('ko-KR')}원`;
+        }
     }
 };
 
