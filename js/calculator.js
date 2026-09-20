@@ -8,6 +8,9 @@ const ProfitCalculator = {
         const method = options.method || 'fifo';
         const exchangeFilter = options.exchange || 'ALL';
         const customStaking = options.customStaking || [];
+        const customFeeRate = (options.customFeeRate !== undefined && options.customFeeRate !== 'auto' && options.customFeeRate !== null && !isNaN(parseFloat(options.customFeeRate)))
+            ? parseFloat(options.customFeeRate)
+            : null;
         
         if (!items || items.length === 0) {
             return this.getEmptyResult(method);
@@ -77,8 +80,8 @@ const ProfitCalculator = {
                 return getPriority(a.type) - getPriority(b.type);
             });
             const coinResult = method === 'fifo' 
-                ? this.calculateMarketFIFO(market, marketTrades)
-                : this.calculateMarketMovingAvg(market, marketTrades);
+                ? this.calculateMarketFIFO(market, marketTrades, customFeeRate)
+                : this.calculateMarketMovingAvg(market, marketTrades, customFeeRate);
 
             coinSummaries[market] = coinResult.summary;
             coinResult.enrichedTrades.forEach(t => enrichedTrades.push(t));
@@ -452,7 +455,7 @@ const ProfitCalculator = {
         };
     },
 
-    calculateMarketFIFO: function (marketKey, trades) {
+    calculateMarketFIFO: function (marketKey, trades, customFeeRate = null) {
         const buyQueue = [];
         const enrichedTrades = [];
         
@@ -475,14 +478,19 @@ const ProfitCalculator = {
 
         trades.forEach(trade => {
             const enriched = { ...trade };
-            totalFee += (trade.fee || 0);
+            let effectiveFee = (trade.fee !== undefined && trade.fee !== null) ? trade.fee : 0;
+            if (customFeeRate !== null && customFeeRate !== undefined && !isNaN(customFeeRate)) {
+                effectiveFee = (trade.amount || 0) * (customFeeRate / 100);
+            }
+            totalFee += effectiveFee;
+            enriched.fee = effectiveFee;
 
             if (trade.type === '매수') {
                 totalBuyCount++;
                 totalBuyAmount += trade.amount;
                 totalBuyQty += trade.quantity;
 
-                const feePerUnit = trade.quantity > 0 ? (trade.fee || 0) / trade.quantity : 0;
+                const feePerUnit = trade.quantity > 0 ? effectiveFee / trade.quantity : 0;
                 buyQueue.push({
                     quantity: trade.quantity,
                     remainingQty: trade.quantity,
@@ -525,7 +533,7 @@ const ProfitCalculator = {
                     tradeCostBasis += sellQtyRemaining * trade.price;
                 }
 
-                const sellFee = trade.fee || 0;
+                const sellFee = effectiveFee;
                 const netCostBasis = tradeCostBasis + tradeBuyFees;
                 const netSellProceeds = trade.amount - sellFee;
                 const tradeProfit = netSellProceeds - netCostBasis;
@@ -637,7 +645,7 @@ const ProfitCalculator = {
         };
     },
 
-    calculateMarketMovingAvg: function (marketKey, trades) {
+    calculateMarketMovingAvg: function (marketKey, trades, customFeeRate = null) {
         const enrichedTrades = [];
 
         let totalBuyAmount = 0;
@@ -663,14 +671,19 @@ const ProfitCalculator = {
 
         trades.forEach(trade => {
             const enriched = { ...trade };
-            totalFee += (trade.fee || 0);
+            let effectiveFee = (trade.fee !== undefined && trade.fee !== null) ? trade.fee : 0;
+            if (customFeeRate !== null && customFeeRate !== undefined && !isNaN(customFeeRate)) {
+                effectiveFee = (trade.amount || 0) * (customFeeRate / 100);
+            }
+            totalFee += effectiveFee;
+            enriched.fee = effectiveFee;
 
             if (trade.type === '매수') {
                 totalBuyCount++;
                 totalBuyAmount += trade.amount;
                 totalBuyQty += trade.quantity;
 
-                const buyTotalCost = trade.amount + (trade.fee || 0);
+                const buyTotalCost = trade.amount + effectiveFee;
                 holdingCost += buyTotalCost;
                 holdingQty += trade.quantity;
                 avgBuyPrice = holdingQty > 1e-8 ? holdingCost / holdingQty : 0;
@@ -688,7 +701,7 @@ const ProfitCalculator = {
 
                 const sellQty = trade.quantity;
                 const costBasis = sellQty * avgBuyPrice;
-                const netSellProceeds = trade.amount - (trade.fee || 0);
+                const netSellProceeds = trade.amount - effectiveFee;
                 const tradeProfit = netSellProceeds - costBasis;
                 const tradeRoi = costBasis > 0 ? (tradeProfit / costBasis) * 100 : 0;
 

@@ -779,6 +779,7 @@ const App = {
         reportData: null,
         method: localStorage.getItem('coinhub_calc_method') || 'fifo',
         exchangeFilter: 'ALL',
+        customFeeRate: localStorage.getItem('crytopnl_custom_fee_rate') || 'auto',
         activeTab: 'dashboard',
         sortStates: {
             coinsTable: { col: 'realizedProfit', asc: false },
@@ -890,6 +891,39 @@ const App = {
                 this.recalculate();
                 const exName = e.target.value === 'ALL' ? '전체 거래소(통합)' : (e.target.value === 'UPBIT' ? '업비트' : '빗썸');
                 this.showToast("분석 대상 거래소가 '" + exName + "'(으)로 변경되었습니다.", 'info');
+            });
+        }
+
+        // 수수료율 맞춤형 커스텀 필터
+        const feeFilterSelect = document.getElementById('globalFeeSelect');
+        if (feeFilterSelect) {
+            const savedFee = localStorage.getItem('crytopnl_custom_fee_rate') || 'auto';
+            if (['auto', '0.05', '0.04', '0.00'].includes(savedFee)) {
+                feeFilterSelect.value = savedFee;
+            } else if (!isNaN(parseFloat(savedFee))) {
+                const customOpt = feeFilterSelect.querySelector('option[value="custom"]');
+                if (customOpt) customOpt.innerText = `✏️ 직접 입력 (${savedFee}%)`;
+                feeFilterSelect.value = 'custom';
+            }
+            feeFilterSelect.addEventListener('change', (e) => {
+                let val = e.target.value;
+                if (val === 'custom') {
+                    const input = prompt('적용할 거래 수수료율(%)을 입력하세요 (예: 0.025):', '0.025');
+                    if (input !== null && input.trim() !== '' && !isNaN(parseFloat(input))) {
+                        const num = Math.max(0, Math.min(10, parseFloat(input)));
+                        val = String(num);
+                        const customOpt = feeFilterSelect.querySelector('option[value="custom"]');
+                        if (customOpt) customOpt.innerText = `✏️ 직접 입력 (${num}%)`;
+                    } else {
+                        feeFilterSelect.value = this.state.customFeeRate || 'auto';
+                        return;
+                    }
+                }
+                this.state.customFeeRate = val;
+                localStorage.setItem('crytopnl_custom_fee_rate', val);
+                this.recalculate();
+                const feeLabel = val === 'auto' ? '엑셀 원본(자동)' : `${val}% 고정`;
+                this.showToast(`적용 수수료율이 '${feeLabel}'(으)로 변경되어 손익이 재계산되었습니다.`, 'info');
             });
         }
 
@@ -1288,7 +1322,8 @@ const App = {
 
         this.state.reportData = ProfitCalculator.calculate(this.state.rawTrades, {
             method: this.state.method,
-            exchange: this.state.exchangeFilter
+            exchange: this.state.exchangeFilter,
+            customFeeRate: this.state.customFeeRate
         });
 
         // Immediately enrich with baseline/known prices synchronously so cards never start at 0

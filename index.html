@@ -1206,6 +1206,7 @@
           <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
         </span>
         <span class="tracking-wide">LIVE MARKET</span>
+        <span id="header-kimp-badge" class="hidden shrink-0 px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold transition"></span>
       </div>
       <div id="ticker-bar" class="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-slate-300 font-mono">
         <span class="animate-pulse text-slate-500">실시간 시세 로딩 중...</span>
@@ -1611,10 +1612,17 @@
           <div class="bg-navy-900 border border-navy-800 rounded-xl p-3.5 flex flex-col justify-between hover:border-amber-500/40 transition shadow-sm">
             <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-semibold truncate">김치 프리미엄</span>
-              <span id="ind-kimp-rate" class="text-[11px] font-mono font-bold text-amber-400">+1.20%</span>
+              <div class="flex items-center gap-1.5">
+                <span id="ind-kimp-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-navy-950 text-amber-300 border border-amber-500/30">정상</span>
+                <span id="ind-kimp-rate" class="text-[11px] font-mono font-bold text-amber-400">+1.20%</span>
+              </div>
             </div>
-            <div class="my-2.5">
-              <div id="ind-kimp-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">+1.20%</div>
+            <div class="my-2">
+              <div class="flex items-baseline justify-between">
+                <div id="ind-kimp-val" class="text-base sm:text-lg font-black font-mono text-amber-400 tracking-tight">+1.20%</div>
+                <span class="text-[10px] text-slate-400 font-mono">7일 추세선</span>
+              </div>
+              <div id="ind-kimp-sparkline" class="h-8 w-full mt-1"></div>
             </div>
             <div class="text-[11px] text-slate-400 leading-tight border-t border-navy-800/80 pt-1.5 mt-auto">국내외 가격 괴리 · 양수 = 과열 · 음수 = 역프(저평가)</div>
           </div>
@@ -3101,6 +3109,13 @@
                 <option value="UPBIT">🔵 업비트 (Upbit)</option>
                 <option value="BITHUMB">🟠 빗썸 (Bithumb)</option>
               </select>
+              <select id="globalFeeSelect" class="select-control text-xs sm:text-sm py-1.5 px-2.5" style="font-weight: 600;" title="손익 계산 적용 수수료율">
+                <option value="auto">⚡ 수수료: 엑셀 원본(자동)</option>
+                <option value="0.05">🔵 업비트 기본 (0.05%)</option>
+                <option value="0.04">🟠 빗썸 이벤트 (0.04%)</option>
+                <option value="0.00">🎉 빗썸 무료 (0.00%)</option>
+                <option value="custom">✏️ 직접 입력...</option>
+              </select>
               <button class="btn btn-outline btn-sm py-1 px-2.5 text-xs" id="refreshTickerBtn" title="실시간 시세 갱신">
                 🔄 시세 갱신
               </button>
@@ -3968,6 +3983,24 @@
                   </thead>
                   <tbody id="waterSimTableBody"></tbody>
                 </table>
+              </div>
+              <!-- 추가 매수(물타기) 평단가 스텝(Step) 차트 시각화 -->
+              <div id="waterDcaChartContainer" class="mt-4 pt-4 border-t border-navy-800">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <span>📊</span> 평단가 방어 스텝 차트 (Step-down Line)
+                  </span>
+                  <span id="waterDcaChartBadge" class="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/20"></span>
+                </div>
+                <div class="relative w-full h-44 sm:h-52 bg-navy-950/80 rounded-xl p-3 border border-navy-800/80 flex flex-col justify-between">
+                  <svg id="waterDcaStepSvg" class="w-full h-full overflow-visible"></svg>
+                </div>
+                <div class="flex items-center justify-center gap-3 sm:gap-4 mt-2 text-[10.5px] sm:text-[11px] text-slate-400 flex-wrap">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-rose-400 inline-block"></span> 기존 평단가</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-cyan-400 inline-block"></span> 낮아진 평단가</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-emerald-400 inline-block border-t border-dashed"></span> 목표 탈출가</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 차수별 매수가</span>
+                </div>
               </div>
             </div>
 
@@ -7388,18 +7421,18 @@
   <!-- Analyzer Core Modules -->
   <script src="js/upbit-api.js?v=20260921_02"></script>
   <script src="js/parser.js?v=20260904_06"></script>
-  <script src="js/calculator.js?v=20260907_01"></script>
+  <script src="js/calculator.js?v=20260921_04"></script>
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260919_03"></script>
+  <script src="js/tools-calculators.js?v=20260921_04"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
-  <script src="js/analyzer-app.js?v=20260916_01"></script>
+  <script src="js/analyzer-app.js?v=20260921_04"></script>
 
   <script src="js/admin.js?v=20260916_05"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
-  <script src="js/preview-app-v2.js?v=20260921_03"></script>
+  <script src="js/preview-app-v2.js?v=20260921_04"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

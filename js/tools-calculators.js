@@ -896,6 +896,147 @@ const CoinCalculators = {
                 `;
             }).join('');
         }
+
+        // 4. 물타기 평단가 스텝(Step) 차트 렌더링
+        this.renderWaterDcaStepChart(curPrice, tierProgressList, breakEvenPrice, newAvgPrice);
+    },
+
+    renderWaterDcaStepChart: function (curPrice, tierProgressList, breakEvenPrice, newAvgPrice) {
+        const svg = document.getElementById('waterDcaStepSvg');
+        const badge = document.getElementById('waterDcaChartBadge');
+        if (!svg) return;
+
+        const validTiers = (tierProgressList || []).filter(t => t.price > 0 && t.avgPrice > 0);
+        if (!curPrice || curPrice <= 0 || validTiers.length === 0) {
+            svg.setAttribute('viewBox', '0 0 600 160');
+            svg.innerHTML = `
+                <text x="300" y="85" text-anchor="middle" fill="#64748b" font-size="12" font-family="sans-serif">
+                    💡 현재 평단가와 수량, 추가 매수 차수를 입력하시면 계단식 평단 방어 차트가 그려집니다.
+                </text>
+            `;
+            if (badge) badge.innerText = '방어선 대기 중';
+            return;
+        }
+
+        const defensePct = ((newAvgPrice - curPrice) / curPrice) * 100;
+        if (badge) {
+            badge.innerText = `최종 방어율: ${defensePct >= 0 ? '+' : ''}${defensePct.toFixed(2)}% (평단: ${Number(newAvgPrice).toLocaleString(undefined, { maximumFractionDigits: 2 })}원)`;
+        }
+
+        const formatShort = (p) => {
+            if (p >= 100000000) return (p / 100000000).toFixed(2) + '억';
+            if (p >= 10000) return (p / 10000).toFixed(1) + '만';
+            if (p >= 1000) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 0 });
+            return Number(p).toFixed(2);
+        };
+
+        const steps = [
+            { label: '기존', buyPrice: curPrice, avgPrice: curPrice, breakEven: curPrice, dropPct: 0 }
+        ];
+        validTiers.forEach(t => {
+            steps.push({
+                label: `${t.tierNum}차`,
+                buyPrice: t.price,
+                avgPrice: t.avgPrice,
+                breakEven: t.breakEven,
+                dropPct: t.dropPct
+            });
+        });
+
+        const allPrices = [];
+        steps.forEach(s => {
+            if (s.buyPrice > 0) allPrices.push(s.buyPrice);
+            if (s.avgPrice > 0) allPrices.push(s.avgPrice);
+            if (s.breakEven > 0) allPrices.push(s.breakEven);
+        });
+
+        const minP = Math.min(...allPrices);
+        const maxP = Math.max(...allPrices);
+        const pad = Math.max(1, (maxP - minP) * 0.18);
+        const yMin = Math.max(0, minP - pad);
+        const yMax = maxP + pad;
+        const yRange = (yMax - yMin) || 1;
+
+        const w = 600;
+        const h = 180;
+        const ml = 65;
+        const mr = 40;
+        const mt = 25;
+        const mb = 30;
+        const plotW = w - ml - mr;
+        const plotH = h - mt - mb;
+
+        const getX = (idx) => ml + (idx / (steps.length - 1)) * plotW;
+        const getY = (val) => mt + plotH - ((val - yMin) / yRange) * plotH;
+
+        let gridSvg = '';
+        const gridCount = 4;
+        for (let g = 0; g <= gridCount; g++) {
+            const pVal = yMin + (g / gridCount) * yRange;
+            const yPos = getY(pVal);
+            gridSvg += `
+                <line x1="${ml}" y1="${yPos}" x2="${w - mr}" y2="${yPos}" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+                <text x="${ml - 8}" y="${yPos + 3.5}" text-anchor="end" fill="#64748b" font-size="9.5" font-family="monospace">${formatShort(pVal)}</text>
+            `;
+        }
+
+        const origY = getY(curPrice);
+        const origLine = `
+            <line x1="${ml}" y1="${origY}" x2="${w - mr}" y2="${origY}" stroke="#f43f5e" stroke-dasharray="4,4" stroke-width="1.2" opacity="0.6" />
+            <text x="${w - mr + 4}" y="${origY + 3}" fill="#f43f5e" font-size="9" font-family="monospace">기존</text>
+        `;
+
+        const breakEvenPoints = steps.map((s, idx) => `${getX(idx)},${getY(s.breakEven)}`).join(' ');
+
+        let steppedPath = `M ${getX(0)} ${getY(steps[0].avgPrice)}`;
+        for (let i = 1; i < steps.length; i++) {
+            const prevX = getX(i - 1);
+            const curX = getX(i);
+            const curY = getY(steps[i].avgPrice);
+            const midX = (prevX + curX) / 2;
+            steppedPath += ` C ${midX} ${getY(steps[i - 1].avgPrice)}, ${midX} ${curY}, ${curX} ${curY}`;
+        }
+
+        const areaPath = `${steppedPath} L ${getX(steps.length - 1)} ${mt + plotH} L ${getX(0)} ${mt + plotH} Z`;
+
+        let markersSvg = '';
+        steps.forEach((s, idx) => {
+            const x = getX(idx);
+            const yAvg = getY(s.avgPrice);
+            const yBuy = getY(s.buyPrice);
+
+            markersSvg += `
+                <text x="${x}" y="${h - 10}" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold" font-family="sans-serif">${s.label}</text>
+            `;
+
+            if (idx > 0) {
+                markersSvg += `
+                    <circle cx="${x}" cy="${yBuy}" r="3.5" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5" />
+                    <text x="${x}" y="${yBuy - 7}" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="monospace">${formatShort(s.buyPrice)}</text>
+                `;
+            }
+
+            markersSvg += `
+                <circle cx="${x}" cy="${yAvg}" r="4.5" fill="#06b6d4" stroke="#ffffff" stroke-width="1.5" />
+                <text x="${x}" y="${yAvg + (idx % 2 === 0 ? 15 : -9)}" text-anchor="middle" fill="#22d3ee" font-size="9.5" font-weight="bold" font-family="monospace">${formatShort(s.avgPrice)}</text>
+            `;
+        });
+
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.innerHTML = `
+            <defs>
+                <linearGradient id="stepAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+                </linearGradient>
+            </defs>
+            ${gridSvg}
+            ${origLine}
+            <path d="${areaPath}" fill="url(#stepAreaGrad)" />
+            <polyline fill="none" stroke="#10b981" stroke-width="1.2" stroke-dasharray="3,3" points="${breakEvenPoints}" opacity="0.85" />
+            <path d="${steppedPath}" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            ${markersSvg}
+        `;
     },
 
     // ========================================================
