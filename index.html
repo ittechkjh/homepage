@@ -3796,56 +3796,54 @@
       </div>
       
       <!-- Calculators Header Hero -->
-      <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border border-amber-500/30 shadow-2xl relative overflow-hidden">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold mb-2">
-              <span>⚡ 크립토 &amp; 주식 올인원 11대 실전 재테크 계산기 센터</span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl font-black text-white">가상자산 &amp; 주식 실전 트레이딩 계산기 센터</h1>
-            <p class="text-xs sm:text-sm text-slate-400 mt-1">물타기 • 손익비 &amp; 2% 룰 • 원금 회수 • 복리 챌린지 • 스테이킹 • 미국주식 250만 절세 • 배당소득세 • 김프 • 세금 • 선물 청산가</p>
+      <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-navy-900 via-navy-850 to-navy-950 border border-amber-500/30 shadow-2xl relative overflow-hidden space-y-5">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+            <span>⚡ 크립토 &amp; 주식 올인원 11대 실전 재테크 계산기 센터</span>
           </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-white">가상자산 &amp; 주식 실전 트레이딩 계산기 센터</h1>
+          <p class="text-xs sm:text-sm text-slate-400">물타기 • 손익비 &amp; 2% 룰 • 원금 회수 • 복리 챌린지 • 스테이킹 • 미국주식 250만 절세 • 배당소득세 • 김프 • 세금 • 선물 청산가 • 인증 카드</p>
+        </div>
 
-          <div class="flex flex-wrap gap-1.5 p-1.5 bg-navy-950 rounded-2xl border border-navy-800 text-xs font-bold shrink-0">
-            <button type="button" onclick="CoinCalculators.switchSubTab('water')" data-calctab="water" class="calc-subtab-btn active px-3 py-2 rounded-xl transition flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              <span>💧 물타기/탈출</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('sizing')" data-calctab="sizing" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>🎯 손익비 &amp; 사이징</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('freeride')" data-calctab="freeride" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>💎 원금 회수</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('compound')" data-calctab="compound" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>📈 복리 챌린지</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('staking')" data-calctab="staking" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>🪙 스테이킹</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('stocktax')" data-calctab="stocktax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30">
-              <span>🇺🇸 미국주식 절세</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('dividend')" data-calctab="dividend" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 border border-cyan-500/30">
-              <span>💵 주식 배당금</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('kimp')" data-calctab="kimp" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>⚡ 김프 &amp; 보따리</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('tax')" data-calctab="tax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>📑 코인 세금</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('futures')" data-calctab="futures" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>📊 선물 청산가</span>
-            </button>
-            <button type="button" onclick="CoinCalculators.switchSubTab('card')" data-calctab="card" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
-              <span>🖼️ 인증 카드</span>
-            </button>
-            <button type="button" onclick="switchTab('yearend-tax')" class="px-3 py-2 rounded-xl transition flex items-center gap-1 text-teal-300 hover:text-white bg-teal-500/15 border border-teal-500/30 hover:bg-teal-500/25 shadow-sm" title="2026 연말정산 모의계산기 바로가기">
-              <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400"></i>
-              <span>🧾 연말정산</span>
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-teal-400 text-navy-950">NEW</span>
-            </button>
-          </div>
+        <div class="flex flex-wrap items-center gap-1.5 p-1.5 bg-navy-950/90 rounded-2xl border border-navy-800 text-xs font-bold w-full">
+          <button type="button" onclick="CoinCalculators.switchSubTab('water')" data-calctab="water" class="calc-subtab-btn active px-3 py-2 rounded-xl transition flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            <span>💧 물타기/탈출</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('sizing')" data-calctab="sizing" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>🎯 손익비 &amp; 사이징</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('freeride')" data-calctab="freeride" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>💎 원금 회수</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('compound')" data-calctab="compound" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>📈 복리 챌린지</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('staking')" data-calctab="staking" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>🪙 스테이킹</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('stocktax')" data-calctab="stocktax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30">
+            <span>🇺🇸 미국주식 절세</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('dividend')" data-calctab="dividend" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 border border-cyan-500/30">
+            <span>💵 주식 배당금</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('kimp')" data-calctab="kimp" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>⚡ 김프 &amp; 보따리</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('tax')" data-calctab="tax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>📑 코인 세금</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('futures')" data-calctab="futures" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>📊 선물 청산가</span>
+          </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('card')" data-calctab="card" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white">
+            <span>🖼️ 인증 카드</span>
+          </button>
+          <button type="button" onclick="switchTab('yearend-tax')" class="px-3 py-2 rounded-xl transition flex items-center gap-1 text-teal-300 hover:text-white bg-teal-500/15 border border-teal-500/30 hover:bg-teal-500/25 shadow-sm" title="2026 연말정산 모의계산기 바로가기">
+            <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400"></i>
+            <span>🧾 연말정산</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-teal-400 text-navy-950">NEW</span>
+          </button>
         </div>
       </div>
 
@@ -4829,6 +4827,9 @@
               💡 <strong>스테이킹 팁:</strong> 하락장에서도 코인 수량 자체는 지속적으로 증가하므로, 다음 상승 사이클이 올 때 원금 대비 훨씬 더 큰 복리 레버리지 효과를 누릴 수 있습니다.
             </p>
           </div>
+        </div>
+      </div>
+
       <!-- TOOL 10: 해외(미국)주식 양도소득세 & 250만원 절세 계산기 -->
       <div id="calc-tab-stocktax" class="calc-subtab-content hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
