@@ -586,11 +586,12 @@ const defaultMarketAnalysisState = {
   coinbasePremium: { rate: 0.08, text: '미국 매수세' },
   btckrw: { price: 106128000, change: -0.26 },
   ethkrw: { price: 3354000, change: 0.03 },
+  realizedPrice: 52824.63,
 
   // Category 2: 온체인 밸류에이션 & 건전성
-  mvrvZ: { value: 1.84, text: '상승 채널' },
-  puellMultiple: { value: 0.92, text: '수익성 안정' },
-  asopr: { value: 1.012, text: '손익분기 상회' },
+  mvrvZ: { value: 1.45, text: '상승 채널' },
+  puellMultiple: { value: 0.99, text: '수익성 안정' },
+  asopr: { value: 1.0005, text: '손익분기 상회' },
   ssr: { value: 12.4, text: '구매력 풍부' },
   exchangeReserve: { value: 2140500, text: '유출 지속 (쇼티지)' },
   hashrate: { value: 685, unit: 'EH/s', text: '사상 최고' },
@@ -604,7 +605,7 @@ const defaultMarketAnalysisState = {
 
   // Category 4: 거시 경제 & 중앙은행 유동성
   globalM2: { value: '$108.5조', change: 4.2, text: '확장 국면' },
-  fedFundsRate: { value: 4.50, text: '인하 사이클' },
+  fedFundsRate: { value: 3.88, range: '3.75~4.00%', cutProb: '인하 진행중', text: '인하 사이클' },
   rrp: { value: '$245B', text: '유동성 완충' },
   realYieldTIPS: { value: 1.94, text: '긴축 유지' },
   yieldCurveSpread: { value: 0.18, text: '정상화 진행' },
@@ -956,22 +957,28 @@ async function fetchMarketAnalysisData() {
 
   // 13. Dynamic On-Chain Valuation Metrics (MVRV Z-Score, aSOPR, SSR, Puell Multiple)
   if (btcUsd && btcUsd > 1000) {
-    const realizedPrice = 42800; // Baseline Realized Price
+    const realizedPrice = (marketAnalysisState.realizedPrice && marketAnalysisState.realizedPrice > 10000)
+      ? marketAnalysisState.realizedPrice
+      : 52824.63; // Realized Price benchmark
     const mvrvVal = btcUsd / realizedPrice;
     marketAnalysisState.mvrvZ.value = Math.round(mvrvVal * 100) / 100;
     marketAnalysisState.mvrvZ.text = mvrvVal < 1.0 ? '역사적 저평가' : (mvrvVal < 2.2 ? '상승 채널' : (mvrvVal < 3.2 ? '과열 접근' : '사이클 고점'));
 
-    const soprVal = 1.0 + ((mvrvVal - 1.0) * 0.022);
-    marketAnalysisState.asopr.value = Math.round(soprVal * 1000) / 1000;
-    marketAnalysisState.asopr.text = soprVal > 1.0 ? '손익분기 상회' : '손실 실현(바닥권)';
+    if (!marketAnalysisState._soprLive) {
+      const soprVal = 1.0 + ((mvrvVal - 1.0) * 0.022);
+      marketAnalysisState.asopr.value = Math.round(soprVal * 1000) / 1000;
+      marketAnalysisState.asopr.text = soprVal > 1.0 ? '손익분기 상회' : '손실 실현(바닥권)';
+    }
 
     const ssrVal = (btcUsd * 19.75) / 125.0;
     marketAnalysisState.ssr.value = Math.round(ssrVal * 10) / 10;
     marketAnalysisState.ssr.text = ssrVal < 15 ? '구매력 풍부' : '구매력 보통';
 
-    const puellVal = Math.min(2.5, Math.max(0.6, (btcUsd / 82000) * 0.95));
-    marketAnalysisState.puellMultiple.value = Math.round(puellVal * 100) / 100;
-    marketAnalysisState.puellMultiple.text = puellVal < 0.8 ? '채굴자 압박(바닥)' : (puellVal < 1.5 ? '수익성 안정' : '채굴 과열');
+    if (!marketAnalysisState._puellLive) {
+      const puellVal = Math.min(2.5, Math.max(0.6, (btcUsd / 82000) * 0.95));
+      marketAnalysisState.puellMultiple.value = Math.round(puellVal * 100) / 100;
+      marketAnalysisState.puellMultiple.text = puellVal < 0.8 ? '채굴자 압박(바닥)' : (puellVal < 1.5 ? '수익성 안정' : '채굴 과열');
+    }
 
     // Dynamic Exchange Reserves Model (Net flow trend linked to price action)
     const reserveDelta = Math.round((btcUsd - 75000) * 1.5);
@@ -1021,6 +1028,26 @@ async function loadMacroIndicators(force = false) {
         if (ind.vix) marketAnalysisState.vix = Object.assign({}, marketAnalysisState.vix, ind.vix);
         if (ind.goldFut) marketAnalysisState.goldFut = Object.assign({}, marketAnalysisState.goldFut, ind.goldFut);
         if (ind.wti) marketAnalysisState.wti = Object.assign({}, marketAnalysisState.wti, ind.wti);
+
+        if (ind.onchain) {
+          if (ind.onchain.realizedPrice && ind.onchain.realizedPrice > 10000) {
+            marketAnalysisState.realizedPrice = ind.onchain.realizedPrice;
+          }
+          if (ind.onchain.mvrv && ind.onchain.mvrv > 0) {
+            marketAnalysisState.mvrvZ.value = ind.onchain.mvrv;
+            marketAnalysisState.mvrvZ.text = ind.onchain.mvrv < 1.0 ? '역사적 저평가' : (ind.onchain.mvrv < 2.2 ? '상승 채널' : (ind.onchain.mvrv < 3.2 ? '과열 접근' : '사이클 고점'));
+          }
+          if (ind.onchain.sopr && ind.onchain.sopr > 0) {
+            marketAnalysisState.asopr.value = ind.onchain.sopr;
+            marketAnalysisState.asopr.text = ind.onchain.sopr >= 1.0 ? '손익분기 상회' : '손실 실현(바닥권)';
+            marketAnalysisState._soprLive = true;
+          }
+          if (ind.onchain.puellMultiple && ind.onchain.puellMultiple > 0) {
+            marketAnalysisState.puellMultiple.value = ind.onchain.puellMultiple;
+            marketAnalysisState.puellMultiple.text = ind.onchain.puellMultiple < 0.8 ? '채굴자 압박(바닥)' : (ind.onchain.puellMultiple < 1.5 ? '수익성 안정' : '채굴 과열');
+            marketAnalysisState._puellLive = true;
+          }
+        }
 
         renderMarketAnalysisAndIndicators();
       }
@@ -8159,9 +8186,13 @@ const OnChainEngine = {
       }
     }
     // SOPR: Realized Price vs Market Price momentum (Glassnode benchmark model)
-    const realizedPrice = 42800; // Baseline Realized Price
+    const realizedPrice = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.realizedPrice && marketAnalysisState.realizedPrice > 10000)
+      ? marketAnalysisState.realizedPrice
+      : 52824.63; // Realized Price benchmark
     const soprBaseline = btcPrice / realizedPrice;
-    this.realMetrics.soprBtc = Math.min(1.08, Math.max(0.96, 1.0 + (soprBaseline - 1.5) * 0.028));
+    this.realMetrics.soprBtc = (typeof marketAnalysisState !== 'undefined' && marketAnalysisState?.asopr?.value)
+      ? marketAnalysisState.asopr.value
+      : Math.min(1.08, Math.max(0.96, 1.0 + (soprBaseline - 1.5) * 0.028));
     this.realMetrics.soprEth = this.realMetrics.soprBtc - 0.0092;
 
     // NUPL: (Market Cap - Realized Cap) / Market Cap

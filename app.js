@@ -7480,7 +7480,7 @@ const OnChainEngine = {
       }
     }
     // SOPR: Realized Price vs Market Price momentum (Glassnode benchmark model)
-    const realizedPrice = 42800; // Baseline Realized Price
+    const realizedPrice = 52824.63; // Baseline Realized Price
     const soprBaseline = btcPrice / realizedPrice;
     this.realMetrics.soprBtc = Math.min(1.08, Math.max(0.96, 1.0 + (soprBaseline - 1.5) * 0.028));
     this.realMetrics.soprEth = this.realMetrics.soprBtc - 0.0092;

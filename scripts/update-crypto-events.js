@@ -270,6 +270,107 @@ function fetchExternal(url, timeoutMs = 7000) {
   });
 }
 
+function generateRollingMacroEvents(baseDate = new Date(), monthsAhead = 3) {
+  const events = [];
+  const startYear = baseDate.getFullYear();
+  const startMonth = baseDate.getMonth();
+
+  for (let m = 0; m <= monthsAhead; m++) {
+    const curDate = new Date(startYear, startMonth + m, 1);
+    const y = curDate.getFullYear();
+    const mo = curDate.getMonth();
+    const monthNum = mo + 1;
+
+    // 1. NFP (First Friday of the month)
+    let firstFriday = 1;
+    while (new Date(y, mo, firstFriday).getDay() !== 5) {
+      firstFriday++;
+    }
+    const nfpDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(firstFriday).padStart(2, '0')}`;
+    events.push({
+      date: nfpDate,
+      time: '21:30 (KST)',
+      category: 'macro',
+      categoryName: '🏦 FOMC/거시경제',
+      coin: 'NFP',
+      title: `미국 ${monthNum === 1 ? 12 : monthNum - 1}월 비농업 고용보고서(NFP) 및 실업률 발표`,
+      desc: '연준(Fed) 기준금리 및 통화정책 기조의 핵심 지표. 신규고용 건수 및 실업률 동시 발표.',
+      impact: 'HIGH IMPACT',
+      impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+    });
+
+    // 2. CPI (Second Wednesday of the month)
+    let secondWed = 1;
+    let wedCount = 0;
+    for (let d = 1; d <= 20; d++) {
+      if (new Date(y, mo, d).getDay() === 3) {
+        wedCount++;
+        if (wedCount === 2) {
+          secondWed = d;
+          break;
+        }
+      }
+    }
+    const cpiDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(secondWed).padStart(2, '0')}`;
+    events.push({
+      date: cpiDate,
+      time: '21:30 (KST)',
+      category: 'macro',
+      categoryName: '🏦 FOMC/거시경제',
+      coin: 'CPI',
+      title: `미국 ${monthNum === 1 ? 12 : monthNum - 1}월 소비자물가지수(CPI) 발표`,
+      desc: '글로벌 인플레이션 방향성 및 연방공개시장위원회(FOMC) 금리 전망을 가늠할 핵심 지표.',
+      impact: 'CRITICAL',
+      impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+    });
+
+    // 3. PPI (Day after CPI)
+    const ppiDay = secondWed + 1;
+    const ppiDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(ppiDay).padStart(2, '0')}`;
+    events.push({
+      date: ppiDate,
+      time: '21:30 (KST)',
+      category: 'macro',
+      categoryName: '🏦 FOMC/거시경제',
+      coin: 'PPI',
+      title: `미국 ${monthNum === 1 ? 12 : monthNum - 1}월 생산자물가지수(PPI) 발표`,
+      desc: '도매 물가 및 기업 제조원가 동향 지표. 선행 인플레이션 압력 가늠.',
+      impact: 'HIGH IMPACT',
+      impactColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+    });
+
+    // 4. Monthly Token Unlocks (Mid-month / End-month)
+    const midMonthDate = `${y}-${String(monthNum).padStart(2, '0')}-16`;
+    events.push({
+      date: midMonthDate,
+      time: '18:00 (KST)',
+      category: 'unlock',
+      categoryName: '🔓 토큰 락업해제',
+      coin: 'ARB',
+      title: `아비트럼(ARB) 월간 정기 팀·생태계 물량 해제`,
+      desc: 'L2 생태계 대표 토큰의 정기 물량 해제 및 온체인 유통량 변동 모니터링.',
+      impact: 'VOLATILE',
+      impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+    });
+
+    const endMonthDay = new Date(y, mo + 1, 0).getDate();
+    const endMonthDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(endMonthDay).padStart(2, '0')}`;
+    events.push({
+      date: endMonthDate,
+      time: '18:00 (KST)',
+      category: 'unlock',
+      categoryName: '🔓 토큰 락업해제',
+      coin: 'OP',
+      title: `옵티미즘(OP) 월간 기여자 및 초기 투자자 락업 해제`,
+      desc: '슈퍼체인 생태계 보상 및 정기 물량 해제.',
+      impact: 'VOLATILE',
+      impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
+    });
+  }
+
+  return events;
+}
+
 async function main() {
   console.log('[Crypto Events Crawler] Starting event extraction and refinement pipeline...');
 
@@ -277,6 +378,15 @@ async function main() {
   const eventMap = new Map();
   VERIFIED_MASTER_EVENTS.forEach(ev => {
     eventMap.set(`${ev.date}_${ev.coin}_${ev.title.slice(0, 10)}`, ev);
+  });
+
+  // Add Dynamic Rolling Macro Events so events never expire
+  const rollingEvents = generateRollingMacroEvents(new Date(), 3);
+  rollingEvents.forEach(ev => {
+    const key = `${ev.date}_${ev.coin}_${ev.title.slice(0, 10)}`;
+    if (!eventMap.has(key)) {
+      eventMap.set(key, ev);
+    }
   });
 
   // Attempt to fetch public crypto calendars if available

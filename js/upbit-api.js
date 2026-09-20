@@ -800,6 +800,35 @@ const UpbitAPI = {
         'SOPH': 11.4, 'QKC': 4.02, 'WAVES': 383
     },
 
+    _dynamicPrices: null,
+    getFallbackPrice: function(symbol) {
+        if (!this._dynamicPrices) {
+            this._dynamicPrices = {};
+            try {
+                const stored = localStorage.getItem('upbit_dynamic_fallback_prices');
+                if (stored) this._dynamicPrices = JSON.parse(stored) || {};
+            } catch(e) {}
+        }
+        if (this._dynamicPrices && this._dynamicPrices[symbol]) {
+            return this._dynamicPrices[symbol];
+        }
+        return this.fallbackPrices[symbol] || 0;
+    },
+
+    saveDynamicPrice: function(symbol, price) {
+        if (!symbol || !price || price <= 0) return;
+        if (!this._dynamicPrices) this.getFallbackPrice(symbol);
+        this._dynamicPrices[symbol] = price;
+        if (!this._saveDynamicTimer) {
+            this._saveDynamicTimer = setTimeout(() => {
+                this._saveDynamicTimer = null;
+                try {
+                    localStorage.setItem('upbit_dynamic_fallback_prices', JSON.stringify(this._dynamicPrices));
+                } catch(e) {}
+            }, 5000);
+        }
+    },
+
     _cachedTickerMap: null,
     _lastTickerFetchTime: 0,
     _inFlightTickerPromise: null,
@@ -892,6 +921,7 @@ const UpbitAPI = {
                     tickerMap[sym] = entry;
                     tickerMap['KRW-' + sym] = entry;
                     tickerMap['UPBIT:::' + item.market] = entry;
+                    this.saveDynamicPrice(sym, entry.tradePrice);
                 };
 
                 // 단일 요청으로 공식 KRW 전 종목 일괄 수신
@@ -1093,8 +1123,8 @@ const UpbitAPI = {
                 change24hVal = (ticker.signedChangeRate || 0) * 100;
             } else if (parseFloat(coin.currentPrice) > 0 && parseFloat(coin.currentPrice) !== parseFloat(coin.avgBuyPrice)) {
                 livePrice = parseFloat(coin.currentPrice);
-            } else if (this.fallbackPrices[symbol]) {
-                livePrice = this.fallbackPrices[symbol];
+            } else if (this.getFallbackPrice(symbol)) {
+                livePrice = this.getFallbackPrice(symbol);
                 change24hVal = 0;
             } else if (parseFloat(coin.avgBuyPrice) > 0) {
                 livePrice = parseFloat(coin.avgBuyPrice);

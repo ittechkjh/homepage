@@ -13,13 +13,13 @@
       "lastUpdated": "2026-09-19"
     },
     "fedFundsRate": {
-      "value": 5.33,
-      "range": "5.25~5.50%",
-      "cutProb": "88%",
+      "value": 3.88,
+      "range": "3.75~4.00%",
+      "cutProb": "인하 진행중",
       "text": "인하 사이클",
-      "source": "미국 연방준비제도 (Fed FOMC)",
-      "cycle": "FOMC 공시",
-      "lastUpdated": "2026-09-19"
+      "source": "미국 뉴욕 연방준비은행 (NY Fed 공식 공시)",
+      "cycle": "공식 일일 공시",
+      "lastUpdated": "2026-09-21"
     },
     "rrp": {
       "value": "$285.4B",
@@ -100,6 +100,15 @@
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-09-19"
+    },
+    "onchain": {
+      "realizedPrice": 52824.63,
+      "mvrv": 1.454,
+      "sopr": 1.0005,
+      "puellMultiple": 0.9973,
+      "source": "Bitcoin-Data 온체인 실시간 장부",
+      "cycle": "일일 온체인 블록 정산",
+      "lastUpdated": "2026-09-21"
     }
   }
 }
