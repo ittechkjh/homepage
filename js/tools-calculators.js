@@ -521,6 +521,14 @@ const CoinCalculators = {
                 nickEl.value = loggedUser;
             }
             this.renderProfitCard();
+        } else if (tabId === 'sizing') {
+            this.calcPositionSizing();
+        } else if (tabId === 'freeride') {
+            this.calcFreeRide();
+        } else if (tabId === 'compound') {
+            this.calcCompoundPlanner();
+        } else if (tabId === 'staking') {
+            this.calcStakingYield();
         }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -1940,6 +1948,560 @@ const CoinCalculators = {
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
         alert('🎉 종합 수익 인증 카드가 포럼에 성공적으로 등록되었습니다!');
+    },
+
+    // ========================================================
+    // 6. 손익비(Risk/Reward Ratio) & 2% 룰 포지션 사이징 계산기
+    // ========================================================
+    sizingDirection: 'long',
+    setSizingDirection: function (dir) {
+        this.sizingDirection = dir;
+        const longBtn = document.getElementById('sizingBtnLong');
+        const shortBtn = document.getElementById('sizingBtnShort');
+        if (dir === 'long') {
+            if (longBtn) longBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm';
+            if (shortBtn) shortBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+        } else {
+            if (longBtn) longBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (shortBtn) shortBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm';
+        }
+        this.calcPositionSizing();
+    },
+
+    setSizingRiskPct: function (pct) {
+        const el = document.getElementById('sizingRiskPct');
+        if (el) {
+            el.value = pct;
+            this.calcPositionSizing();
+        }
+    },
+
+    calcPositionSizing: function () {
+        const seed = this.parseNum(document.getElementById('sizingCapital')?.value, 10000000);
+        const riskPct = this.parseNum(document.getElementById('sizingRiskPct')?.value, 2);
+        const entryPrice = this.parseNum(document.getElementById('sizingEntryPrice')?.value, 100000);
+        const stopPrice = this.parseNum(document.getElementById('sizingStopPrice')?.value, 95000);
+        const targetPrice = this.parseNum(document.getElementById('sizingTargetPrice')?.value, 115000);
+        const leverage = Math.max(1, this.parseNum(document.getElementById('sizingLeverage')?.value, 1));
+        const feeRate = this.parseNum(document.getElementById('sizingFeeRate')?.value, 0.05) / 100;
+        const winRateExp = this.parseNum(document.getElementById('sizingWinRate')?.value, 50) / 100;
+
+        if (entryPrice <= 0 || stopPrice <= 0 || targetPrice <= 0) return;
+
+        const isLong = (this.sizingDirection === 'long');
+        const priceRisk = isLong ? (entryPrice - stopPrice) : (stopPrice - entryPrice);
+        const priceReward = isLong ? (targetPrice - entryPrice) : (entryPrice - targetPrice);
+
+        const warningEl = document.getElementById('sizingWarning');
+        if (priceRisk <= 0) {
+            if (warningEl) {
+                warningEl.innerHTML = `<span class="text-rose-400 font-bold">⚠️ ${isLong ? '롱 포지션에서는 손절가가 진입가보다 낮아야 합니다.' : '숏 포지션에서는 손절가가 진입가보다 높아야 합니다.'}</span>`;
+                warningEl.classList.remove('hidden');
+            }
+            return;
+        } else if (priceReward <= 0) {
+            if (warningEl) {
+                warningEl.innerHTML = `<span class="text-rose-400 font-bold">⚠️ ${isLong ? '롱 포지션에서는 목표가가 진입가보다 높아야 합니다.' : '숏 포지션에서는 목표가가 진입가보다 낮아야 합니다.'}</span>`;
+                warningEl.classList.remove('hidden');
+            }
+            return;
+        } else if (warningEl) {
+            warningEl.classList.add('hidden');
+        }
+
+        // 1회 허용 손실금
+        const maxLossAmount = seed * (riskPct / 100);
+
+        // 손절률 및 목표수익률
+        const stopLossPct = (priceRisk / entryPrice) * 100;
+        const targetProfitPct = (priceReward / entryPrice) * 100;
+
+        // 권장 포지션 수량 (1회 손실금 / 1개당 손실액)
+        const recQty = maxLossAmount / priceRisk;
+        // 총 진입 노출 금액
+        const recTotalPosValue = recQty * entryPrice;
+        // 필요 증거금(마진) = 총 포지션 금액 / 레버리지
+        const recMargin = recTotalPosValue / leverage;
+
+        // 손익비 (RRR)
+        const rrr = priceReward / priceRisk;
+        // 손익분기 최소 승률 = 1 / (1 + RRR)
+        const breakevenWinRate = (1 / (1 + rrr)) * 100;
+
+        // 목표 달성 시 순이익 / 손절 시 손실액
+        const feePerSide = recTotalPosValue * feeRate;
+        const totalFeeEst = feePerSide * 2; // 왕복 수수료
+        const netProfit = (recQty * priceReward) - totalFeeEst;
+        const netLoss = (recQty * priceRisk) + totalFeeEst;
+
+        // 기대값 (EV: Expected Value) = (승률 * 순익) - (패율 * 순손실)
+        const ev = (winRateExp * netProfit) - ((1 - winRateExp) * netLoss);
+
+        // UI 갱신
+        const rrrEl = document.getElementById('sizingResultRrr');
+        const rrrBadgeEl = document.getElementById('sizingRrrBadge');
+        if (rrrEl) rrrEl.innerText = `1 : ${rrr.toFixed(2)}`;
+        if (rrrBadgeEl) {
+            if (rrr >= 3.0) {
+                rrrBadgeEl.innerText = 'S등급 (최고의 손익비)';
+                rrrBadgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+            } else if (rrr >= 2.0) {
+                rrrBadgeEl.innerText = 'A등급 (우수)';
+                rrrBadgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+            } else if (rrr >= 1.5) {
+                rrrBadgeEl.innerText = 'B등급 (적정)';
+                rrrBadgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                rrrBadgeEl.innerText = '비권장 (손익비 낮음)';
+                rrrBadgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40';
+            }
+        }
+
+        const maxLossEl = document.getElementById('sizingResultMaxLoss');
+        if (maxLossEl) maxLossEl.innerText = `-${Math.round(maxLossAmount).toLocaleString('ko-KR')}원 (${riskPct}%)`;
+
+        const recQtyEl = document.getElementById('sizingResultQty');
+        if (recQtyEl) recQtyEl.innerText = `${recQty < 1 ? recQty.toFixed(4) : recQty.toLocaleString('ko-KR', { maximumFractionDigits: 4 })}`;
+
+        const recPosEl = document.getElementById('sizingResultTotalValue');
+        if (recPosEl) recPosEl.innerText = `${Math.round(recTotalPosValue).toLocaleString('ko-KR')}원`;
+
+        const recMarginEl = document.getElementById('sizingResultMargin');
+        if (recMarginEl) recMarginEl.innerText = `${Math.round(recMargin).toLocaleString('ko-KR')}원 (${leverage}x)`;
+
+        const breakevenEl = document.getElementById('sizingResultBreakeven');
+        if (breakevenEl) breakevenEl.innerText = `${breakevenWinRate.toFixed(1)}%`;
+
+        const targetProfitEl = document.getElementById('sizingResultProfit');
+        if (targetProfitEl) targetProfitEl.innerText = `+${Math.round(netProfit).toLocaleString('ko-KR')}원 (+${targetProfitPct.toFixed(1)}%)`;
+
+        const actualLossEl = document.getElementById('sizingResultActualLoss');
+        if (actualLossEl) actualLossEl.innerText = `-${Math.round(netLoss).toLocaleString('ko-KR')}원 (-${stopLossPct.toFixed(1)}%)`;
+
+        const evEl = document.getElementById('sizingResultEv');
+        if (evEl) {
+            evEl.innerText = `${ev >= 0 ? '+' : ''}${Math.round(ev).toLocaleString('ko-KR')}원 / 1회`;
+            evEl.className = ev >= 0 ? 'text-emerald-400 font-bold font-mono' : 'text-rose-400 font-bold font-mono';
+        }
+    },
+
+    // ========================================================
+    // 7. 원금 회수(멘징 / Free-Ride 무위험 보유) 계산기
+    // ========================================================
+    calcFreeRide: function () {
+        const buyPrice = this.parseNum(document.getElementById('freerideBuyPrice')?.value, 1000);
+        const buyQty = this.parseNum(document.getElementById('freerideBuyQty')?.value, 10000);
+        const currentPrice = this.parseNum(document.getElementById('freerideCurrentPrice')?.value, 2000);
+        const feeRate = this.parseNum(document.getElementById('freerideFeeRate')?.value, 0.05) / 100;
+        const targetRecoveryPct = this.parseNum(document.getElementById('freerideRecoveryPct')?.value, 100) / 100;
+
+        if (buyPrice <= 0 || buyQty <= 0 || currentPrice <= 0) return;
+
+        // 총 투자 원금
+        const totalInvested = buyPrice * buyQty;
+        // 회수 목표 금액 (기본 100% 원금 전액 회수)
+        const targetRecoveryAmount = totalInvested * targetRecoveryPct;
+
+        // 현재 평가 금액
+        const currentTotalVal = currentPrice * buyQty;
+        // 현재 수익률
+        const roiPct = ((currentPrice - buyPrice) / buyPrice) * 100;
+
+        // 원금(또는 목표 회수액) 회수에 필요한 순 매도 수량
+        // 매도대금 * (1 - 수수료) = targetRecoveryAmount
+        const effectivePricePerCoin = currentPrice * (1 - feeRate);
+        const requiredSellQty = targetRecoveryAmount / effectivePricePerCoin;
+
+        const warningEl = document.getElementById('freerideWarning');
+        const canRecover = (requiredSellQty <= buyQty);
+
+        if (!canRecover) {
+            if (warningEl) {
+                warningEl.innerHTML = `<span class="text-amber-400 font-bold">⚠️ 현재 가격(${currentPrice.toLocaleString()}원)에서는 보유 수량 전체를 매도해도 원금 회수가 부족합니다. (수익률 +${roiPct.toFixed(1)}%)</span>`;
+                warningEl.classList.remove('hidden');
+            }
+        } else if (warningEl) {
+            warningEl.classList.add('hidden');
+        }
+
+        const freeRideQty = Math.max(0, buyQty - requiredSellQty);
+        const freeRideVal = freeRideQty * currentPrice;
+        const recoveredCash = Math.min(buyQty, requiredSellQty) * effectivePricePerCoin;
+
+        // UI 갱신
+        const totalInvestedEl = document.getElementById('freerideResultInvested');
+        if (totalInvestedEl) totalInvestedEl.innerText = `${Math.round(totalInvested).toLocaleString('ko-KR')}원`;
+
+        const currentValEl = document.getElementById('freerideResultCurrentVal');
+        if (currentValEl) currentValEl.innerText = `${Math.round(currentTotalVal).toLocaleString('ko-KR')}원 (+${roiPct.toFixed(1)}%)`;
+
+        const sellQtyEl = document.getElementById('freerideResultSellQty');
+        if (sellQtyEl) {
+            const pctOfTotal = (requiredSellQty / buyQty) * 100;
+            sellQtyEl.innerText = `${requiredSellQty.toLocaleString('ko-KR', { maximumFractionDigits: 4 })}개 (${pctOfTotal.toFixed(1)}% 매도)`;
+        }
+
+        const sellCashEl = document.getElementById('freerideResultSellCash');
+        if (sellCashEl) sellCashEl.innerText = `${Math.round(recoveredCash).toLocaleString('ko-KR')}원 회수`;
+
+        const freeQtyEl = document.getElementById('freerideResultFreeQty');
+        if (freeQtyEl) freeQtyEl.innerText = `${freeRideQty.toLocaleString('ko-KR', { maximumFractionDigits: 4 })}개`;
+
+        const freeValEl = document.getElementById('freerideResultFreeVal');
+        if (freeValEl) freeValEl.innerText = `${Math.round(freeRideVal).toLocaleString('ko-KR')}원 가치 (무위험 잔여)`;
+
+        // 시나리오 테이블 렌더링 (+20%, +50%, +100%, +200%, +500%)
+        const scenarioBody = document.getElementById('freerideScenarioBody');
+        if (scenarioBody && freeRideQty > 0) {
+            const multipliers = [
+                { label: '+20% 추가상승', mult: 1.2 },
+                { label: '+50% 추가상승', mult: 1.5 },
+                { label: '+100% (2배)', mult: 2.0 },
+                { label: '+200% (3배)', mult: 3.0 },
+                { label: '+500% (6배)', mult: 6.0 },
+                { label: '+1,000% (11배 텐배거)', mult: 11.0 }
+            ];
+            scenarioBody.innerHTML = multipliers.map(m => {
+                const scenPrice = currentPrice * m.mult;
+                const scenVal = freeRideQty * scenPrice;
+                return `
+                <tr class="border-b border-navy-800/60 hover:bg-navy-800/40 transition">
+                  <td class="py-2.5 px-3 text-xs font-bold text-slate-300">${m.label}</td>
+                  <td class="py-2.5 px-3 text-xs font-mono text-cyan-300 text-right">${Math.round(scenPrice).toLocaleString('ko-KR')}원</td>
+                  <td class="py-2.5 px-3 text-xs font-mono font-bold text-emerald-400 text-right">+${Math.round(scenVal).toLocaleString('ko-KR')}원</td>
+                  <td class="py-2.5 px-3 text-xs text-right">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">100% 무위험 순익</span>
+                  </td>
+                </tr>
+                `;
+            }).join('');
+        }
+    },
+
+    setFreeridePreset: function (pct) {
+        const el = document.getElementById('freerideRecoveryPct');
+        if (el) {
+            el.value = pct;
+            this.calcFreeRide();
+        }
+    },
+
+    // ========================================================
+    // 8. 일/월 복리 챌린지 시드 플래너 (스노우볼 차트)
+    // ========================================================
+    compoundPeriodType: 'day', // 'day' | 'month'
+    setCompoundPeriodType: function (type) {
+        this.compoundPeriodType = type;
+        const dayBtn = document.getElementById('compoundBtnDay');
+        const monthBtn = document.getElementById('compoundBtnMonth');
+        const rateLabel = document.getElementById('compoundRateLabel');
+        const periodLabel = document.getElementById('compoundPeriodLabel');
+
+        if (type === 'day') {
+            if (dayBtn) dayBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
+            if (monthBtn) monthBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (rateLabel) rateLabel.innerText = '일일 복리 목표 수익률 (%)';
+            if (periodLabel) periodLabel.innerText = '챌린지 기간 (일수)';
+        } else {
+            if (dayBtn) dayBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (monthBtn) monthBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
+            if (rateLabel) rateLabel.innerText = '월간 복리 목표 수익률 (%)';
+            if (periodLabel) periodLabel.innerText = '챌린지 기간 (개월수)';
+        }
+        this.calcCompoundPlanner();
+    },
+
+    setCompoundPreset: function (seedWon, rate, periods) {
+        const seedEl = document.getElementById('compoundSeed');
+        const rateEl = document.getElementById('compoundRate');
+        const periodEl = document.getElementById('compoundPeriods');
+        if (seedEl) seedEl.value = this.formatNumber(seedWon);
+        if (rateEl) rateEl.value = rate;
+        if (periodEl) periodEl.value = periods;
+        this.calcCompoundPlanner();
+    },
+
+    calcCompoundPlanner: function () {
+        const seed = this.parseNum(document.getElementById('compoundSeed')?.value, 1000000);
+        const rate = this.parseNum(document.getElementById('compoundRate')?.value, 1) / 100;
+        const totalPeriods = Math.min(365, Math.max(1, parseInt(this.parseNum(document.getElementById('compoundPeriods')?.value, 30), 10)));
+        const targetGoal = this.parseNum(document.getElementById('compoundTargetGoal')?.value, 100000000);
+        const periodicDeposit = this.parseNum(document.getElementById('compoundPeriodicDeposit')?.value, 0);
+
+        if (seed <= 0 || totalPeriods <= 0) return;
+
+        const isDay = (this.compoundPeriodType === 'day');
+        const periodUnit = isDay ? '일' : '개월';
+
+        let currentBalance = seed;
+        let totalDeposited = seed;
+        const history = [{ period: 0, balance: seed, principal: seed, interestSum: 0 }];
+
+        let milestoneTargetPeriod = null;
+
+        for (let i = 1; i <= totalPeriods; i++) {
+            const interest = currentBalance * rate;
+            currentBalance += interest + periodicDeposit;
+            totalDeposited += periodicDeposit;
+
+            if (currentBalance >= targetGoal && milestoneTargetPeriod === null) {
+                milestoneTargetPeriod = i;
+            }
+
+            history.push({
+                period: i,
+                balance: currentBalance,
+                principal: totalDeposited,
+                interestSum: currentBalance - totalDeposited
+            });
+        }
+
+        const finalBalance = currentBalance;
+        const netInterest = finalBalance - totalDeposited;
+        const totalYieldPct = ((finalBalance - totalDeposited) / totalDeposited) * 100;
+
+        // UI 갱신
+        const finalBalanceEl = document.getElementById('compoundResultFinalBalance');
+        if (finalBalanceEl) finalBalanceEl.innerText = `${Math.round(finalBalance).toLocaleString('ko-KR')}원`;
+
+        const totalYieldEl = document.getElementById('compoundResultYieldPct');
+        if (totalYieldEl) totalYieldEl.innerText = `+${totalYieldPct.toFixed(1)}% (순이익 +${Math.round(netInterest).toLocaleString('ko-KR')}원)`;
+
+        const principalEl = document.getElementById('compoundResultPrincipal');
+        if (principalEl) principalEl.innerText = `${Math.round(totalDeposited).toLocaleString('ko-KR')}원`;
+
+        const goalReachEl = document.getElementById('compoundResultGoalReach');
+        if (goalReachEl) {
+            if (milestoneTargetPeriod !== null) {
+                goalReachEl.innerHTML = `<span class="text-emerald-400 font-bold">${milestoneTargetPeriod}${periodUnit}차</span> 달성 완료!`;
+            } else {
+                // 필요 기간 역산
+                if (rate > 0) {
+                    const estN = Math.ceil(Math.log(targetGoal / seed) / Math.log(1 + rate));
+                    goalReachEl.innerText = `약 ${estN}${periodUnit} 소요 예상`;
+                } else {
+                    goalReachEl.innerText = '수익률 0% 초과 필요';
+                }
+            }
+        }
+
+        // SVG 성장 곡선 차트 렌더링
+        this.renderCompoundChart(history, isDay);
+
+        // 마일스톤 테이블 렌더링
+        const milestoneBody = document.getElementById('compoundMilestoneBody');
+        if (milestoneBody) {
+            const milestones = [
+                { target: 10000000, label: '1천만원' },
+                { target: 30000000, label: '3천만원' },
+                { target: 50000000, label: '5천만원' },
+                { target: 100000000, label: '1억원 (첫 억대)' },
+                { target: 300000000, label: '3억원' },
+                { target: 500000000, label: '5억원' },
+                { target: 1000000000, label: '10억원 (졸업)' }
+            ];
+
+            milestoneBody.innerHTML = milestones.map(m => {
+                let reachPeriod = null;
+                let reachBal = 0;
+                for (let h of history) {
+                    if (h.balance >= m.target) {
+                        reachPeriod = h.period;
+                        reachBal = h.balance;
+                        break;
+                    }
+                }
+
+                // 기간 내 미도달 시 수학적 역산
+                let estText = '';
+                if (reachPeriod !== null) {
+                    estText = `<span class="text-emerald-400 font-bold font-mono">${reachPeriod}${periodUnit}차 (${Math.round(reachBal).toLocaleString()}원)</span>`;
+                } else if (rate > 0) {
+                    const estN = Math.ceil(Math.log(m.target / seed) / Math.log(1 + rate));
+                    estText = `<span class="text-slate-400 font-mono">약 ${estN}${periodUnit} 필요</span>`;
+                } else {
+                    estText = `<span class="text-slate-500">-</span>`;
+                }
+
+                return `
+                <tr class="border-b border-navy-800/50 hover:bg-navy-800/30 transition">
+                  <td class="py-2.5 px-3 text-xs font-bold text-slate-300">${m.label}</td>
+                  <td class="py-2.5 px-3 text-xs font-mono text-right text-cyan-300">${m.target.toLocaleString('ko-KR')}원</td>
+                  <td class="py-2.5 px-3 text-xs text-right">${estText}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+    },
+
+    renderCompoundChart: function (history, isDay) {
+        const container = document.getElementById('compoundChartContainer');
+        if (!container || !history || history.length < 2) return;
+
+        const width = 680;
+        const height = 240;
+        const padLeft = 70;
+        const padRight = 30;
+        const padTop = 30;
+        const padBottom = 40;
+
+        const maxVal = Math.max(...history.map(h => h.balance)) * 1.08;
+        const minVal = 0;
+
+        const plotW = width - padLeft - padRight;
+        const plotH = height - padTop - padBottom;
+
+        const getX = (idx) => padLeft + (idx / (history.length - 1)) * plotW;
+        const getY = (val) => padTop + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+
+        // Balance Path
+        const balPoints = history.map((h, i) => `${getX(i)},${getY(h.balance)}`).join(' ');
+        // Area Path
+        const firstX = getX(0);
+        const lastX = getX(history.length - 1);
+        const bottomY = getY(0);
+        const areaPoints = `${firstX},${bottomY} ${balPoints} ${lastX},${bottomY}`;
+
+        // Principal line (원금)
+        const principalPoints = history.map((h, i) => `${getX(i)},${getY(h.principal)}`).join(' ');
+
+        // Format helper
+        const fmtWon = (v) => {
+            if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
+            if (v >= 10000) return Math.round(v / 10000) + '만';
+            return Math.round(v);
+        };
+
+        const gridLines = [0, 0.25, 0.5, 0.75, 1.0].map(ratio => {
+            const v = minVal + (maxVal - minVal) * ratio;
+            const y = getY(v);
+            return `
+              <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="rgba(148, 163, 184, 0.12)" stroke-dasharray="3,3"/>
+              <text x="${padLeft - 8}" y="${y + 4}" fill="#64748b" font-size="10" text-anchor="end" font-family="monospace">${fmtWon(v)}</text>
+            `;
+        }).join('');
+
+        const unit = isDay ? '일' : '월';
+        const startX = getX(0);
+        const midIdx = Math.floor(history.length / 2);
+        const midX = getX(midIdx);
+        const endX = getX(history.length - 1);
+
+        container.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto drop-shadow-lg" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="compoundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Grid Lines & Labels -->
+          ${gridLines}
+
+          <!-- Balance Area -->
+          <polygon points="${areaPoints}" fill="url(#compoundGrad)" />
+
+          <!-- Principal Line (원금) -->
+          <polyline points="${principalPoints}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,4" />
+
+          <!-- Balance Line (복리 자산) -->
+          <polyline points="${balPoints}" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+          <!-- End Point Glow -->
+          <circle cx="${lastX}" cy="${getY(history[history.length - 1].balance)}" r="5" fill="#22d3ee" stroke="#083344" stroke-width="2"/>
+
+          <!-- X-Axis Labels -->
+          <text x="${startX}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="start">시작 (0${unit})</text>
+          <text x="${midX}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="middle">${history[midIdx].period}${unit}</text>
+          <text x="${endX}" y="${height - 12}" fill="#22d3ee" font-size="10" font-weight="bold" text-anchor="end">${history[history.length - 1].period}${unit} 완료</text>
+        </svg>
+        `;
+    },
+
+    // ========================================================
+    // 9. 스테이킹 & 예치 복리(APY/APR) 실효 수익 계산기
+    // ========================================================
+    stakingPresets: {
+        'ETH': { name: '이더리움 (ETH)', price: 4700000, apr: 3.2, fee: 10, period: 'daily' },
+        'SOL': { name: '솔라나 (SOL)', price: 280000, apr: 7.1, fee: 8, period: 'daily' },
+        'SUI': { name: '수이 (SUI)', price: 4200, apr: 3.5, fee: 10, period: 'daily' },
+        'ATOM': { name: '코스모스 (ATOM)', price: 9500, apr: 13.8, fee: 5, period: 'daily' },
+        'ADA': { name: '에이다 (ADA)', price: 1100, apr: 2.9, fee: 5, period: '5days' },
+        'USDT': { name: '테더 (USDT 예치)', price: 1380, apr: 8.5, fee: 0, period: 'daily' }
+    },
+
+    applyStakingPreset: function (symbol) {
+        const p = this.stakingPresets[symbol];
+        if (!p) return;
+
+        const symEl = document.getElementById('stakingCoinSymbol');
+        const priceEl = document.getElementById('stakingCoinPrice');
+        const aprEl = document.getElementById('stakingApr');
+        const feeEl = document.getElementById('stakingFeeRate');
+
+        if (symEl) symEl.value = symbol;
+        if (priceEl) priceEl.value = this.formatNumber(p.price);
+        if (aprEl) aprEl.value = p.apr;
+        if (feeEl) feeEl.value = p.fee;
+
+        this.calcStakingYield();
+    },
+
+    calcStakingYield: function () {
+        const symbol = document.getElementById('stakingCoinSymbol')?.value || 'ETH';
+        const qty = this.parseNum(document.getElementById('stakingAmount')?.value, 10);
+        const price = this.parseNum(document.getElementById('stakingCoinPrice')?.value, 4500000);
+        const apr = this.parseNum(document.getElementById('stakingApr')?.value, 4.5) / 100;
+        const feeRate = this.parseNum(document.getElementById('stakingFeeRate')?.value, 10) / 100;
+        const taxRate = this.parseNum(document.getElementById('stakingTaxRate')?.value, 0) / 100;
+        const isReinvest = document.getElementById('stakingReinvestToggle')?.checked ?? true;
+
+        if (qty <= 0 || price <= 0) return;
+
+        const totalPrincipalKrw = qty * price;
+
+        // 수수료 차감 후 실질 APR
+        const netApr = apr * (1 - feeRate) * (1 - taxRate);
+
+        // 연간 단리 vs 일복리(APY) 수량
+        // APY = (1 + r/365)^365 - 1
+        const effectiveApy = isReinvest ? (Math.pow(1 + (netApr / 365), 365) - 1) : netApr;
+
+        // 연간 수령 코인 수량
+        const annualRewardQty = qty * effectiveApy;
+        const monthlyRewardQty = annualRewardQty / 12;
+        const dailyRewardQty = annualRewardQty / 365;
+
+        // 원화 환산 가치
+        const annualRewardKrw = annualRewardQty * price;
+        const monthlyRewardKrw = monthlyRewardQty * price;
+        const dailyRewardKrw = dailyRewardQty * price;
+
+        // 3년 누적 (복리 vs 단리)
+        const threeYearRewardQty = isReinvest
+            ? (qty * (Math.pow(1 + (netApr / 365), 365 * 3) - 1))
+            : (annualRewardQty * 3);
+        const threeYearRewardKrw = threeYearRewardQty * price;
+
+        // UI 갱신
+        const principalEl = document.getElementById('stakingResultPrincipal');
+        if (principalEl) principalEl.innerText = `${Math.round(totalPrincipalKrw).toLocaleString('ko-KR')}원 (${qty.toLocaleString()} ${symbol})`;
+
+        const effectiveRateEl = document.getElementById('stakingResultEffectiveRate');
+        if (effectiveRateEl) effectiveRateEl.innerText = `${(effectiveApy * 100).toFixed(2)}% (${isReinvest ? '일복리 재투자 APY' : '단리 실효수익률'})`;
+
+        const dailyRewardEl = document.getElementById('stakingResultDaily');
+        if (dailyRewardEl) dailyRewardEl.innerText = `${dailyRewardQty.toFixed(4)} ${symbol} (약 ${Math.round(dailyRewardKrw).toLocaleString('ko-KR')}원)`;
+
+        const monthlyRewardEl = document.getElementById('stakingResultMonthly');
+        if (monthlyRewardEl) monthlyRewardEl.innerText = `${monthlyRewardQty.toFixed(4)} ${symbol} (약 ${Math.round(monthlyRewardKrw).toLocaleString('ko-KR')}원)`;
+
+        const annualRewardEl = document.getElementById('stakingResultAnnual');
+        if (annualRewardEl) annualRewardEl.innerText = `${annualRewardQty.toFixed(4)} ${symbol} (약 ${Math.round(annualRewardKrw).toLocaleString('ko-KR')}원)`;
+
+        const threeYearEl = document.getElementById('stakingResultThreeYear');
+        if (threeYearEl) threeYearEl.innerText = `+${threeYearRewardQty.toFixed(4)} ${symbol} (+${Math.round(threeYearRewardKrw).toLocaleString('ko-KR')}원)`;
     }
 };
 
