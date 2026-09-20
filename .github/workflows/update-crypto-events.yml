@@ -33,5 +33,6 @@ jobs:
             echo "No crypto event changes to commit."
           else
             git commit -m "chore(crypto): auto-update crypto and macro events calendar [skip ci]"
+            git pull --rebase origin main
             git push origin main
           fi
