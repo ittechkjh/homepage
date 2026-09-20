@@ -69,6 +69,25 @@ function formatDateTime(val, includeSeconds = false) {
 }
 window.formatDateTime = formatDateTime;
 
+// Performance Helper: 국소 범위 Lucide 아이콘 렌더링 (DOM 전체 리플로우 제거)
+function safeCreateIcons(container) {
+  if (typeof lucide === 'undefined' || !lucide.createIcons) return;
+  try {
+    if (container && typeof container === 'string') {
+      const el = document.querySelector(container);
+      if (el) lucide.createIcons({ root: el });
+      else lucide.createIcons();
+    } else if (container && container.nodeType === 1) {
+      lucide.createIcons({ root: container });
+    } else {
+      lucide.createIcons();
+    }
+  } catch(e) {
+    try { lucide.createIcons(); } catch(_) {}
+  }
+}
+window.safeCreateIcons = safeCreateIcons;
+
 // ----------------------------------------------------
 // Section 0: Theme Management Engine (Dark / Light)
 // ----------------------------------------------------
@@ -145,9 +164,7 @@ function openLegalModal(tab) {
     modal.style.setProperty('display', 'flex', 'important');
     modal.classList.remove('hidden');
     switchLegalTab(tab);
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-      try { lucide.createIcons(); } catch(e) {}
-    }
+    safeCreateIcons(modal);
   }
 }
 window.openLegalModal = openLegalModal;
@@ -210,9 +227,7 @@ window.openExcelGuideModal = function() {
     modal.classList.remove('hidden');
     modal.style.setProperty('display', 'flex', 'important');
     window.showExchangeGuide('upbit');
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-      try { lucide.createIcons(); } catch(e) {}
-    }
+    safeCreateIcons(modal);
   }
 };
 
@@ -241,7 +256,8 @@ window.showExchangeGuide = function(exchange) {
     if (tabBithumb) tabBithumb.className = 'py-2.5 rounded-xl transition text-center bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
     if (tabUpbit) tabUpbit.className = 'py-2.5 rounded-xl transition text-center text-slate-400 hover:text-white';
   }
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  const activeContent = (exchange === 'upbit') ? upbitContent : bithumbContent;
+  safeCreateIcons(activeContent || document.getElementById('excel-guide-modal'));
 };
 
 function updateAdminNavVisibility() {
@@ -498,10 +514,15 @@ async function fetchMarketData() {
 }
 window.fetchMarketData = fetchMarketData;
 
-// Start background live market polling interval
+// Start background live market polling interval (Smart Background Pause: 탭 비활성/최소화 시 즉시 중지)
 if (!window._marketTickerInterval) {
   window._marketTickerInterval = setInterval(() => {
-    fetchMarketData();
+    if (typeof document !== 'undefined' && document.hidden) return; // 창 최소화/백그라운드 탭 차단
+    const activeTab = window.currentActiveTabId || 'analyzer';
+    // 시황 관련 탭('market', 'onchain')을 보고 있을 때만 주기적 폴링 수행
+    if (activeTab === 'market' || activeTab === 'onchain') {
+      fetchMarketData();
+    }
   }, 10000);
 }
 
@@ -1066,11 +1087,16 @@ function refreshMarketAnalysis() {
 }
 window.refreshMarketAnalysis = refreshMarketAnalysis;
 
-// Start market analysis background polling interval (every 15s)
+// Start market analysis background polling interval (Smart Background Pause: 탭 비활성/최소화 시 즉시 중지)
 if (!window._marketAnalysisInterval) {
   fetchMarketAnalysisData();
   window._marketAnalysisInterval = setInterval(() => {
-    fetchMarketAnalysisData();
+    if (typeof document !== 'undefined' && document.hidden) return; // 창 최소화/백그라운드 탭 차단
+    const activeTab = window.currentActiveTabId || 'analyzer';
+    // 시황 분석 탭('market')에 머무르고 있을 때만 15초 폴링 유지
+    if (activeTab === 'market') {
+      fetchMarketAnalysisData();
+    }
   }, 15000);
 }
 
@@ -6271,6 +6297,7 @@ window.updateCommunitySubNav = updateCommunitySubNav;
 function switchTab(tabId, updateHash = true) {
   const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
+  window.currentActiveTabId = tabId;
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     let fName = tabId;
@@ -6390,6 +6417,7 @@ function switchTab(tabId, updateHash = true) {
 
     if (tabId === 'market') {
       fetchMarketData();
+      fetchMarketAnalysisData();
       initChart();
     }
 
@@ -8264,13 +8292,17 @@ const OnChainEngine = {
 
     if (!this._interval) {
       this._interval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.hidden) return;
+        if (window.currentActiveTabId !== 'onchain') return;
         this.updateLiveMetrics();
       }, 7000);
     }
 
-    // Refresh real on-chain APIs every 60 seconds
+    // Refresh real on-chain APIs every 60 seconds (onchain 탭 활성 시에만)
     if (!this._apiInterval) {
       this._apiInterval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.hidden) return;
+        if (window.currentActiveTabId !== 'onchain') return;
         if (this.currentCoin === 'BTC') {
           this.fetchRealOnChainData();
         } else {

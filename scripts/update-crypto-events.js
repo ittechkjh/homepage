@@ -366,6 +366,56 @@ function generateRollingMacroEvents(baseDate = new Date(), monthsAhead = 3) {
       impact: 'VOLATILE',
       impactColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30'
     });
+
+    // 5. FOMC Rate Decision (Scheduled Months: Jan, Mar, May, Jun, Jul, Sep, Nov, Dec - roughly 3rd/4th Wed)
+    const fomcMonths = [1, 3, 5, 6, 7, 9, 11, 12];
+    if (fomcMonths.includes(monthNum)) {
+      let thirdWed = 1;
+      let wCount = 0;
+      for (let d = 1; d <= 28; d++) {
+        if (new Date(y, mo, d).getDay() === 3) {
+          wCount++;
+          if (wCount === 3) {
+            thirdWed = d;
+            break;
+          }
+        }
+      }
+      // Fed announces Wednesday 14:00 EDT -> Thursday 03:00 KST
+      const fomcDay = thirdWed + 1;
+      const fomcDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(fomcDay).padStart(2, '0')}`;
+      events.push({
+        date: fomcDate,
+        time: '03:00 (KST)',
+        category: 'macro',
+        categoryName: '🏦 FOMC/거시경제',
+        coin: 'FED',
+        title: `미국 연준(Fed) FOMC 기준금리 결정 및 경제전망(SEP)`,
+        desc: '글로벌 유동성 공급과 암호화폐 시장 변동성을 결정지을 핵심 통화정책 회의.',
+        impact: 'CRITICAL',
+        impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+      });
+    }
+
+    // 6. Quarterly Options & Futures Expiry (Deribit/CME Last Friday of Mar, Jun, Sep, Dec)
+    if ([3, 6, 9, 12].includes(monthNum)) {
+      let lastFriday = endMonthDay;
+      while (new Date(y, mo, lastFriday).getDay() !== 5) {
+        lastFriday--;
+      }
+      const expiryDate = `${y}-${String(monthNum).padStart(2, '0')}-${String(lastFriday).padStart(2, '0')}`;
+      events.push({
+        date: expiryDate,
+        time: '17:00 (KST)',
+        category: 'macro',
+        categoryName: '🏦 파생/만기',
+        coin: 'EXPIRY',
+        title: `글로벌 비트코인·이더리움 분기 만기일(Deribit/CME)`,
+        desc: '대규모 분기 선물·옵션 동시 만기. 맥스페인(Max Pain) 가격대 및 시장 변동성 극대화 주의.',
+        impact: 'CRITICAL',
+        impactColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+      });
+    }
   }
 
   return events;
