@@ -392,6 +392,7 @@ const CoinCalculators = {
         this.renderWaterTiers();
         this.renderSellTiers();
         this.renderScenarioUI();
+        this.renderCrypto2027CoinRows();
         this.calcWater();
         this.calcTax();
         this.calcCrypto2027Tax();
@@ -561,6 +562,7 @@ const CoinCalculators = {
         } else if (tabId === 'staking') {
             this.calcStakingYield();
         } else if (tabId === 'stocktax') {
+            this.renderCrypto2027CoinRows();
             this.calcCrypto2027Tax();
             this.calcStockTax();
         } else if (tabId === 'dividend') {
@@ -2679,9 +2681,16 @@ const CoinCalculators = {
     },
 
     // ========================================================
-    // 10-A. 2027 가상자산 소득세 & 의제취득가액 시뮬레이터
+    // 10-A. 2027 가상자산 소득세 & 전 종목 의제취득가액 시뮬레이터
     // ========================================================
     taxSubMode: 'crypto', // 'crypto' | 'stock'
+    crypto2027Coins: [
+        { id: 1, symbol: 'BTC', qty: 0.5, buyPrice: 60000000, dec2026Price: 135000000, sellPrice: 180000000 },
+        { id: 2, symbol: 'ETH', qty: 3.0, buyPrice: 5200000, dec2026Price: 4800000, sellPrice: 6500000 },
+        { id: 3, symbol: 'XRP', qty: 2500, buyPrice: 950, dec2026Price: 3200, sellPrice: 4500 }
+    ],
+    nextCryptoCoinId: 4,
+
     setTaxMode: function (mode) {
         this.taxSubMode = mode;
         const cryptoBtn = document.getElementById('taxModeBtnCrypto');
@@ -2698,6 +2707,7 @@ const CoinCalculators = {
             }
             if (cryptoSec) cryptoSec.classList.remove('hidden');
             if (stockSec) stockSec.classList.add('hidden');
+            this.renderCrypto2027CoinRows();
             this.calcCrypto2027Tax();
         } else {
             if (cryptoBtn) {
@@ -2712,50 +2722,330 @@ const CoinCalculators = {
         }
     },
 
+    resolveCoinSymbol: function (str) {
+        if (!str) return 'BTC';
+        const raw = str.trim();
+        const parenMatch = raw.match(/^([A-Z0-9]+)\s*\(/i);
+        if (parenMatch) return parenMatch[1].toUpperCase();
+
+        const cleaned = raw.toLowerCase().replace(/^krw-/, '');
+        if (typeof UpbitAPI !== 'undefined' && UpbitAPI.koreanToSymbolMap) {
+            if (UpbitAPI.koreanToSymbolMap[cleaned]) return UpbitAPI.koreanToSymbolMap[cleaned];
+            if (UpbitAPI.koreanToSymbolMap[raw]) return UpbitAPI.koreanToSymbolMap[raw];
+        }
+        return raw.toUpperCase().replace(/^KRW-/, '');
+    },
+
+    fetchRealtimeCoinPrice: async function (symbol) {
+        try {
+            const sym = this.resolveCoinSymbol(symbol);
+            if (typeof UpbitAPI !== 'undefined' && UpbitAPI._cachedTickerMap) {
+                const m = 'KRW-' + sym;
+                if (UpbitAPI._cachedTickerMap[m] && UpbitAPI._cachedTickerMap[m].trade_price) {
+                    return UpbitAPI._cachedTickerMap[m].trade_price;
+                }
+            }
+            const res = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-' + sym);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data[0] && data[0].trade_price) {
+                    return data[0].trade_price;
+                }
+            }
+        } catch (e) {}
+        return null;
+    },
+
+    renderCrypto2027CoinRows: function () {
+        const container = document.getElementById('crypto2027CoinsContainer');
+        if (!container) return;
+
+        container.innerHTML = this.crypto2027Coins.map((coin, idx) => {
+            const isDeemedHigher = (coin.dec2026Price > coin.buyPrice);
+            const appliedAcq = Math.max(coin.buyPrice, coin.dec2026Price);
+            const estProfit = (coin.sellPrice - appliedAcq) * coin.qty;
+
+            return `
+              <div class="p-3.5 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2.5 relative transition hover:border-amber-400/50" data-coin-id="${coin.id}">
+                <!-- Header: Coin Symbol & Delete -->
+                <div class="flex justify-between items-center pb-2 border-b border-navy-800">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] font-mono font-bold">${idx + 1}</span>
+                    <input list="cryptoAllCoinsList" value="${coin.symbol}" placeholder="코인명 (예: BTC, SOL)"
+                      onchange="CoinCalculators.onCrypto2027SymbolChange(${coin.id}, this.value)"
+                      class="bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1 text-white font-mono font-bold text-xs uppercase focus:border-amber-400 outline-none w-28 text-center" />
+                    <span class="text-[10px] text-slate-400 font-mono">코인</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="CoinCalculators.refreshCoinPrice(${coin.id})" class="px-2 py-0.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold transition flex items-center gap-0.5 cursor-pointer" title="실시간 업비트 시세로 2026년 기준가 갱신">
+                      <span>⚡ 현재가</span>
+                    </button>
+                    ${this.crypto2027Coins.length > 1 ? `
+                      <button type="button" onclick="CoinCalculators.removeCrypto2027Coin(${coin.id})" class="p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer" title="종목 삭제">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <!-- 4 Core Inputs Grid -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <!-- 1. 보유 수량 -->
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">보유 수량</label>
+                    <input type="number" step="any" value="${coin.qty}"
+                      oninput="CoinCalculators.updateCrypto2027Coin(${coin.id}, 'qty', this.value)"
+                      class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-white font-mono text-xs focus:border-amber-400 outline-none">
+                  </div>
+
+                  <!-- 2. 실제 매수 평단가 -->
+                  <div>
+                    <label class="block font-semibold text-cyan-300 mb-1 text-[11px]">실제 매수 평단가 (KRW)</label>
+                    <input type="text" inputmode="numeric" value="${this.formatNumber(coin.buyPrice)}"
+                      oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateCrypto2027Coin(${coin.id}, 'buyPrice', this.value)"
+                      class="w-full bg-navy-900 border border-cyan-500/30 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 outline-none">
+                  </div>
+
+                  <!-- 3. 2026년 말 기준 시가 -->
+                  <div>
+                    <label class="block font-semibold text-amber-300 mb-1 text-[11px]">2026말 기준시가 (KRW)</label>
+                    <input type="text" inputmode="numeric" value="${this.formatNumber(coin.dec2026Price)}"
+                      oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateCrypto2027Coin(${coin.id}, 'dec2026Price', this.value)"
+                      class="w-full bg-navy-900 border border-amber-500/40 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 outline-none">
+                  </div>
+
+                  <!-- 4. 예상 매도가격 -->
+                  <div>
+                    <label class="block font-semibold text-rose-300 mb-1 text-[11px]">2027 예상 매도가 (KRW)</label>
+                    <input type="text" inputmode="numeric" value="${this.formatNumber(coin.sellPrice)}"
+                      oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateCrypto2027Coin(${coin.id}, 'sellPrice', this.value)"
+                      class="w-full bg-navy-900 border border-rose-900/50 rounded-xl px-2.5 py-1.5 text-rose-300 font-mono font-bold text-xs focus:border-rose-500 outline-none">
+                  </div>
+                </div>
+
+                <!-- Bottom Status Pill -->
+                <div class="pt-1.5 flex justify-between items-center text-[11px] border-t border-navy-800/80">
+                  <span class="text-slate-400 flex items-center gap-1">
+                    인정단가: <strong class="text-amber-300 font-mono">${Math.round(appliedAcq).toLocaleString()}원</strong>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded font-bold ${isDeemedHigher ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300'}">
+                      ${isDeemedHigher ? '✨ 2026시가' : '🛡️ 평단가'}
+                    </span>
+                  </span>
+                  <span class="font-mono font-bold ${estProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                    과세차익: ${estProfit >= 0 ? '+' : ''}${Math.round(estProfit).toLocaleString()}원
+                  </span>
+                </div>
+              </div>
+            `;
+        }).join('');
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            try { lucide.createIcons(); } catch (e) {}
+        }
+    },
+
+    addCrypto2027Coin: function (coinData = null) {
+        const newCoin = coinData || {
+            id: this.nextCryptoCoinId++,
+            symbol: 'SOL',
+            qty: 10,
+            buyPrice: 150000,
+            dec2026Price: 310000,
+            sellPrice: 450000
+        };
+        if (!newCoin.id) newCoin.id = this.nextCryptoCoinId++;
+        this.crypto2027Coins.push(newCoin);
+        this.renderCrypto2027CoinRows();
+        this.calcCrypto2027Tax();
+    },
+
+    quickAddCrypto2027: async function (symbol, fallbackPrice) {
+        const sym = this.resolveCoinSymbol(symbol);
+        const existing = this.crypto2027Coins.find(c => c.symbol.toUpperCase() === sym);
+        if (existing) {
+            this.refreshCoinPrice(existing.id);
+            return;
+        }
+
+        let price = fallbackPrice;
+        const livePrice = await this.fetchRealtimeCoinPrice(sym);
+        if (livePrice) price = livePrice;
+
+        const buyPrice = Math.round(price * 0.75);
+        const sellPrice = Math.round(price * 1.35);
+
+        this.addCrypto2027Coin({
+            id: this.nextCryptoCoinId++,
+            symbol: sym,
+            qty: 1,
+            buyPrice: buyPrice,
+            dec2026Price: price,
+            sellPrice: sellPrice
+        });
+    },
+
+    removeCrypto2027Coin: function (id) {
+        if (this.crypto2027Coins.length <= 1) {
+            alert('최소 1개 이상의 코인이 유지되어야 합니다.');
+            return;
+        }
+        this.crypto2027Coins = this.crypto2027Coins.filter(c => c.id !== id);
+        this.renderCrypto2027CoinRows();
+        this.calcCrypto2027Tax();
+    },
+
+    updateCrypto2027Coin: function (id, field, val) {
+        const coin = this.crypto2027Coins.find(c => c.id === id);
+        if (!coin) return;
+
+        if (field === 'qty') {
+            coin.qty = parseFloat(val) || 0;
+        } else if (field === 'buyPrice' || field === 'dec2026Price' || field === 'sellPrice') {
+            coin[field] = this.parseNum(val, 0);
+        } else {
+            coin[field] = val;
+        }
+        this.calcCrypto2027Tax();
+    },
+
+    onCrypto2027SymbolChange: async function (id, val) {
+        const coin = this.crypto2027Coins.find(c => c.id === id);
+        if (!coin) return;
+
+        const sym = this.resolveCoinSymbol(val);
+        coin.symbol = sym;
+        const livePrice = await this.fetchRealtimeCoinPrice(sym);
+        if (livePrice) {
+            coin.dec2026Price = Math.round(livePrice);
+            if (coin.buyPrice <= 0 || coin.buyPrice === coin.dec2026Price) {
+                coin.buyPrice = Math.round(livePrice * 0.8);
+            }
+            if (coin.sellPrice <= 0 || coin.sellPrice === coin.dec2026Price) {
+                coin.sellPrice = Math.round(livePrice * 1.3);
+            }
+        }
+        this.renderCrypto2027CoinRows();
+        this.calcCrypto2027Tax();
+    },
+
+    refreshCoinPrice: async function (id) {
+        const coin = this.crypto2027Coins.find(c => c.id === id);
+        if (!coin) return;
+        const livePrice = await this.fetchRealtimeCoinPrice(coin.symbol);
+        if (livePrice) {
+            coin.dec2026Price = Math.round(livePrice);
+            this.renderCrypto2027CoinRows();
+            this.calcCrypto2027Tax();
+        } else {
+            alert(`[${coin.symbol}] 실시간 시세를 가져오지 못했습니다. 수동으로 기준가를 입력해 주세요.`);
+        }
+    },
+
+    importCrypto2027FromAnalyzer: function () {
+        const rep = this.getAnalyzerData();
+        if (rep && rep.coinSummaries) {
+            const holdings = rep.coinSummaries.filter(c => c.holdingQty > 1e-8);
+            if (holdings.length > 0) {
+                this.crypto2027Coins = holdings.map((c, idx) => {
+                    const sym = c.currency || (c.market ? c.market.replace('KRW-', '') : 'COIN');
+                    const buyPrice = Math.round(c.avgBuyPrice || 0);
+                    const curPrice = Math.round(c.currentPrice || buyPrice);
+                    const sellPrice = Math.round(Math.max(buyPrice, curPrice) * 1.3);
+                    return {
+                        id: Date.now() + idx,
+                        symbol: sym.toUpperCase(),
+                        qty: parseFloat(c.holdingQty.toFixed(6)),
+                        buyPrice: buyPrice,
+                        dec2026Price: curPrice,
+                        sellPrice: sellPrice
+                    };
+                });
+                this.renderCrypto2027CoinRows();
+                this.calcCrypto2027Tax();
+                alert(`손익 분석기에 저장된 전체 ${holdings.length}개 보유 코인을 2027 세금 계산기에 모두 성공적으로 불러왔습니다!`);
+                return;
+            }
+        }
+        alert('손익 분석기에 현재 보유 중인 코인이 없습니다. 엑셀 거래내역을 업로드하거나 [+ 코인 추가] 버튼으로 직접 입력해 주세요.');
+    },
+
     calcCrypto2027Tax: function () {
-        const qty = this.parseNum(document.getElementById('crypto2027Qty')?.value, 1);
-        const buyPrice = this.parseNum(document.getElementById('crypto2027BuyPrice')?.value, 60000000);
-        const dec2026Price = this.parseNum(document.getElementById('crypto2027Dec2026Price')?.value, 135000000);
-        const sellPrice = this.parseNum(document.getElementById('crypto2027SellPrice')?.value, 180000000);
         const feeRate = parseFloat(document.getElementById('crypto2027FeeRate')?.value || '0.05');
         const deductType = document.getElementById('crypto2027Deduction')?.value || '250';
         const basicDeduction = deductType === '5000' ? 50000000 : 2500000;
 
-        // [2027 대한민국 가상자산 소득세 핵심]: 의제취득가액 제도
-        // 인정 취득단가 = Math.max(실제 매수 평단가, 2026년 12월 31일 당시 시가)
-        const isDeemedPriceHigher = dec2026Price > buyPrice;
-        const appliedAcqPrice = Math.max(buyPrice, dec2026Price);
+        let totalSellAll = 0;
+        let totalAppliedAcqAll = 0;
+        let totalActualCostAll = 0;
+        let totalFeeAll = 0;
+        let totalNetGainAll = 0; // 손익통산 합산 (이익 + 손실 상계)
+        let totalWithoutDeemedGainAll = 0;
 
-        // 총 매도 대금
-        const totalSell = sellPrice * qty;
-        // 총 인정 취득가액
-        const totalAppliedAcq = appliedAcqPrice * qty;
-        // 매매 제비용 (매도액 기준 수수료율)
-        const totalFee = totalSell * (feeRate / 100);
+        const coinBreakdown = this.crypto2027Coins.map(coin => {
+            const qty = parseFloat(coin.qty) || 0;
+            const buyPrice = parseFloat(coin.buyPrice) || 0;
+            const dec2026Price = parseFloat(coin.dec2026Price) || 0;
+            const sellPrice = parseFloat(coin.sellPrice) || 0;
 
-        // 과세 대상 양도차익 (순수익) = max(0, 총 매도 - 총 인정 취득가액 - 제비용)
-        const netGain = Math.max(0, totalSell - totalAppliedAcq - totalFee);
+            const isDeemedPriceHigher = dec2026Price > buyPrice;
+            const appliedAcqPrice = Math.max(buyPrice, dec2026Price);
 
-        // 기본공제 적용 후 과세표준 = max(0, 과세 대상 양도차익 - 기본공제)
-        const taxableBase = Math.max(0, netGain - basicDeduction);
+            const coinTotalSell = sellPrice * qty;
+            const coinTotalAppliedAcq = appliedAcqPrice * qty;
+            const coinActualCost = buyPrice * qty;
+            const coinFee = coinTotalSell * (feeRate / 100);
 
-        // 산출 세액: 소득세 20% + 지방소득세 2% = 22%
+            // 해당 종목의 과세대상 양도손익 (손익통산을 위해 손실도 감안)
+            const coinNetGain = coinTotalSell - coinTotalAppliedAcq - coinFee;
+            // 의제 미적용 시(원래 평단가 과세) 양도손익
+            const coinGainWithoutDeemed = coinTotalSell - coinActualCost - coinFee;
+
+            // 의제 적용으로 발생한 비과세 차익
+            const deemedSavingsBasis = Math.max(0, coinTotalAppliedAcq - coinActualCost);
+
+            totalSellAll += coinTotalSell;
+            totalAppliedAcqAll += coinTotalAppliedAcq;
+            totalActualCostAll += coinActualCost;
+            totalFeeAll += coinFee;
+            totalNetGainAll += coinNetGain;
+            totalWithoutDeemedGainAll += coinGainWithoutDeemed;
+
+            return {
+                id: coin.id,
+                symbol: coin.symbol,
+                qty,
+                buyPrice,
+                dec2026Price,
+                appliedAcqPrice,
+                isDeemedPriceHigher,
+                sellPrice,
+                coinTotalSell,
+                coinNetGain,
+                deemedSavingsBasis
+            };
+        });
+
+        // 1. 손익통산(이익과 손실 상계) 후 전체 포트폴리오 순수익
+        const portfolioNetGain = Math.max(0, totalNetGainAll);
+        // 2. 기본공제 적용 후 과세표준
+        const taxableBase = Math.max(0, portfolioNetGain - basicDeduction);
+
+        // 3. 소득세 20% + 지방소득세 2% = 총 22%
         const incomeTax = taxableBase * 0.20;
         const localTax = taxableBase * 0.02;
         const totalTax = incomeTax + localTax;
 
-        // 실효 세율 (%) = (총 세금 / 과세대상 순수익) * 100
-        const effectiveRate = netGain > 0 ? ((totalTax / netGain) * 100) : 0;
+        // 4. 실효 세율
+        const effectiveRate = portfolioNetGain > 0 ? ((totalTax / portfolioNetGain) * 100) : 0;
 
-        // 실제 투자자 체감 순수익 (실제 매수원금 차감 기준: 총 매도 - 실제 매수원금 - 수수료 - 총 세금)
-        const actualCost = buyPrice * qty;
-        const actualNetProfit = totalSell - actualCost - totalFee - totalTax;
+        // 5. 실제 체감 순수익 (실제 매수원금 차감 현금흐름)
+        const actualNetCashProfit = totalSellAll - totalActualCostAll - totalFeeAll - totalTax;
 
-        // [절세액 계산]: 만약 2026년 시가 의제 혜택 없이 실제 평단가로만 과세했을 경우의 세액과 비교
-        const gainWithoutDeemed = Math.max(0, totalSell - actualCost - totalFee);
-        const taxableWithoutDeemed = Math.max(0, gainWithoutDeemed - basicDeduction);
+        // 6. [전체 절세액 산출]: 의제 미적용 시의 세금과 비교
+        const portfolioGainWithoutDeemed = Math.max(0, totalWithoutDeemedGainAll);
+        const taxableWithoutDeemed = Math.max(0, portfolioGainWithoutDeemed - basicDeduction);
         const taxWithoutDeemed = taxableWithoutDeemed * 0.22;
-        const taxSavings = Math.max(0, taxWithoutDeemed - totalTax);
+        const totalTaxSavings = Math.max(0, taxWithoutDeemed - totalTax);
 
         // UI 반영
         const setTxt = (id, text) => {
@@ -2763,29 +3053,23 @@ const CoinCalculators = {
             if (el) el.innerText = text;
         };
 
-        setTxt('crypto2027ResAppliedAcqPrice', `${Math.round(appliedAcqPrice).toLocaleString('ko-KR')}원`);
-        setTxt('crypto2027ResTotalSell', `${Math.round(totalSell).toLocaleString('ko-KR')}원`);
-        setTxt('crypto2027ResNetGain', `${Math.round(netGain).toLocaleString('ko-KR')}원`);
-        
-        const actualDeduction = Math.min(netGain, basicDeduction);
+        setTxt('crypto2027ResTotalSell', `${Math.round(totalSellAll).toLocaleString('ko-KR')}원`);
+        setTxt('crypto2027ResAppliedAcqPrice', `${Math.round(totalAppliedAcqAll).toLocaleString('ko-KR')}원`);
+        setTxt('crypto2027ResNetGain', `${totalNetGainAll >= 0 ? '+' : ''}${Math.round(totalNetGainAll).toLocaleString('ko-KR')}원`);
+
+        const actualDeduction = Math.min(portfolioNetGain, basicDeduction);
         setTxt('crypto2027ResDeduction', `-${Math.round(actualDeduction).toLocaleString('ko-KR')}원`);
         setTxt('crypto2027ResTaxable', `${Math.round(taxableBase).toLocaleString('ko-KR')}원`);
         setTxt('crypto2027ResTotalTax', `${Math.round(totalTax).toLocaleString('ko-KR')}원`);
         setTxt('crypto2027ResIncomeTax', `${Math.round(incomeTax).toLocaleString('ko-KR')}원`);
         setTxt('crypto2027ResLocalTax', `${Math.round(localTax).toLocaleString('ko-KR')}원`);
         setTxt('crypto2027ResEffectiveRate', `${effectiveRate.toFixed(1)}% (과세차익 대비)`);
-        setTxt('crypto2027ResAfterTax', `${(actualNetProfit >= 0 ? '+' : '')}${Math.round(actualNetProfit).toLocaleString('ko-KR')}원`);
+        setTxt('crypto2027ResAfterTax', `${(actualNetCashProfit >= 0 ? '+' : '')}${Math.round(actualNetCashProfit).toLocaleString('ko-KR')}원`);
 
-        // 배지 및 상태 문구
+        // 배지
         const badgeEl = document.getElementById('crypto2027AppliedBadge');
         if (badgeEl) {
-            if (isDeemedPriceHigher) {
-                badgeEl.innerText = '✨ 2026년 말 시가 인정 (의제취득가 절세 혜택)';
-                badgeEl.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
-            } else {
-                badgeEl.innerText = '🛡️ 실제 매수 평단가 인정 (원금 손실 방어)';
-                badgeEl.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
-            }
+            badgeEl.innerText = `총 ${this.crypto2027Coins.length}개 코인 손익통산 자동 상계 적용`;
         }
 
         // 절세 혜택 하이라이트 카드
@@ -2793,20 +3077,20 @@ const CoinCalculators = {
         const savingsTitle = document.getElementById('crypto2027SavingsTitle');
         const savingsBody = document.getElementById('crypto2027SavingsBody');
 
-        if (taxSavings > 0) {
+        if (totalTaxSavings > 0) {
             if (savingsCard) savingsCard.className = 'p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-navy-950 to-navy-950 border border-emerald-500/40 space-y-2 shadow-lg';
             if (savingsTitle) {
                 savingsTitle.innerHTML = `
                     <span class="text-emerald-300 font-bold flex items-center gap-1.5">
-                        <span>🎉</span> 2026년 말 시가 의제 적용으로 세금 <strong class="text-emerald-400 underline font-mono text-sm sm:text-base">${Math.round(taxSavings).toLocaleString('ko-KR')}원</strong> 절감!
+                        <span>🎉</span> 전체 보유 코인 의제취득가 특례로 총 세금 <strong class="text-emerald-400 underline font-mono text-sm sm:text-base">${Math.round(totalTaxSavings).toLocaleString('ko-KR')}원</strong> 절감!
                     </span>
                 `;
             }
             if (savingsBody) {
                 savingsBody.innerHTML = `
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        실제 평단가(${Math.round(buyPrice).toLocaleString('ko-KR')}원)로만 계산 시 납부세액은 <strong>${Math.round(taxWithoutDeemed).toLocaleString('ko-KR')}원</strong>이었으나, 
-                        2026년 말 시가(${Math.round(dec2026Price).toLocaleString('ko-KR')}원)가 취득가액으로 인정되어 <strong>2026년까지의 상승분 차익은 전액 비과세</strong> 처리되었습니다.
+                        실제 평단가로만 계산 시 포트폴리오 세금은 <strong>${Math.round(taxWithoutDeemed).toLocaleString('ko-KR')}원</strong>이었으나, 
+                        2026년 말 시가가 높은 종목의 의제취득가 인정으로 <strong>2026년까지의 상승분 차익이 전액 비과세</strong> 처리되어 세금이 대폭 절감되었습니다.
                     </p>
                 `;
             }
@@ -2815,70 +3099,47 @@ const CoinCalculators = {
             if (savingsTitle) {
                 savingsTitle.innerHTML = `
                     <span class="text-cyan-300 font-bold flex items-center gap-1.5">
-                        <span>🛡️</span> 실제 매수 평단가(${Math.round(buyPrice).toLocaleString('ko-KR')}원) 인정으로 과세 불이익 방어
+                        <span>🛡️</span> 실제 매수 평단가 인정 &amp; 손실 종목 손익통산 상계 완벽 보호
                     </span>
                 `;
             }
             if (savingsBody) {
                 savingsBody.innerHTML = `
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        실제 매수 평단가가 2026년 말 시가(${Math.round(dec2026Price).toLocaleString('ko-KR')}원)보다 높아 본인의 실제 매수가가 취득가액으로 전액 인정됩니다. 과거 고점에 매수하셨더라도 불합리한 추가 세금이 부과되지 않습니다.
+                        고점에 물린 코인의 실제 매수 평단가가 전액 취득가로 인정되며, 손실 종목의 차손은 이익 종목의 수익과 합산 상계(손익통산)되어 세금 부담을 최소화합니다.
                     </p>
                 `;
             }
         }
-    },
 
-    quickFillCrypto2027: function (coin, price) {
-        const coinSelect = document.getElementById('crypto2027CoinName');
-        const decPriceInput = document.getElementById('crypto2027Dec2026Price');
-        if (coinSelect) coinSelect.value = coin;
-
-        let targetPrice = price;
-        if (typeof UpbitAPI !== 'undefined' && UpbitAPI._cachedTickerMap) {
-            const market = 'KRW-' + coin;
-            if (UpbitAPI._cachedTickerMap[market] && UpbitAPI._cachedTickerMap[market].trade_price) {
-                targetPrice = UpbitAPI._cachedTickerMap[market].trade_price;
-            }
+        // 종목별 정산 상세 테이블 렌더링
+        const tableBody = document.getElementById('crypto2027BreakdownTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = coinBreakdown.map(b => {
+                const coinTaxBenefit = Math.round(b.deemedSavingsBasis * 0.22);
+                return `
+                  <tr class="border-b border-navy-800/60 hover:bg-navy-950/60 text-xs font-mono transition">
+                    <td class="py-2.5 px-2.5 font-bold text-white">${b.symbol}</td>
+                    <td class="py-2.5 px-2.5 text-slate-300">${b.qty}</td>
+                    <td class="py-2.5 px-2.5 text-cyan-300">${Math.round(b.buyPrice).toLocaleString()}원</td>
+                    <td class="py-2.5 px-2.5 text-amber-300">${Math.round(b.dec2026Price).toLocaleString()}원</td>
+                    <td class="py-2.5 px-2.5">
+                      <span class="font-bold text-white">${Math.round(b.appliedAcqPrice).toLocaleString()}원</span>
+                      <span class="text-[9px] px-1 py-0.2 rounded font-sans ml-1 font-bold ${b.isDeemedPriceHigher ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300'}">
+                        ${b.isDeemedPriceHigher ? '2026시가' : '평단가'}
+                      </span>
+                    </td>
+                    <td class="py-2.5 px-2.5 text-slate-200">${Math.round(b.sellPrice).toLocaleString()}원</td>
+                    <td class="py-2.5 px-2.5 font-bold ${b.coinNetGain >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                      ${b.coinNetGain >= 0 ? '+' : ''}${Math.round(b.coinNetGain).toLocaleString()}원
+                    </td>
+                    <td class="py-2.5 px-2.5 text-emerald-300 font-bold">
+                      ${coinTaxBenefit > 0 ? `+${coinTaxBenefit.toLocaleString()}원 절세` : '-'}
+                    </td>
+                  </tr>
+                `;
+            }).join('');
         }
-
-        if (decPriceInput) {
-            decPriceInput.value = this.formatNumber(Math.round(targetPrice));
-        }
-        this.calcCrypto2027Tax();
-    },
-
-    importCrypto2027FromAnalyzer: function () {
-        const rep = this.getAnalyzerData();
-        if (rep && rep.coinSummaries) {
-            const holdings = rep.coinSummaries.filter(c => c.holdingQty > 1e-8);
-            if (holdings.length > 0) {
-                holdings.sort((a, b) => ((b.holdingQty * (b.avgBuyPrice || 0)) - (a.holdingQty * (a.avgBuyPrice || 0))));
-                const topCoin = holdings[0];
-                const sym = topCoin.currency || (topCoin.market ? topCoin.market.replace('KRW-', '') : 'BTC');
-                
-                const coinInput = document.getElementById('crypto2027CoinName');
-                if (coinInput) coinInput.value = sym;
-                
-                const qtyInput = document.getElementById('crypto2027Qty');
-                if (qtyInput) qtyInput.value = topCoin.holdingQty;
-                
-                const buyPriceInput = document.getElementById('crypto2027BuyPrice');
-                if (buyPriceInput) {
-                    buyPriceInput.value = this.formatNumber(Math.round(topCoin.avgBuyPrice || 0));
-                }
-                
-                if (topCoin.currentPrice) {
-                    const decPriceInput = document.getElementById('crypto2027Dec2026Price');
-                    if (decPriceInput) decPriceInput.value = this.formatNumber(Math.round(topCoin.currentPrice));
-                }
-                
-                this.calcCrypto2027Tax();
-                alert(`손익 분석기에서 [${sym}] 보유 데이터(보유수량: ${topCoin.holdingQty}, 매수평단: ${Math.round(topCoin.avgBuyPrice || 0).toLocaleString('ko-KR')}원)를 2027 세금 계산기에 성공적으로 불러왔습니다!`);
-                return;
-            }
-        }
-        alert('손익 분석기에 현재 보유 중인 코인이 없습니다. 먼저 엑셀 거래내역을 업로드하거나 수동으로 입력해 주세요.');
     },
 
     // ========================================================
