@@ -3823,7 +3823,8 @@
             <span>📈 실전 기대값 복리</span>
           </button>
           <button type="button" onclick="CoinCalculators.switchSubTab('stocktax')" data-calctab="stocktax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 cursor-pointer">
-            <span>🇺🇸 주식·코인 세금 절세</span>
+            <span>🪙 2027 코인 세금 &amp; 주식 절세</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-400 text-navy-950">의제취득가</span>
           </button>
           <button type="button" onclick="CoinCalculators.switchSubTab('dividend')" data-calctab="dividend" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 cursor-pointer">
             <span>💵 주식 배당금</span>
@@ -4999,8 +5000,226 @@
         </div>
       </div>
 
-      <!-- TOOL 10: 해외(미국)주식 양도소득세 & 250만원 절세 계산기 -->
+      <!-- TOOL: 주식 & 가상자산 절세 센터 (2027 코인 세금 의제취득가 & 미국주식 250만 공제) -->
       <div id="calc-tab-stocktax" class="calc-subtab-content hidden space-y-6">
+        <!-- Tax Calculator Mode Switcher (2027 코인 세금 vs 미국주식) -->
+        <div class="flex p-1.5 bg-navy-950/90 rounded-2xl border border-navy-800 gap-2 select-none">
+          <button type="button" id="taxModeBtnCrypto" onclick="CoinCalculators.setTaxMode('crypto')" class="flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm cursor-pointer">
+            <span>🪙 2027 코인 세금 &amp; 의제취득가액 시뮬레이터</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500 text-navy-950">2027 시행</span>
+          </button>
+          <button type="button" id="taxModeBtnStock" onclick="CoinCalculators.setTaxMode('stock')" class="flex-1 py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950 cursor-pointer">
+            <span>🇺🇸 미국주식 연 250만 절세 진단기</span>
+          </button>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 1: 2027 가상자산 소득세 & 의제취득가액 -->
+        <!-- ============================================ -->
+        <div id="stockTaxSectionCrypto" class="space-y-6">
+          <!-- 2027 Crypto Tax Deemed Acquisition Cost Explanation Banner -->
+          <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-navy-950 to-navy-950 border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+            <div class="flex items-start gap-3">
+              <span class="text-2xl mt-0.5">📜</span>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-amber-400">대한민국 가상자산 소득세 과세 제도 (2027년 1월 1일 시행)</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">의제취득가액 특례 적용</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  2027년 1월 1일 과세 시행 전 보유한 코인은 소득세법 부칙에 따라 <strong>[실제 매수 평단가]</strong>와 <strong>[2026년 12월 31일 당시 시가]</strong> 중 <strong class="text-amber-300 underline">더 높은 금액을 취득가액으로 인정(의제)</strong>합니다. 즉, 2026년 말까지 상승한 수익은 전액 비과세되며, 과거 고점에 매수하셨더라도 본인의 실제 매수가가 인정되어 세금 불이익이 없습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: Inputs (5 cols) -->
+            <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-navy-800 flex-wrap gap-2">
+                <h3 class="font-bold text-base text-white flex items-center gap-2"><span>🪙</span> 보유 코인 조건 &amp; 의제취득가 입력</h3>
+                <button type="button" onclick="CoinCalculators.importCrypto2027FromAnalyzer()" class="px-2.5 py-1 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer" title="손익 분석기에 저장된 보유 코인 데이터 자동 입력">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> 분석기 불러오기
+                </button>
+              </div>
+
+              <!-- Quick Coin Select Buttons -->
+              <div>
+                <label class="block font-semibold text-slate-400 mb-1.5 text-xs">주요 코인 빠른 시세 반영 (클릭 시 2026말 기준가 자동 입력)</label>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="CoinCalculators.quickFillCrypto2027('BTC', 135000000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-navy-800 text-[11px] font-mono font-bold transition cursor-pointer">BTC</button>
+                  <button type="button" onclick="CoinCalculators.quickFillCrypto2027('ETH', 4800000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-navy-800 text-[11px] font-mono font-bold transition cursor-pointer">ETH</button>
+                  <button type="button" onclick="CoinCalculators.quickFillCrypto2027('XRP', 3200)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-blue-500/20 text-slate-300 hover:text-blue-300 border border-navy-800 text-[11px] font-mono font-bold transition cursor-pointer">XRP</button>
+                  <button type="button" onclick="CoinCalculators.quickFillCrypto2027('SOL', 310000)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-purple-500/20 text-slate-300 hover:text-purple-300 border border-navy-800 text-[11px] font-mono font-bold transition cursor-pointer">SOL</button>
+                  <button type="button" onclick="CoinCalculators.quickFillCrypto2027('DOGE', 280)" class="px-2.5 py-1 rounded-lg bg-navy-950 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-navy-800 text-[11px] font-mono font-bold transition cursor-pointer">DOGE</button>
+                </div>
+              </div>
+
+              <div class="space-y-3.5 text-xs">
+                <!-- Coin Name & Qty -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">코인명 (선택)</label>
+                    <input type="text" id="crypto2027CoinName" value="BTC" placeholder="예: BTC, ETH" oninput="CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3 py-2 text-white font-mono uppercase font-bold focus:border-cyan-500 outline-none">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">보유 수량</label>
+                    <input type="number" step="any" id="crypto2027Qty" value="1" placeholder="예: 1.5" oninput="CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-cyan-500 outline-none">
+                  </div>
+                </div>
+
+                <!-- Actual Buy Price -->
+                <div>
+                  <label class="block font-semibold text-cyan-300 mb-1 flex items-center justify-between">
+                    <span>1. 실제 매수 평단가 (KRW)</span>
+                    <span class="text-[10px] text-slate-400 font-normal">본인의 실제 취득 원가</span>
+                  </label>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="crypto2027BuyPrice" value="60,000,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-cyan-500/40 rounded-xl px-3 py-2 text-cyan-300 font-mono font-bold focus:border-cyan-400 outline-none pr-10 text-sm">
+                    <span class="absolute right-3 top-2 text-slate-500 font-bold">원</span>
+                  </div>
+                </div>
+
+                <!-- 2026 End Price (Deemed Price) -->
+                <div>
+                  <label class="block font-semibold text-amber-300 mb-1 flex items-center justify-between">
+                    <span>2. 2026년 말 기준 시가 / 현재가 (KRW)</span>
+                    <span class="text-[10px] text-amber-400/80 font-bold">의제취득가 비교 기준</span>
+                  </label>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="crypto2027Dec2026Price" value="135,000,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-amber-500/40 rounded-xl px-3 py-2 text-amber-300 font-mono font-bold focus:border-amber-400 outline-none pr-10 text-sm">
+                    <span class="absolute right-3 top-2 text-slate-500 font-bold">원</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">
+                    💡 <strong>법적 의제 취득단가 = Math.max(실제 평단가, 2026년말 시가)</strong> 둘 중 더 높은 가격이 자동 채택됩니다.
+                  </p>
+                </div>
+
+                <!-- Future Expected Sell Price -->
+                <div>
+                  <label class="block font-semibold text-rose-300 mb-1 flex items-center justify-between">
+                    <span>3. 2027년 이후 예상 매도가격 (KRW)</span>
+                    <span class="text-[10px] text-slate-400 font-normal">매도 희망가</span>
+                  </label>
+                  <div class="relative">
+                    <input type="text" inputmode="numeric" id="crypto2027SellPrice" value="180,000,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-rose-900/50 rounded-xl px-3 py-2 text-rose-300 font-mono font-bold focus:border-rose-500 outline-none pr-10 text-sm">
+                    <span class="absolute right-3 top-2 text-slate-500 font-bold">원</span>
+                  </div>
+                </div>
+
+                <!-- Fee & Deduction Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">매매 수수료율 (%)</label>
+                    <select id="crypto2027FeeRate" onchange="CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2.5 py-2 text-slate-300 font-mono focus:border-cyan-500 outline-none cursor-pointer">
+                      <option value="0.05">업비트 (0.05%)</option>
+                      <option value="0.04">빗썸 (0.04%)</option>
+                      <option value="0.1">일반/해외 (0.10%)</option>
+                      <option value="0">수수료 무료 (0%)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">기본공제 기준</label>
+                    <select id="crypto2027Deduction" onchange="CoinCalculators.calcCrypto2027Tax()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2.5 py-2 text-slate-300 font-mono focus:border-cyan-500 outline-none cursor-pointer">
+                      <option value="250">현행 (연 250만 원)</option>
+                      <option value="5000">개정안 (연 5,000만 원)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Results & Deemed Tax Savings (7 cols) -->
+            <div class="lg:col-span-7 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-5">
+              <div class="flex items-center justify-between pb-3 border-b border-navy-800 flex-wrap gap-2">
+                <div>
+                  <h4 class="font-bold text-base text-white">2027년 가상자산 세액 및 의제취득 절세 정산서</h4>
+                  <p class="text-xs text-slate-400">소득세 20% + 지방소득세 2% 합산 총 22% 분리과세 적용</p>
+                </div>
+                <span id="crypto2027AppliedBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✨ 2026년 말 시가 인정 (의제취득가 절세 혜택)</span>
+              </div>
+
+              <!-- Top KPI Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-navy-950 border border-amber-500/40 rounded-2xl p-3.5">
+                  <span class="text-[11px] text-amber-300 block mb-1 font-semibold">최종 인정 취득단가</span>
+                  <span id="crypto2027ResAppliedAcqPrice" class="text-sm sm:text-base font-black text-amber-300 font-mono">135,000,000원</span>
+                </div>
+                <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5">
+                  <span class="text-[11px] text-slate-400 block mb-1 font-semibold">과세 대상 양도차익</span>
+                  <span id="crypto2027ResNetGain" class="text-sm sm:text-base font-bold text-white font-mono">44,910,000원</span>
+                </div>
+                <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5">
+                  <span class="text-[11px] text-slate-400 block mb-1 font-semibold">기본공제 차감</span>
+                  <span id="crypto2027ResDeduction" class="text-sm sm:text-base font-bold text-cyan-400 font-mono">-2,500,000원</span>
+                </div>
+                <div class="bg-navy-950 border border-rose-500/30 rounded-2xl p-3.5 bg-rose-950/10">
+                  <span class="text-[11px] text-rose-400 block mb-1 font-bold">납부할 총 세금 (22%)</span>
+                  <span id="crypto2027ResTotalTax" class="text-sm sm:text-base font-black text-rose-300 font-mono">9,330,200원</span>
+                </div>
+              </div>
+
+              <!-- Breakdown Detail Table/Card -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-navy-950 border border-navy-800 text-xs">
+                <div>
+                  <span class="text-[11px] text-slate-400 block">총 매도 대금</span>
+                  <span id="crypto2027ResTotalSell" class="text-sm font-bold text-slate-200 font-mono">180,000,000원</span>
+                </div>
+                <div>
+                  <span class="text-[11px] text-slate-400 block">소득세 (국세 20%)</span>
+                  <span id="crypto2027ResIncomeTax" class="text-sm font-bold text-slate-300 font-mono">8,482,000원</span>
+                </div>
+                <div>
+                  <span class="text-[11px] text-slate-400 block">지방세 (지방 2%)</span>
+                  <span id="crypto2027ResLocalTax" class="text-sm font-bold text-slate-300 font-mono">848,200원</span>
+                </div>
+                <div>
+                  <span class="text-[11px] text-emerald-400 block font-bold">세후 최종 순수익</span>
+                  <span id="crypto2027ResAfterTax" class="text-sm font-black text-emerald-300 font-mono">+110,579,800원</span>
+                </div>
+              </div>
+
+              <!-- Deemed Acquisition Savings Highlight Card -->
+              <div id="crypto2027SavingsCard" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-navy-950 to-navy-950 border border-emerald-500/40 space-y-2 shadow-lg">
+                <div id="crypto2027SavingsTitle" class="text-xs">
+                  <span class="text-emerald-300 font-bold flex items-center gap-1.5">
+                    <span>🎉</span> 2026년 말 시가 의제 적용으로 세금 <strong class="text-emerald-400 underline font-mono text-sm sm:text-base">16,500,000원</strong> 절감!
+                  </span>
+                </div>
+                <div id="crypto2027SavingsBody">
+                  <p class="text-xs text-slate-300 leading-relaxed">
+                    실제 평단가(60,000,000원)로만 계산 시 납부세액은 <strong>25,830,200원</strong>이었으나, 2026년 말 시가(135,000,000원)가 취득가액으로 인정되어 <strong>2026년까지의 상승분 차익은 전액 비과세</strong> 처리되었습니다.
+                  </p>
+                </div>
+              </div>
+
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                📌 <strong>소득세법 가상자산 과세 가이드:</strong> 소득세법 제164조의4 및 부칙에 따라 취득가액 = $\max(\text{실제 매수가}, \text{2026.12.31 시가})$로 의제됩니다. 1년 동안의 모든 가상자산 거래 손익은 통산(합산)되며, 과세표준(순이익 - 기본공제)에 대해 22% 단일세율로 분리과세(이듬해 5월 종합소득세 신고 시 납부)됩니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 2: 미국주식 양도소득세 & 250만 절세 진단 -->
+        <!-- ============================================ -->
+        <div id="stockTaxSectionStock" class="hidden space-y-6">
+          <!-- 2027 Crypto Tax Deferral Legal Notice Banner -->
+          <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-navy-950 to-navy-950 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+            <div class="flex items-start gap-3">
+              <span class="text-2xl mt-0.5">📢</span>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-emerald-400">대한민국 가상자산 소득세 과세 유예 안내</span>
+                  <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">2027년까지 2년 추가 유예 확정</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  정부 세법 개정안에 따라 가상자산 양도·대여 소득 과세 시행일이 <strong>2027년 1월 1일</strong>로 2년 추가 유예되었습니다. 따라서 <strong>현재 코인 거래 수익은 전액 비과세(세금 0원)</strong>이며, 해외(미국)주식만 연 250만 원 초과분에 대해 양도소득세 22%가 부과됩니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Input Form (5 cols) -->
           <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
@@ -5121,6 +5340,7 @@
           </div>
         </div>
       </div>
+    </div>
 
       <!-- TOOL 11: 주식 배당금 & 배당소득세(15.4%) 실효수익 계산기 -->
       <div id="calc-tab-dividend" class="calc-subtab-content hidden space-y-6">
@@ -8394,7 +8614,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260921_08"></script>
+  <script src="js/tools-calculators.js?v=20260921_09"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260921_04"></script>
 
