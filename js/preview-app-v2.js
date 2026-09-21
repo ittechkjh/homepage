@@ -6632,10 +6632,20 @@ function escapeHtml(str) {
 window.escapeHtml = escapeHtml;
 
 function handleRoute() {
-  const rawHash = (window.location.hash || '').replace('#/', '').replace('#', '');
-  if (!rawHash) {
+  const fullHash = (window.location.hash || '').replace('#/', '').replace('#', '');
+  if (!fullHash) {
     switchTab('analyzer', false);
     return;
+  }
+
+  // Parse query string inside hash if present (e.g. calculators?sub=stocktax)
+  let rawHash = fullHash;
+  let subParam = null;
+  if (rawHash.includes('?')) {
+    const qParts = rawHash.split('?');
+    rawHash = qParts[0];
+    const queryParams = new URLSearchParams(qParts[1]);
+    subParam = queryParams.get('sub') || queryParams.get('tab');
   }
 
   const parts = rawHash.split('/');
@@ -6661,8 +6671,9 @@ function handleRoute() {
     }
   } else if (tabId === 'calculators') {
     switchTab('calculators', false);
-    if (parts[1] && typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.switchSubTab === 'function') {
-      CoinCalculators.switchSubTab(parts[1]);
+    const targetSub = subParam || parts[1];
+    if (targetSub && typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.switchSubTab === 'function') {
+      CoinCalculators.switchSubTab(targetSub);
     }
   } else if (tabId === 'calendar') {
     switchTab('calendar', false);

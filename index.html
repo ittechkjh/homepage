@@ -21,6 +21,7 @@
   <meta name="author" content="CrytoPnL">
   <meta name="robots" content="index, follow">
   <meta name="naver-site-verification" content="c69f1dff46f15e8159f5d6061eadd612b248d5d4">
+  <meta name="naver-site-verification" content="c61dff59f300720cb970b89b18066a39">
   <link rel="canonical" href="https://crytopnl.com/">
 
   <!-- Google AdSense -->
@@ -5042,8 +5043,9 @@
               <div class="flex items-center gap-2">
                 <label class="text-[11px] text-slate-400">수수료율</label>
                 <select id="crypto2027FeeRate" onchange="CoinCalculators.calcCrypto2027Tax()" class="bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1 text-slate-300 font-mono text-xs focus:border-amber-400 outline-none cursor-pointer">
-                  <option value="0.05">업비트 (0.05%)</option>
-                  <option value="0.04">빗썸 (0.04%)</option>
+                  <option value="auto" selected>거래소별 기본요율 자동 적용 (업비트 0.05% / 빗썸 0.04%)</option>
+                  <option value="0.05">업비트 전용 (0.05%)</option>
+                  <option value="0.04">빗썸 전용 (0.04%)</option>
                   <option value="0.1">일반/해외 (0.10%)</option>
                   <option value="0">수수료 무료 (0%)</option>
                 </select>
@@ -8646,14 +8648,14 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260921_11"></script>
+  <script src="js/tools-calculators.js?v=20260922_01"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260921_04"></script>
 
   <script src="js/admin.js?v=20260916_05"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260911_01"></script>
-  <script src="js/preview-app-v2.js?v=20260921_04"></script>
+  <script src="js/preview-app-v2.js?v=20260922_01"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

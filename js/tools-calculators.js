@@ -3011,7 +3011,7 @@ const CoinCalculators = {
     },
 
     calcCrypto2027Tax: function () {
-        const feeRate = parseFloat(document.getElementById('crypto2027FeeRate')?.value || '0.05');
+        const feeSelectVal = document.getElementById('crypto2027FeeRate')?.value || 'auto';
         const deductType = document.getElementById('crypto2027Deduction')?.value || '250';
         const basicDeduction = deductType === '5000' ? 50000000 : 2500000;
 
@@ -3032,10 +3032,18 @@ const CoinCalculators = {
             const isDeemedPriceHigher = dec2026Price > buyPrice;
             const appliedAcqPrice = Math.max(buyPrice, dec2026Price);
 
+            // 거래소별 수수료율 자동 판정 (업비트 0.05%, 빗썸 0.04%, 기타 0.05%)
+            let coinFeeRate = 0.05;
+            if (feeSelectVal === 'auto') {
+                coinFeeRate = (exchange === 'BITHUMB') ? 0.04 : 0.05;
+            } else {
+                coinFeeRate = parseFloat(feeSelectVal) || 0;
+            }
+
             const coinTotalSell = sellPrice * qty;
             const coinTotalAppliedAcq = appliedAcqPrice * qty;
             const coinActualCost = buyPrice * qty;
-            const coinFee = coinTotalSell * (feeRate / 100);
+            const coinFee = coinTotalSell * (coinFeeRate / 100);
 
             // 해당 종목의 과세대상 양도손익 (손익통산을 위해 손실도 감안)
             const coinNetGain = coinTotalSell - coinTotalAppliedAcq - coinFee;

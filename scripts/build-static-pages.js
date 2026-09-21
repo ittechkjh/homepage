@@ -58,6 +58,11 @@ function escapeJson(str) {
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/\r/g, '');
 }
 
+function escapeHtmlAttr(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Add Root
 sitemapUrls.push({
   loc: 'https://crytopnl.com/',
@@ -156,11 +161,16 @@ const postRelatedHtml = `
 `;
 
 function renderPage(tpl, params) {
+  const safeTitle = escapeHtmlAttr(params.fullTitle);
+  const safeDesc = escapeHtmlAttr(params.desc);
+  const safeKeywords = escapeHtmlAttr(params.keywords);
+  const safeAuthor = escapeHtmlAttr(params.author);
+
   return tpl
-    .replace(/__FULL_TITLE__/g, params.fullTitle)
-    .replace(/__DESCRIPTION__/g, params.desc)
-    .replace(/__KEYWORDS__/g, params.keywords)
-    .replace(/__AUTHOR__/g, params.author)
+    .replace(/__FULL_TITLE__/g, safeTitle)
+    .replace(/__DESCRIPTION__/g, safeDesc)
+    .replace(/__KEYWORDS__/g, safeKeywords)
+    .replace(/__AUTHOR__/g, safeAuthor)
     .replace(/__CANONICAL_URL__/g, params.canonical)
     .replace(/__ESCAPED_TITLE__/g, escapeJson(params.title))
     .replace(/__ESCAPED_DESC__/g, escapeJson(params.desc))
