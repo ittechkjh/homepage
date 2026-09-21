@@ -2685,9 +2685,9 @@ const CoinCalculators = {
     // ========================================================
     taxSubMode: 'crypto', // 'crypto' | 'stock'
     crypto2027Coins: [
-        { id: 1, symbol: 'BTC', qty: 0.5, buyPrice: 60000000, dec2026Price: 135000000, sellPrice: 180000000 },
-        { id: 2, symbol: 'ETH', qty: 3.0, buyPrice: 5200000, dec2026Price: 4800000, sellPrice: 6500000 },
-        { id: 3, symbol: 'XRP', qty: 2500, buyPrice: 950, dec2026Price: 3200, sellPrice: 4500 }
+        { id: 1, symbol: 'BTC', exchange: 'UPBIT', qty: 0.5, buyPrice: 60000000, dec2026Price: 135000000, sellPrice: 180000000 },
+        { id: 2, symbol: 'ETH', exchange: 'UPBIT', qty: 3.0, buyPrice: 5200000, dec2026Price: 4800000, sellPrice: 6500000 },
+        { id: 3, symbol: 'XRP', exchange: 'BITHUMB', qty: 2500, buyPrice: 950, dec2026Price: 3200, sellPrice: 4500 }
     ],
     nextCryptoCoinId: 4,
 
@@ -2736,9 +2736,25 @@ const CoinCalculators = {
         return raw.toUpperCase().replace(/^KRW-/, '');
     },
 
-    fetchRealtimeCoinPrice: async function (symbol) {
+    fetchRealtimeCoinPrice: async function (symbol, exchange = 'UPBIT') {
+        const sym = this.resolveCoinSymbol(symbol);
+        const ex = (exchange || 'UPBIT').toUpperCase();
+
+        // 1. 빗썸 전용 시세 조회
+        if (ex === 'BITHUMB') {
+            try {
+                const bRes = await fetch(`https://api.bithumb.com/public/ticker/${sym}_KRW`);
+                if (bRes.ok) {
+                    const bData = await bRes.json();
+                    if (bData && bData.data && bData.data.closing_price) {
+                        return parseFloat(bData.data.closing_price);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 2. 업비트 시세 조회 (기본 또는 빗썸 실패 시 대체)
         try {
-            const sym = this.resolveCoinSymbol(symbol);
             if (typeof UpbitAPI !== 'undefined' && UpbitAPI._cachedTickerMap) {
                 const m = 'KRW-' + sym;
                 if (UpbitAPI._cachedTickerMap[m] && UpbitAPI._cachedTickerMap[m].trade_price) {
@@ -2753,6 +2769,7 @@ const CoinCalculators = {
                 }
             }
         } catch (e) {}
+
         return null;
     },
 
@@ -2764,21 +2781,29 @@ const CoinCalculators = {
             const isDeemedHigher = (coin.dec2026Price > coin.buyPrice);
             const appliedAcq = Math.max(coin.buyPrice, coin.dec2026Price);
             const estProfit = (coin.sellPrice - appliedAcq) * coin.qty;
+            const ex = (coin.exchange || 'UPBIT').toUpperCase();
+            const isBithumb = ex === 'BITHUMB';
 
             return `
-              <div class="p-3.5 rounded-2xl bg-navy-950 border border-amber-500/30 space-y-2.5 relative transition hover:border-amber-400/50" data-coin-id="${coin.id}">
-                <!-- Header: Coin Symbol & Delete -->
-                <div class="flex justify-between items-center pb-2 border-b border-navy-800">
+              <div class="p-3.5 rounded-2xl bg-navy-950 border ${isBithumb ? 'border-orange-500/40 hover:border-orange-400/60' : 'border-blue-500/40 hover:border-blue-400/60'} space-y-2.5 relative transition shadow-sm" data-coin-id="${coin.id}">
+                <!-- Header: Coin Symbol, Exchange Selector & Delete -->
+                <div class="flex justify-between items-center pb-2 border-b border-navy-800 flex-wrap gap-1.5">
                   <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] font-mono font-bold">${idx + 1}</span>
+                    <span class="w-5 h-5 rounded-full ${isBithumb ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'} flex items-center justify-center text-[10px] font-mono font-bold">${idx + 1}</span>
                     <input list="cryptoAllCoinsList" value="${coin.symbol}" placeholder="코인명 (예: BTC, SOL)"
                       onchange="CoinCalculators.onCrypto2027SymbolChange(${coin.id}, this.value)"
-                      class="bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1 text-white font-mono font-bold text-xs uppercase focus:border-amber-400 outline-none w-28 text-center" />
-                    <span class="text-[10px] text-slate-400 font-mono">코인</span>
+                      class="bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1 text-white font-mono font-bold text-xs uppercase focus:border-amber-400 outline-none w-24 sm:w-28 text-center" />
+                    
+                    <!-- Exchange Selector (업비트 vs 빗썸) -->
+                    <select onchange="CoinCalculators.updateCrypto2027Coin(${coin.id}, 'exchange', this.value)"
+                      class="text-[11px] font-bold px-2 py-0.5 rounded-lg font-sans outline-none cursor-pointer border ${isBithumb ? 'bg-orange-500/15 text-orange-400 border-orange-500/40 focus:border-orange-300' : 'bg-blue-500/15 text-blue-400 border-blue-500/40 focus:border-blue-300'}">
+                      <option value="UPBIT" ${!isBithumb ? 'selected' : ''}>업비트 (Upbit)</option>
+                      <option value="BITHUMB" ${isBithumb ? 'selected' : ''}>빗썸 (Bithumb)</option>
+                    </select>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <button type="button" onclick="CoinCalculators.refreshCoinPrice(${coin.id})" class="px-2 py-0.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold transition flex items-center gap-0.5 cursor-pointer" title="실시간 업비트 시세로 2026년 기준가 갱신">
-                      <span>⚡ 현재가</span>
+                    <button type="button" onclick="CoinCalculators.refreshCoinPrice(${coin.id})" class="px-2 py-0.5 rounded-lg ${isBithumb ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border-orange-500/30' : 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/30'} border text-[10px] font-bold transition flex items-center gap-0.5 cursor-pointer" title="${isBithumb ? '빗썸' : '업비트'} 실시간 시세로 2026년 기준가 갱신">
+                      <span>⚡ ${isBithumb ? '빗썸시세' : '업비트시세'}</span>
                     </button>
                     ${this.crypto2027Coins.length > 1 ? `
                       <button type="button" onclick="CoinCalculators.removeCrypto2027Coin(${coin.id})" class="p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer" title="종목 삭제">
@@ -2848,27 +2873,29 @@ const CoinCalculators = {
         const newCoin = coinData || {
             id: this.nextCryptoCoinId++,
             symbol: 'SOL',
+            exchange: 'UPBIT',
             qty: 10,
             buyPrice: 150000,
             dec2026Price: 310000,
             sellPrice: 450000
         };
         if (!newCoin.id) newCoin.id = this.nextCryptoCoinId++;
+        if (!newCoin.exchange) newCoin.exchange = 'UPBIT';
         this.crypto2027Coins.push(newCoin);
         this.renderCrypto2027CoinRows();
         this.calcCrypto2027Tax();
     },
 
-    quickAddCrypto2027: async function (symbol, fallbackPrice) {
+    quickAddCrypto2027: async function (symbol, fallbackPrice, exchange = 'UPBIT') {
         const sym = this.resolveCoinSymbol(symbol);
-        const existing = this.crypto2027Coins.find(c => c.symbol.toUpperCase() === sym);
+        const existing = this.crypto2027Coins.find(c => c.symbol.toUpperCase() === sym && (c.exchange || 'UPBIT') === exchange);
         if (existing) {
             this.refreshCoinPrice(existing.id);
             return;
         }
 
         let price = fallbackPrice;
-        const livePrice = await this.fetchRealtimeCoinPrice(sym);
+        const livePrice = await this.fetchRealtimeCoinPrice(sym, exchange);
         if (livePrice) price = livePrice;
 
         const buyPrice = Math.round(price * 0.75);
@@ -2877,6 +2904,7 @@ const CoinCalculators = {
         this.addCrypto2027Coin({
             id: this.nextCryptoCoinId++,
             symbol: sym,
+            exchange: exchange,
             qty: 1,
             buyPrice: buyPrice,
             dec2026Price: price,
@@ -2894,7 +2922,7 @@ const CoinCalculators = {
         this.calcCrypto2027Tax();
     },
 
-    updateCrypto2027Coin: function (id, field, val) {
+    updateCrypto2027Coin: async function (id, field, val) {
         const coin = this.crypto2027Coins.find(c => c.id === id);
         if (!coin) return;
 
@@ -2902,6 +2930,14 @@ const CoinCalculators = {
             coin.qty = parseFloat(val) || 0;
         } else if (field === 'buyPrice' || field === 'dec2026Price' || field === 'sellPrice') {
             coin[field] = this.parseNum(val, 0);
+        } else if (field === 'exchange') {
+            coin.exchange = (val || 'UPBIT').toUpperCase();
+            // 거래소가 변경되었으므로 해당 거래소의 실시간 시세로 기준가 갱신 시도
+            const livePrice = await this.fetchRealtimeCoinPrice(coin.symbol, coin.exchange);
+            if (livePrice) {
+                coin.dec2026Price = Math.round(livePrice);
+            }
+            this.renderCrypto2027CoinRows();
         } else {
             coin[field] = val;
         }
@@ -2914,7 +2950,7 @@ const CoinCalculators = {
 
         const sym = this.resolveCoinSymbol(val);
         coin.symbol = sym;
-        const livePrice = await this.fetchRealtimeCoinPrice(sym);
+        const livePrice = await this.fetchRealtimeCoinPrice(sym, coin.exchange || 'UPBIT');
         if (livePrice) {
             coin.dec2026Price = Math.round(livePrice);
             if (coin.buyPrice <= 0 || coin.buyPrice === coin.dec2026Price) {
@@ -2931,13 +2967,14 @@ const CoinCalculators = {
     refreshCoinPrice: async function (id) {
         const coin = this.crypto2027Coins.find(c => c.id === id);
         if (!coin) return;
-        const livePrice = await this.fetchRealtimeCoinPrice(coin.symbol);
+        const exName = (coin.exchange === 'BITHUMB') ? '빗썸' : '업비트';
+        const livePrice = await this.fetchRealtimeCoinPrice(coin.symbol, coin.exchange || 'UPBIT');
         if (livePrice) {
             coin.dec2026Price = Math.round(livePrice);
             this.renderCrypto2027CoinRows();
             this.calcCrypto2027Tax();
         } else {
-            alert(`[${coin.symbol}] 실시간 시세를 가져오지 못했습니다. 수동으로 기준가를 입력해 주세요.`);
+            alert(`[${exName} ${coin.symbol}] 실시간 시세를 가져오지 못했습니다. 수동으로 기준가를 입력해 주세요.`);
         }
     },
 
@@ -2947,13 +2984,17 @@ const CoinCalculators = {
             const holdings = rep.coinSummaries.filter(c => c.holdingQty > 1e-8);
             if (holdings.length > 0) {
                 this.crypto2027Coins = holdings.map((c, idx) => {
-                    const sym = c.currency || (c.market ? c.market.replace('KRW-', '') : 'COIN');
+                    const sym = c.currency || c.coinSymbol || (c.market ? c.market.replace('KRW-', '').replace(/.*:::/, '') : 'COIN');
                     const buyPrice = Math.round(c.avgBuyPrice || 0);
                     const curPrice = Math.round(c.currentPrice || buyPrice);
                     const sellPrice = Math.round(Math.max(buyPrice, curPrice) * 1.3);
+                    const rawEx = (c.exchange || '').toUpperCase();
+                    const exchange = (rawEx.includes('BITHUMB') || rawEx.includes('빗썸')) ? 'BITHUMB' : 'UPBIT';
+
                     return {
                         id: Date.now() + idx,
                         symbol: sym.toUpperCase(),
+                        exchange: exchange,
                         qty: parseFloat(c.holdingQty.toFixed(6)),
                         buyPrice: buyPrice,
                         dec2026Price: curPrice,
@@ -2962,7 +3003,7 @@ const CoinCalculators = {
                 });
                 this.renderCrypto2027CoinRows();
                 this.calcCrypto2027Tax();
-                alert(`손익 분석기에 저장된 전체 ${holdings.length}개 보유 코인을 2027 세금 계산기에 모두 성공적으로 불러왔습니다!`);
+                alert(`손익 분석기에 저장된 전체 ${holdings.length}개 보유 코인(업비트/빗썸 구분 포함)을 2027 세금 계산기에 모두 성공적으로 불러왔습니다!`);
                 return;
             }
         }
@@ -2986,6 +3027,7 @@ const CoinCalculators = {
             const buyPrice = parseFloat(coin.buyPrice) || 0;
             const dec2026Price = parseFloat(coin.dec2026Price) || 0;
             const sellPrice = parseFloat(coin.sellPrice) || 0;
+            const exchange = (coin.exchange || 'UPBIT').toUpperCase();
 
             const isDeemedPriceHigher = dec2026Price > buyPrice;
             const appliedAcqPrice = Math.max(buyPrice, dec2026Price);
@@ -3013,6 +3055,7 @@ const CoinCalculators = {
             return {
                 id: coin.id,
                 symbol: coin.symbol,
+                exchange: exchange,
                 qty,
                 buyPrice,
                 dec2026Price,
@@ -3117,9 +3160,17 @@ const CoinCalculators = {
         if (tableBody) {
             tableBody.innerHTML = coinBreakdown.map(b => {
                 const coinTaxBenefit = Math.round(b.deemedSavingsBasis * 0.22);
+                const isBithumb = b.exchange === 'BITHUMB';
+                const exBadge = isBithumb
+                    ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30 font-sans ml-1">빗썸</span>'
+                    : '<span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30 font-sans ml-1">업비트</span>';
+
                 return `
                   <tr class="border-b border-navy-800/60 hover:bg-navy-950/60 text-xs font-mono transition">
-                    <td class="py-2.5 px-2.5 font-bold text-white">${b.symbol}</td>
+                    <td class="py-2.5 px-2.5 font-bold text-white flex items-center">
+                      <span>${b.symbol}</span>
+                      ${exBadge}
+                    </td>
                     <td class="py-2.5 px-2.5 text-slate-300">${b.qty}</td>
                     <td class="py-2.5 px-2.5 text-cyan-300">${Math.round(b.buyPrice).toLocaleString()}원</td>
                     <td class="py-2.5 px-2.5 text-amber-300">${Math.round(b.dec2026Price).toLocaleString()}원</td>
