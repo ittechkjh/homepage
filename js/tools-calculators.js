@@ -521,12 +521,14 @@ const CoinCalculators = {
                 nickEl.value = loggedUser;
             }
             this.renderProfitCard();
+        } else if (tabId === 'stockwater') {
+            this.calcStockWater();
         } else if (tabId === 'sizing') {
             this.calcPositionSizing();
         } else if (tabId === 'freeride') {
             this.calcFreeRide();
         } else if (tabId === 'compound') {
-            this.calcCompoundPlanner();
+            this.calcExpectancyCompound();
         } else if (tabId === 'staking') {
             this.calcStakingYield();
         } else if (tabId === 'stocktax') {
@@ -2195,152 +2197,160 @@ const CoinCalculators = {
     // ========================================================
     compoundPeriodType: 'day', // 'day' | 'month'
     setCompoundPeriodType: function (type) {
-        this.compoundPeriodType = type;
-        const dayBtn = document.getElementById('compoundBtnDay');
-        const monthBtn = document.getElementById('compoundBtnMonth');
-        const rateLabel = document.getElementById('compoundRateLabel');
-        const periodLabel = document.getElementById('compoundPeriodLabel');
+    // ========================================================
+    // 8. 실전 매매 기대값 & 복리 몬테카를로 시뮬레이터 (승률/손익비 기반)
+    // ========================================================
+    setExpectancyPreset: function (winRate, rr, riskPct, trades) {
+        const wrEl = document.getElementById('expectWinRate');
+        const rrEl = document.getElementById('expectRrRatio');
+        const riskEl = document.getElementById('expectRiskPct');
+        const trEl = document.getElementById('expectTradesCount');
+        if (wrEl) wrEl.value = winRate;
+        if (rrEl) rrEl.value = rr;
+        if (riskEl) riskEl.value = riskPct;
+        if (trEl) trEl.value = trades;
+        this.calcExpectancyCompound();
+    },
 
-        if (type === 'day') {
-            if (dayBtn) dayBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
-            if (monthBtn) monthBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
-            if (rateLabel) rateLabel.innerText = '일일 복리 목표 수익률 (%)';
-            if (periodLabel) periodLabel.innerText = '챌린지 기간 (일수)';
-        } else {
-            if (dayBtn) dayBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
-            if (monthBtn) monthBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
-            if (rateLabel) rateLabel.innerText = '월간 복리 목표 수익률 (%)';
-            if (periodLabel) periodLabel.innerText = '챌린지 기간 (개월수)';
+    runMonteCarloResim: function () {
+        this.calcExpectancyCompound(true);
+    },
+
+    calcExpectancyCompound: function (forceReroll = false) {
+        const seed = this.parseNum(document.getElementById('expectSeed')?.value, 10000000);
+        const winRate = Math.min(99, Math.max(1, this.parseNum(document.getElementById('expectWinRate')?.value, 55))) / 100;
+        const rr = Math.max(0.1, this.parseNum(document.getElementById('expectRrRatio')?.value, 1.8));
+        const riskPct = Math.min(20, Math.max(0.1, this.parseNum(document.getElementById('expectRiskPct')?.value, 2))) / 100;
+        const totalTrades = Math.min(300, Math.max(10, parseInt(this.parseNum(document.getElementById('expectTradesCount')?.value, 60), 10)));
+        const feeRate = this.parseNum(document.getElementById('expectFeeRate')?.value, 0.05) / 100;
+
+        if (seed <= 0 || totalTrades <= 0) return;
+
+        // 1회 매매 수학적 기대값 (EV): EV% = (WinRate * RR * Risk) - ((1 - WinRate) * Risk) - Fee
+        const gainPct = riskPct * rr;
+        const lossPct = riskPct;
+        const evPerTrade = (winRate * (gainPct - feeRate)) - ((1 - winRate) * (lossPct + feeRate));
+        const evDisplayPct = evPerTrade * 100;
+
+        const evBadge = document.getElementById('expectEvBadge');
+        if (evBadge) {
+            evBadge.innerText = `${evDisplayPct >= 0 ? '+' : ''}${evDisplayPct.toFixed(2)}% / 회당`;
+            evBadge.className = `text-xs font-bold font-mono ${evDisplayPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
         }
-        this.calcCompoundPlanner();
-    },
 
-    setCompoundPreset: function (seedWon, rate, periods) {
-        const seedEl = document.getElementById('compoundSeed');
-        const rateEl = document.getElementById('compoundRate');
-        const periodEl = document.getElementById('compoundPeriods');
-        if (seedEl) seedEl.value = this.formatNumber(seedWon);
-        if (rateEl) rateEl.value = rate;
-        if (periodEl) periodEl.value = periods;
-        this.calcCompoundPlanner();
-    },
+        const evDesc = document.getElementById('expectEvDesc');
+        if (evDesc) {
+            if (evDisplayPct > 0) {
+                evDesc.innerHTML = `1번 매매할 때마다 계좌의 약 <strong class="text-emerald-400">${evDisplayPct.toFixed(2)}%</strong>가 통계적으로 증식하는 수학적 우위(Edge)를 가진 전략입니다.`;
+            } else {
+                evDesc.innerHTML = `<strong class="text-rose-400">⚠️ 기대값이 마이너스(-${Math.abs(evDisplayPct).toFixed(2)}%)입니다!</strong> 장기 매매 시 계좌가 필연적으로 우하향하므로 승률이나 손익비를 높여야 합니다.`;
+            }
+        }
 
-    calcCompoundPlanner: function () {
-        const seed = this.parseNum(document.getElementById('compoundSeed')?.value, 1000000);
-        const rate = this.parseNum(document.getElementById('compoundRate')?.value, 1) / 100;
-        const totalPeriods = Math.min(365, Math.max(1, parseInt(this.parseNum(document.getElementById('compoundPeriods')?.value, 30), 10)));
-        const targetGoal = this.parseNum(document.getElementById('compoundTargetGoal')?.value, 100000000);
-        const periodicDeposit = this.parseNum(document.getElementById('compoundPeriodicDeposit')?.value, 0);
+        // 켈리 기준 (Kelly Criterion): K = W - (1 - W) / RR
+        const kellyPct = ((winRate - (1 - winRate) / rr) * 100);
+        const kellyEl = document.getElementById('expectKellyRecommendation');
+        if (kellyEl) {
+            if (kellyPct > 0) {
+                const halfKelly = (kellyPct / 2).toFixed(1);
+                kellyEl.innerHTML = `이론상 켈리 베팅 최적 비중은 <strong>${kellyPct.toFixed(1)}%</strong>이나, 파산 위험을 막기 위해 <strong>하프 켈리(약 ${halfKelly}%)</strong> 또는 <strong class="text-white">1~2% 고정 리스크</strong>를 권장합니다.`;
+            } else {
+                kellyEl.innerHTML = `<strong class="text-rose-400">베팅 금지 구간:</strong> 승률 대비 손익비가 부족하여 켈리 공식상 매매를 진행할수록 손실이 누적됩니다.`;
+            }
+        }
 
-        if (seed <= 0 || totalPeriods <= 0) return;
+        // 최대 연속 손실(연패) 통계적 기댓값: Log(TotalTrades) / Log(1 / (1 - WinRate))
+        const lossRate = 1 - winRate;
+        const estMaxLossStreak = lossRate > 0 && lossRate < 1 ? Math.round(Math.log(totalTrades) / Math.log(1 / lossRate)) : 0;
+        const maxLossEl = document.getElementById('expectMaxLossStreak');
+        if (maxLossEl) {
+            const compoundLossOnStreak = (1 - Math.pow(1 - riskPct, estMaxLossStreak)) * 100;
+            maxLossEl.innerHTML = `이 매매 횟수 동안 <span class="text-rose-400 font-bold">최대 ${estMaxLossStreak}연패</span>를 겪을 확률이 매우 높습니다. 1회 ${Math.round(riskPct * 100)}% 리스크를 지키면 ${estMaxLossStreak}연패를 해도 원금의 -${compoundLossOnStreak.toFixed(1)}%만 잃어 멘탈 붕괴를 원천 차단합니다.`;
+        }
 
-        const isDay = (this.compoundPeriodType === 'day');
-        const periodUnit = isDay ? '일' : '개월';
+        // 몬테카를로 무작위 시뮬레이션 궤적 생성 (단일 체감 경로 + 1,000회 통계)
+        let balance = seed;
+        let peak = seed;
+        let maxDrawdownPct = 0;
+        const equityCurve = [{ trade: 0, balance: seed, evLine: seed, principal: seed }];
+        let evBalance = seed;
 
-        let currentBalance = seed;
-        let totalDeposited = seed;
-        const history = [{ period: 0, balance: seed, principal: seed, interestSum: 0 }];
-
-        let milestoneTargetPeriod = null;
-
-        for (let i = 1; i <= totalPeriods; i++) {
-            const interest = currentBalance * rate;
-            currentBalance += interest + periodicDeposit;
-            totalDeposited += periodicDeposit;
-
-            if (currentBalance >= targetGoal && milestoneTargetPeriod === null) {
-                milestoneTargetPeriod = i;
+        for (let i = 1; i <= totalTrades; i++) {
+            const isWin = Math.random() < winRate;
+            if (isWin) {
+                balance = balance * (1 + gainPct - feeRate);
+            } else {
+                balance = balance * (1 - lossPct - feeRate);
             }
 
-            history.push({
-                period: i,
-                balance: currentBalance,
-                principal: totalDeposited,
-                interestSum: currentBalance - totalDeposited
+            evBalance = evBalance * (1 + evPerTrade);
+            if (balance > peak) peak = balance;
+            const curDd = peak > 0 ? ((peak - balance) / peak) * 100 : 0;
+            if (curDd > maxDrawdownPct) maxDrawdownPct = curDd;
+
+            equityCurve.push({
+                trade: i,
+                balance: Math.max(0, balance),
+                evLine: evBalance,
+                principal: seed
             });
         }
 
-        const finalBalance = currentBalance;
-        const netInterest = finalBalance - totalDeposited;
-        const totalYieldPct = ((finalBalance - totalDeposited) / totalDeposited) * 100;
-
-        // UI 갱신
-        const finalBalanceEl = document.getElementById('compoundResultFinalBalance');
-        if (finalBalanceEl) finalBalanceEl.innerText = `${Math.round(finalBalance).toLocaleString('ko-KR')}원`;
-
-        const totalYieldEl = document.getElementById('compoundResultYieldPct');
-        if (totalYieldEl) totalYieldEl.innerText = `+${totalYieldPct.toFixed(1)}% (순이익 +${Math.round(netInterest).toLocaleString('ko-KR')}원)`;
-
-        const principalEl = document.getElementById('compoundResultPrincipal');
-        if (principalEl) principalEl.innerText = `${Math.round(totalDeposited).toLocaleString('ko-KR')}원`;
-
-        const goalReachEl = document.getElementById('compoundResultGoalReach');
-        if (goalReachEl) {
-            if (milestoneTargetPeriod !== null) {
-                goalReachEl.innerHTML = `<span class="text-emerald-400 font-bold">${milestoneTargetPeriod}${periodUnit}차</span> 달성 완료!`;
+        // 파산 확률 간이 계산: Risk of Ruin
+        // P(Ruin) = ((1 - A) / (1 + A)) ^ (Capital / Risk) where A = Edge / Risk
+        let ruinProb = 0;
+        if (evPerTrade <= 0) {
+            ruinProb = 100;
+        } else {
+            const ratio = (1 - winRate) / (winRate * rr);
+            if (ratio < 1) {
+                ruinProb = Math.min(100, Math.pow(ratio, 1 / riskPct) * 100);
             } else {
-                // 필요 기간 역산
-                if (rate > 0) {
-                    const estN = Math.ceil(Math.log(targetGoal / seed) / Math.log(1 + rate));
-                    goalReachEl.innerText = `약 ${estN}${periodUnit} 소요 예상`;
-                } else {
-                    goalReachEl.innerText = '수익률 0% 초과 필요';
-                }
+                ruinProb = 100;
             }
         }
 
-        // SVG 성장 곡선 차트 렌더링
-        this.renderCompoundChart(history, isDay);
+        // UI 갱신
+        const princEl = document.getElementById('expectResultPrincipal');
+        if (princEl) princEl.innerText = `${Math.round(seed).toLocaleString('ko-KR')}원`;
 
-        // 마일스톤 테이블 렌더링
-        const milestoneBody = document.getElementById('compoundMilestoneBody');
-        if (milestoneBody) {
-            const milestones = [
-                { target: 10000000, label: '1천만원' },
-                { target: 30000000, label: '3천만원' },
-                { target: 50000000, label: '5천만원' },
-                { target: 100000000, label: '1억원 (첫 억대)' },
-                { target: 300000000, label: '3억원' },
-                { target: 500000000, label: '5억원' },
-                { target: 1000000000, label: '10억원 (졸업)' }
-            ];
+        const finalBalEl = document.getElementById('expectResultFinalBalance');
+        if (finalBalEl) finalBalEl.innerText = `${Math.round(balance).toLocaleString('ko-KR')}원`;
 
-            milestoneBody.innerHTML = milestones.map(m => {
-                let reachPeriod = null;
-                let reachBal = 0;
-                for (let h of history) {
-                    if (h.balance >= m.target) {
-                        reachPeriod = h.period;
-                        reachBal = h.balance;
-                        break;
-                    }
-                }
-
-                // 기간 내 미도달 시 수학적 역산
-                let estText = '';
-                if (reachPeriod !== null) {
-                    estText = `<span class="text-emerald-400 font-bold font-mono">${reachPeriod}${periodUnit}차 (${Math.round(reachBal).toLocaleString()}원)</span>`;
-                } else if (rate > 0) {
-                    const estN = Math.ceil(Math.log(m.target / seed) / Math.log(1 + rate));
-                    estText = `<span class="text-slate-400 font-mono">약 ${estN}${periodUnit} 필요</span>`;
-                } else {
-                    estText = `<span class="text-slate-500">-</span>`;
-                }
-
-                return `
-                <tr class="border-b border-navy-800/50 hover:bg-navy-800/30 transition">
-                  <td class="py-2.5 px-3 text-xs font-bold text-slate-300">${m.label}</td>
-                  <td class="py-2.5 px-3 text-xs font-mono text-right text-cyan-300">${m.target.toLocaleString('ko-KR')}원</td>
-                  <td class="py-2.5 px-3 text-xs text-right">${estText}</td>
-                </tr>
-                `;
-            }).join('');
+        const totalYieldPct = ((balance - seed) / seed) * 100;
+        const yieldEl = document.getElementById('expectResultYieldPct');
+        if (yieldEl) {
+            yieldEl.innerText = `${totalYieldPct >= 0 ? '+' : ''}${totalYieldPct.toFixed(1)}%`;
+            yieldEl.className = `text-sm font-black font-mono ${totalYieldPct >= 0 ? 'text-emerald-300' : 'text-rose-400'}`;
         }
+
+        const mddEl = document.getElementById('expectResultMdd');
+        if (mddEl) {
+            mddEl.innerText = `-${maxDrawdownPct.toFixed(1)}% ${maxDrawdownPct < 15 ? '(안정권)' : maxDrawdownPct < 30 ? '(주의)' : '(위험)'}`;
+            mddEl.className = `text-sm font-bold font-mono ${maxDrawdownPct < 15 ? 'text-emerald-300' : maxDrawdownPct < 30 ? 'text-amber-300' : 'text-rose-400'}`;
+        }
+
+        const ruinBadge = document.getElementById('expectRuinBadge');
+        if (ruinBadge) {
+            if (ruinProb < 1) {
+                ruinBadge.innerText = `파산 확률 ${ruinProb.toFixed(1)}% (극안전)`;
+                ruinBadge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+            } else if (ruinProb < 10) {
+                ruinBadge.innerText = `파산 확률 ${ruinProb.toFixed(1)}% (보통)`;
+                ruinBadge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                ruinBadge.innerText = `파산 확률 ${ruinProb.toFixed(1)}% (고위험)`;
+                ruinBadge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40';
+            }
+        }
+
+        // SVG 자산 곡선 렌더링
+        this.renderExpectancyChart(equityCurve);
     },
 
-    renderCompoundChart: function (history, isDay) {
+    renderExpectancyChart: function (curve) {
         const container = document.getElementById('compoundChartContainer');
-        if (!container || !history || history.length < 2) return;
+        if (!container || !curve || curve.length < 2) return;
 
         const width = 680;
         const height = 240;
@@ -2349,34 +2359,32 @@ const CoinCalculators = {
         const padTop = 30;
         const padBottom = 40;
 
-        const maxVal = Math.max(...history.map(h => h.balance)) * 1.08;
-        const minVal = 0;
+        const allValues = curve.map(c => c.balance).concat(curve.map(c => c.evLine)).concat(curve.map(c => c.principal));
+        const maxVal = Math.max(...allValues) * 1.08;
+        const minVal = Math.max(0, Math.min(...allValues) * 0.92);
 
         const plotW = width - padLeft - padRight;
         const plotH = height - padTop - padBottom;
 
-        const getX = (idx) => padLeft + (idx / (history.length - 1)) * plotW;
-        const getY = (val) => padTop + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+        const getX = (idx) => padLeft + (idx / (curve.length - 1)) * plotW;
+        const getY = (val) => padTop + plotH - ((val - minVal) / Math.max(1, maxVal - minVal)) * plotH;
 
-        // Balance Path
-        const balPoints = history.map((h, i) => `${getX(i)},${getY(h.balance)}`).join(' ');
-        // Area Path
+        const balPoints = curve.map((c, i) => `${getX(i)},${getY(c.balance)}`).join(' ');
+        const evPoints = curve.map((c, i) => `${getX(i)},${getY(c.evLine)}`).join(' ');
+        const princPoints = curve.map((c, i) => `${getX(i)},${getY(c.principal)}`).join(' ');
+
         const firstX = getX(0);
-        const lastX = getX(history.length - 1);
-        const bottomY = getY(0);
+        const lastX = getX(curve.length - 1);
+        const bottomY = getY(minVal);
         const areaPoints = `${firstX},${bottomY} ${balPoints} ${lastX},${bottomY}`;
 
-        // Principal line (원금)
-        const principalPoints = history.map((h, i) => `${getX(i)},${getY(h.principal)}`).join(' ');
-
-        // Format helper
         const fmtWon = (v) => {
             if (v >= 100000000) return (v / 100000000).toFixed(1) + '억';
             if (v >= 10000) return Math.round(v / 10000) + '만';
             return Math.round(v);
         };
 
-        const gridLines = [0, 0.25, 0.5, 0.75, 1.0].map(ratio => {
+        const gridLines = [0, 0.33, 0.66, 1.0].map(ratio => {
             const v = minVal + (maxVal - minVal) * ratio;
             const y = getY(v);
             return `
@@ -2385,42 +2393,180 @@ const CoinCalculators = {
             `;
         }).join('');
 
-        const unit = isDay ? '일' : '월';
-        const startX = getX(0);
-        const midIdx = Math.floor(history.length / 2);
-        const midX = getX(midIdx);
-        const endX = getX(history.length - 1);
+        const midIdx = Math.floor(curve.length / 2);
 
         container.innerHTML = `
         <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto drop-shadow-lg" preserveAspectRatio="none">
           <defs>
-            <linearGradient id="compoundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+            <linearGradient id="expectGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.0"/>
             </linearGradient>
           </defs>
 
-          <!-- Grid Lines & Labels -->
+          <!-- Grid Lines -->
           ${gridLines}
 
-          <!-- Balance Area -->
-          <polygon points="${areaPoints}" fill="url(#compoundGrad)" />
+          <!-- Area -->
+          <polygon points="${areaPoints}" fill="url(#expectGrad)" />
 
-          <!-- Principal Line (원금) -->
-          <polyline points="${principalPoints}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,4" />
+          <!-- Principal Base Line (원금) -->
+          <polyline points="${princPoints}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,4" />
 
-          <!-- Balance Line (복리 자산) -->
-          <polyline points="${balPoints}" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <!-- EV Theoretical Expectancy Line (수학적 기대선) -->
+          <polyline points="${evPoints}" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="3,3" />
 
-          <!-- End Point Glow -->
-          <circle cx="${lastX}" cy="${getY(history[history.length - 1].balance)}" r="5" fill="#22d3ee" stroke="#083344" stroke-width="2"/>
+          <!-- Actual Simulation Balance Line (자산 곡선) -->
+          <polyline points="${balPoints}" fill="none" stroke="#22d3ee" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+
+          <!-- Last Trade Point Dot -->
+          <circle cx="${lastX}" cy="${getY(curve[curve.length - 1].balance)}" r="4.5" fill="#22d3ee" stroke="#083344" stroke-width="2"/>
 
           <!-- X-Axis Labels -->
-          <text x="${startX}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="start">시작 (0${unit})</text>
-          <text x="${midX}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="middle">${history[midIdx].period}${unit}</text>
-          <text x="${endX}" y="${height - 12}" fill="#22d3ee" font-size="10" font-weight="bold" text-anchor="end">${history[history.length - 1].period}${unit} 완료</text>
+          <text x="${firstX}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="start">0회차</text>
+          <text x="${getX(midIdx)}" y="${height - 12}" fill="#64748b" font-size="10" text-anchor="middle">${midIdx}회차</text>
+          <text x="${lastX}" y="${height - 12}" fill="#22d3ee" font-size="10" font-weight="bold" text-anchor="end">${curve[curve.length - 1].trade}회차 완료</text>
         </svg>
         `;
+    },
+
+    // ========================================================
+    // 8-2. 국내 & 미국 주식 평단가 물타기 & 호가 수수료 손익분기점(BEP) 계산기
+    // ========================================================
+    stockWaterMarket: 'KR', // 'KR' | 'US'
+    setStockWaterMarket: function (market) {
+        this.stockWaterMarket = market;
+        const krBtn = document.getElementById('stockWaterMarketKr');
+        const usBtn = document.getElementById('stockWaterMarketUs');
+        const curPriceEl = document.getElementById('stockWaterCurrentPrice');
+        const newPriceEl = document.getElementById('stockWaterNewPrice');
+        const targetAvgEl = document.getElementById('stockWaterTargetAvg');
+        const feeEl = document.getElementById('stockWaterFeeRate');
+        const taxEl = document.getElementById('stockWaterTaxRate');
+
+        document.querySelectorAll('.stockwater-currency-unit').forEach(el => {
+            el.innerText = (market === 'KR') ? '원' : '$';
+        });
+
+        if (market === 'KR') {
+            if (krBtn) krBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
+            if (usBtn) usBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (curPriceEl) curPriceEl.value = '85,000';
+            if (newPriceEl) newPriceEl.value = '65,000';
+            if (targetAvgEl) targetAvgEl.value = '70,000';
+            if (feeEl) feeEl.value = '0.015';
+            if (taxEl) taxEl.value = '0.18';
+        } else {
+            if (krBtn) krBtn.className = 'flex-1 py-2 rounded-xl text-xs font-medium transition text-slate-400 hover:text-white border border-navy-800 bg-navy-950';
+            if (usBtn) usBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
+            if (curPriceEl) curPriceEl.value = '180';
+            if (newPriceEl) newPriceEl.value = '140';
+            if (targetAvgEl) targetAvgEl.value = '155';
+            if (feeEl) feeEl.value = '0.07';
+            if (taxEl) taxEl.value = '0.0028'; // SEC Fee
+        }
+        this.calcStockWater();
+    },
+
+    calcStockWater: function () {
+        const isKr = (this.stockWaterMarket === 'KR');
+        const currencySymbol = isKr ? '원' : '$';
+
+        const curPrice = this.parseNum(document.getElementById('stockWaterCurrentPrice')?.value, isKr ? 85000 : 180);
+        const curShares = this.parseNum(document.getElementById('stockWaterCurrentShares')?.value, 100);
+        const newPrice = this.parseNum(document.getElementById('stockWaterNewPrice')?.value, isKr ? 65000 : 140);
+        const newShares = this.parseNum(document.getElementById('stockWaterNewShares')?.value, 100);
+        const targetAvg = this.parseNum(document.getElementById('stockWaterTargetAvg')?.value, isKr ? 70000 : 155);
+
+        const feeRate = this.parseNum(document.getElementById('stockWaterFeeRate')?.value, isKr ? 0.015 : 0.07) / 100;
+        const taxRate = this.parseNum(document.getElementById('stockWaterTaxRate')?.value, isKr ? 0.18 : 0.0028) / 100;
+
+        if (curPrice <= 0 || curShares <= 0) return;
+
+        // 1. 현재 상태 계산
+        const initialCost = curPrice * curShares;
+        const currentPnlPct = newPrice > 0 ? ((newPrice - curPrice) / curPrice) * 100 : 0;
+        const pnlBadge = document.getElementById('stockWaterCurrentPnlBadge');
+        if (pnlBadge) {
+            pnlBadge.innerText = `${currentPnlPct >= 0 ? '+' : ''}${currentPnlPct.toFixed(1)}% (${currentPnlPct < 0 ? '물림' : '수익중'})`;
+            pnlBadge.className = `text-[11px] font-bold ${currentPnlPct < 0 ? 'text-rose-400' : 'text-emerald-400'}`;
+        }
+
+        // 2. 추가 매수 후 합성 결과
+        const additionalCost = (newPrice > 0 && newShares > 0) ? newPrice * newShares : 0;
+        const totalShares = curShares + (newShares > 0 ? newShares : 0);
+        const totalCost = initialCost + additionalCost;
+        const newAvg = totalShares > 0 ? totalCost / totalShares : curPrice;
+
+        const dropRatePct = ((newAvg - curPrice) / curPrice) * 100;
+        const dropBadge = document.getElementById('stockWaterDropRateBadge');
+        if (dropBadge) {
+            dropBadge.innerText = `평단 ${dropRatePct.toFixed(1)}% 인하`;
+        }
+
+        // 3. 수수료 & 거래세 반영 BEP 본전 탈출 매도가격 역산
+        // 매수 시 수수료: totalCost * feeRate
+        // 매도 시 실수령: SellPrice * totalShares * (1 - feeRate - taxRate)
+        // 무손실 조건: SellPrice * totalShares * (1 - feeRate - taxRate) = totalCost * (1 + feeRate)
+        const totalBuyFee = totalCost * feeRate;
+        const breakEvenPrice = (totalCost * (1 + feeRate)) / (totalShares * Math.max(0.001, (1 - feeRate - taxRate)));
+        const totalSellFeeAndTax = (breakEvenPrice * totalShares) * (feeRate + taxRate);
+        const totalExpenses = totalBuyFee + totalSellFeeAndTax;
+
+        const tickGapPct = newAvg > 0 ? ((breakEvenPrice - newAvg) / newAvg) * 100 : 0;
+
+        // UI 반영
+        const fmtCur = (val) => isKr ? `${Math.round(val).toLocaleString('ko-KR')}원` : `$${val.toFixed(2)}`;
+
+        const newAvgEl = document.getElementById('stockWaterResNewAvg');
+        if (newAvgEl) newAvgEl.innerText = fmtCur(newAvg);
+
+        const totalSharesEl = document.getElementById('stockWaterResTotalShares');
+        if (totalSharesEl) totalSharesEl.innerText = `${totalShares.toLocaleString('ko-KR')}주`;
+
+        const totalCostEl = document.getElementById('stockWaterResTotalCost');
+        if (totalCostEl) totalCostEl.innerText = fmtCur(totalCost);
+
+        const bepEl = document.getElementById('stockWaterResBepPrice');
+        if (bepEl) bepEl.innerText = fmtCur(breakEvenPrice);
+
+        const buyFeeEl = document.getElementById('stockWaterResBuyFee');
+        if (buyFeeEl) buyFeeEl.innerText = fmtCur(totalBuyFee);
+
+        const sellFeeTaxEl = document.getElementById('stockWaterResSellFeeTax');
+        if (sellFeeTaxEl) sellFeeTaxEl.innerText = fmtCur(totalSellFeeAndTax);
+
+        const totalFeesEl = document.getElementById('stockWaterResTotalFees');
+        if (totalFeesEl) totalFeesEl.innerText = fmtCur(totalExpenses);
+
+        const tickGapEl = document.getElementById('stockWaterResTickGap');
+        if (tickGapEl) {
+            let estTicks = Math.max(1, Math.round(tickGapPct / 0.1));
+            tickGapEl.innerText = `+${tickGapPct.toFixed(2)}% 상승 시 본전 탈출 (약 ${estTicks}호가 차이)`;
+        }
+
+        // 4. 목표 평단가 역산 솔루션
+        const targetDisplayEl = document.getElementById('stockWaterTargetDisplay');
+        if (targetDisplayEl) targetDisplayEl.innerText = fmtCur(targetAvg);
+
+        const revContainer = document.getElementById('stockWaterReverseResult');
+        if (revContainer) {
+            if (targetAvg >= curPrice) {
+                revContainer.innerHTML = `<span class="text-amber-300">목표 평단가(${fmtCur(targetAvg)})가 이미 현재 평단가(${fmtCur(curPrice)}) 이상이므로 추가 매수가 필요하지 않습니다.</span>`;
+            } else if (newPrice >= targetAvg) {
+                revContainer.innerHTML = `<span class="text-rose-400 font-bold">⚠️ 추가 매수 단가(${fmtCur(newPrice)})가 목표 평단가(${fmtCur(targetAvg)})보다 높거나 같으면 아무리 많이 사도 평단가를 목표치까지 낮출 수 없습니다. 더 낮은 단가에서 매수해야 합니다.</span>`;
+            } else {
+                // (initialCost + newPrice * X) / (curShares + X) = targetAvg
+                // initialCost + newPrice * X = targetAvg * curShares + targetAvg * X
+                // X * (targetAvg - newPrice) = curShares * (curPrice - targetAvg)
+                const requiredShares = Math.ceil((curShares * (curPrice - targetAvg)) / (targetAvg - newPrice));
+                const requiredCapital = requiredShares * newPrice;
+
+                revContainer.innerHTML = `
+                  추가 매수가격 <strong class="text-cyan-300">${fmtCur(newPrice)}</strong>에서 정확히 <strong class="text-emerald-400 font-mono text-sm">${requiredShares.toLocaleString()}주</strong>를 더 매수(필요 자금 약 <strong class="text-white font-mono">${fmtCur(requiredCapital)}</strong>)하시면 평단가가 정확히 <strong class="text-cyan-300">${fmtCur(targetAvg)}</strong>로 낮아집니다.
+                `;
+            }
+        }
     },
 
     // ========================================================
