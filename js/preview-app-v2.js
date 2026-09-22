@@ -8465,5 +8465,81 @@ if (document.readyState === 'loading') {
   if (typeof loadDailyMarketReports === 'function') loadDailyMarketReports();
 }
 
+// ==========================================
+// PWA & Forum Preload Integration Engine
+// ==========================================
+function openForumWithPreload(category, title, contentHtml) {
+  if (typeof switchTab === 'function') switchTab('forum');
+  if (typeof showForumWriteView === 'function') showForumWriteView();
+  
+  setTimeout(() => {
+    const catSelect = document.getElementById('cafe-write-category');
+    const titleInput = document.getElementById('cafe-write-title');
+    const editor = document.getElementById('cafe-write-content');
+    if (catSelect && category) catSelect.value = category;
+    if (titleInput && title) titleInput.value = title;
+    if (editor && contentHtml) editor.innerHTML = contentHtml;
+    if (titleInput) titleInput.focus();
+  }, 150);
+}
+window.openForumWithPreload = openForumWithPreload;
+
+// PWA Service Worker Registration & Install Prompt Handler
+let deferredInstallPrompt = null;
+window.deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  window.deferredInstallPrompt = e;
+  
+  const desktopBtn = document.getElementById('btn-pwa-install');
+  const mobileBtn = document.getElementById('m-btn-pwa-install');
+  if (desktopBtn) desktopBtn.classList.remove('hidden');
+  if (mobileBtn) mobileBtn.classList.remove('hidden');
+});
+
+window.installPwaApp = async function() {
+  if (!deferredInstallPrompt) {
+    alert('모바일 브라우저의 [공유] 또는 [메뉴(⋮)] > [홈 화면에 추가]를 눌러 앱으로 설치할 수 있습니다.');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  const choiceResult = await deferredInstallPrompt.userChoice;
+  if (choiceResult && choiceResult.outcome === 'accepted') {
+    console.log('[PWA] User accepted the install prompt');
+  }
+  deferredInstallPrompt = null;
+  window.deferredInstallPrompt = null;
+  const desktopBtn = document.getElementById('btn-pwa-install');
+  const mobileBtn = document.getElementById('m-btn-pwa-install');
+  if (desktopBtn) desktopBtn.classList.add('hidden');
+  if (mobileBtn) mobileBtn.classList.add('hidden');
+};
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  window.deferredInstallPrompt = null;
+  const desktopBtn = document.getElementById('btn-pwa-install');
+  const mobileBtn = document.getElementById('m-btn-pwa-install');
+  if (desktopBtn) desktopBtn.classList.add('hidden');
+  if (mobileBtn) mobileBtn.classList.add('hidden');
+  console.log('[PWA] CrytoPnL was installed successfully');
+});
+
+// Register Service Worker
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => {
+        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] ServiceWorker registration failed:', err);
+      });
+  });
+}
+
+
 
 

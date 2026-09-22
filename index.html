@@ -14,6 +14,12 @@
     } catch (e) {}
   </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CrytoPnL">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwNmI2ZDQiLz48c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzNiODJmNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ2IiBmaWxsPSIjMDcwOTBlIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOCIvPjxwYXRoIGQ9Ik00MiAzMCBDMzAgMzAsIDI0IDM4LCAyNCA1MCBDMjQgNjIsIDMwIDcwLCA0MiA3MCBDNTAgNzAsIDU2IDY1LCA2MCA1OCBMNTAgNTIgQzQ4IDU2LCA0NSA1OCwgNDEgNTggQzM1IDU4LCAzMiA1NCwgMzIgNTAgQzMyIDQ2LCAzNSA0MiwgNDEgNDIgQzQ1IDQyLCA0OCA0NCwgNTAgNDggTDYwIDQyIEM1NiAzNSwgNTAgMzAsIDQyIDMwIFoiIGZpbGw9InVybCgjZykiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjM1IiByPSI3IiBmaWxsPSIjMTBiOTgxIi8+PC9zdmc+">
   <title>CrytoPnL – 업비트·빗썸 엑셀 손익계산기 & 평단가</title>
   <meta name="description" content="업비트·빗썸 엑셀로 선입선출(FIFO) 실현손익, 평단가, 수수료를 1초 만에 계산합니다. 서버 전송 0% 무료 로컬 분석기.">
@@ -401,6 +407,29 @@
     #cafe-write-content img.selected-editor-img {
       outline: 3px solid #06b6d4 !important;
       box-shadow: 0 0 16px rgba(6, 182, 212, 0.6) !important;
+    }
+
+    /* Print Optimization for Tax Reports */
+    #tax-printable-report { display: none; }
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #111827 !important;
+      }
+      header, .mobile-bottom-nav, aside, #ticker-bar, #storage-sync-modal,
+      .calc-subnav, button, input, select, footer, #forum-write-view,
+      .no-print, [onclick*="switchTab"], #btn-pwa-install, #m-btn-pwa-install {
+        display: none !important;
+      }
+      #tax-printable-report {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+      }
     }
   </style>
 
@@ -1286,6 +1315,11 @@
       <!-- Right Actions: Theme Toggle & Auth Profile -->
       <div class="flex items-center gap-3">
         <div id="auth-section" class="flex items-center gap-1.5 shrink-0">
+          <!-- PWA Install Button (Shown on browsers supporting PWA) -->
+          <button type="button" id="btn-pwa-install" onclick="installPwaApp()" class="hidden items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 border border-cyan-500/40 text-[11px] sm:text-xs font-bold text-cyan-300 transition shadow-sm cursor-pointer shrink-0" title="바탕화면/홈 화면에 CrytoPnL 앱 설치">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span class="hidden sm:inline">앱 설치</span>
+          </button>
           <!-- Theme Toggle Button (Dark / Light) -->
           <button type="button" id="btn-theme-toggle" onclick="toggleTheme()" class="flex items-center gap-1 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-navy-900 border border-navy-800 hover:border-cyan-500/40 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm cursor-pointer shrink-0" title="다크/라이트 모드 전환">
             <i data-lucide="sun" id="theme-toggle-icon" class="w-4 h-4 text-amber-400"></i>
@@ -1341,6 +1375,10 @@
     <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="newspaper" class="w-4 h-4"></i>
       <span>뉴스</span>
+    </button>
+    <button onclick="installPwaApp()" id="m-btn-pwa-install" class="hidden flex-col items-center gap-0.5 text-cyan-300 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]" title="홈 화면에 CrytoPnL 앱 설치">
+      <i data-lucide="download" class="w-4 h-4 text-cyan-400 animate-bounce"></i>
+      <span>앱설치</span>
     </button>
     <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="shield-check" class="w-4 h-4"></i>
@@ -4054,6 +4092,21 @@
                 </table>
               </div>
             </div>
+
+            <!-- 물타기 결과 포럼 공유 배너 -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-navy-900 to-blue-950/60 border border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">💡</span>
+                <div>
+                  <div class="text-xs font-bold text-white">이 물타기 평단가로 본전 탈출 가능할까요?</div>
+                  <div class="text-[11px] text-slate-400">현재 계산된 수치를 포럼에 원클릭으로 공유하고 다른 투자자들의 실전 조언을 받아보세요.</div>
+                </div>
+              </div>
+              <button type="button" onclick="CoinCalculators.shareWaterToForum()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 text-xs font-extrabold transition flex items-center gap-1.5 shrink-0 shadow-lg shadow-cyan-500/20 cursor-pointer">
+                <i data-lucide="messages-square" class="w-3.5 h-3.5"></i>
+                <span>포럼에 질문/공유하기 ➡️</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -4324,6 +4377,16 @@
               <div class="flex justify-between text-slate-400"><span>지방소득세 (2%):</span><span id="taxResLocalTax" class="font-mono text-slate-300">0원</span></div>
               <div class="pt-3 border-t border-cyan-500/40 flex justify-between items-center text-sm font-bold"><span class="text-white">총 예상 납부 세금 (22%):</span><span id="taxResTotalTax" class="font-black text-xl font-mono text-rose-400">0원</span></div>
               <div class="flex justify-between text-slate-400 text-[11px]"><span>실효 세율:</span><span id="taxResEffectiveRate" class="font-mono text-slate-300">0.00%</span></div>
+              <div class="pt-3 border-t border-navy-800 flex flex-wrap gap-2 justify-end">
+                <button type="button" onclick="CoinCalculators.printTaxReport()" class="px-3.5 py-2 rounded-xl bg-navy-900 hover:bg-navy-800 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <i data-lucide="printer" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>🖨️ 세무 리포트 인쇄 / PDF</span>
+                </button>
+                <button type="button" onclick="CoinCalculators.shareTaxToForum()" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <i data-lucide="messages-square" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>💬 포럼에 세금 질문하기</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -8665,14 +8728,14 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260922_02"></script>
+  <script src="js/tools-calculators.js?v=20260923_01"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260921_04"></script>
 
   <script src="js/admin.js?v=20260916_05"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260922_02"></script>
-  <script src="js/preview-app-v2.js?v=20260922_01"></script>
+  <script src="js/preview-app-v2.js?v=20260923_01"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

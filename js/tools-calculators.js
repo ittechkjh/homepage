@@ -1393,6 +1393,192 @@ const CoinCalculators = {
         }
     },
 
+    // 포럼 질문/공유 연동: 물타기 계획
+    shareWaterToForum: function () {
+        const isUsd = this.waterCurrency === 'USD';
+        const unit = isUsd ? '$' : '원';
+        const curPrice = document.getElementById('waterCurrentPrice')?.value || '0';
+        const curQty = document.getElementById('waterCurrentQty')?.value || '0';
+        const newAvg = document.getElementById('waterResNewAvg')?.innerText || '0';
+        const breakEven = document.getElementById('waterResBreakEven')?.innerText || '0';
+        const totalCost = document.getElementById('waterResTotalCost')?.innerText || '0';
+        const requiredGain = document.getElementById('waterResRequiredGain')?.innerText || '+0.00%';
+
+        const title = `[물타기 탈출 상담] 기존 평단 ${curPrice}${unit} ➡️ 목표 평단 ${newAvg} 탈출 조언 부탁드립니다`;
+        const content = `
+<p>안녕하세요. <strong>CrytoPnL 물타기 시뮬레이터</strong>로 계획을 세워보고 있는 투자자입니다.</p>
+<hr>
+<h4>📊 물타기 시뮬레이션 요약</h4>
+<ul>
+  <li><strong>기준 통화:</strong> ${isUsd ? 'USD ($)' : 'KRW (원)'}</li>
+  <li><strong>현재 보유 평단가:</strong> ${curPrice} ${unit} (보유 수량: ${curQty})</li>
+  <li><strong>추가 매수 후 예상 평단가:</strong> <span style="color:#06b6d4; font-weight:bold;">${newAvg}</span></li>
+  <li><strong>수수료 포함 본전 탈출 목표가:</strong> <span style="color:#f43f5e; font-weight:bold;">${breakEven}</span></li>
+  <li><strong>필요 반등 상승률:</strong> <span style="color:#10b981; font-weight:bold;">${requiredGain}</span></li>
+  <li><strong>총 투입 예정 자금:</strong> ${totalCost}</li>
+</ul>
+<hr>
+<p>현재 차트 지지선과 시장 상황을 볼 때, 이 가격대에서 추가 분할 매수로 대응하는 전략이 유효할지 선배 트레이더 분들의 실전 관점과 조언을 구합니다!</p>
+`;
+        if (typeof openForumWithPreload === 'function') {
+            openForumWithPreload('perspective', title, content.trim());
+        } else {
+            alert('포럼 연동 모듈을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+        }
+    },
+
+    // 포럼 질문/공유 연동: 코인 세금
+    shareTaxToForum: function () {
+        const totalSell = document.getElementById('taxTotalSell')?.value || '0';
+        const totalBuy = document.getElementById('taxTotalBuy')?.value || '0';
+        const totalFee = document.getElementById('taxTotalFee')?.value || '0';
+        const netProfit = document.getElementById('taxResNetProfit')?.innerText || '0원';
+        const deduction = document.getElementById('taxResDeduction')?.innerText || '0원';
+        const totalTax = document.getElementById('taxResTotalTax')?.innerText || '0원';
+        const effectiveRate = document.getElementById('taxResEffectiveRate')?.innerText || '0.00%';
+
+        const title = `[세무 질문] 연간 실현손익 ${netProfit} 기준 예상 세금(${totalTax}) 및 절세 방안 질문`;
+        const content = `
+<p>안녕하세요! <strong>CrytoPnL 가상자산 세금 계산기</strong>로 올해 예상 양도소득세를 시뮬레이션해 보았습니다.</p>
+<hr>
+<h4>📑 가상자산 세무 시뮬레이션 결과</h4>
+<ul>
+  <li><strong>연간 총 양도(매도) 대금:</strong> ${totalSell}원</li>
+  <li><strong>연간 총 취득(매수) 가액:</strong> ${totalBuy}원</li>
+  <li><strong>공제 대상 거래 수수료:</strong> ${totalFee}원</li>
+  <li><strong>과세 대상 순손익:</strong> <strong>${netProfit}</strong></li>
+  <li><strong>기본공제액:</strong> ${deduction}</li>
+  <li><strong>예상 납부 세액 (22%):</strong> <span style="color:#f43f5e; font-weight:bold;">${totalTax}</span> (실효세율: ${effectiveRate})</li>
+</ul>
+<hr>
+<p>혹시 연말까지 물려있는 손실 종목을 손절하여 <strong>손익 통산(손실 상계)</strong>을 적용하거나 추가로 활용할 수 있는 합법적 절세 노하우가 있을까요? 세무 팁 공유 부탁드립니다.</p>
+`;
+        if (typeof openForumWithPreload === 'function') {
+            openForumWithPreload('finance', title, content.trim());
+        } else {
+            alert('포럼 연동 모듈을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+        }
+    },
+
+    // 가상자산 세무 시뮬레이션 리포트 A4 인쇄 / PDF 출력
+    printTaxReport: function () {
+        const totalSell = document.getElementById('taxTotalSell')?.value || '0';
+        const totalBuy = document.getElementById('taxTotalBuy')?.value || '0';
+        const totalFee = document.getElementById('taxTotalFee')?.value || '0';
+        const deductType = document.getElementById('taxDeductionType')?.value || '250';
+        const netProfit = document.getElementById('taxResNetProfit')?.innerText || '0원';
+        const deduction = document.getElementById('taxResDeduction')?.innerText || '0원';
+        const taxableBase = document.getElementById('taxResTaxableBase')?.innerText || '0원';
+        const incomeTax = document.getElementById('taxResIncomeTax')?.innerText || '0원';
+        const localTax = document.getElementById('taxResLocalTax')?.innerText || '0원';
+        const totalTax = document.getElementById('taxResTotalTax')?.innerText || '0원';
+        const effectiveRate = document.getElementById('taxResEffectiveRate')?.innerText || '0.00%';
+
+        const now = new Date();
+        const dateStr = now.getFullYear() + '년 ' + (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+        let reportContainer = document.getElementById('tax-printable-report');
+        if (!reportContainer) {
+            reportContainer = document.createElement('div');
+            reportContainer.id = 'tax-printable-report';
+            document.body.appendChild(reportContainer);
+        }
+
+        reportContainer.innerHTML = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #111827; max-width: 800px; margin: 0 auto; padding: 20px;">
+            <!-- Header -->
+            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+              <div>
+                <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0;">가상자산 소득세 모의정산 리포트</h1>
+                <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">CrytoPnL 실전 세무 시뮬레이션 시스템 (세무 신고 참고용)</p>
+              </div>
+              <div style="text-align: right; font-size: 11px; color: #64748b;">
+                <div><strong>발행일시:</strong> ${dateStr}</div>
+                <div><strong>적용 세법:</strong> 소득세법 제21조 (기타소득 20% + 지방소득세 2%)</div>
+              </div>
+            </div>
+
+            <!-- Summary Box -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="padding: 8px 12px; font-weight: 600; color: #475569; width: 45%;">연간 총 양도(매도) 대금</td>
+                  <td style="padding: 8px 12px; font-weight: 700; text-align: right; font-family: monospace;">${totalSell} 원</td>
+                </tr>
+                <tr style="border-top: 1px dashed #cbd5e1;">
+                  <td style="padding: 8px 12px; font-weight: 600; color: #475569;">연간 총 취득(매수) 가액</td>
+                  <td style="padding: 8px 12px; font-weight: 700; text-align: right; font-family: monospace;">${totalBuy} 원</td>
+                </tr>
+                <tr style="border-top: 1px dashed #cbd5e1;">
+                  <td style="padding: 8px 12px; font-weight: 600; color: #475569;">매매 수수료 및 부대비용 공제</td>
+                  <td style="padding: 8px 12px; font-weight: 700; text-align: right; font-family: monospace; color: #0284c7;">- ${totalFee} 원</td>
+                </tr>
+                <tr style="border-top: 2px solid #94a3b8; background: #f1f5f9;">
+                  <td style="padding: 10px 12px; font-weight: 800; color: #0f172a;">과세 대상 순손익 (양도차익)</td>
+                  <td style="padding: 10px 12px; font-weight: 800; text-align: right; font-family: monospace; font-size: 14px;">${netProfit}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Tax Calculation Table -->
+            <div style="margin-bottom: 20px;">
+              <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 8px; border-left: 4px solid #0284c7; padding-left: 8px;">세액 산출 세부 내역</h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #e2e8f0;">
+                <thead style="background: #f1f5f9;">
+                  <tr>
+                    <th style="padding: 8px; border: 1px solid #e2e8f0; text-align: left;">항목</th>
+                    <th style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">산출 근거 / 세율</th>
+                    <th style="padding: 8px; border: 1px solid #e2e8f0; text-align: right;">금액</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0;">기본 공제액</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">${deductType === '5000' ? '개정안 기준 (5,000만원)' : '현행 기준 (연 250만원)'}</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: right; font-family: monospace; color: #0284c7;">- ${deduction}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;">과세 표준</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">순손익 - 기본공제</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: right; font-family: monospace; font-weight: bold;">${taxableBase}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0;">가상자산 소득세</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">과세표준 × 20%</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: right; font-family: monospace;">${incomeTax}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0;">지방소득세</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">과세표준 × 2% (소득세의 10%)</td>
+                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: right; font-family: monospace;">${localTax}</td>
+                  </tr>
+                  <tr style="background: #fef2f2; font-weight: 800;">
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; color: #dc2626; font-size: 14px;">총 납부 예상 세액</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center; color: #dc2626;">합계 22.0% (실효세율: ${effectiveRate})</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right; font-family: monospace; font-size: 16px; color: #dc2626;">${totalTax}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Tax Guide & Legal Disclaimer -->
+            <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; font-size: 11px; color: #666; line-height: 1.5;">
+              <div style="font-weight: bold; color: #333; margin-bottom: 4px;">⚠️ 법적 고지 및 세무 유의사항</div>
+              <div>1. 본 문서는 사용자가 입력한 거래금액 또는 엑셀 분석 데이터를 기반으로 산출된 모의 시뮬레이션 결과이며, 세무서 제출용 공식 과세표준 확정신고서가 아닙니다.</div>
+              <div>2. 가상자산 양도소득세는 과세 시행 시 매년 5월 종합소득세 신고 기간에 홈택스(Hometax)를 통해 자진 신고·납부해야 합니다.</div>
+              <div>3. 실제 세무 신고 시 취득가액 산정 방식(선입선출법 또는 이동평균법) 및 국세청 고시 기준에 따라 실납부액에 차이가 있을 수 있으므로 공인 세무사의 검토를 권장합니다.</div>
+            </div>
+
+            <!-- Footer Sign -->
+            <div style="margin-top: 24px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+              CrytoPnL — 100% Client-Side Local Crypto Tax & PnL Analyzer Engine (https://crytopnl.com)
+            </div>
+          </div>
+        `;
+
+        window.print();
+    },
+
     // ========================================================
     // 4. 해외 선물 청산가 & ROE 계산기
     // ========================================================

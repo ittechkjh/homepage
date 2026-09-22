@@ -1,0 +1,32 @@
+﻿{
+  "name": "CrytoPnL - 가상자산 손익분석 & 실전 도구",
+  "short_name": "CrytoPnL",
+  "description": "100% 로컬 보안 가상자산 손익 계산, 실시간 차트 패턴 스캐너, 물타기·청산가·세금 계산기 & 투자자 커뮤니티",
+  "start_url": "/#/market",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#07090e",
+  "theme_color": "#0b0f19",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "utilities", "business"]
+}
