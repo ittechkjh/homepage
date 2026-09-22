@@ -3872,6 +3872,21 @@
               </div>
             </div>
             <div class="space-y-3 text-xs">
+              <!-- 계산 기준 통화 선택 (KRW / USD) -->
+              <div class="flex items-center justify-between p-2.5 px-3.5 rounded-2xl bg-navy-950/90 border border-navy-800">
+                <span class="font-bold text-slate-300 text-xs flex items-center gap-1.5">
+                  <span>🌐</span> 계산 기준 통화
+                </span>
+                <div class="inline-flex p-0.5 rounded-xl bg-navy-900 border border-navy-700 text-xs font-bold">
+                  <button type="button" id="waterCurrKrwBtn" onclick="CoinCalculators.setWaterCurrency('KRW')" class="px-3 py-1 rounded-lg transition text-cyan-400 bg-cyan-950 border border-cyan-500/40 shadow-sm cursor-pointer flex items-center gap-1">
+                    <span>₩</span> 원화 (KRW)
+                  </button>
+                  <button type="button" id="waterCurrUsdBtn" onclick="CoinCalculators.setWaterCurrency('USD')" class="px-3 py-1 rounded-lg transition text-slate-400 hover:text-white cursor-pointer flex items-center gap-1">
+                    <span>$</span> 달러 (USD)
+                  </button>
+                </div>
+              </div>
+
               <!-- 1. 초기 보유 포지션 -->
               <div class="p-3.5 rounded-2xl bg-navy-950/80 border border-navy-800 space-y-2.5">
                 <div class="flex justify-between items-center">
@@ -3880,7 +3895,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="block font-semibold text-slate-400 mb-1">현재 보유 평단가 (KRW)</label>
+                    <label id="waterCurrentPriceLabel" class="block font-semibold text-slate-400 mb-1">현재 보유 평단가 (KRW)</label>
                     <input type="text" inputmode="numeric" id="waterCurrentPrice" value="95,000,000" placeholder="예: 95,000,000 (선택)" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcWater()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-cyan-500 focus:outline-none">
                   </div>
                   <div>
@@ -3928,7 +3943,9 @@
                 <select id="waterFeeRate" onchange="CoinCalculators.calcWater()" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3.5 py-2 text-slate-300 text-xs">
                   <option value="0.05">업비트 (0.05%)</option>
                   <option value="0.04">빗썸 (0.04%)</option>
-                  <option value="0.1">일반 / 해외 (0.1%)</option>
+                  <option value="0.1">일반 / 해외 현물 (0.1%)</option>
+                  <option value="0.02">해외 선물 지정가 (0.02%)</option>
+                  <option value="0.05">해외 선물 시장가 (0.05%)</option>
                   <option value="0">수수료 무료 (0%)</option>
                 </select>
               </div>
@@ -8632,7 +8649,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260922_01"></script>
+  <script src="js/tools-calculators.js?v=20260922_02"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260921_04"></script>
 

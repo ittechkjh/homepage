@@ -91,6 +91,9 @@ const CoinCalculators = {
         }
     },
 
+    // 물타기 계산기 기준 통화 ('KRW' | 'USD')
+    waterCurrency: 'KRW',
+
     // 매수 차수 (mode: 'amount' | 'qty' | 'pct')
     waterTiers: [
         { id: 1, mode: 'amount', price: 78000000, val: 10000000 }
@@ -184,6 +187,7 @@ const CoinCalculators = {
 
         if (active && active.title === title) {
             // 기존 선택된 시나리오 덮어쓰기
+            active.currency = this.waterCurrency || 'KRW';
             active.currentPrice = curPrice;
             active.currentQty = curQty;
             active.feeRate = feeRate;
@@ -196,6 +200,7 @@ const CoinCalculators = {
             const newScenario = {
                 id: newId,
                 title: title,
+                currency: this.waterCurrency || 'KRW',
                 currentPrice: curPrice,
                 currentQty: curQty,
                 feeRate: feeRate,
@@ -231,6 +236,10 @@ const CoinCalculators = {
 
         this.currentScenarioId = target.id;
 
+        if (target.currency) {
+            this.setWaterCurrency(target.currency);
+        }
+
         const priceEl = document.getElementById('waterCurrentPrice');
         const qtyEl = document.getElementById('waterCurrentQty');
         const feeEl = document.getElementById('waterFeeRate');
@@ -241,12 +250,12 @@ const CoinCalculators = {
 
         this.waterTiers = target.waterTiers && target.waterTiers.length > 0
             ? JSON.parse(JSON.stringify(target.waterTiers))
-            : [{ id: 1, mode: 'amount', price: 78000000, val: 10000000 }];
+            : [{ id: 1, mode: 'amount', price: (this.waterCurrency === 'USD' ? 58000 : 78000000), val: (this.waterCurrency === 'USD' ? 5000 : 10000000) }];
         this.nextWaterTierId = Math.max(...this.waterTiers.map(t => t.id || 0), 0) + 1;
 
         this.sellTiers = target.sellTiers && target.sellTiers.length > 0
             ? JSON.parse(JSON.stringify(target.sellTiers))
-            : [{ id: 1, mode: 'pct', price: 98000000, val: 50 }];
+            : [{ id: 1, mode: 'pct', price: (this.waterCurrency === 'USD' ? 72000 : 98000000), val: 50 }];
         this.nextSellTierId = Math.max(...this.sellTiers.map(t => t.id || 0), 0) + 1;
 
         this.renderWaterTiers();
@@ -254,6 +263,77 @@ const CoinCalculators = {
         this.calcWater();
         this.renderScenarioUI();
         this.showScenarioToast(`'${target.title}' 계획을 불러왔습니다.`);
+    },
+
+    // 기준 통화 전환 ('KRW' | 'USD')
+    setWaterCurrency: function (curr) {
+        if (!curr) curr = 'KRW';
+        const isSwitched = (this.waterCurrency !== curr);
+        this.waterCurrency = curr;
+
+        const isUsd = (curr === 'USD');
+
+        // 통화 선택 버튼 UI 동기화
+        const krwBtn = document.getElementById('waterCurrKrwBtn');
+        const usdBtn = document.getElementById('waterCurrUsdBtn');
+        if (krwBtn && usdBtn) {
+            if (isUsd) {
+                usdBtn.className = 'px-3 py-1 rounded-lg transition text-cyan-400 bg-cyan-950 border border-cyan-500/40 shadow-sm cursor-pointer flex items-center gap-1';
+                krwBtn.className = 'px-3 py-1 rounded-lg transition text-slate-400 hover:text-white cursor-pointer flex items-center gap-1';
+            } else {
+                krwBtn.className = 'px-3 py-1 rounded-lg transition text-cyan-400 bg-cyan-950 border border-cyan-500/40 shadow-sm cursor-pointer flex items-center gap-1';
+                usdBtn.className = 'px-3 py-1 rounded-lg transition text-slate-400 hover:text-white cursor-pointer flex items-center gap-1';
+            }
+        }
+
+        // Section 1 라벨 및 placeholder 동기화
+        const priceLabel = document.getElementById('waterCurrentPriceLabel');
+        if (priceLabel) {
+            priceLabel.innerText = isUsd ? '현재 보유 평단가 (USD)' : '현재 보유 평단가 (KRW)';
+        }
+
+        const priceEl = document.getElementById('waterCurrentPrice');
+        if (priceEl) {
+            priceEl.placeholder = isUsd ? '예: 65,000 (선택)' : '예: 95,000,000 (선택)';
+            if (isSwitched) {
+                const curP = this.parseNum(priceEl.value);
+                if (isUsd) {
+                    if (curP >= 1000000 || curP === 95000000) {
+                        priceEl.value = '65,000';
+                    }
+                } else {
+                    if (curP <= 200000 || curP === 65000) {
+                        priceEl.value = '95,000,000';
+                    }
+                }
+            }
+        }
+
+        if (isSwitched) {
+            if (isUsd) {
+                this.waterTiers.forEach(t => {
+                    if (t.price >= 1000000 || t.price === 78000000) t.price = 58000;
+                    if (t.mode === 'amount' && (t.val >= 1000000 || t.val === 10000000)) t.val = 5000;
+                });
+                this.sellTiers.forEach(t => {
+                    if (t.price >= 1000000 || t.price === 98000000 || t.price === 105000000) t.price = 72000;
+                    if (t.mode === 'amount' && (t.val >= 1000000 || t.val === 20000000)) t.val = 10000;
+                });
+            } else {
+                this.waterTiers.forEach(t => {
+                    if (t.price <= 200000 || t.price === 58000) t.price = 78000000;
+                    if (t.mode === 'amount' && (t.val <= 200000 || t.val === 5000)) t.val = 10000000;
+                });
+                this.sellTiers.forEach(t => {
+                    if (t.price <= 200000 || t.price === 72000) t.price = 98000000;
+                    if (t.mode === 'amount' && (t.val <= 200000 || t.val === 10000)) t.val = 20000000;
+                });
+            }
+        }
+
+        this.renderWaterTiers();
+        this.renderSellTiers();
+        this.calcWater();
     },
 
     // 시나리오 삭제
@@ -284,17 +364,18 @@ const CoinCalculators = {
     // 새 계획 작성 (폼 초기화)
     resetScenario: function () {
         this.currentScenarioId = null;
+        const isUsd = (this.waterCurrency === 'USD');
         const priceEl = document.getElementById('waterCurrentPrice');
         const qtyEl = document.getElementById('waterCurrentQty');
         const feeEl = document.getElementById('waterFeeRate');
 
-        if (priceEl) priceEl.value = '95,000,000';
+        if (priceEl) priceEl.value = isUsd ? '65,000' : '95,000,000';
         if (qtyEl) qtyEl.value = '0.5';
         if (feeEl) feeEl.value = '0.05';
 
-        this.waterTiers = [{ id: 1, mode: 'amount', price: 78000000, val: 10000000 }];
+        this.waterTiers = [{ id: 1, mode: 'amount', price: isUsd ? 58000 : 78000000, val: isUsd ? 5000 : 10000000 }];
         this.nextWaterTierId = 2;
-        this.sellTiers = [{ id: 1, mode: 'pct', price: 98000000, val: 50 }];
+        this.sellTiers = [{ id: 1, mode: 'pct', price: isUsd ? 72000 : 98000000, val: 50 }];
         this.nextSellTierId = 2;
 
         this.renderWaterTiers();
@@ -583,11 +664,15 @@ const CoinCalculators = {
         const container = document.getElementById('waterTiersContainer');
         if (!container) return;
 
+        const isUsd = (this.waterCurrency === 'USD');
+        const currLabel = isUsd ? 'USD' : 'KRW';
+        const currSymbol = isUsd ? '$' : '₩';
+
         container.innerHTML = this.waterTiers.map((tier, idx) => {
             const mode = tier.mode || 'amount';
             const isAmount = (mode === 'amount');
-            const valLabel = isAmount ? '투자 금액 (KRW)' : (mode === 'qty' ? '매수 수량 (개)' : '보유량 대비 비중 (%)');
-            const placeholder = isAmount ? '10,000,000' : (mode === 'qty' ? '0.2' : '50');
+            const valLabel = isAmount ? `투자 금액 (${currLabel})` : (mode === 'qty' ? '매수 수량 (개)' : '보유량 대비 비중 (%)');
+            const placeholder = isAmount ? (isUsd ? '5,000' : '10,000,000') : (mode === 'qty' ? '0.2' : '50');
             const formattedPrice = this.formatNumber(tier.price);
             const formattedVal = isAmount ? this.formatNumber(tier.val) : tier.val;
 
@@ -600,7 +685,7 @@ const CoinCalculators = {
                       <span>${idx + 1}차 추가 매수</span>
                     </span>
                     <select onchange="CoinCalculators.updateWaterTierMode(${tier.id}, this.value)" class="bg-navy-900 border border-cyan-500/30 text-cyan-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
-                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>₩ 금액 입력</option>
+                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>${currSymbol} 금액 입력</option>
                       <option value="qty" ${mode === 'qty' ? 'selected' : ''}>🪙 수량 입력</option>
                       <option value="pct" ${mode === 'pct' ? 'selected' : ''}>％ 비중 입력</option>
                     </select>
@@ -609,12 +694,12 @@ const CoinCalculators = {
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매수 희망가 (KRW)</label>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매수 희망가 (${currLabel})</label>
                     <input type="text" inputmode="numeric" value="${formattedPrice}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateWaterTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
-                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this); ' : ''}CoinCalculators.updateWaterTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this, ' + (isUsd ? 'true' : 'false') + '); ' : ''}CoinCalculators.updateWaterTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -623,10 +708,11 @@ const CoinCalculators = {
     },
 
     addWaterTier: function () {
+        const isUsd = (this.waterCurrency === 'USD');
         const lastTier = this.waterTiers[this.waterTiers.length - 1];
-        const defaultPrice = lastTier ? Number((lastTier.price * 0.9).toFixed(6)) : 70000000;
+        const defaultPrice = lastTier ? Number((lastTier.price * 0.9).toFixed(isUsd ? 2 : 6)) : (isUsd ? 55000 : 70000000);
         const defaultMode = lastTier ? lastTier.mode : 'amount';
-        const defaultVal = lastTier ? lastTier.val : 10000000;
+        const defaultVal = lastTier ? lastTier.val : (isUsd ? 5000 : 10000000);
 
         this.waterTiers.push({
             id: this.nextWaterTierId++,
@@ -656,8 +742,9 @@ const CoinCalculators = {
     updateWaterTierMode: function (id, newMode) {
         const tier = this.waterTiers.find(t => t.id === id);
         if (tier) {
+            const isUsd = (this.waterCurrency === 'USD');
             tier.mode = newMode;
-            if (newMode === 'amount') tier.val = 10000000;
+            if (newMode === 'amount') tier.val = isUsd ? 5000 : 10000000;
             else if (newMode === 'qty') tier.val = 0.2;
             else if (newMode === 'pct') tier.val = 50;
             this.renderWaterTiers();
@@ -670,11 +757,15 @@ const CoinCalculators = {
         const container = document.getElementById('sellTiersContainer');
         if (!container) return;
 
+        const isUsd = (this.waterCurrency === 'USD');
+        const currLabel = isUsd ? 'USD' : 'KRW';
+        const currSymbol = isUsd ? '$' : '₩';
+
         container.innerHTML = this.sellTiers.map((tier, idx) => {
             const mode = tier.mode || 'pct';
             const isAmount = (mode === 'amount');
-            const valLabel = mode === 'pct' ? '매도 비중 (%)' : (mode === 'qty' ? '매도 수량 (개)' : '매도 목표금액 (KRW)');
-            const placeholder = mode === 'pct' ? '50' : (mode === 'qty' ? '0.3' : '20,000,000');
+            const valLabel = mode === 'pct' ? '매도 비중 (%)' : (mode === 'qty' ? '매도 수량 (개)' : `매도 목표금액 (${currLabel})`);
+            const placeholder = mode === 'pct' ? '50' : (mode === 'qty' ? '0.3' : (isUsd ? '10,000' : '20,000,000'));
             const formattedPrice = this.formatNumber(tier.price);
             const formattedVal = isAmount ? this.formatNumber(tier.val) : tier.val;
 
@@ -689,19 +780,19 @@ const CoinCalculators = {
                     <select onchange="CoinCalculators.updateSellTierMode(${tier.id}, this.value)" class="bg-navy-900 border border-amber-500/30 text-amber-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
                       <option value="pct" ${mode === 'pct' ? 'selected' : ''}>％ 비중 입력</option>
                       <option value="qty" ${mode === 'qty' ? 'selected' : ''}>🪙 수량 입력</option>
-                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>₩ 금액 입력</option>
+                      <option value="amount" ${mode === 'amount' ? 'selected' : ''}>${currSymbol} 금액 입력</option>
                     </select>
                   </div>
                   ${this.sellTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeSellTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition" title="차수 삭제">✕ 삭제</button>` : ''}
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (KRW)</label>
+                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 희망가 (${currLabel})</label>
                     <input type="text" inputmode="numeric" value="${formattedPrice}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateSellTier(${tier.id}, 'price', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-400 mb-1 text-[11px]">${valLabel}</label>
-                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this); ' : ''}CoinCalculators.updateSellTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
+                    <input type="${isAmount ? 'text' : 'number'}" ${isAmount ? 'inputmode="numeric"' : 'step="any"'} value="${formattedVal}" placeholder="${placeholder}" oninput="${isAmount ? 'CoinCalculators.formatInputWithCommas(this, ' + (isUsd ? 'true' : 'false') + '); ' : ''}CoinCalculators.updateSellTier(${tier.id}, 'val', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-amber-300 font-mono font-bold text-xs focus:border-amber-400 focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -710,8 +801,9 @@ const CoinCalculators = {
     },
 
     addSellTier: function () {
+        const isUsd = (this.waterCurrency === 'USD');
         const lastTier = this.sellTiers[this.sellTiers.length - 1];
-        const defaultPrice = lastTier ? Number((lastTier.price * 1.1).toFixed(6)) : 105000000;
+        const defaultPrice = lastTier ? Number((lastTier.price * 1.1).toFixed(isUsd ? 2 : 6)) : (isUsd ? 75000 : 105000000);
         const defaultMode = lastTier ? lastTier.mode : 'pct';
         const defaultVal = lastTier ? lastTier.val : 50;
 
@@ -743,12 +835,11 @@ const CoinCalculators = {
     updateSellTierMode: function (id, newMode) {
         const tier = this.sellTiers.find(t => t.id === id);
         if (tier) {
+            const isUsd = (this.waterCurrency === 'USD');
             tier.mode = newMode;
             if (newMode === 'pct') tier.val = 50;
             else if (newMode === 'qty') tier.val = 0.2;
-            else if (newMode === 'amount') tier.val = 20000000;
-            this.renderSellTiers();
-            this.calcWater();
+            else if (newMode === 'amount') tier.val = isUsd ? 10000 : 20000000;
         }
     },
 
@@ -868,15 +959,32 @@ const CoinCalculators = {
         const totalRoiPct = newTotalCost > 0 ? (totalRealizedProfit / newTotalCost) * 100 : 0;
 
         // 포맷팅 헬퍼 (수량 소수점 최대 8자리, 가격 소수점 정밀 표기)
+        const isUsd = (this.waterCurrency === 'USD');
+        const currPrefix = isUsd ? '$' : '';
+        const currSuffix = isUsd ? '' : '원';
+
         const formatCoinQty = (qty) => {
             if (qty === undefined || qty === null || isNaN(qty)) return '0';
             return Number(qty).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 8 });
         };
         const formatPrice = (p) => {
-            if (p === undefined || p === null || isNaN(p)) return '0원';
+            if (p === undefined || p === null || isNaN(p)) return currPrefix + '0' + currSuffix;
+            if (isUsd) {
+                if (p >= 1000) return '$' + Number(p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (p >= 1) return '$' + Number(p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                return '$' + Number(p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+            }
             if (p >= 1000) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '원';
             if (p >= 1) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 4 }) + '원';
             return Number(p).toLocaleString(undefined, { maximumFractionDigits: 8 }) + '원';
+        };
+
+        const formatMoney = (m) => {
+            if (m === undefined || m === null || isNaN(m)) return currPrefix + '0' + currSuffix;
+            if (isUsd) {
+                return '$' + Number(m).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            return Math.round(m).toLocaleString() + '원';
         };
 
         // 3. UI 텍스트 출력
@@ -890,14 +998,14 @@ const CoinCalculators = {
 
         setTxt('waterResNewAvg', formatPrice(newAvgPrice));
         setTxt('waterResTotalQty', formatCoinQty(newTotalQty));
-        setTxt('waterResTotalCost', Math.round(newTotalCost).toLocaleString() + '원');
+        setTxt('waterResTotalCost', formatMoney(newTotalCost));
         setTxt('waterResBreakEven', formatPrice(breakEvenPrice));
         setTxt('waterResRequiredGain', (requiredGain >= 0 ? '+' : '') + requiredGain.toFixed(2) + '%');
 
         // 분할 매도 카드 출력
-        setTxt('waterResTotalSellProfit', (totalRealizedProfit >= 0 ? '+' : '') + Math.round(totalRealizedProfit).toLocaleString() + '원');
+        setTxt('waterResTotalSellProfit', (totalRealizedProfit >= 0 ? '+' : '') + formatMoney(totalRealizedProfit));
         setTxt('waterResTotalSellRoi', (totalRoiPct >= 0 ? '+' : '') + totalRoiPct.toFixed(2) + '%');
-        setTxt('waterResRecoveredCash', Math.round(totalRecoveredCash).toLocaleString() + '원');
+        setTxt('waterResRecoveredCash', formatMoney(totalRecoveredCash));
         setTxt('waterResRemainingQty', formatCoinQty(remainingQty));
 
         const profitEl = document.getElementById('waterResTotalSellProfit');
@@ -913,7 +1021,7 @@ const CoinCalculators = {
         const buyTbody = document.getElementById('waterSimTableBody');
         if (buyTbody) {
             buyTbody.innerHTML = tierProgressList.map(t => {
-                const modeLabel = t.mode === 'amount' ? `+${Math.round(t.amount).toLocaleString()}원` : (t.mode === 'qty' ? `+${formatCoinQty(t.addedQty)}개` : `+${t.val}% 비중`);
+                const modeLabel = t.mode === 'amount' ? `+${formatMoney(t.amount)}` : (t.mode === 'qty' ? `+${formatCoinQty(t.addedQty)}개` : `+${t.val}% 비중`);
                 return `
                   <tr class="border-b border-navy-800/60 text-xs font-mono">
                     <td class="py-2.5 px-3 font-bold text-white">${t.tierNum}차 (${modeLabel} @ ${formatPrice(t.price)})</td>
@@ -930,13 +1038,13 @@ const CoinCalculators = {
         if (sellTbody) {
             sellTbody.innerHTML = sellProgressList.map(s => {
                 const isPos = s.profit >= 0;
-                const modeLabel = s.mode === 'pct' ? `${s.val}% 비중` : (s.mode === 'qty' ? `${formatCoinQty(s.soldQty)}개` : `${Math.round(s.val).toLocaleString()}원 목표`);
+                const modeLabel = s.mode === 'pct' ? `${s.val}% 비중` : (s.mode === 'qty' ? `${formatCoinQty(s.soldQty)}개` : `${formatMoney(s.val)} 목표`);
                 return `
                   <tr class="border-b border-navy-800/60 text-xs font-mono">
                     <td class="py-2.5 px-3 font-bold text-amber-300">${s.tierNum}차 (${formatPrice(s.sellPrice)} / ${modeLabel})</td>
                     <td class="py-2.5 px-3 text-right text-slate-200">${formatCoinQty(s.soldQty)}</td>
-                    <td class="py-2.5 px-3 text-right font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${Math.round(s.profit).toLocaleString()}원 (${isPos ? '+' : ''}${s.roiPct.toFixed(2)}%)</td>
-                    <td class="py-2.5 px-3 text-right text-cyan-300">${Math.round(s.netCash).toLocaleString()}원</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${formatMoney(s.profit)} (${isPos ? '+' : ''}${s.roiPct.toFixed(2)}%)</td>
+                    <td class="py-2.5 px-3 text-right text-cyan-300">${formatMoney(s.netCash)}</td>
                     <td class="py-2.5 px-3 text-right text-slate-400">${formatCoinQty(s.remainingQty)}</td>
                   </tr>
                 `;
@@ -964,12 +1072,21 @@ const CoinCalculators = {
             return;
         }
 
+        const isUsd = (this.waterCurrency === 'USD');
         const defensePct = ((newAvgPrice - curPrice) / curPrice) * 100;
         if (badge) {
-            badge.innerText = `최종 방어율: ${defensePct >= 0 ? '+' : ''}${defensePct.toFixed(2)}% (평단: ${Number(newAvgPrice).toLocaleString(undefined, { maximumFractionDigits: 2 })}원)`;
+            const avgStr = isUsd 
+                ? '$' + Number(newAvgPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : Number(newAvgPrice).toLocaleString(undefined, { maximumFractionDigits: 2 }) + '원';
+            badge.innerText = `최종 방어율: ${defensePct >= 0 ? '+' : ''}${defensePct.toFixed(2)}% (평단: ${avgStr})`;
         }
 
         const formatShort = (p) => {
+            if (isUsd) {
+                if (p >= 1000000) return '$' + (p / 1000000).toFixed(2) + 'M';
+                if (p >= 1000) return '$' + (p / 1000).toFixed(1) + 'k';
+                return '$' + Number(p).toFixed(2);
+            }
             if (p >= 100000000) return (p / 100000000).toFixed(2) + '억';
             if (p >= 10000) return (p / 10000).toFixed(1) + '만';
             if (p >= 1000) return Number(p).toLocaleString(undefined, { maximumFractionDigits: 0 });
