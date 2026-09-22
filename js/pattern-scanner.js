@@ -1729,7 +1729,7 @@ const PatternScannerEngine = {
             realKrw = priceInfo.krw;
             realChange = priceInfo.change;
         }
-        const usdRate = 1380;
+        const usdRate = (typeof CoinCalculators !== 'undefined' && CoinCalculators.exchangeRateUsdKrw) ? CoinCalculators.exchangeRateUsdKrw : 1380;
         const realUsd = realKrw < 10 
             ? (realKrw / usdRate).toFixed(6) 
             : (realKrw / usdRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });

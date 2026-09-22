@@ -13,6 +13,7 @@
       sessionStorage.removeItem('UPBIT_MARKET_INFO_MAP');
     } catch (e) {}
   </script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwNmI2ZDQiLz48c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzNiODJmNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ2IiBmaWxsPSIjMDcwOTBlIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOCIvPjxwYXRoIGQ9Ik00MiAzMCBDMzAgMzAsIDI0IDM4LCAyNCA1MCBDMjQgNjIsIDMwIDcwLCA0MiA3MCBDNTAgNzAsIDU2IDY1LCA2MCA1OCBMNTAgNTIgQzQ4IDU2LCA0NSA1OCwgNDEgNTggQzM1IDU4LCAzMiA1NCwgMzIgNTAgQzMyIDQ2LCAzNSA0MiwgNDEgNDIgQzQ1IDQyLCA0OCA0NCwgNTAgNDggTDYwIDQyIEM1NiAzNSwgNTAgMzAsIDQyIDMwIFoiIGZpbGw9InVybCgjZykiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjM1IiByPSI3IiBmaWxsPSIjMTBiOTgxIi8+PC9zdmc+">
   <title>CrytoPnL – 업비트·빗썸 엑셀 손익계산기 & 평단가</title>
   <meta name="description" content="업비트·빗썸 엑셀로 선입선출(FIFO) 실현손익, 평단가, 수수료를 1초 만에 계산합니다. 서버 전송 0% 무료 로컬 분석기.">
@@ -1265,7 +1266,7 @@
           <span>연말정산 팁</span>
           <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
         </button>
-        <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-teal-400 group shadow-sm">
+        <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-emerald-300 hover:text-emerald-100 border border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400 group shadow-sm">
           <i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform"></i>
           <span>정책혜택</span>
           <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
@@ -4755,7 +4756,7 @@
         </div>
       </div>
 
-      <!-- TOOL 8: 실전 매매 기대값 & 복리 시뮬레이터 (승률/손익비 기반) -->
+      <!-- TOOL 8: 실전 매매 기대값 & 복리 몬테카를로 시뮬레이터 -->
       <div id="calc-tab-compound" class="calc-subtab-content hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Input Form (5 cols) -->
@@ -5447,7 +5448,7 @@
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-300 mb-1">배당 지급 주기</label>
-                  <select id="dividendFrequency" onchange="CoinCalculators.calcStockDividend();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2 py-1.5 text-slate-200">
+                  <select id="dividendFrequency" onchange="CoinCalculators.calcStockDividend();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2.5 py-1.5 text-slate-200">
                     <option value="12">매월 (12회/연)</option>
                     <option value="4" selected>분기 (4회/연)</option>
                     <option value="2">반기 (2회/연)</option>
@@ -5456,7 +5457,7 @@
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-300 mb-1">적용 환율</label>
-                  <input type="text" id="dividendExchangeRate" value="1,380" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcStockDividend();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2 py-1.5 text-slate-300 font-mono">
+                  <input type="text" id="dividendExchangeRate" value="1,380" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcStockDividend();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-2.5 py-1.5 text-slate-300 font-mono">
                 </div>
               </div>
             </div>
@@ -7534,9 +7535,18 @@
               <span class="block text-[10px] text-slate-400 font-semibold">등록 정책</span>
               <span id="policy-result-count" class="text-xl font-black text-emerald-400 font-mono">14</span>
             </div>
-            <div class="px-3 py-1 text-center">
+            <div class="px-3 py-1 text-center border-r border-navy-800">
               <span class="block text-[10px] text-slate-400 font-semibold">최대 감면율</span>
               <span class="text-xl font-black text-cyan-400 font-mono">100%</span>
+            </div>
+            <div class="px-3 py-1 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="block text-[10px] text-slate-400 font-semibold">최근 업데이트</span>
+                <button type="button" onclick="PolicyHub.refresh()" class="text-slate-400 hover:text-emerald-400 transition" title="정책 데이터 새로고침">
+                  <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+              <span id="policy-last-updated" class="text-xs sm:text-sm font-bold text-emerald-300 font-mono">확인 중...</span>
             </div>
           </div>
         </div>
@@ -7847,7 +7857,7 @@
             </div>
             <div class="text-2xl font-extrabold text-white" id="admin-today-visitors">--명</div>
             <div class="text-[11px] text-slate-400 font-semibold mt-1 flex items-center gap-1" id="admin-today-growth">
-              실측 동기화 중...
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 실측 동기화 중...
             </div>
           </div>
 
@@ -7868,7 +7878,7 @@
               <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="calendar" class="w-4 h-4"></i></span>
             </div>
             <div class="text-2xl font-extrabold text-purple-300" id="admin-weekly-visitors">--명</div>
-            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 합계</div>
+            <div class="text-[11px] text-slate-400 mt-1">최근 7일간의 순 방문자 실측 합계</div>
           </div>
 
           <!-- Card 4: Total Pageviews -->
@@ -7878,10 +7888,9 @@
               <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="eye" class="w-4 h-4"></i></span>
             </div>
             <div class="text-2xl font-extrabold text-amber-300" id="admin-total-pageviews">-- PV</div>
-            <div class="text-[11px] text-slate-400 mt-1">Firestore 누적 집계 기준</div>
+            <div class="text-[11px] text-slate-400 mt-1">전체 누적 페이지 탐색 실측치</div>
           </div>
         </div>
-
 
         <!-- 14-Day Visitor Trend Chart -->
         <div class="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-sm space-y-4">
@@ -8423,23 +8432,23 @@
             <div class="grid grid-cols-2 gap-3 text-xs">
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
                 <div class="text-slate-400 text-[11px] mb-1">저장소 크기 (Repo Size)</div>
-                <div class="text-base font-extrabold text-purple-300 font-mono" id="admin-gh-repo-size">2,009 KB</div>
-                <div class="text-[10px] text-emerald-400 mt-0.5">권장 1 GB 대비 0.2% 소모</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono" id="admin-gh-repo-size">조회 중...</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5">GitHub API 실시간 실측치</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
                 <div class="text-slate-400 text-[11px] mb-1">Actions CI/CD 빌드 시간</div>
-                <div class="text-base font-extrabold text-purple-300 font-mono">1 분 미만</div>
+                <div class="text-base font-extrabold text-purple-300 font-mono">&lt; 1 분</div>
                 <div class="text-[10px] text-emerald-400 mt-0.5">무료 한도 2,000분 대비 0.05%</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
-                <div class="text-slate-400 text-[11px] mb-1">최근 14일 방문 조회수</div>
-                <div class="text-base font-extrabold text-white font-mono" id="admin-gh-stars">실시간 확인 중...</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">GitHub API 실시간 연동</div>
+                <div class="text-slate-400 text-[11px] mb-1">GitHub 저장소 Star / 관심도</div>
+                <div class="text-base font-extrabold text-amber-300 font-mono" id="admin-gh-stars">0 Stars</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">GitHub API 실시간 실측치</div>
               </div>
               <div class="p-3 rounded-xl bg-navy-950 border border-navy-800/80">
-                <div class="text-slate-400 text-[11px] mb-1">최근 14일 Git Clone 수</div>
-                <div class="text-base font-extrabold text-white font-mono" id="admin-gh-branch">실시간 확인 중...</div>
-                <div class="text-[10px] text-slate-400 mt-0.5"><span id="admin-gh-issues">--</span>개 이슈 오픈 중</div>
+                <div class="text-slate-400 text-[11px] mb-1">기본 브랜치 및 이슈 상태</div>
+                <div class="text-base font-extrabold text-cyan-300 font-mono" id="admin-gh-branch">main (Active)</div>
+                <div class="text-[10px] text-emerald-400 mt-0.5" id="admin-gh-issues">Open Issues: 0건</div>
               </div>
             </div>
 
@@ -8461,9 +8470,9 @@
         <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
-              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 전체 클라우드 인프라 자원 소모율 종합 진단
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 전체 클라우드 인프라 자원 소모율 종합 진단 (무료 티어 공식 쿼터 및 스펙 기준)
             </h4>
-            <span class="text-xs text-slate-400 font-bold bg-slate-500/10 px-2.5 py-1 rounded-lg border border-slate-500/20">
+            <span class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
               공식 아키텍처 스펙 기준
             </span>
           </div>
@@ -8588,7 +8597,14 @@
             <li><a href="/guides/fifo-accounting.html" class="hover:text-cyan-400 transition">가상자산 선입선출 회계원칙 완벽정리</a></li>
             <li><a href="/guides/crypto-tax-deduction.html" class="hover:text-cyan-400 transition">코인 세금 기본공제 &amp; 절세 전략</a></li>
             <li><a href="/guides/kimchi-premium-arbitrage.html" class="hover:text-cyan-400 transition">김프 매매 기법과 무위험 헤징 전략</a></li>
+            <li><a href="/guides/water-drop-break-even.html" class="hover:text-cyan-400 transition">물타기 &amp; 탈출 분할 매매 원칙</a></li>
+            <li><a href="/guides/trading-fees-slippage.html" class="hover:text-cyan-400 transition">거래 수수료 &amp; 슬리피지 관리</a></li>
+            <li><a href="/guides/local-data-security.html" class="hover:text-cyan-400 transition">100% 클라이언트 로컬 보안 설계</a></li>
             <li><a href="/guides/yearend-tax-guide.html" class="hover:text-cyan-400 transition">직장인을 위한 연말정산 절세 꿀팁</a></li>
+            <li><a href="/guides/couple-tax-saving.html" class="hover:text-cyan-400 transition">맞벌이 부부 연말정산 절세 전략</a></li>
+            <li><a href="/guides/credit-card-golden-ratio.html" class="hover:text-cyan-400 transition">신용카드 vs 체크카드 황금 비율</a></li>
+            <li><a href="/guides/pension-irp-deduction.html" class="hover:text-cyan-400 transition">연금저축 &amp; IRP 900만원 세액공제</a></li>
+            <li><a href="/guides/medical-expense-deduction.html" class="hover:text-cyan-400 transition">의료비 세액공제 3% 룰 완벽 정리</a></li>
           </ul>
         </div>
 
@@ -8655,7 +8671,7 @@
 
   <script src="js/admin.js?v=20260916_05"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260911_01"></script>
+  <script src="js/pattern-scanner.js?v=20260922_02"></script>
   <script src="js/preview-app-v2.js?v=20260922_01"></script>
 
     <!-- PnL Verification Modal -->
