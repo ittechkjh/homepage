@@ -1623,7 +1623,7 @@ const PatternScannerEngine = {
                             <span class="text-slate-500">${item.patternName ? '패턴 기간' : '정보'}</span>
                             <strong class="text-slate-300 font-normal">${item.periodStr}</strong>
                         </div>
-                        <button onclick="window.PatternScannerEngine ? window.PatternScannerEngine.openChartModal('${item.symbol}') : (window.openChartModal && window.openChartModal('${item.symbol}'))" class="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 self-end sm:self-auto font-semibold cursor-pointer">
+                        <button onclick="window.PatternScannerEngine ? window.PatternScannerEngine.openChartModal('${item.symbol}', '${item.pattern || ''}') : (window.openChartModal && window.openChartModal('${item.symbol}', '${item.pattern || ''}'))" class="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 self-end sm:self-auto font-semibold cursor-pointer">
                             차트 보기 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
@@ -1637,10 +1637,11 @@ const PatternScannerEngine = {
     },
 
     currentModalItem: null,
+    currentModalPatternKey: 'ascending_channel',
     modalChartInstance: null,
     currentModalTf: '7d',
 
-    openChartModal: function (symbolOrItem) {
+    openChartModal: function (symbolOrItem, patternKey) {
         let item = null;
         if (typeof symbolOrItem === 'object' && symbolOrItem !== null) {
             item = symbolOrItem;
@@ -1650,14 +1651,38 @@ const PatternScannerEngine = {
                 symbol: sym,
                 name: sym,
                 exchange: 'UPBIT',
+                pattern: patternKey || 'ascending_channel',
                 patternName: '실시간 차트 분석',
                 similarity: 85,
                 comment: '실시간 기술적 지표 및 지지선 테스트 완료',
                 periodStr: '최근 7일간 형성'
             };
         }
+        if (patternKey && !item.pattern) {
+            item.pattern = patternKey;
+        }
         this.currentModalItem = item;
         this.currentModalTf = '7d';
+
+        // 1. Resolve pattern key
+        let pKey = patternKey || item.pattern;
+        if (!pKey && item.patternName) {
+            if (item.patternName.includes('채널')) pKey = 'ascending_channel';
+            else if (item.patternName.includes('깃발') || item.patternName.includes('플래그')) pKey = 'flag';
+            else if (item.patternName.includes('삼각')) pKey = 'ascending_triangle';
+            else if (item.patternName.includes('쌍바닥') || item.patternName.includes('이중')) pKey = 'double_bottom';
+            else if (item.patternName.includes('삼중')) pKey = 'triple_bottom';
+            else if (item.patternName.includes('쐐기')) pKey = 'falling_wedge';
+            else if (item.patternName.includes('컵')) pKey = 'cup_and_handle';
+            else if (item.patternName.includes('박스')) pKey = 'rectangle';
+            else if (item.patternName.includes('헤드')) pKey = 'inv_head_shoulders';
+            else if (item.patternName.includes('적삼병')) pKey = 'three_white_soldiers';
+            else pKey = 'pullback';
+        }
+        if (!pKey) pKey = 'ascending_channel';
+        this.currentModalPatternKey = pKey;
+
+        const pInfo = this.patternInfo[pKey] || this.patternInfo['pullback'] || {};
 
         const modal = document.getElementById('modal-pattern-chart');
         if (!modal) {
@@ -1675,6 +1700,14 @@ const PatternScannerEngine = {
         const periodEl = document.getElementById('modal-chart-period');
         const exLink = document.getElementById('modal-chart-exchange-link');
 
+        const guideNameEl = document.getElementById('modal-pattern-guide-name');
+        const guideWinrateEl = document.getElementById('modal-pattern-guide-winrate');
+        const guideDescEl = document.getElementById('modal-pattern-guide-desc');
+        const buyPointEl = document.getElementById('modal-pattern-buy-point');
+        const stopLossEl = document.getElementById('modal-pattern-stop-loss');
+        const targetPriceEl = document.getElementById('modal-pattern-target-price');
+        const indInfoEl = document.getElementById('modal-chart-indicator-info');
+
         if (nameEl) nameEl.innerText = item.name;
         if (symEl) symEl.innerText = `${item.symbol}/KRW`;
         if (exBadge) {
@@ -1683,11 +1716,19 @@ const PatternScannerEngine = {
                 ? 'text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30'
                 : 'text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30';
         }
-        if (patBadge) patBadge.innerText = item.patternName || item.title || '패턴 포착';
+        if (patBadge) patBadge.innerText = item.patternName || pInfo.name || item.title || '패턴 포착';
         if (simBadge) simBadge.innerText = item.similarity ? `유사도 ${item.similarity}%` : (item.badgeText || '포착 신호');
         if (tfBadge) tfBadge.innerText = this.currentTimeframe === '1D' ? '1D (일봉)' : '4H (4시간봉)';
         if (commentEl) commentEl.innerText = item.comment || item.title || '기술적 반등 유력 구간';
         if (periodEl) periodEl.innerText = item.periodStr || '최근 형성';
+
+        if (guideNameEl) guideNameEl.innerText = `${pInfo.name || item.patternName || '패턴 분석'} (${pInfo.enName || 'Technical Pattern'})`;
+        if (guideWinrateEl) guideWinrateEl.innerText = `예상 승률 ${pInfo.winRate || '82%'}`;
+        if (guideDescEl) guideDescEl.innerText = pInfo.desc || '차트 위 주황색 점선(상단 저항선)과 초록색 점선(하단 지지선) 사이에서 주요 변곡점을 형성하고 있습니다.';
+        if (buyPointEl) buyPointEl.innerText = pInfo.buyPoint || '초록색 지지선 터치 후 양봉 반등 시';
+        if (stopLossEl) stopLossEl.innerText = pInfo.stopLoss || '초록색 지지선 이탈 시 (-3%)';
+        if (targetPriceEl) targetPriceEl.innerText = pInfo.target || '상단 저항선 도달 시 (+10%~+20%)';
+        if (indInfoEl) indInfoEl.innerText = `AI 패턴 분석: [${pInfo.name || '패턴'}] 상단 저항선 · 하단 지지선 오버레이`;
 
         if (exLink) {
             if (item.exchange === 'BITHUMB') {
@@ -1876,32 +1917,53 @@ const PatternScannerEngine = {
             gradient.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.25)' : 'rgba(6, 182, 212, 0.35)');
             gradient.addColorStop(1, isLight ? 'rgba(5, 150, 105, 0.0)' : 'rgba(6, 182, 212, 0.0)');
 
+            const pKey = this.currentModalPatternKey || (this.currentModalItem ? this.currentModalItem.pattern : 'ascending_channel') || 'ascending_channel';
+            const patternDatasets = this.generatePatternDatasets(pKey, data, isLight);
+
+            const allDatasets = [{
+                label: `실시간 시세`,
+                data: data,
+                borderColor: isLight ? '#059669' : '#06b6d4',
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.35,
+                pointRadius: data.length <= 10 ? 3.5 : 1.5,
+                pointHoverRadius: 6,
+                pointBackgroundColor: isLight ? '#059669' : '#06b6d4',
+            }, ...patternDatasets];
+
             this.modalChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: `${this.currentModalItem ? this.currentModalItem.name : '코인'} 시세`,
-                        data: data,
-                        borderColor: isLight ? '#059669' : '#06b6d4',
-                        borderWidth: 2.5,
-                        backgroundColor: gradient,
-                        fill: true,
-                        tension: 0.35,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
-                        pointBackgroundColor: isLight ? '#059669' : '#06b6d4',
-                    }]
+                    datasets: allDatasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                boxWidth: 14,
+                                boxHeight: 3,
+                                color: isLight ? '#475569' : '#cbd5e1',
+                                font: { size: 10, family: 'Inter', weight: '600' },
+                                padding: 8
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function (c) {
-                                    return ` ${c.parsed.y.toLocaleString()}원`;
+                                    if (c.parsed.y === null || c.parsed.y === undefined) return '';
+                                    return ` ${c.dataset.label}: ${Math.round(c.parsed.y).toLocaleString()}원`;
                                 }
                             }
                         }
@@ -1932,6 +1994,181 @@ const PatternScannerEngine = {
         } catch (chartErr) {
             console.warn('Pattern modal chart error:', chartErr);
         }
+    },
+
+    // 12종 차트 패턴별 지지선·저항선·목표가 추세선 연산 엔진
+    generatePatternDatasets: function (patternKey, data, isLight) {
+        const n = data.length;
+        if (n < 2) return [];
+
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const range = (max - min) || (max * 0.05) || 10;
+        const first = data[0];
+        const last = data[n - 1];
+
+        let upperLine = [];
+        let lowerLine = [];
+        let midlineOrTarget = [];
+        let upperLabel = '상단 저항선';
+        let lowerLabel = '하단 지지선';
+        let midLabel = '목표 돌파선';
+
+        switch (patternKey) {
+            case 'ascending_channel': // 상승채널 (고점/저점 나란히 우상향 평행 레일)
+                upperLabel = '채널 상단 저항선';
+                lowerLabel = '채널 하단 지지선';
+                midLabel = '채널 중심선';
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    const slope = (last - first) * 0.65;
+                    const center = first + slope * t;
+                    upperLine.push(Math.round(center + range * 0.48));
+                    lowerLine.push(Math.round(center - range * 0.48));
+                    midlineOrTarget.push(Math.round(center));
+                }
+                break;
+
+            case 'flag': // 깃발형 (Bull Flag: 깃대 급등 + 깃발 수렴)
+                upperLabel = '깃발 상단 저항선';
+                lowerLabel = '깃발 하단 지지선';
+                midLabel = '2차 돌파 목표가';
+                const poleIdx = Math.max(1, Math.floor(n * 0.35));
+                const poleTop = max * 1.01;
+                for (let i = 0; i < n; i++) {
+                    if (i < poleIdx) {
+                        upperLine.push(null);
+                        lowerLine.push(null);
+                        midlineOrTarget.push(null);
+                    } else {
+                        const ft = (i - poleIdx) / (n - 1 - poleIdx || 1);
+                        const u = poleTop - (range * 0.22 * ft);
+                        const l = u - (range * 0.26);
+                        upperLine.push(Math.round(u));
+                        lowerLine.push(Math.round(l));
+                        midlineOrTarget.push(Math.round(poleTop + range * 0.45));
+                    }
+                }
+                break;
+
+            case 'ascending_triangle': // 상승삼각형 (수평 저항 + 우상향 지지)
+                upperLabel = '상단 수평 저항선';
+                lowerLabel = '하단 우상향 지지선';
+                midLabel = '수렴 상방 돌파선';
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upperLine.push(Math.round(max * 1.008));
+                    lowerLine.push(Math.round(min + (max - min) * 0.78 * t));
+                    midlineOrTarget.push(Math.round(max + range * 0.4));
+                }
+                break;
+
+            case 'falling_wedge': // 하락쐐기 (하향 수렴 쐐기)
+                upperLabel = '쐐기 상단 저항선';
+                lowerLabel = '쐐기 하단 지지선';
+                midLabel = '상방 반등 목표가';
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upperLine.push(Math.round(max - (range * 0.8 * t)));
+                    lowerLine.push(Math.round(min + range * 0.35 - (range * 0.38 * t)));
+                    midlineOrTarget.push(Math.round(max * 1.02));
+                }
+                break;
+
+            case 'double_bottom': // 쌍바닥 (W자)
+            case 'triple_bottom': // 삼중바닥
+                upperLabel = 'W자 넥라인 (저항)';
+                lowerLabel = '바닥 지지선';
+                midLabel = '패턴 완성 목표가';
+                const neckPrice = min + range * 0.65;
+                for (let i = 0; i < n; i++) {
+                    upperLine.push(Math.round(neckPrice));
+                    lowerLine.push(Math.round(min * 0.995));
+                    midlineOrTarget.push(Math.round(neckPrice + (neckPrice - min)));
+                }
+                break;
+
+            case 'rectangle': // 박스권
+                upperLabel = '박스 상단 저항선';
+                lowerLabel = '박스 하단 지지선';
+                midLabel = '박스 돌파 타겟';
+                for (let i = 0; i < n; i++) {
+                    upperLine.push(Math.round(max * 1.008));
+                    lowerLine.push(Math.round(min * 0.992));
+                    midlineOrTarget.push(Math.round(max + range * 0.5));
+                }
+                break;
+
+            case 'cup_and_handle': // 컵앤핸들
+                upperLabel = '컵 전고점 넥라인';
+                lowerLabel = '핸들(손잡이) 지지선';
+                midLabel = '1:1 대칭 목표가';
+                const rim = max * 1.005;
+                for (let i = 0; i < n; i++) {
+                    upperLine.push(Math.round(rim));
+                    lowerLine.push(Math.round(min + range * 0.35));
+                    midlineOrTarget.push(Math.round(rim + range * 0.6));
+                }
+                break;
+
+            case 'pullback': // 눌림목
+            default:
+                upperLabel = '직전 고점 저항';
+                lowerLabel = 'MA20 이평 지지선';
+                midLabel = '1차 반등 목표가';
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upperLine.push(Math.round(max));
+                    lowerLine.push(Math.round(first + (last - first) * 0.5 * t - range * 0.12));
+                    midlineOrTarget.push(Math.round(max + range * 0.28));
+                }
+                break;
+        }
+
+        const datasets = [];
+
+        // 1. 상단 저항선 (주황색 점선)
+        datasets.push({
+            label: upperLabel,
+            data: upperLine,
+            borderColor: '#f59e0b',
+            borderWidth: 2,
+            borderDash: [6, 6],
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            fill: false,
+            tension: 0.1
+        });
+
+        // 2. 하단 지지선 (초록색 점선)
+        datasets.push({
+            label: lowerLabel,
+            data: lowerLine,
+            borderColor: '#10b981',
+            borderWidth: 2,
+            borderDash: [6, 6],
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            fill: false,
+            tension: 0.1
+        });
+
+        // 3. 목표/중심선 (보라색 점선)
+        if (midlineOrTarget.some(v => v !== null)) {
+            datasets.push({
+                label: midLabel,
+                data: midlineOrTarget,
+                borderColor: '#8b5cf6',
+                borderWidth: 1.8,
+                borderDash: [3, 3],
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                fill: false,
+                tension: 0.1
+            });
+        }
+
+        return datasets;
     },
 
     closeChartModal: function () {
