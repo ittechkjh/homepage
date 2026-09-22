@@ -145,8 +145,10 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js -->
+  <!-- Chart.js & TradingView Lightweight Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
   
   <link rel="stylesheet" href="styles.css?v=20260918_01">
   <link rel="stylesheet" href="css/analyzer.css?v=20260917_01">
@@ -8734,7 +8736,7 @@
 
   <script src="js/admin.js?v=20260916_05"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
-  <script src="js/pattern-scanner.js?v=20260923_03"></script>
+  <script src="js/pattern-scanner.js?v=20260923_04"></script>
   <script src="js/preview-app-v2.js?v=20260923_01"></script>
 
     <!-- PnL Verification Modal -->
@@ -8825,25 +8827,49 @@
             </div>
           </div>
 
-          <!-- Timeframe Switcher in Modal -->
-          <div class="flex items-center gap-1 p-1 bg-navy-900 rounded-xl border border-navy-800 text-xs font-bold" id="modal-chart-tf-buttons">
-            <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('24h')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="24h">24H</button>
-            <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('7d')" class="modal-tf-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold" data-mtf="7d">7D (1D봉)</button>
-            <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('1m')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="1m">1M (스윙)</button>
+          <!-- Controls: Chart Mode & Timeframe Switchers -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Chart Type: Candle vs TradingView -->
+            <div class="flex items-center gap-1 p-1 bg-navy-900 rounded-xl border border-navy-800 text-xs font-bold" id="modal-chart-mode-buttons">
+              <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.switchModalChartMode('candle')" class="modal-mode-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold" data-chartmode="candle">🕯️ 캔들 차트</button>
+              <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.switchModalChartMode('tradingview')" class="modal-mode-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-chartmode="tradingview">📈 트레이딩뷰 위젯</button>
+            </div>
+
+            <!-- Timeframe Switcher in Modal -->
+            <div class="flex items-center gap-1 p-1 bg-navy-900 rounded-xl border border-navy-800 text-xs font-bold" id="modal-chart-tf-buttons">
+              <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('24h')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="24h">24H</button>
+              <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('7d')" class="modal-tf-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold" data-mtf="7d">7D (1D봉)</button>
+              <button type="button" onclick="window.PatternScannerEngine && window.PatternScannerEngine.changeModalTimeframe('1m')" class="modal-tf-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white" data-mtf="1m">1M (스윙)</button>
+            </div>
           </div>
         </div>
 
-        <!-- Chart Canvas Container -->
-        <div class="relative w-full h-64 sm:h-72 bg-navy-950 rounded-2xl border border-navy-800/80 p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1 px-1">
+        <!-- Chart Container (TradingView Lightweight Candlestick & TV Widget) -->
+        <div class="relative w-full h-72 sm:h-80 bg-navy-950 rounded-2xl border border-navy-800/80 p-3 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400 mb-1 px-1">
             <span class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
               <span id="modal-chart-indicator-info">AI 패턴 감지 추세선 & 이평선(MA20) 매칭</span>
             </span>
             <span id="modal-chart-range-high-low" class="font-mono text-slate-400">고점: - / 저점: -</span>
           </div>
-          <div class="relative flex-1 w-full min-h-[180px]">
-            <canvas id="patternModalChart"></canvas>
+
+          <!-- Live TradingView OHLC Overlay Bar -->
+          <div id="modal-chart-ohlc-info" class="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] font-mono px-2 py-1 text-slate-300 bg-navy-900/60 rounded-lg border border-navy-800/50 mb-1.5">
+            <span class="text-slate-400">시가(O): <strong id="ohlc-open" class="text-white">-</strong></span>
+            <span class="text-slate-400">고가(H): <strong id="ohlc-high" class="text-rose-400">-</strong></span>
+            <span class="text-slate-400">저가(L): <strong id="ohlc-low" class="text-blue-400">-</strong></span>
+            <span class="text-slate-400">종가(C): <strong id="ohlc-close" class="text-white">-</strong></span>
+            <span class="text-slate-400">등락: <strong id="ohlc-change" class="text-rose-400">-</strong></span>
+          </div>
+
+          <div class="relative flex-1 w-full min-h-[200px]">
+            <!-- TradingView Lightweight Candlestick Chart -->
+            <div id="patternModalLwChart" class="w-full h-full"></div>
+            <!-- Fallback Canvas for Chart.js -->
+            <canvas id="patternModalChart" class="hidden w-full h-full"></canvas>
+            <!-- TradingView Official Full Widget Container -->
+            <div id="patternModalTvWidget" class="hidden w-full h-full rounded-xl overflow-hidden"></div>
           </div>
         </div>
 

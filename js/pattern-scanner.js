@@ -1793,6 +1793,31 @@ const PatternScannerEngine = {
         modal.classList.add('flex');
         modal.style.display = 'flex';
 
+        this.currentModalChartMode = 'candle';
+        document.querySelectorAll('.modal-mode-btn').forEach(b => {
+            const isActive = b.dataset.chartmode === 'candle';
+            b.classList.toggle('active', isActive);
+            if (isActive) {
+                b.className = 'modal-mode-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+            } else {
+                b.className = 'modal-mode-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white';
+            }
+        });
+
+        const lwContainer = document.getElementById('patternModalLwChart');
+        const tvContainer = document.getElementById('patternModalTvWidget');
+        const fallbackCanvas = document.getElementById('patternModalChart');
+        const ohlcBar = document.getElementById('modal-chart-ohlc-info');
+        const tfButtons = document.getElementById('modal-chart-tf-buttons');
+
+        if (lwContainer) lwContainer.classList.remove('hidden');
+        if (tvContainer) {
+            tvContainer.classList.add('hidden');
+            tvContainer.innerHTML = '';
+        }
+        if (ohlcBar) ohlcBar.classList.remove('hidden');
+        if (tfButtons) tfButtons.classList.remove('hidden');
+
         document.querySelectorAll('.modal-tf-btn').forEach(b => {
             const isActive = b.dataset.mtf === '7d';
             b.classList.toggle('active', isActive);
@@ -1808,6 +1833,257 @@ const PatternScannerEngine = {
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             try { lucide.createIcons(); } catch(e) {}
         }
+    },
+
+    switchModalChartMode: function (mode) {
+        this.currentModalChartMode = mode;
+        document.querySelectorAll('.modal-mode-btn').forEach(b => {
+            const isActive = b.dataset.chartmode === mode;
+            b.classList.toggle('active', isActive);
+            if (isActive) {
+                b.className = 'modal-mode-btn active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold';
+            } else {
+                b.className = 'modal-mode-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white';
+            }
+        });
+
+        const lwContainer = document.getElementById('patternModalLwChart');
+        const tvContainer = document.getElementById('patternModalTvWidget');
+        const fallbackCanvas = document.getElementById('patternModalChart');
+        const ohlcBar = document.getElementById('modal-chart-ohlc-info');
+        const tfButtons = document.getElementById('modal-chart-tf-buttons');
+
+        if (mode === 'tradingview') {
+            if (lwContainer) lwContainer.classList.add('hidden');
+            if (fallbackCanvas) fallbackCanvas.classList.add('hidden');
+            if (tvContainer) tvContainer.classList.remove('hidden');
+            if (ohlcBar) ohlcBar.classList.add('hidden');
+            if (tfButtons) tfButtons.classList.add('hidden');
+            this.renderTradingViewWidget();
+        } else {
+            if (tvContainer) {
+                tvContainer.classList.add('hidden');
+                tvContainer.innerHTML = '';
+            }
+            if (lwContainer) lwContainer.classList.remove('hidden');
+            if (ohlcBar) ohlcBar.classList.remove('hidden');
+            if (tfButtons) tfButtons.classList.remove('hidden');
+            const krwText = (document.getElementById('modal-chart-price-krw')?.innerText || '1000').replace(/[^0-9.]/g, '');
+            const baseKrw = parseFloat(krwText) || 1000;
+            this.renderModalChart(baseKrw, this.currentModalTf || '7d');
+        }
+    },
+
+    renderTradingViewWidget: function () {
+        const container = document.getElementById('patternModalTvWidget');
+        if (!container || !this.currentModalItem) return;
+        container.innerHTML = '<div id="tv_chart_inner" style="height:100%;width:100%;"></div>';
+
+        const sym = (this.currentModalItem.symbol || 'BTC').toUpperCase();
+        const ex = (this.currentModalItem.exchange || 'UPBIT').toUpperCase();
+        const tvSymbol = `${ex === 'BITHUMB' ? 'BITHUMB' : 'UPBIT'}:${sym}KRW`;
+
+        if (typeof TradingView !== 'undefined' && typeof TradingView.widget === 'function') {
+            try {
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": tvSymbol,
+                    "interval": "D",
+                    "timezone": "Asia/Seoul",
+                    "theme": document.documentElement.classList.contains('theme-light') ? "light" : "dark",
+                    "style": "1", // 1 = Candlestick
+                    "locale": "kr",
+                    "toolbar_bg": "#090d16",
+                    "enable_publishing": false,
+                    "hide_side_toolbar": false,
+                    "allow_symbol_change": true,
+                    "save_image": false,
+                    "container_id": "tv_chart_inner"
+                });
+            } catch (e) {
+                console.warn('TradingView widget init error:', e);
+                container.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=dark&style=1&locale=kr" style="width:100%;height:100%;border:none;"></iframe>`;
+            }
+        } else {
+            container.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=dark&style=1&locale=kr" style="width:100%;height:100%;border:none;"></iframe>`;
+        }
+    },
+
+    formatCurrency: function (val) {
+        if (val === null || val === undefined || isNaN(val)) return '-';
+        if (val >= 1000) {
+            return Math.round(val).toLocaleString() + '원';
+        } else if (val >= 100) {
+            return val.toFixed(1) + '원';
+        } else if (val >= 1) {
+            return val.toFixed(2) + '원';
+        } else {
+            return val.toFixed(4) + '원';
+        }
+    },
+
+    updateOhlcBar: function (c) {
+        if (!c) return;
+        const oEl = document.getElementById('ohlc-open');
+        const hEl = document.getElementById('ohlc-high');
+        const lEl = document.getElementById('ohlc-low');
+        const cEl = document.getElementById('ohlc-close');
+        const chgEl = document.getElementById('ohlc-change');
+
+        if (oEl) oEl.innerText = this.formatCurrency(c.open);
+        if (hEl) hEl.innerText = this.formatCurrency(c.high);
+        if (lEl) lEl.innerText = this.formatCurrency(c.low);
+        if (cEl) cEl.innerText = this.formatCurrency(c.close);
+
+        if (chgEl && c.open > 0) {
+            const diff = c.close - c.open;
+            const rate = (diff / c.open) * 100;
+            const isUp = diff >= 0;
+            chgEl.innerText = `${isUp ? '+' : ''}${rate.toFixed(2)}%`;
+            chgEl.className = isUp ? 'text-rose-400 font-bold' : 'text-blue-400 font-bold';
+        }
+    },
+
+    destroyLwChart: function () {
+        if (this.lwChartInstance) {
+            try { this.lwChartInstance.remove(); } catch (e) {}
+            this.lwChartInstance = null;
+            this.lwCandleSeries = null;
+        }
+        const container = document.getElementById('patternModalLwChart');
+        if (container) {
+            container.innerHTML = '';
+        }
+    },
+
+    getPatternLabels: function (patternKey) {
+        switch (patternKey) {
+            case 'ascending_channel':
+                return { upper: '채널 상단 저항', lower: '채널 하단 지지', mid: '채널 중심선' };
+            case 'flag':
+                return { upper: '깃발 상단 저항', lower: '깃발 하단 지지', mid: '2차 돌파 목표' };
+            case 'ascending_triangle':
+                return { upper: '상단 수평 저항', lower: '하단 우상향 지지', mid: '수렴 상방 돌파' };
+            case 'falling_wedge':
+                return { upper: '쐐기 상단 저항', lower: '쐐기 하단 지지', mid: '상방 반등 목표' };
+            case 'double_bottom':
+            case 'triple_bottom':
+                return { upper: 'W자 넥라인 저항', lower: '바닥 지지선', mid: '패턴 완성 목표' };
+            case 'rectangle':
+                return { upper: '박스 상단 저항', lower: '박스 하단 지지', mid: '박스 돌파 타겟' };
+            case 'cup_and_handle':
+                return { upper: '전고점 넥라인', lower: '핸들 지지선', mid: '1:1 대칭 목표' };
+            case 'pullback':
+            default:
+                return { upper: '직전 고점 저항', lower: 'MA20 이평 지지', mid: '1차 반등 목표' };
+        }
+    },
+
+    generatePatternLineData: function (patternKey, candles) {
+        const n = candles.length;
+        if (n < 2) return { upper: [], lower: [], mid: [] };
+
+        const highs = candles.map(c => c.high);
+        const lows = candles.map(c => c.low);
+        const closes = candles.map(c => c.close);
+        const min = Math.min(...lows);
+        const max = Math.max(...highs);
+        const range = (max - min) || (max * 0.05) || 10;
+        const first = closes[0];
+        const last = closes[n - 1];
+
+        let upper = [];
+        let lower = [];
+        let mid = [];
+
+        switch (patternKey) {
+            case 'ascending_channel':
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    const slope = (last - first) * 0.65;
+                    const center = first + slope * t;
+                    upper.push(Math.round(center + range * 0.48));
+                    lower.push(Math.round(center - range * 0.48));
+                    mid.push(Math.round(center));
+                }
+                break;
+
+            case 'flag':
+                const poleIdx = Math.max(1, Math.floor(n * 0.35));
+                const poleTop = max * 1.01;
+                for (let i = 0; i < n; i++) {
+                    if (i < poleIdx) {
+                        upper.push(null);
+                        lower.push(null);
+                        mid.push(null);
+                    } else {
+                        const ft = (i - poleIdx) / (n - 1 - poleIdx || 1);
+                        const u = poleTop - (range * 0.22 * ft);
+                        const l = u - (range * 0.26);
+                        upper.push(Math.round(u));
+                        lower.push(Math.round(l));
+                        mid.push(Math.round(poleTop + range * 0.45));
+                    }
+                }
+                break;
+
+            case 'ascending_triangle':
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upper.push(Math.round(max * 1.008));
+                    lower.push(Math.round(min + (max - min) * 0.78 * t));
+                    mid.push(Math.round(max + range * 0.4));
+                }
+                break;
+
+            case 'falling_wedge':
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upper.push(Math.round(max - (range * 0.8 * t)));
+                    lower.push(Math.round(min + range * 0.35 - (range * 0.38 * t)));
+                    mid.push(Math.round(max * 1.02));
+                }
+                break;
+
+            case 'double_bottom':
+            case 'triple_bottom':
+                const neckPrice = min + range * 0.65;
+                for (let i = 0; i < n; i++) {
+                    upper.push(Math.round(neckPrice));
+                    lower.push(Math.round(min * 0.995));
+                    mid.push(Math.round(neckPrice + (neckPrice - min)));
+                }
+                break;
+
+            case 'rectangle':
+                for (let i = 0; i < n; i++) {
+                    upper.push(Math.round(max * 1.008));
+                    lower.push(Math.round(min * 0.992));
+                    mid.push(Math.round(max + range * 0.5));
+                }
+                break;
+
+            case 'cup_and_handle':
+                const rim = max * 1.005;
+                for (let i = 0; i < n; i++) {
+                    upper.push(Math.round(rim));
+                    lower.push(Math.round(min + range * 0.35));
+                    mid.push(Math.round(rim + range * 0.6));
+                }
+                break;
+
+            case 'pullback':
+            default:
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    upper.push(Math.round(max));
+                    lower.push(Math.round(first + (last - first) * 0.5 * t - range * 0.12));
+                    mid.push(Math.round(max + range * 0.28));
+                }
+                break;
+        }
+
+        return { upper, lower, mid };
     },
 
     changeModalTimeframe: async function (tf) {
@@ -1828,28 +2104,29 @@ const PatternScannerEngine = {
     },
 
     renderModalChart: async function (basePrice, tf) {
-        const canvas = document.getElementById('patternModalChart');
-        if (!canvas) return;
+        if (this.currentModalChartMode === 'tradingview') {
+            this.renderTradingViewWidget();
+            return;
+        }
 
-        let count = 28;
-        let labels = [];
-        let data = [];
+        const canvas = document.getElementById('patternModalChart');
+        const lwContainer = document.getElementById('patternModalLwChart');
 
         // 1. 실제 업비트/빗썸 캔들 API 호출
         let fetchedCandles = [];
         if (typeof UpbitAPI !== 'undefined' && typeof UpbitAPI.fetchCandles === 'function' && this.currentModalItem) {
             try {
                 let candleType = 'days';
-                let reqCount = 7;
+                let reqCount = 30;
                 if (tf === '24h') {
                     candleType = 'minutes/60';
                     reqCount = 24;
                 } else if (tf === '7d') {
                     candleType = 'days';
-                    reqCount = 7;
+                    reqCount = 14;
                 } else {
                     candleType = 'days';
-                    reqCount = 30;
+                    reqCount = 45;
                 }
                 fetchedCandles = await UpbitAPI.fetchCandles(this.currentModalItem.symbol, candleType, reqCount);
             } catch (err) {
@@ -1857,55 +2134,208 @@ const PatternScannerEngine = {
             }
         }
 
-        let max = 0;
-        let min = 0;
-
+        let normalizedCandles = [];
         if (fetchedCandles && fetchedCandles.length > 0) {
-            labels = fetchedCandles.map(c => {
-                if (tf === '24h') {
-                    return (c.time || '').substring(11, 16) || `${c.date}`;
-                } else {
-                    return (c.date || '').substring(5) || c.time;
-                }
-            });
-            data = fetchedCandles.map(c => c.close || c.price);
-            max = Math.max(...fetchedCandles.map(c => c.high || c.close || c.price));
-            min = Math.min(...fetchedCandles.map(c => c.low || c.close || c.price));
+            normalizedCandles = fetchedCandles.map(c => ({
+                open: Number(c.open || c.price || c.close),
+                high: Number(c.high || c.close || c.price),
+                low: Number(c.low || c.close || c.price),
+                close: Number(c.close || c.price),
+                volume: Number(c.volume || 0),
+                timestamp: c.timestamp || Date.now(),
+                date: c.date || (c.time ? c.time.split(' ')[0] : '2026-09-22'),
+                timeStr: c.time || c.date
+            }));
         } else {
-            // 폴백 (네트워크 미연결 시)
             let current = basePrice * 0.94;
-            if (tf === '24h') {
-                count = 24;
-                for (let i = 0; i < count; i++) {
-                    labels.push(`${i}:00`);
-                    current += (Math.random() - 0.47) * (basePrice * 0.012);
-                    data.push(Math.round(current * 100) / 100);
-                }
-            } else if (tf === '7d') {
-                count = 7;
-                const days = ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', '어제', '오늘(실시간)'];
-                for (let i = 0; i < count; i++) {
-                    labels.push(days[i]);
-                    current += (Math.random() - 0.44) * (basePrice * 0.025);
-                    data.push(Math.round(current * 100) / 100);
-                }
-            } else {
-                count = 15;
-                for (let i = 1; i <= count; i++) {
-                    labels.push(`${i * 2}일전`);
-                    current += (Math.random() - 0.45) * (basePrice * 0.04);
-                    data.push(Math.round(current * 100) / 100);
-                }
+            const now = Date.now();
+            const count = tf === '24h' ? 24 : (tf === '7d' ? 14 : 30);
+            const stepMs = tf === '24h' ? 3600000 : 86400000;
+            for (let i = count - 1; i >= 0; i--) {
+                const candleTime = now - (i * stepMs);
+                const d = new Date(candleTime);
+                const o = current;
+                const change = (Math.random() - 0.46) * (basePrice * (tf === '24h' ? 0.015 : 0.03));
+                const c = Math.max(1, Math.round((o + change) * 100) / 100);
+                const h = Math.round((Math.max(o, c) + Math.random() * basePrice * 0.008) * 100) / 100;
+                const l = Math.round((Math.min(o, c) - Math.random() * basePrice * 0.008) * 100) / 100;
+                current = c;
+                normalizedCandles.push({
+                    open: o,
+                    high: h,
+                    low: l,
+                    close: c,
+                    volume: Math.round(Math.random() * 10000),
+                    timestamp: candleTime,
+                    date: d.toISOString().split('T')[0],
+                    timeStr: d.toISOString().replace('T', ' ').substring(0, 16)
+                });
             }
-            max = Math.max(...data);
-            min = Math.min(...data);
         }
 
+        normalizedCandles.sort((a, b) => a.timestamp - b.timestamp);
+
+        const max = Math.max(...normalizedCandles.map(c => c.high));
+        const min = Math.min(...normalizedCandles.map(c => c.low));
         const rangeEl = document.getElementById('modal-chart-range-high-low');
         if (rangeEl) {
-            rangeEl.innerText = `기간 최고: ${max.toLocaleString()}원 / 최저: ${min.toLocaleString()}원 ${fetchedCandles.length > 0 ? '(실시간 캔들)' : ''}`;
+            rangeEl.innerText = `기간 최고: ${this.formatCurrency(max)} / 최저: ${this.formatCurrency(min)} ${fetchedCandles.length > 0 ? '(실시간 캔들)' : ''}`;
         }
 
+        // Lightweight Charts 고유 시간 정규화 (중복 타임스탬프 제거)
+        const lwCandles = [];
+        const seenSecs = new Set();
+        for (const c of normalizedCandles) {
+            const sec = Math.floor(c.timestamp / 1000);
+            if (!seenSecs.has(sec)) {
+                seenSecs.add(sec);
+                lwCandles.push({
+                    time: sec,
+                    open: c.open,
+                    high: c.high,
+                    low: c.low,
+                    close: c.close
+                });
+            }
+        }
+
+        const pKey = this.currentModalPatternKey || (this.currentModalItem ? this.currentModalItem.pattern : 'ascending_channel') || 'ascending_channel';
+        const patternLines = this.generatePatternLineData(pKey, lwCandles);
+
+        const upperData = [];
+        const lowerData = [];
+        const targetData = [];
+        for (let i = 0; i < lwCandles.length; i++) {
+            const t = lwCandles[i].time;
+            if (patternLines.upper[i] !== null && patternLines.upper[i] !== undefined) {
+                upperData.push({ time: t, value: patternLines.upper[i] });
+            }
+            if (patternLines.lower[i] !== null && patternLines.lower[i] !== undefined) {
+                lowerData.push({ time: t, value: patternLines.lower[i] });
+            }
+            if (patternLines.mid[i] !== null && patternLines.mid[i] !== undefined) {
+                targetData.push({ time: t, value: patternLines.mid[i] });
+            }
+        }
+
+        // A. TradingView Lightweight Charts Candlestick Engine
+        if (typeof LightweightCharts !== 'undefined' && typeof LightweightCharts.createChart === 'function' && lwContainer) {
+            try {
+                this.destroyLwChart();
+                lwContainer.classList.remove('hidden');
+                if (canvas) canvas.classList.add('hidden');
+
+                const isLight = document.documentElement.classList.contains('theme-light');
+                const chart = LightweightCharts.createChart(lwContainer, {
+                    width: lwContainer.clientWidth || 640,
+                    height: lwContainer.clientHeight || 220,
+                    layout: {
+                        background: { color: isLight ? '#ffffff' : '#090d16' },
+                        textColor: isLight ? '#475569' : '#94a3b8'
+                    },
+                    grid: {
+                        vertLines: { color: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)' },
+                        horzLines: { color: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode ? LightweightCharts.CrosshairMode.Normal : 1
+                    },
+                    rightPriceScale: {
+                        borderColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
+                    },
+                    timeScale: {
+                        borderColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+                        timeVisible: tf === '24h'
+                    }
+                });
+                this.lwChartInstance = chart;
+
+                const isV5 = typeof chart.addSeries === 'function';
+                const candleOptions = {
+                    upColor: '#ef4444',
+                    downColor: '#3b82f6',
+                    borderVisible: false,
+                    wickUpColor: '#ef4444',
+                    wickDownColor: '#3b82f6'
+                };
+                const candleSeries = isV5
+                    ? chart.addSeries(LightweightCharts.CandlestickSeries, candleOptions)
+                    : chart.addCandlestickSeries(candleOptions);
+                candleSeries.setData(lwCandles);
+                this.lwCandleSeries = candleSeries;
+
+                const makeLine = (color, title) => {
+                    const opts = {
+                        color: color,
+                        lineWidth: 2,
+                        lineStyle: 2, // Dashed
+                        title: title,
+                        priceLineVisible: false
+                    };
+                    return isV5
+                        ? chart.addSeries(LightweightCharts.LineSeries, opts)
+                        : chart.addLineSeries(opts);
+                };
+
+                const labels = this.getPatternLabels(pKey);
+                const upperSeries = makeLine('#f59e0b', labels.upper);
+                upperSeries.setData(upperData);
+
+                const lowerSeries = makeLine('#10b981', labels.lower);
+                lowerSeries.setData(lowerData);
+
+                if (targetData.length > 0) {
+                    const targetSeries = makeLine('#8b5cf6', labels.mid);
+                    targetSeries.setData(targetData);
+                }
+
+                chart.timeScale().fitContent();
+
+                if (lwCandles.length > 0) {
+                    this.updateOhlcBar(lwCandles[lwCandles.length - 1]);
+                }
+
+                chart.subscribeCrosshairMove(param => {
+                    if (!param || !param.time || !param.seriesData) {
+                        if (lwCandles.length > 0) {
+                            this.updateOhlcBar(lwCandles[lwCandles.length - 1]);
+                        }
+                        return;
+                    }
+                    const cData = param.seriesData.get(candleSeries);
+                    if (cData) {
+                        this.updateOhlcBar(cData);
+                    }
+                });
+
+                if (!this._lwResizeAttached) {
+                    this._lwResizeAttached = true;
+                    window.addEventListener('resize', () => {
+                        if (this.lwChartInstance) {
+                            const el = document.getElementById('patternModalLwChart');
+                            if (el && el.clientWidth > 0) {
+                                this.lwChartInstance.applyOptions({
+                                    width: el.clientWidth,
+                                    height: el.clientHeight || 220
+                                });
+                            }
+                        }
+                    });
+                }
+
+                return;
+            } catch (lwErr) {
+                console.warn('Lightweight Charts render error, falling back to Chart.js:', lwErr);
+            }
+        }
+
+        // B. Fallback to Chart.js
+        if (!canvas) return;
+        if (lwContainer) lwContainer.classList.add('hidden');
+        canvas.classList.remove('hidden');
+
+        const labels = normalizedCandles.map(c => tf === '24h' ? (c.timeStr || '').substring(11, 16) : (c.date || '').substring(5));
+        const data = normalizedCandles.map(c => c.close);
         const ctx = canvas.getContext('2d');
         if (this.modalChartInstance) {
             this.modalChartInstance.destroy();
@@ -1917,7 +2347,6 @@ const PatternScannerEngine = {
             gradient.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.25)' : 'rgba(6, 182, 212, 0.35)');
             gradient.addColorStop(1, isLight ? 'rgba(5, 150, 105, 0.0)' : 'rgba(6, 182, 212, 0.0)');
 
-            const pKey = this.currentModalPatternKey || (this.currentModalItem ? this.currentModalItem.pattern : 'ascending_channel') || 'ascending_channel';
             const patternDatasets = this.generatePatternDatasets(pKey, data, isLight);
 
             const allDatasets = [{
@@ -2178,10 +2607,13 @@ const PatternScannerEngine = {
             modal.classList.remove('flex');
             modal.style.display = 'none';
         }
+        this.destroyLwChart();
         if (this.modalChartInstance) {
             try { this.modalChartInstance.destroy(); } catch (e) {}
             this.modalChartInstance = null;
         }
+        const tvContainer = document.getElementById('patternModalTvWidget');
+        if (tvContainer) tvContainer.innerHTML = '';
     },
 
     goToMarketDetail: function () {
