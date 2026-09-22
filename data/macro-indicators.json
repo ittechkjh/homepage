@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-09-22",
-  "lastUpdatedTimeKst": "09. 22. 09:33",
-  "timestamp": 1790037195819,
+  "lastUpdatedTimeKst": "09. 23. 08:58",
+  "timestamp": 1790121494408,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -46,15 +46,15 @@
       "lastUpdated": "2026-09-22"
     },
     "dxy": {
-      "value": 100.39,
-      "change": 0.08,
+      "value": 100.55,
+      "change": 0.33,
       "text": "달러 강세 (긴축 부담)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
       "lastUpdated": "2026-09-22"
     },
     "highYieldSpread": {
-      "value": 3.22,
+      "value": 3.2,
       "badge": "위험선호",
       "text": "글로벌 유동성 안정",
       "source": "ICE BofA US High Yield Spread",
@@ -62,23 +62,23 @@
       "lastUpdated": "2026-09-22"
     },
     "nasdaqSpot": {
-      "value": 30482.4,
-      "change": 4.65,
+      "value": 30732.4,
+      "change": 6.2,
       "text": "기술주 상승 모멘텀",
       "source": "NASDAQ-100 (^NDX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-22"
     },
     "sox": {
-      "value": 12433.2,
-      "change": 11.7,
+      "value": 12689.8,
+      "change": 13.55,
       "text": "반도체 강세 주도",
       "source": "PHLX Semiconductor Index (^SOX)",
       "cycle": "증시 벤치마크",
       "lastUpdated": "2026-09-22"
     },
     "vix": {
-      "value": 14.87,
+      "value": 14.21,
       "badge": "안정권",
       "text": "시장 심리 안정",
       "source": "CBOE Volatility Index (^VIX)",
@@ -86,16 +86,16 @@
       "lastUpdated": "2026-09-22"
     },
     "goldFut": {
-      "value": 4399,
-      "change": 0.26,
-      "text": "안전자산 수요 견조",
+      "value": 4399.3,
+      "change": -0.01,
+      "text": "금값 조정",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-09-22"
     },
     "wti": {
-      "value": 92.5,
-      "change": -9.69,
+      "value": 89.67,
+      "change": -12.01,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
@@ -109,54 +109,54 @@
     },
     "cryptoSnapshot": {
       "BTC": {
-        "price": 116660000,
-        "change24h": -0.39531091,
-        "timestamp": 1790037194137
+        "price": 115654000,
+        "change24h": -1.254237,
+        "timestamp": 1790121494275
       },
       "ETH": {
-        "price": 3743000,
-        "change24h": -0.34611289,
-        "timestamp": 1790037195536
+        "price": 3697000,
+        "change24h": -1.5708200200000002,
+        "timestamp": 1790121493943
       },
       "XRP": {
-        "price": 2067,
-        "change24h": -0.52935515,
-        "timestamp": 1790037195192
+        "price": 2109,
+        "change24h": 1.49181906,
+        "timestamp": 1790121494269
       },
       "SOL": {
-        "price": 160600,
-        "change24h": -0.18645121,
-        "timestamp": 1790037191880
+        "price": 159100,
+        "change24h": -1.11870727,
+        "timestamp": 1790121481007
       },
       "DOGE": {
-        "price": 136,
-        "change24h": 1.49253731,
-        "timestamp": 1790037187968
+        "price": 134,
+        "change24h": 0,
+        "timestamp": 1790121492012
       },
       "ADA": {
-        "price": 333,
-        "change24h": 0.6042296100000001,
-        "timestamp": 1790037195664
+        "price": 341,
+        "change24h": 3.02114804,
+        "timestamp": 1790121485223
       },
       "AVAX": {
-        "price": 15060,
-        "change24h": -0.72511536,
-        "timestamp": 1790037191498
+        "price": 15110,
+        "change24h": -0.39551747000000004,
+        "timestamp": 1790121486197
       },
       "SUI": {
-        "price": 1433,
-        "change24h": 1.7033356999999998,
-        "timestamp": 1790037195557
+        "price": 1374,
+        "change24h": -2.4840312300000003,
+        "timestamp": 1790121490400
       },
       "LINK": {
-        "price": 17780,
-        "change24h": -0.33632287,
-        "timestamp": 1790037190758
+        "price": 17490,
+        "change24h": -1.96188341,
+        "timestamp": 1790121489106
       },
       "DOT": {
-        "price": 1633,
-        "change24h": 0,
-        "timestamp": 1790037190064
+        "price": 1632,
+        "change24h": -0.06123699,
+        "timestamp": 1790121482623
       }
     }
   }
