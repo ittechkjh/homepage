@@ -1255,7 +1255,7 @@
   <header class="bg-navy-900/80 backdrop-blur-md border-b border-navy-800/80 sticky top-[37px] z-30">
     <div class="w-full max-w-[1600px] mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-2">
       <!-- Logo -->
-      <a href="#/market" onclick="event.preventDefault(); switchTab('market')" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+      <a href="#/forum" onclick="event.preventDefault(); switchTab('forum')" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
           <i data-lucide="coins" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
         </div>
@@ -1270,6 +1270,16 @@
 
       <!-- Navigation Tabs -->
       <nav class="hidden md:flex items-center gap-0.5 bg-navy-950/60 p-1 rounded-xl border border-navy-800 shrink min-w-0 overflow-x-auto no-scrollbar">
+        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab active px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
+          <i data-lucide="messages-square" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
+          <span>포럼·커뮤</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
+        </button>
+        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-cyan-300 hover:text-cyan-100 border border-cyan-500/30 bg-cyan-500/10 hover:border-cyan-400 group shadow-sm">
+          <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
+          <span>손익분석</span>
+          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">PRO</span>
+        </button>
         <button onclick="switchTab('market')" id="nav-market" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0">
           <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 시세
         </button>
@@ -1282,14 +1292,6 @@
           <i data-lucide="scan" class="w-3.5 h-3.5 text-emerald-400"></i>
           <span>차트패턴</span>
           <span class="px-1 py-0.2 rounded text-[8px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
-        </button>
-        <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0">
-          <i data-lucide="messages-square" class="w-3.5 h-3.5"></i> 포럼
-        </button>
-        <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab active px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-blue-600/20 text-cyan-300 border border-cyan-400/50 shadow-lg shadow-cyan-500/15 hover:border-cyan-300 group">
-          <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
-          <span>손익분석</span>
-          <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse tracking-tight">HOT</span>
         </button>
         <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-amber-300 hover:text-amber-100"><i data-lucide="calculator" class="w-3.5 h-3.5 text-amber-400"></i> 계산기</button>
         <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1 whitespace-nowrap shrink-0 text-teal-300 hover:text-teal-100 border border-teal-500/30 bg-teal-500/10 hover:border-teal-400 group shadow-sm">
@@ -1350,11 +1352,11 @@
       <i data-lucide="scan" class="w-4 h-4"></i>
       <span>패턴</span>
     </button>
-    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
+    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="messages-square" class="w-4 h-4"></i>
       <span>포럼·커뮤</span>
     </button>
-    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
+    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
       <i data-lucide="calculator" class="w-4 h-4"></i>
       <span>분석기</span>
     </button>
@@ -2021,7 +2023,102 @@
     <!-- ==============================================
          TAB 2: COMMUNITY FORUM (Full Page Cafe Style)
          ============================================== -->
-    <section id="tab-forum" class="tab-content hidden w-full space-y-6">
+    <section id="tab-forum" class="tab-content block w-full space-y-6">
+
+      <!-- Main Quick Tools Launcher (실전 핵심 도구 퀵 런처) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- Tool 1: PnL Analyzer -->
+        <div onclick="switchTab('analyzer')" class="bg-gradient-to-br from-navy-900 to-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 rounded-2xl p-4 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
+              <i data-lucide="calculator" class="w-5 h-5"></i>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">1초 계산</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="font-extrabold text-sm text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1">
+              업비트·빗썸 손익분석기
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-cyan-400 group-hover:translate-x-1 transition-transform"></i>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">
+              엑셀·PDF 거래내역 1초 업로드로 실현손익, 평단가, 수수료, 세금 자동 산출
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-navy-800 flex items-center justify-between text-[11px] font-medium text-cyan-400">
+            <span>무료 엑셀 업로드</span>
+            <span class="font-mono text-slate-500 group-hover:text-slate-300 transition-colors">바로가기 &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Tool 2: AI Chart Pattern Scanner -->
+        <div onclick="switchTab('patterns')" class="bg-gradient-to-br from-navy-900 to-emerald-950/40 border border-emerald-500/30 hover:border-emerald-400 rounded-2xl p-4 shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 group cursor-pointer relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
+              <i data-lucide="scan" class="w-5 h-5"></i>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI 실시간</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="font-extrabold text-sm text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1">
+              AI 차트패턴 스캐너
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-1 transition-transform"></i>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">
+              골든크로스, 헤드앤숄더, 깃발형 패턴 및 24h 거래량 폭증 실시간 감지
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-navy-800 flex items-center justify-between text-[11px] font-medium text-emerald-400">
+            <span>13가지 패턴 매칭</span>
+            <span class="font-mono text-slate-500 group-hover:text-slate-300 transition-colors">스캐너 보기 &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Tool 3: On-Chain Whale Radar -->
+        <div onclick="switchTab('onchain')" class="bg-gradient-to-br from-navy-900 to-blue-950/40 border border-blue-500/30 hover:border-blue-400 rounded-2xl p-4 shadow-lg hover:shadow-blue-500/10 transition-all duration-300 group cursor-pointer relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all">
+              <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">고래 추적</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="font-extrabold text-sm text-white group-hover:text-blue-300 transition-colors flex items-center gap-1">
+              온체인·고래 레이더
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-blue-400 group-hover:translate-x-1 transition-transform"></i>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">
+              거래소 대규모 순유출입(Net Flow), 고래 지갑 이동 및 MVRV 밸류에이션
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-navy-800 flex items-center justify-between text-[11px] font-medium text-blue-400">
+            <span>실시간 펀더멘털</span>
+            <span class="font-mono text-slate-500 group-hover:text-slate-300 transition-colors">데이터 분석 &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Tool 4: Coin Calculators -->
+        <div onclick="switchTab('calculators')" class="bg-gradient-to-br from-navy-900 to-amber-950/40 border border-amber-500/30 hover:border-amber-400 rounded-2xl p-4 shadow-lg hover:shadow-amber-500/10 transition-all duration-300 group cursor-pointer relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-2">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
+              <i data-lucide="layers" class="w-5 h-5"></i>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">실전 5종</span>
+          </div>
+          <div class="mt-3">
+            <h3 class="font-extrabold text-sm text-white group-hover:text-amber-300 transition-colors flex items-center gap-1">
+              코인 실전 계산기 모음
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">
+              물타기 평단가, 레버리지 강제청산가, 김치프리미엄 및 가상자산 세금 계산
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-navy-800 flex items-center justify-between text-[11px] font-medium text-amber-400">
+            <span>트레이딩 필수 도구</span>
+            <span class="font-mono text-slate-500 group-hover:text-slate-300 transition-colors">계산기 열기 &rarr;</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Community Hub Sub-Navigation Bar (포럼 / 실시간 채팅 / 지식 가이드) -->
       <div class="community-subnav-bar bg-navy-900/90 border border-cyan-500/30 backdrop-blur-md rounded-2xl p-2 shadow-xl flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
@@ -3068,7 +3165,7 @@
     <!-- ============================================== -->
     <!-- TAB 5: CRYPTO TRADE ANALYZER (MEMBER ONLY & STRICT PER-USER ISOLATION) -->
     <!-- ============================================== -->
-    <section id="tab-analyzer" class="tab-content block space-y-6">
+    <section id="tab-analyzer" class="tab-content hidden space-y-6">
 
       <!-- MAIN ANALYZER DASHBOARD: 로그인 회원 전용 대시보드 -->
       <div id="analyzer-main-content" class="space-y-4 sm:space-y-6 block">

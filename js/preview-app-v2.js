@@ -6328,7 +6328,7 @@ function handleLogout() {
       AnalyzerApp.loadSavedTrades();
     }
     alert('로그아웃되었습니다.');
-    switchTab('analyzer');
+    switchTab('forum');
   }
 }
 window.handleLogout = handleLogout;
@@ -6634,7 +6634,7 @@ window.escapeHtml = escapeHtml;
 function handleRoute() {
   const fullHash = (window.location.hash || '').replace('#/', '').replace('#', '');
   if (!fullHash) {
-    switchTab('analyzer', false);
+    switchTab('forum', false);
     return;
   }
 
@@ -6707,7 +6707,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderChatMessages();
 
   if (!window.location.hash) {
-    history.replaceState(null, '', '#/analyzer');
+    history.replaceState(null, '', '#/forum');
   }
   handleRoute();
 
