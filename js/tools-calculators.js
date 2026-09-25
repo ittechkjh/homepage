@@ -115,47 +115,237 @@ const CoinCalculators = {
         return user ? `crytopnl_dca_scenarios_${user}` : 'crytopnl_dca_scenarios_guest';
     },
 
-    // 저장된 시나리오 목록 반환 (현재 사용자 키 + 게스트/관리자/기타 키 전체 통합 복구)
-    getSavedScenarios: function () {
+    // 전체 로컬 스토리지 키(레거시 및 다른 계정 포함) 딥 스캔 & 복구
+    scanAndRecoverScenarios: function (isManual = false) {
         const primaryKey = this.getScenarioStorageKey();
         const mergedList = [];
         const seenIds = new Set();
+        const seenSignatures = new Set();
 
-        const addItems = (raw) => {
-            if (!raw) return;
+        const addScenarioItem = (item) => {
+            if (!item || typeof item !== 'object') return;
+            // 유효한 물타기 시나리오 검증: title 또는 waterTiers 또는 currentPrice 존재
+            const hasTiers = (Array.isArray(item.waterTiers) && item.waterTiers.length > 0) || (Array.isArray(item.sellTiers) && item.sellTiers.length > 0);
+            const hasPrice = (item.currentPrice !== undefined && item.currentPrice !== null && item.currentPrice !== '');
+            if (!hasTiers && !hasPrice && !item.title) return;
+
+            const id = item.id || ('dca_' + (item.updatedAt ? new Date(item.updatedAt).getTime() : Date.now()));
+            item.id = id;
+            if (!item.title) {
+                item.title = `복구된 물타기 계획 (${new Date().toLocaleDateString('ko-KR')})`;
+            }
+
+            // 시그니처 기반 중복 제거
+            const sig = `${item.title}_${item.currentPrice}_${item.currentQty}_${JSON.stringify(item.waterTiers || [])}`;
+            if (!seenIds.has(id) && !seenSignatures.has(sig)) {
+                seenIds.add(id);
+                seenSignatures.add(sig);
+                mergedList.push(item);
+            }
+        };
+
+        const tryParseAndAdd = (raw) => {
+            if (!raw || typeof raw !== 'string') return;
             try {
-                const list = JSON.parse(raw);
-                if (Array.isArray(list)) {
-                    list.forEach(item => {
-                        if (item && item.id && !seenIds.has(item.id)) {
-                            seenIds.add(item.id);
-                            mergedList.push(item);
-                        }
-                    });
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(addScenarioItem);
+                } else if (parsed && typeof parsed === 'object') {
+                    if (Array.isArray(parsed.scenarios)) {
+                        parsed.scenarios.forEach(addScenarioItem);
+                    } else if (parsed.waterTiers || parsed.currentPrice || parsed.title) {
+                        addScenarioItem(parsed);
+                    }
                 }
             } catch (e) {}
         };
 
-        // 1. 현재 사용자 키 우선 탐색
-        addItems(localStorage.getItem(primaryKey));
+        // 1. 현재 사용자 키 우선
+        tryParseAndAdd(localStorage.getItem(primaryKey));
 
-        // 2. 다른 키(admin, guest, 레거시 키)에 보관된 시나리오 통합 스캔
-        const fallbackKeys = ['crytopnl_dca_scenarios_admin', 'crytopnl_dca_scenarios_guest', 'crytopnl_dca_scenarios'];
-        fallbackKeys.forEach(k => {
-            if (k !== primaryKey) addItems(localStorage.getItem(k));
+        // 2. 알려진 모든 레거시 및 계정별 키 탐색
+        const knownKeys = [
+            'crytopnl_dca_scenarios',
+            'crytopnl_dca_scenarios_guest',
+            'crytopnl_dca_scenarios_admin',
+            'cryptopnl_dca_scenarios',
+            'cryptopnl_dca_scenarios_guest',
+            'cryptopnl_dca_scenarios_admin',
+            'coinhub_dca_scenarios',
+            'coinhub_dca_scenarios_guest',
+            'coinhub_dca_scenarios_admin',
+            'dca_scenarios',
+            'dca_scenarios_guest',
+            'dca_scenarios_admin',
+            'crytopnl_water_scenarios',
+            'cryptopnl_water_scenarios',
+            'coinhub_water_scenarios',
+            'water_scenarios',
+            'water_plans',
+            'water_calculator_scenarios',
+            'water_calculator_data'
+        ];
+        knownKeys.forEach(k => {
+            if (k !== primaryKey) tryParseAndAdd(localStorage.getItem(k));
         });
 
+        // 3. 브라우저 localStorage 전체 전수 스캔 (물타기 관련 모든 데이터 복구)
         try {
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
-                if (k && k.startsWith('crytopnl_dca_scenarios') && k !== primaryKey) {
-                    addItems(localStorage.getItem(k));
+                if (!k) continue;
+                const lower = k.toLowerCase();
+                if (lower.includes('scenario') || lower.includes('water') || lower.includes('dca')) {
+                    if (lower.includes('analytic') || lower.includes('visit') || lower.includes('log') || lower.includes('view') || lower.includes('draft')) continue;
+                    tryParseAndAdd(localStorage.getItem(k));
                 }
             }
         } catch (e) {}
 
-        // 최신 업데이트 순 정렬 유지
+        // 4. 복구된 데이터가 존재하면 기본 저장소 및 게스트 키에 즉시 안전 동기화 (영구 보존)
+        if (mergedList.length > 0) {
+            try {
+                localStorage.setItem(primaryKey, JSON.stringify(mergedList));
+                localStorage.setItem('crytopnl_dca_scenarios_guest', JSON.stringify(mergedList));
+                localStorage.setItem('crytopnl_dca_scenarios', JSON.stringify(mergedList));
+            } catch (e) {}
+        }
+
+        // 5. 수동 복구 요청 시 사용자 피드백
+        if (isManual) {
+            this.renderScenarioUI();
+            if (mergedList.length > 0) {
+                const targetId = this.currentScenarioId || mergedList[0].id;
+                this.loadScenario(targetId, false);
+                this.showScenarioToast(`총 ${mergedList.length}개의 저장 계획을 성공적으로 복구했습니다.`);
+            } else {
+                const draft = this.getDraft();
+                if (draft) {
+                    this.applyState(draft);
+                    this.showScenarioToast('최근에 작성 중이던 작업 내역을 복원했습니다.');
+                } else {
+                    alert('저장소에서 이전 물타기 계획을 찾지 못했습니다.\n입력하신 계획을 [💾 저장] 버튼을 눌러 안전하게 보관해 두세요.');
+                }
+            }
+        }
+
         return mergedList;
+    },
+
+    // 저장된 시나리오 목록 반환
+    getSavedScenarios: function () {
+        return this.scanAndRecoverScenarios(false);
+    },
+
+    // 실시간 작업 내용 자동 임시 저장 (브라우저 종료 및 탭 전환 시 유실 방지)
+    saveDraft: function () {
+        try {
+            const curPrice = this.parseNum(document.getElementById('waterCurrentPrice')?.value);
+            const curQty = this.parseNum(document.getElementById('waterCurrentQty')?.value);
+            const feeRate = document.getElementById('waterFeeRate')?.value || '0.05';
+
+            // 기본 데모값과 완전히 동일한 경우 무의미한 저장 방지
+            const isDefaultDemo = (curPrice === 95000000 && curQty === 0.5 && this.waterTiers.length === 1 && this.waterTiers[0].price === 78000000);
+            if (isDefaultDemo && !this.currentScenarioId) return;
+
+            const draft = {
+                currency: this.waterCurrency || 'KRW',
+                currentPrice: curPrice,
+                currentQty: curQty,
+                feeRate: feeRate,
+                waterTiers: this.waterTiers,
+                sellTiers: this.sellTiers,
+                currentScenarioId: this.currentScenarioId,
+                updatedAt: Date.now()
+            };
+
+            const user = this.getLoggedInUsername();
+            const draftKey = user ? `crytopnl_water_draft_${user}` : 'crytopnl_water_draft_guest';
+            localStorage.setItem(draftKey, JSON.stringify(draft));
+            localStorage.setItem('crytopnl_water_draft', JSON.stringify(draft));
+        } catch (e) {}
+    },
+
+    // 실시간 작업 임시저장본(Draft) 가져오기
+    getDraft: function () {
+        const user = this.getLoggedInUsername();
+        const draftKeys = [
+            user ? `crytopnl_water_draft_${user}` : null,
+            'crytopnl_water_draft_guest',
+            'crytopnl_water_draft',
+            'cryptopnl_water_draft',
+            'coinhub_water_draft'
+        ].filter(Boolean);
+
+        for (const k of draftKeys) {
+            try {
+                const raw = localStorage.getItem(k);
+                if (!raw) continue;
+                const draft = JSON.parse(raw);
+                if (draft && (draft.currentPrice > 0 || draft.currentQty > 0 || (Array.isArray(draft.waterTiers) && draft.waterTiers.length > 0))) {
+                    return draft;
+                }
+            } catch (e) {}
+        }
+        return null;
+    },
+
+    // 폼 상태를 특정 데이터로 복원
+    applyState: function (state) {
+        if (!state) return;
+        if (state.currency) {
+            this.setWaterCurrency(state.currency);
+        }
+        const priceEl = document.getElementById('waterCurrentPrice');
+        const qtyEl = document.getElementById('waterCurrentQty');
+        const feeEl = document.getElementById('waterFeeRate');
+
+        if (priceEl && state.currentPrice !== undefined && state.currentPrice !== null && state.currentPrice !== '') {
+            priceEl.value = this.formatNumber(state.currentPrice);
+        }
+        if (qtyEl && state.currentQty !== undefined && state.currentQty !== null && state.currentQty !== '') {
+            qtyEl.value = state.currentQty;
+        }
+        if (feeEl && state.feeRate !== undefined) {
+            feeEl.value = state.feeRate;
+        }
+
+        if (state.waterTiers && Array.isArray(state.waterTiers) && state.waterTiers.length > 0) {
+            this.waterTiers = JSON.parse(JSON.stringify(state.waterTiers));
+            this.nextWaterTierId = Math.max(...this.waterTiers.map(t => t.id || 0), 0) + 1;
+        }
+        if (state.sellTiers && Array.isArray(state.sellTiers) && state.sellTiers.length > 0) {
+            this.sellTiers = JSON.parse(JSON.stringify(state.sellTiers));
+            this.nextSellTierId = Math.max(...this.sellTiers.map(t => t.id || 0), 0) + 1;
+        }
+        if (state.currentScenarioId) {
+            this.currentScenarioId = state.currentScenarioId;
+        }
+
+        this.renderWaterTiers();
+        this.renderSellTiers();
+        this.calcWater();
+        this.renderScenarioUI();
+    },
+
+    // 저장된 시나리오 또는 최근 작업 중이던 임시 저장본(Draft) 자동 복원
+    restoreSavedOrDraftState: function () {
+        const list = this.getSavedScenarios();
+
+        // 1. 저장된 시나리오가 1개 이상 있을 때 가장 최근 시나리오 자동 로드
+        if (list && list.length > 0) {
+            const target = (this.currentScenarioId && list.find(s => s.id === this.currentScenarioId)) || list[0];
+            if (target) {
+                this.loadScenario(target.id, false);
+                return;
+            }
+        }
+
+        // 2. 저장된 시나리오가 없거나 신규 작성 모드인 경우, 실시간 임시저장(Draft) 복원
+        const draft = this.getDraft();
+        if (draft) {
+            this.applyState(draft);
+        }
     },
 
     // 현재 폼 상태를 시나리오로 저장 (신규 or 덮어쓰기)
@@ -213,7 +403,11 @@ const CoinCalculators = {
         }
 
         try {
-            localStorage.setItem(this.getScenarioStorageKey(), JSON.stringify(list));
+            const primaryKey = this.getScenarioStorageKey();
+            const jsonStr = JSON.stringify(list);
+            localStorage.setItem(primaryKey, jsonStr);
+            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
+            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
         } catch (e) {
             alert('저장 실패: 브라우저 저장 공간을 확인하세요.');
             return;
@@ -224,7 +418,7 @@ const CoinCalculators = {
     },
 
     // 선택된 시나리오 로드
-    loadScenario: function (scenarioId) {
+    loadScenario: function (scenarioId, showToast = true) {
         if (!scenarioId) {
             this.resetScenario();
             return;
@@ -262,7 +456,9 @@ const CoinCalculators = {
         this.renderSellTiers();
         this.calcWater();
         this.renderScenarioUI();
-        this.showScenarioToast(`'${target.title}' 계획을 불러왔습니다.`);
+        if (showToast) {
+            this.showScenarioToast(`'${target.title}' 계획을 불러왔습니다.`);
+        }
     },
 
     // 기준 통화 전환 ('KRW' | 'USD')
@@ -352,11 +548,20 @@ const CoinCalculators = {
 
         const filtered = list.filter(s => s.id !== idToDelete);
         try {
-            localStorage.setItem(this.getScenarioStorageKey(), JSON.stringify(filtered));
+            const jsonStr = JSON.stringify(filtered);
+            const primaryKey = this.getScenarioStorageKey();
+            localStorage.setItem(primaryKey, jsonStr);
+            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
+            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
+            localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
         } catch (e) {}
 
         this.currentScenarioId = null;
-        this.resetScenario();
+        if (filtered.length > 0) {
+            this.loadScenario(filtered[0].id);
+        } else {
+            this.resetScenario();
+        }
         this.renderScenarioUI();
         this.showScenarioToast('계획이 삭제되었습니다.');
     },
@@ -470,9 +675,7 @@ const CoinCalculators = {
 
     init: function () {
         this.bindEvents();
-        this.renderWaterTiers();
-        this.renderSellTiers();
-        this.renderScenarioUI();
+        this.restoreSavedOrDraftState();
         this.renderCrypto2027CoinRows();
         this.calcWater();
         this.calcTax();
@@ -625,6 +828,9 @@ const CoinCalculators = {
             this.fetchKimpData();
         } else if (tabId === 'water') {
             this.renderScenarioUI();
+            if (!this.currentScenarioId) {
+                this.restoreSavedOrDraftState();
+            }
         } else if (tabId === 'card') {
             const loggedUser = this.getLoggedInUsername();
             const nickEl = document.getElementById('cardNick');
@@ -1053,6 +1259,7 @@ const CoinCalculators = {
 
         // 4. 물타기 평단가 스텝(Step) 차트 렌더링
         this.renderWaterDcaStepChart(curPrice, tierProgressList, breakEvenPrice, newAvgPrice);
+        this.saveDraft();
     },
 
     renderWaterDcaStepChart: function (curPrice, tierProgressList, breakEvenPrice, newAvgPrice) {
