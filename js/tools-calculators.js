@@ -120,7 +120,7 @@ const CoinCalculators = {
             const docRef = firestore.collection('user_water_scenarios').doc(user.toLowerCase());
             let finalScenarios = list || [];
 
-            // 삭제가 아닌 신규 저장/수정 시, 다른 브라우저(크롬/엣지)에서 저장된 시나리오가 덮어써져 사라지지 않도록 클라우드의 최신 목록과 병합
+            // 삭제가 아닌 신규 저장/수정 시, 다른 브라우저(크롬/엣지/모바일)에서 저장된 시나리오가 덮어써져 사라지지 않도록 클라우드의 최신 목록과 병합
             if (!isDelete) {
                 try {
                     const snap = await docRef.get();
@@ -128,7 +128,8 @@ const CoinCalculators = {
                         const cloudList = snap.data().scenarios;
                         const merged = [...finalScenarios];
                         cloudList.forEach(cs => {
-                            if (!merged.some(m => m.id === cs.id || (m.title === cs.title && m.currentPrice === cs.currentPrice))) {
+                            const existingIdx = merged.findIndex(m => m.id === cs.id || (m.title === cs.title && m.currentPrice === cs.currentPrice));
+                            if (existingIdx === -1) {
                                 merged.push(cs);
                             }
                         });
@@ -181,9 +182,16 @@ const CoinCalculators = {
             merged = merged.filter(ls => !isGarbage(ls));
 
             cloudList.forEach(cs => {
-                if (!merged.some(ls => ls.id === cs.id || (ls.title === cs.title && ls.currentPrice === cs.currentPrice))) {
+                const existingIdx = merged.findIndex(ls => ls.id === cs.id || (ls.title === cs.title && ls.currentPrice === cs.currentPrice));
+                if (existingIdx === -1) {
                     merged.push(cs);
                     changed = true;
+                } else {
+                    const existing = merged[existingIdx];
+                    if (JSON.stringify(existing) !== JSON.stringify(cs)) {
+                        merged[existingIdx] = cs;
+                        changed = true;
+                    }
                 }
             });
 
@@ -228,11 +236,7 @@ const CoinCalculators = {
                 const cleanedCloud = cloudList.filter(cs => !isGarbage(cs));
 
                 const localList = this.getSavedScenarios();
-                const localIds = new Set(localList.map(s => s.id));
-                const cloudIds = new Set(cleanedCloud.map(s => s.id));
-
-                // 클라우드와 로컬의 개수나 ID가 다른 경우 실시간 자동 동기화
-                const isDifferent = (cleanedCloud.length !== localList.length) || cleanedCloud.some(cs => !localIds.has(cs.id)) || localList.some(ls => !cloudIds.has(ls.id));
+                const isDifferent = JSON.stringify(cleanedCloud) !== JSON.stringify(localList);
                 if (isDifferent) {
                     const primaryKey = this.getScenarioStorageKey();
                     const jsonStr = JSON.stringify(cleanedCloud);
@@ -241,6 +245,14 @@ const CoinCalculators = {
                     localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
                     localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
                     this.renderScenarioUI();
+
+                    // 현재 열려있는 시나리오가 다른 기기에서 수정되었거나 삭제된 경우 화면도 실시간 자동 동기화
+                    if (this.currentScenarioId) {
+                        const updatedActive = cleanedCloud.find(s => s.id === this.currentScenarioId);
+                        if (updatedActive) {
+                            this.loadScenario(this.currentScenarioId, false);
+                        }
+                    }
                 }
             }, err => {
                 console.warn('물타기 시나리오 실시간 리스너 오류:', err);
@@ -585,7 +597,13 @@ const CoinCalculators = {
 
         this.saveScenarioToCloud(list);
         this.renderScenarioUI();
-        this.showScenarioToast(`'${title}' 계획이 저장되었습니다.`);
+
+        const user = this.getLoggedInUsername();
+        if (!user || user === 'guest') {
+            this.showScenarioToast(`'${title}' 저장 완료 (⚠️ 비로그인: 이 기기 브라우저에만 보관됩니다)`);
+        } else {
+            this.showScenarioToast(`'${title}' 계획이 클라우드에 안전하게 동기화되었습니다.`);
+        }
     },
 
     // 선택된 시나리오 로드
@@ -1344,6 +1362,20 @@ const CoinCalculators = {
 
         const totalRoiPct = newTotalCost > 0 ? (totalRealizedProfit / newTotalCost) * 100 : 0;
 
+        // 원금 회수 및 익절 수익 반영 실질 평단가 (Effective Breakeven Unit Cost)
+        const netRemainingCost = newTotalCost - totalRecoveredCash;
+        let effectiveAvgPrice = 0;
+        let isFreeRoll = false;
+
+        if (remainingQty > 0) {
+            if (netRemainingCost <= 0) {
+                effectiveAvgPrice = 0;
+                isFreeRoll = true;
+            } else {
+                effectiveAvgPrice = netRemainingCost / remainingQty;
+            }
+        }
+
         // 포맷팅 헬퍼 (수량 소수점 최대 8자리, 가격 소수점 정밀 표기)
         const isUsd = (this.waterCurrency === 'USD');
         const currPrefix = isUsd ? '$' : '';
@@ -1393,6 +1425,19 @@ const CoinCalculators = {
         setTxt('waterResTotalSellRoi', (totalRoiPct >= 0 ? '+' : '') + totalRoiPct.toFixed(2) + '%');
         setTxt('waterResRecoveredCash', formatMoney(totalRecoveredCash));
         setTxt('waterResRemainingQty', formatCoinQty(remainingQty));
+
+        // 매도 후 실질 평단가 (원금 회수 기준)
+        if (totalRecoveredCash > 0) {
+            if (remainingQty <= 0) {
+                setTxt('waterResEffectiveAvgPrice', '전량 매도 완료');
+            } else if (isFreeRoll) {
+                setTxt('waterResEffectiveAvgPrice', (isUsd ? '$0' : '0원') + ' (원금 100% 회수 완료)');
+            } else {
+                setTxt('waterResEffectiveAvgPrice', formatPrice(effectiveAvgPrice));
+            }
+        } else {
+            setTxt('waterResEffectiveAvgPrice', formatPrice(newAvgPrice));
+        }
 
         const profitEl = document.getElementById('waterResTotalSellProfit');
         if (profitEl) {

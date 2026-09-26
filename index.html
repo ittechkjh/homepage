@@ -4097,6 +4097,7 @@
               <div class="p-3.5 sm:p-4 rounded-2xl bg-navy-900 border border-cyan-500/40 overflow-hidden">
                 <div class="text-[11px] text-slate-400 font-semibold truncate">새로운 예상 평단가</div>
                 <div id="waterResNewAvg" class="text-sm sm:text-base md:text-lg font-black text-cyan-400 font-mono mt-1 truncate" title="0원">0원</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate" title="거래소 이동평균법 기준 (매도 시 불변)">거래소 이동평균 기준</div>
               </div>
               <div class="p-3.5 sm:p-4 rounded-2xl bg-navy-900 border border-navy-800 overflow-hidden">
                 <div class="text-[11px] text-slate-400 font-semibold truncate">총 매수 수량</div>
@@ -4129,6 +4130,7 @@
               <div class="p-3.5 sm:p-4 rounded-2xl bg-navy-900 border border-navy-800 overflow-hidden">
                 <div class="text-[11px] text-slate-400 font-semibold truncate">매도 후 잔여 수량</div>
                 <div id="waterResRemainingQty" class="text-sm sm:text-base md:text-lg font-bold text-white font-mono mt-1 truncate" title="0">0</div>
+                <div class="text-[10px] text-cyan-300 font-mono mt-0.5 truncate" id="waterResEffectiveAvgWrap" title="매도로 회수한 금액(원금+익절수익)을 제외하고 남은 순 투자원금 기준 실질 평단가">실질평단: <span id="waterResEffectiveAvgPrice" class="font-bold">0원</span></div>
               </div>
             </div>
 
@@ -4189,6 +4191,14 @@
                   </thead>
                   <tbody id="waterSellSimTableBody"></tbody>
                 </table>
+              </div>
+              <div class="mt-2.5 p-3 rounded-xl bg-navy-950/70 border border-navy-800 text-[11px] text-slate-300 leading-relaxed flex items-start gap-2">
+                <span class="text-amber-400 text-sm shrink-0 mt-0.5">💡</span>
+                <div>
+                  <span class="font-bold text-amber-300">거래소 장부 평단가 vs 실질 잔여 평단가 안내:</span><br>
+                  • <strong class="text-white">거래소(업비트/빗썸/증권사)</strong>: 매도 시 수량만 차감되고 평단가는 이동평균법상 <strong class="text-cyan-300">매도 전과 동일하게 유지</strong>됩니다. (실현 손익은 현금 예수금으로 즉시 분리 확정)<br>
+                  • <strong class="text-white">실질 평단가(원금 회수 기준)</strong>: 매도로 회수한 원금/익절금을 제외한 순 잔여 투자금 기준이므로, <strong class="text-emerald-400">익절 매도를 할 때마다 남은 코인의 실질 본전 평단가는 대폭 낮아집니다.</strong> (투입 원금 100% 회수 시 실질 평단가 0원 / 무위험 포지션 전환)
+                </div>
               </div>
             </div>
 
@@ -8827,7 +8837,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260923_07"></script>
+  <script src="js/tools-calculators.js?v=20260923_08"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260921_04"></script>
 
