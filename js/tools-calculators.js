@@ -1145,8 +1145,10 @@ const CoinCalculators = {
             const isUsd = (this.waterCurrency === 'USD');
             tier.mode = newMode;
             if (newMode === 'pct') tier.val = 50;
-            else if (newMode === 'qty') tier.val = 0.2;
+            else if (newMode === 'qty') tier.val = (tier.val && tier.val > 0 && tier.val <= 100) ? tier.val : 1;
             else if (newMode === 'amount') tier.val = isUsd ? 10000 : 20000000;
+            this.renderSellTiers();
+            this.calcWater();
         }
     },
 
