@@ -295,6 +295,8 @@ const CoinCalculators = {
         if (!state) return;
         if (state.currency) {
             this.setWaterCurrency(state.currency);
+        } else {
+            this.setWaterCurrency('KRW');
         }
         const priceEl = document.getElementById('waterCurrentPrice');
         const qtyEl = document.getElementById('waterCurrentQty');
@@ -432,6 +434,8 @@ const CoinCalculators = {
 
         if (target.currency) {
             this.setWaterCurrency(target.currency);
+        } else {
+            this.setWaterCurrency('KRW');
         }
 
         const priceEl = document.getElementById('waterCurrentPrice');
@@ -492,38 +496,37 @@ const CoinCalculators = {
         if (priceEl) {
             priceEl.placeholder = isUsd ? '예: 65,000 (선택)' : '예: 95,000,000 (선택)';
             if (isSwitched) {
-                const curP = this.parseNum(priceEl.value);
-                if (isUsd) {
-                    if (curP >= 1000000 || curP === 95000000) {
-                        priceEl.value = '65,000';
-                    }
-                } else {
-                    if (curP <= 200000 || curP === 65000) {
-                        priceEl.value = '95,000,000';
-                    }
+                const curVal = (priceEl.value || '').trim().replace(/,/g, '');
+                // 사용자가 입력한 고유 평단가를 훼손하지 않음. 오직 초기 기본 데모값(95,000,000 / 65,000)이거나 빈 값일 때만 기본 예시값으로 전환
+                if (isUsd && (curVal === '95000000' || curVal === '')) {
+                    priceEl.value = '65,000';
+                } else if (!isUsd && (curVal === '65000' || curVal === '')) {
+                    priceEl.value = '95,000,000';
                 }
             }
         }
 
         if (isSwitched) {
-            if (isUsd) {
-                this.waterTiers.forEach(t => {
-                    if (t.price >= 1000000 || t.price === 78000000) t.price = 58000;
-                    if (t.mode === 'amount' && (t.val >= 1000000 || t.val === 10000000)) t.val = 5000;
-                });
-                this.sellTiers.forEach(t => {
-                    if (t.price >= 1000000 || t.price === 98000000 || t.price === 105000000) t.price = 72000;
-                    if (t.mode === 'amount' && (t.val >= 1000000 || t.val === 20000000)) t.val = 10000;
-                });
-            } else {
-                this.waterTiers.forEach(t => {
-                    if (t.price <= 200000 || t.price === 58000) t.price = 78000000;
-                    if (t.mode === 'amount' && (t.val <= 200000 || t.val === 5000)) t.val = 10000000;
-                });
-                this.sellTiers.forEach(t => {
-                    if (t.price <= 200000 || t.price === 72000) t.price = 98000000;
-                    if (t.mode === 'amount' && (t.val <= 200000 || t.val === 10000)) t.val = 20000000;
-                });
+            // 사용자의 실제 차수 데이터를 강제로 덮어쓰거나 변조하지 않음 (이전 비트코인/알트코인 수치 완전 보호)
+            // 오직 기본 데모 차수와 100% 일치할 때만 데모 샘플 전환
+            const isPureKrwDemoWater = (this.waterTiers.length === 1 && this.waterTiers[0].price === 78000000 && this.waterTiers[0].val === 10000000);
+            const isPureUsdDemoWater = (this.waterTiers.length === 1 && this.waterTiers[0].price === 58000 && this.waterTiers[0].val === 5000);
+
+            if (isUsd && isPureKrwDemoWater) {
+                this.waterTiers[0].price = 58000;
+                this.waterTiers[0].val = 5000;
+            } else if (!isUsd && isPureUsdDemoWater) {
+                this.waterTiers[0].price = 78000000;
+                this.waterTiers[0].val = 10000000;
+            }
+
+            const isPureKrwDemoSell = (this.sellTiers.length === 1 && this.sellTiers[0].price === 98000000 && this.sellTiers[0].val === 50);
+            const isPureUsdDemoSell = (this.sellTiers.length === 1 && this.sellTiers[0].price === 72000 && this.sellTiers[0].val === 50);
+
+            if (isUsd && isPureKrwDemoSell) {
+                this.sellTiers[0].price = 72000;
+            } else if (!isUsd && isPureUsdDemoSell) {
+                this.sellTiers[0].price = 98000000;
             }
         }
 
