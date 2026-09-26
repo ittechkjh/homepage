@@ -144,9 +144,10 @@ const CoinCalculators = {
             let merged = [...localList];
             let changed = false;
 
-            // 더미 기본 데모 데이터 제거 및 클라우드-로컬 데이터 병합
-            cloudList = (cloudList || []).filter(cs => cs.id !== 'dca_btc_krw_default');
-            merged = merged.filter(ls => ls.id !== 'dca_btc_krw_default');
+            // 더미 기본 데모 데이터 및 임시 작업 복구 데이터 자동 청소
+            const isGarbage = s => !s || s.id === 'dca_btc_krw_default' || (typeof s.id === 'string' && s.id.startsWith('draft_')) || (s.title && s.title.includes('작업 복구 데이터'));
+            cloudList = (cloudList || []).filter(cs => !isGarbage(cs));
+            merged = merged.filter(ls => !isGarbage(ls));
 
             cloudList.forEach(cs => {
                 if (!merged.some(ls => ls.id === cs.id || (ls.title === cs.title && ls.currentPrice === cs.currentPrice))) {
@@ -189,7 +190,8 @@ const CoinCalculators = {
 
         const addScenarioItem = (item) => {
             if (!item || typeof item !== 'object') return;
-            if (item.id === 'dca_btc_krw_default') return; // 더미 기본 데모 플랜 완전 배제
+            // 더미 기본 데모 플랜 및 임시 작업 복구 데이터 완전 배제
+            if (item.id === 'dca_btc_krw_default' || (typeof item.id === 'string' && item.id.startsWith('draft_')) || (item.title && item.title.includes('작업 복구 데이터'))) return;
             // 유효한 물타기 시나리오 검증: title 또는 waterTiers 또는 currentPrice 존재
             const hasTiers = (Array.isArray(item.waterTiers) && item.waterTiers.length > 0) || (Array.isArray(item.sellTiers) && item.sellTiers.length > 0);
             const hasPrice = (item.currentPrice !== undefined && item.currentPrice !== null && item.currentPrice !== '');
@@ -255,61 +257,40 @@ const CoinCalculators = {
             if (k !== primaryKey) tryParseAndAdd(localStorage.getItem(k));
         });
 
-        // 3. 브라우저 localStorage 전체 전수 스캔 (물타기 관련 모든 데이터 및 임시저장본 정밀 복구)
+        // 3. 브라우저 localStorage 전체 전수 스캔 (물타기 관련 저장된 계획 복구)
         try {
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
                 if (!k) continue;
                 const lower = k.toLowerCase();
-                if (lower.includes('analytic') || lower.includes('visit') || lower.includes('log') || lower.includes('view') || lower.includes('theme') || lower.includes('token')) continue;
+                // 분석/방문/테마/임시저장(draft, temp) 키는 정식 시나리오가 아니므로 건너뜀
+                if (lower.includes('analytic') || lower.includes('visit') || lower.includes('log') || lower.includes('view') || lower.includes('theme') || lower.includes('token') || lower.includes('draft') || lower.includes('temp')) continue;
                 if (lower.includes('scenario') || lower.includes('water') || lower.includes('dca') || lower.includes('calc') || lower.includes('plan')) {
-                    if (lower.includes('draft') || lower.includes('temp')) {
-                        try {
-                            const dObj = JSON.parse(localStorage.getItem(k));
-                            if (dObj && typeof dObj === 'object') {
-                                const curP = parseFloat(dObj.currentPrice) || 0;
-                                const curQ = parseFloat(dObj.currentQty) || 0;
-                                const tiers = Array.isArray(dObj.waterTiers) ? dObj.waterTiers : [];
-                                const isDummy = (curP === 95000000 && curQ === 0.5 && tiers.length === 1 && tiers[0].price === 78000000);
-                                if (!isDummy && (curP > 0 || curQ > 0 || tiers.length > 0)) {
-                                    addScenarioItem({
-                                        id: 'draft_' + (dObj.updatedAt || Date.now()),
-                                        title: `작업 복구 데이터 (${dObj.currency || 'KRW'})`,
-                                        currency: dObj.currency || 'KRW',
-                                        currentPrice: curP,
-                                        currentQty: curQ,
-                                        feeRate: dObj.feeRate || '0.05',
-                                        waterTiers: dObj.waterTiers || [],
-                                        sellTiers: dObj.sellTiers || [],
-                                        updatedAt: dObj.updatedAt ? new Date(dObj.updatedAt).toLocaleString('ko-KR') : '임시저장 복구'
-                                    });
-                                }
-                            }
-                        } catch (e) {}
-                    } else {
-                        tryParseAndAdd(localStorage.getItem(k));
-                    }
+                    tryParseAndAdd(localStorage.getItem(k));
                 }
             }
         } catch (e) {}
 
-        const cleanedList = mergedList.filter(s => s.id !== 'dca_btc_krw_default');
+        const cleanedList = mergedList.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
 
         // 4. 복구된 유효 데이터가 존재하면 기본 저장소 및 게스트 키에 안전 동기화 (영구 보존)
         if (cleanedList.length > 0) {
             try {
-                localStorage.setItem(primaryKey, JSON.stringify(cleanedList));
-                localStorage.setItem('crytopnl_dca_scenarios_guest', JSON.stringify(cleanedList));
-                localStorage.setItem('crytopnl_dca_scenarios', JSON.stringify(cleanedList));
+                const validJson = JSON.stringify(cleanedList);
+                localStorage.setItem(primaryKey, validJson);
+                localStorage.setItem('crytopnl_dca_scenarios_guest', validJson);
+                localStorage.setItem('crytopnl_dca_scenarios', validJson);
+                localStorage.setItem('crytopnl_dca_scenarios_admin', validJson);
             } catch (e) {}
         } else {
             // 더미 데이터만 있던 경우 저장소 청소
             try {
                 const currentRaw = localStorage.getItem(primaryKey);
-                if (currentRaw && currentRaw.includes('dca_btc_krw_default')) {
+                if (currentRaw && (currentRaw.includes('dca_btc_krw_default') || currentRaw.includes('draft_') || currentRaw.includes('작업 복구 데이터'))) {
                     localStorage.setItem(primaryKey, '[]');
                     localStorage.setItem('crytopnl_dca_scenarios_guest', '[]');
                     localStorage.setItem('crytopnl_dca_scenarios', '[]');
+                    localStorage.setItem('crytopnl_dca_scenarios_admin', '[]');
                 }
             } catch (e) {}
         }
@@ -335,9 +316,18 @@ const CoinCalculators = {
         return cleanedList;
     },
 
-    // 저장된 시나리오 목록 반환
+    // 저장된 시나리오 목록 반환 (저장소에서 직접 조회하여 불필요한 재스캔 및 자동 중복생성 방지)
     getSavedScenarios: function () {
-        return this.scanAndRecoverScenarios(false);
+        const primaryKey = this.getScenarioStorageKey();
+        try {
+            const raw = localStorage.getItem(primaryKey);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return parsed.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
+            }
+        } catch (e) {}
+        return [];
     },
 
     // 실시간 작업 내용 자동 임시 저장 (브라우저 종료 및 탭 전환 시 유실 방지)
@@ -667,7 +657,7 @@ const CoinCalculators = {
 
         this.currentScenarioId = null;
         if (filtered.length > 0) {
-            this.loadScenario(filtered[0].id);
+            this.loadScenario(filtered[0].id, false);
         } else {
             this.resetScenario();
         }
