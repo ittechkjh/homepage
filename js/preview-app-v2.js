@@ -6309,6 +6309,9 @@ async function handleUnifiedLoginSubmit(e) {
     if (AnalyzerApp.updateUserBanner) AnalyzerApp.updateUserBanner();
     if (typeof CloudSyncManager !== 'undefined') CloudSyncManager.updateUI();
   }
+  if (typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.syncScenariosWithCloud === 'function') {
+    CoinCalculators.syncScenariosWithCloud();
+  }
 
   alert(`반갑습니다, ${id}님! 로그인이 완료되었습니다.`);
 }
@@ -6326,6 +6329,9 @@ function handleLogout() {
     updateAdminNavVisibility();
     if (typeof AnalyzerApp !== 'undefined' && AnalyzerApp.loadSavedTrades) {
       AnalyzerApp.loadSavedTrades();
+    }
+    if (typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.renderScenarioUI === 'function') {
+      CoinCalculators.renderScenarioUI();
     }
     alert('로그아웃되었습니다.');
     switchTab('forum');

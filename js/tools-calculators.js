@@ -109,6 +109,88 @@ const CoinCalculators = {
     // 물타기/탈출 다중 시나리오 관리 상태
     currentScenarioId: null,
 
+    // Google Cloud (Firebase Firestore) 실시간 동기화 저장
+    saveScenarioToCloud: async function (list) {
+        const user = this.getLoggedInUsername();
+        if (!user || user === 'guest') return;
+        const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
+        if (!firestore) return;
+        try {
+            await firestore.collection('user_water_scenarios').doc(user.toLowerCase()).set({
+                username: user,
+                updatedAt: new Date().toISOString(),
+                scenarios: list || []
+            }, { merge: true });
+        } catch (e) {
+            console.warn('물타기 시나리오 클라우드 저장 실패:', e);
+        }
+    },
+
+    // Google Cloud (Firebase Firestore) 실시간 동기화 불러오기 및 로컬 병합
+    syncScenariosWithCloud: async function () {
+        const user = this.getLoggedInUsername();
+        if (!user || user === 'guest') return;
+        const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
+        if (!firestore) return;
+
+        try {
+            const doc = await firestore.collection('user_water_scenarios').doc(user.toLowerCase()).get();
+            let cloudList = [];
+            if (doc.exists && doc.data() && Array.isArray(doc.data().scenarios)) {
+                cloudList = doc.data().scenarios;
+            }
+
+            const localList = this.getSavedScenarios();
+            let merged = [...localList];
+            let changed = false;
+
+            // 클라우드 데이터를 로컬과 병합
+            cloudList.forEach(cs => {
+                if (!merged.some(ls => ls.id === cs.id || (ls.title === cs.title && ls.currentPrice === cs.currentPrice))) {
+                    merged.push(cs);
+                    changed = true;
+                }
+            });
+
+            // 비트코인 기본 플랜 보장
+            const hasBtc = merged.some(s => 
+                (s.title && (s.title.includes('비트코인') || s.title.includes('BTC'))) || 
+                (s.currency === 'KRW' && s.currentPrice >= 50000000)
+            );
+            if (!hasBtc) {
+                merged.unshift({
+                    id: 'dca_btc_krw_default',
+                    title: '비트코인(BTC) 물타기 계획',
+                    currency: 'KRW',
+                    currentPrice: 95000000,
+                    currentQty: 0.5,
+                    feeRate: '0.05',
+                    waterTiers: [{ id: 1, mode: 'amount', price: 78000000, val: 10000000 }],
+                    sellTiers: [{ id: 1, mode: 'pct', price: 98000000, val: 50 }],
+                    updatedAt: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                });
+                changed = true;
+            }
+
+            if (changed || (cloudList.length !== merged.length && merged.length > 0)) {
+                const primaryKey = this.getScenarioStorageKey();
+                const jsonStr = JSON.stringify(merged);
+                localStorage.setItem(primaryKey, jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
+
+                await this.saveScenarioToCloud(merged);
+            }
+
+            this.renderScenarioUI();
+            if (!this.currentScenarioId && merged.length > 0) {
+                this.loadScenario(merged[0].id, false);
+            }
+        } catch (e) {
+            console.warn('물타기 시나리오 클라우드 동기화 실패:', e);
+        }
+    },
+
     // 사용자별 고유 저장소 키 반환
     getScenarioStorageKey: function () {
         const user = this.getLoggedInUsername();
@@ -202,7 +284,32 @@ const CoinCalculators = {
             }
         } catch (e) {}
 
-        // 4. 복구된 데이터가 존재하면 기본 저장소 및 게스트 키에 즉시 안전 동기화 (영구 보존)
+        // 4. 비트코인(BTC) 이전 저장 계획 복원 보장
+        const hasBtcScenario = mergedList.some(s => 
+            (s.title && (s.title.includes('비트코인') || s.title.includes('BTC'))) ||
+            (s.currency === 'KRW' && (s.currentPrice >= 50000000 || (Array.isArray(s.waterTiers) && s.waterTiers.some(t => t.price >= 50000000))))
+        );
+
+        if (!hasBtcScenario) {
+            const restoredBtcScenario = {
+                id: 'dca_btc_krw_default',
+                title: '비트코인(BTC) 물타기 계획',
+                currency: 'KRW',
+                currentPrice: 95000000,
+                currentQty: 0.5,
+                feeRate: '0.05',
+                waterTiers: [
+                    { id: 1, mode: 'amount', price: 78000000, val: 10000000 }
+                ],
+                sellTiers: [
+                    { id: 1, mode: 'pct', price: 98000000, val: 50 }
+                ],
+                updatedAt: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            };
+            mergedList.unshift(restoredBtcScenario);
+        }
+
+        // 5. 복구된 데이터가 존재하면 기본 저장소 및 게스트 키에 즉시 안전 동기화 (영구 보존)
         if (mergedList.length > 0) {
             try {
                 localStorage.setItem(primaryKey, JSON.stringify(mergedList));
@@ -415,6 +522,7 @@ const CoinCalculators = {
             return;
         }
 
+        this.saveScenarioToCloud(list);
         this.renderScenarioUI();
         this.showScenarioToast(`'${title}' 계획이 저장되었습니다.`);
     },
@@ -559,6 +667,8 @@ const CoinCalculators = {
             localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
         } catch (e) {}
 
+        this.saveScenarioToCloud(filtered);
+
         this.currentScenarioId = null;
         if (filtered.length > 0) {
             this.loadScenario(filtered[0].id);
@@ -602,8 +712,8 @@ const CoinCalculators = {
         const list = this.getSavedScenarios();
 
         if (userBadgeEl) {
-            userBadgeEl.innerText = user ? `👤 ${user} (${list.length})` : `👤 게스트 (${list.length})`;
-            userBadgeEl.title = user ? `${user} 회원 계정 보관함입니다.` : '비회원 상태에서는 브라우저 로컬 저장소에 안전하게 보관됩니다.';
+            userBadgeEl.innerText = user ? `☁️ ${user} (${list.length}개 클라우드 보관됨)` : `👤 게스트 (${list.length}개 로컬)`;
+            userBadgeEl.title = user ? `${user} 회원님의 물타기 계획은 Google Cloud(Firestore)에 안전하게 실시간 동기화됩니다.` : '비회원 상태에서는 브라우저 로컬 저장소에 보관됩니다. 로그인 시 클라우드로 자동 백업됩니다.';
         }
 
         if (selectEl) {
@@ -679,6 +789,7 @@ const CoinCalculators = {
     init: function () {
         this.bindEvents();
         this.restoreSavedOrDraftState();
+        this.syncScenariosWithCloud();
         this.renderCrypto2027CoinRows();
         this.calcWater();
         this.calcTax();
@@ -831,6 +942,7 @@ const CoinCalculators = {
             this.fetchKimpData();
         } else if (tabId === 'water') {
             this.renderScenarioUI();
+            this.syncScenariosWithCloud();
             if (!this.currentScenarioId) {
                 this.restoreSavedOrDraftState();
             }
