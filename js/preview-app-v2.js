@@ -5432,18 +5432,6 @@ let CRYPTO_EVENTS = [
     {
         "id":  1,
         "date":  "2026-09-04",
-        "time":  "21:30 (KST)",
-        "category":  "macro",
-        "categoryName":  "🏦 FOMC/거시경제",
-        "coin":  "NFP",
-        "title":  "미국 8월 비농업 고용보고서(NFP) 및 실업률 발표",
-        "desc":  "연준(Fed) 9월 금리 결정의 핵심 고용 지표. 비농업 신규고용 및 실업률 공식 발표 완료.",
-        "impact":  "HIGH IMPACT",
-        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
-    },
-    {
-        "id":  2,
-        "date":  "2026-09-04",
         "time":  "10:00 (KST)",
         "category":  "conference",
         "categoryName":  "🌐 글로벌 컨퍼런스",
@@ -5452,6 +5440,18 @@ let CRYPTO_EVENTS = [
         "desc":  "아시아 최대 블록체인 행사로 글로벌 주요 L1/L2 파운더 및 국내 기관 투자자 대거 참석.",
         "impact":  "BULLISH",
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  2,
+        "date":  "2026-09-04",
+        "time":  "21:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "NFP",
+        "title":  "미국 8월 비농업 고용보고서(NFP) 및 실업률 발표",
+        "desc":  "연준(Fed) 9월 금리 결정의 핵심 고용 지표. 비농업 신규고용 및 실업률 공식 발표 완료.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
         "id":  3,
@@ -5492,18 +5492,6 @@ let CRYPTO_EVENTS = [
     {
         "id":  6,
         "date":  "2026-09-11",
-        "time":  "18:00 (KST)",
-        "category":  "unlock",
-        "categoryName":  "🔓 토큰 락업해제",
-        "coin":  "APT",
-        "title":  "앱토스(APT) 1,130만 개 팀 및 재단 락업 해제",
-        "desc":  "약 7,200만 달러 규모 물량 언락. 온체인 스테이킹 비율 변동 및 DEX 유동성 추이 주목.",
-        "impact":  "VOLATILE",
-        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
-    },
-    {
-        "id":  7,
-        "date":  "2026-09-11",
         "time":  "21:30 (KST)",
         "category":  "macro",
         "categoryName":  "🏦 FOMC/거시경제",
@@ -5512,6 +5500,18 @@ let CRYPTO_EVENTS = [
         "desc":  "인플레이션 둔화 추세 지속 여부 확인. 9월 FOMC 기준금리 인하 폭 결정을 위한 핵심 지표.",
         "impact":  "CRITICAL",
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  7,
+        "date":  "2026-09-11",
+        "time":  "18:00 (KST)",
+        "category":  "unlock",
+        "categoryName":  "🔓 토큰 락업해제",
+        "coin":  "APT",
+        "title":  "앱토스(APT) 1,130만 개 팀 및 재단 락업 해제",
+        "desc":  "약 7,200만 달러 규모 물량 언락. 온체인 스테이킹 비율 변동 및 DEX 유동성 추이 주목.",
+        "impact":  "VOLATILE",
+        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
         "id":  8,
@@ -5589,18 +5589,6 @@ let CRYPTO_EVENTS = [
         "id":  14,
         "date":  "2026-09-25",
         "time":  "17:00 (KST)",
-        "category":  "unlock",
-        "categoryName":  "🔓 토큰 락업해제",
-        "coin":  "ARB",
-        "title":  "아비트럼(ARB) 9,260만 개 팀 및 고문 물량 락업 해제",
-        "desc":  "L2 생태계 핵심 토큰의 정기 락업 해제. 탈중앙화 거버넌스 투표율 및 스테이킹 보상 정책 연계 주목.",
-        "impact":  "VOLATILE",
-        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
-    },
-    {
-        "id":  15,
-        "date":  "2026-09-25",
-        "time":  "17:00 (KST)",
         "category":  "macro",
         "categoryName":  "🏦 파생/만기",
         "coin":  "EXPIRY",
@@ -5610,7 +5598,31 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
+        "id":  15,
+        "date":  "2026-09-25",
+        "time":  "17:00 (KST)",
+        "category":  "unlock",
+        "categoryName":  "🔓 토큰 락업해제",
+        "coin":  "ARB",
+        "title":  "아비트럼(ARB) 9,260만 개 팀 및 고문 물량 락업 해제",
+        "desc":  "L2 생태계 핵심 토큰의 정기 락업 해제. 탈중앙화 거버넌스 투표율 및 스테이킹 보상 정책 연계 주목.",
+        "impact":  "VOLATILE",
+        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
+    },
+    {
         "id":  16,
+        "date":  "2026-09-27",
+        "time":  "21:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "PCE",
+        "title":  "미국 8월 개인소비지출(PCE) 물가지수 발표",
+        "desc":  "연준(Fed)이 기준금리 결정 시 가장 중요하게 참고하는 근원 인플레이션 선호 지표 발표.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  17,
         "date":  "2026-09-28",
         "time":  "23:00 (KST)",
         "category":  "policy",
@@ -5622,7 +5634,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  17,
+        "id":  18,
         "date":  "2026-09-29",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5634,7 +5646,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  18,
+        "id":  19,
         "date":  "2026-09-30",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5646,7 +5658,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  19,
+        "id":  20,
         "date":  "2026-09-30",
         "time":  "20:00 (KST)",
         "category":  "upgrade",
@@ -5658,7 +5670,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  20,
+        "id":  21,
         "date":  "2026-10-01",
         "time":  "09:00 (KST)",
         "category":  "unlock",
@@ -5670,7 +5682,31 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  21,
+        "id":  22,
+        "date":  "2026-10-01",
+        "time":  "23:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "JOLTS",
+        "title":  "미국 8월 JOLTs 구인·이직 보고서 발표",
+        "desc":  "미국 노동시장 냉각 속도와 노동 수요 건전성을 가늠하는 핵심 고용 지표.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  23,
+        "date":  "2026-10-01",
+        "time":  "02:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "제롬 파월 연준 의장 전미실물경제협회(NABE) 기조연설",
+        "desc":  "9월 빅컷(50bp) 금리 인하 이후 향후 통화정책 완화 속도에 대한 파월 의장의 직접 발언.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  24,
         "date":  "2026-10-02",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -5682,7 +5718,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  22,
+        "id":  25,
         "date":  "2026-10-03",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5694,7 +5730,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  23,
+        "id":  26,
         "date":  "2026-10-04",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5706,7 +5742,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  24,
+        "id":  27,
         "date":  "2026-10-05",
         "time":  "14:00 (KST)",
         "category":  "upgrade",
@@ -5718,7 +5754,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  25,
+        "id":  28,
         "date":  "2026-10-08",
         "time":  "11:00 (KST)",
         "category":  "upgrade",
@@ -5730,7 +5766,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  26,
+        "id":  29,
+        "date":  "2026-10-08",
+        "time":  "03:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "미국 9월 연방공개시장위원회(FOMC) 회의록 공개",
+        "desc":  "연준 위원들의 향후 금리 인하 경로, 점도표 전망, 양적긴축(QT) 속도 조절에 대한 상세 속기록 확인.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  30,
         "date":  "2026-10-10",
         "time":  "16:00 (KST)",
         "category":  "upgrade",
@@ -5742,7 +5790,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  27,
+        "id":  31,
         "date":  "2026-10-11",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5754,7 +5802,31 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  28,
+        "id":  32,
+        "date":  "2026-10-12",
+        "time":  "23:00 (KST)",
+        "category":  "policy",
+        "categoryName":  "⚖️ 규제/법안",
+        "coin":  "SEC",
+        "title":  "미국 SEC, 이더리움(ETH) 현물 ETF 옵션 거래 승인 최종 판결 기한",
+        "desc":  "시카고옵션거래소(CBOE) 및 뉴욕증권거래소가 상장 신청한 이더리움 현물 ETF 파생상품 옵션 거래 최종 심사.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  33,
+        "date":  "2026-10-14",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "DUBAI",
+        "title":  "블록체인 라이프 2026 두바이 (Blockchain Life) 개막",
+        "desc":  "중동 최대 글로벌 가상자산 및 채굴·Web3 투자 서밋. 12,000명 이상의 글로벌 고래와 VC 참가.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  34,
         "date":  "2026-10-14",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -5766,7 +5838,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  29,
+        "id":  35,
         "date":  "2026-10-15",
         "time":  "15:00 (KST)",
         "category":  "upgrade",
@@ -5778,19 +5850,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  30,
-        "date":  "2026-10-15",
-        "time":  "18:00 (KST)",
-        "category":  "unlock",
-        "categoryName":  "🔓 토큰 락업해제",
-        "coin":  "SEI",
-        "title":  "세이(SEI) 1억 2,500만 개 생태계 리저브 및 파트너 물량 해제",
-        "desc":  "병렬 EVM L1 세이의 정기 리저브 해제. 온체인 DEX 오더북 유동성 변동 모니터링.",
-        "impact":  "VOLATILE",
-        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
-    },
-    {
-        "id":  31,
+        "id":  36,
         "date":  "2026-10-15",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5802,7 +5862,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  32,
+        "id":  37,
         "date":  "2026-10-15",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -5814,7 +5874,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  33,
+        "id":  38,
+        "date":  "2026-10-15",
+        "time":  "18:00 (KST)",
+        "category":  "unlock",
+        "categoryName":  "🔓 토큰 락업해제",
+        "coin":  "SEI",
+        "title":  "세이(SEI) 1억 2,500만 개 생태계 리저브 및 파트너 물량 해제",
+        "desc":  "병렬 EVM L1 세이의 정기 리저브 해제. 온체인 DEX 오더북 유동성 변동 모니터링.",
+        "impact":  "VOLATILE",
+        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
+    },
+    {
+        "id":  39,
         "date":  "2026-10-16",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5826,7 +5898,31 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  34,
+        "id":  40,
+        "date":  "2026-10-16",
+        "time":  "21:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "RETAIL",
+        "title":  "미국 9월 소매판매(Retail Sales) 지표 발표",
+        "desc":  "미국 경제의 70%를 차지하는 소비 활동의 견고함과 경기 침체 우려 해소 여부 확인.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  41,
+        "date":  "2026-10-17",
+        "time":  "21:15 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "ECB",
+        "title":  "유럽중앙은행(ECB) 기준금리 결정 및 통화정책 회의",
+        "desc":  "크리스틴 라가르드 ECB 총재의 유로존 통화정책 완화 기조 및 글로벌 유동성 영향 발표.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  42,
         "date":  "2026-10-17",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5838,7 +5934,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  35,
+        "id":  43,
         "date":  "2026-10-18",
         "time":  "10:00 (KST)",
         "category":  "upgrade",
@@ -5850,7 +5946,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  36,
+        "id":  44,
         "date":  "2026-10-20",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5862,19 +5958,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  37,
-        "date":  "2026-10-21",
-        "time":  "15:00 (KST)",
-        "category":  "upgrade",
-        "categoryName":  "🚀 메인넷/업그레이드",
-        "coin":  "AVAX",
-        "title":  "아발란체(AVAX) Avalanche9000 메인넷 업그레이드 (ACP-77)",
-        "desc":  "C체인 기본 가스비 96% 절감 및 L1 서브넷 검증자 스테이킹 진입 장벽을 획기적으로 낮춘 초대형 업그레이드.",
-        "impact":  "BULLISH",
-        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
-    },
-    {
-        "id":  38,
+        "id":  45,
         "date":  "2026-10-21",
         "time":  "10:00 (KST)",
         "category":  "conference",
@@ -5886,7 +5970,43 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
     },
     {
-        "id":  39,
+        "id":  46,
+        "date":  "2026-10-21",
+        "time":  "15:00 (KST)",
+        "category":  "upgrade",
+        "categoryName":  "🚀 메인넷/업그레이드",
+        "coin":  "AVAX",
+        "title":  "아발란체(AVAX) Avalanche9000 메인넷 업그레이드 (ACP-77)",
+        "desc":  "C체인 기본 가스비 96% 절감 및 L1 서브넷 검증자 스테이킹 진입 장벽을 획기적으로 낮춘 초대형 업그레이드.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  47,
+        "date":  "2026-10-22",
+        "time":  "03:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "미국 연준 경기동향 보고서(베이지북) 공개",
+        "desc":  "11월 FOMC 금리 결정을 2주 앞두고 미국 12개 연방준비은행 관할 지역의 경기 상황 종합 진단.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  48,
+        "date":  "2026-10-23",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "EBC",
+        "title":  "유럽 블록체인 컨벤션 (EBC 2026 바르셀로나)",
+        "desc":  "유럽 최대 가상자산 기관 컨퍼런스. 6,000명 이상의 기관 투자자와 은행권 블록체인 책임자 참석.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  49,
         "date":  "2026-10-24",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5898,7 +6018,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  40,
+        "id":  50,
         "date":  "2026-10-25",
         "time":  "16:00 (KST)",
         "category":  "upgrade",
@@ -5910,7 +6030,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  41,
+        "id":  51,
+        "date":  "2026-10-25",
+        "time":  "18:00 (KST)",
+        "category":  "policy",
+        "categoryName":  "⚖️ 규제/법안",
+        "coin":  "MICA",
+        "title":  "유럽연합(EU) MiCA 2단계 암호자산 규제 전면 시행 점검",
+        "desc":  "유럽 경제지역 내 미승인 스테이블코인 상장 폐지 및 CASP(가상자산 서비스 제공자) 라이선스 전면 의무화.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  52,
         "date":  "2026-10-28",
         "time":  "14:00 (KST)",
         "category":  "upgrade",
@@ -5922,7 +6054,55 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  42,
+        "id":  53,
+        "date":  "2026-10-29",
+        "time":  "21:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "GDP",
+        "title":  "미국 3분기 실질 국내총생산(GDP) 속보치 발표",
+        "desc":  "미국 경제 성장률의 연착륙 성공 여부를 판가름할 3분기 공식 GDP 첫 번째 추정치.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  54,
+        "date":  "2026-10-29",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "BINANCE",
+        "title":  "바이낸스 블록체인 위크 2026 (BBW 두바이) 개막",
+        "desc":  "바이낸스 공식 연례 글로벌 컨퍼런스. 리차드 텅 CEO 기조연설 및 차세대 웹3 프로덕트 로드맵 발표.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  55,
+        "date":  "2026-10-30",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "LINK",
+        "title":  "체인링크 스마트콘 2026 (SmartCon) 공식 개막",
+        "desc":  "체인링크 재단 주최 글로벌 서밋. 실물자산 토큰화(RWA) 및 글로벌 전통 금융과 온체인 융합 신제품 공개.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  56,
+        "date":  "2026-10-30",
+        "time":  "21:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "PCE",
+        "title":  "미국 9월 개인소비지출(PCE) 물가지수 발표",
+        "desc":  "11월 7일 예정된 FOMC 직전에 발표되는 마지막 핵심 물가 데이터.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  57,
         "date":  "2026-10-31",
         "time":  "09:00 (KST)",
         "category":  "unlock",
@@ -5934,7 +6114,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  43,
+        "id":  58,
         "date":  "2026-10-31",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5946,19 +6126,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  44,
-        "date":  "2026-11-01",
-        "time":  "09:00 (KST)",
-        "category":  "unlock",
-        "categoryName":  "🔓 토큰 락업해제",
-        "coin":  "SUI",
-        "title":  "수이(SUI) 6,420만 개 11월 정기 토큰 락업 해제",
-        "desc":  "생태계 및 스테이킹 보상 물량 해제. 총 락업해제 누적 물량과 현물 매도벽 압력 확인.",
-        "impact":  "VOLATILE",
-        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
+        "id":  59,
+        "date":  "2026-10-31",
+        "time":  "12:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "BOJ",
+        "title":  "일본은행(BOJ) 정책금리 결정 및 경제전망 발표",
+        "desc":  "우에다 가즈오 총재 기자회견. 엔화 강세 및 엔캐리 트레이드 청산에 따른 글로벌 가상자산 변동성 주시.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  45,
+        "id":  60,
         "date":  "2026-11-01",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -5970,7 +6150,43 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  46,
+        "id":  61,
+        "date":  "2026-11-01",
+        "time":  "09:00 (KST)",
+        "category":  "unlock",
+        "categoryName":  "🔓 토큰 락업해제",
+        "coin":  "SUI",
+        "title":  "수이(SUI) 6,420만 개 11월 정기 토큰 락업 해제",
+        "desc":  "생태계 및 스테이킹 보상 물량 해제. 총 락업해제 누적 물량과 현물 매도벽 압력 확인.",
+        "impact":  "VOLATILE",
+        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
+    },
+    {
+        "id":  62,
+        "date":  "2026-11-03",
+        "time":  "23:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "JOLTS",
+        "title":  "미국 9월 JOLTs 구인·이직 보고서 발표",
+        "desc":  "고용 수요 건전성 및 노동시장 완화 추이 점검.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  63,
+        "date":  "2026-11-04",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "HK",
+        "title":  "홍콩 핀테크 위크 2026 (Hong Kong FinTech Week)",
+        "desc":  "아시아 금융 허브 홍콩의 글로벌 핀테크 및 가상자산 규제 준수 라이선스 제도 발표 서밋.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  64,
         "date":  "2026-11-05",
         "time":  "15:00 (KST)",
         "category":  "upgrade",
@@ -5982,7 +6198,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  47,
+        "id":  65,
         "date":  "2026-11-06",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -5994,7 +6210,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  48,
+        "id":  66,
         "date":  "2026-11-08",
         "time":  "14:00 (KST)",
         "category":  "upgrade",
@@ -6006,19 +6222,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  49,
-        "date":  "2026-11-11",
-        "time":  "18:00 (KST)",
-        "category":  "unlock",
-        "categoryName":  "🔓 토큰 락업해제",
-        "coin":  "APT",
-        "title":  "앱토스(APT) 1,131만 개 11월 정기 팀/재단 락업 해제",
-        "desc":  "정기 언락 진행. 메인넷 업그레이드와 연계된 유통량 흡수력 및 생태계 스테이킹 동향 주목.",
-        "impact":  "VOLATILE",
-        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
-    },
-    {
-        "id":  50,
+        "id":  67,
         "date":  "2026-11-11",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -6030,31 +6234,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  51,
-        "date":  "2026-11-12",
-        "time":  "10:00 (KST)",
-        "category":  "conference",
-        "categoryName":  "🌐 글로벌 컨퍼런스",
-        "coin":  "ETH",
-        "title":  "이더리움 데브콘 7 (Devcon SEA 방콕) 공식 개막",
-        "desc":  "이더리움 재단 공식 연례 글로벌 행사. 비탈릭 부테린 기조연설 및 펙트라(Pectra) 하드포크 로드맵 발표.",
-        "impact":  "BULLISH",
-        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+        "id":  68,
+        "date":  "2026-11-11",
+        "time":  "18:00 (KST)",
+        "category":  "unlock",
+        "categoryName":  "🔓 토큰 락업해제",
+        "coin":  "APT",
+        "title":  "앱토스(APT) 1,131만 개 11월 정기 팀/재단 락업 해제",
+        "desc":  "정기 언락 진행. 메인넷 업그레이드와 연계된 유통량 흡수력 및 생태계 스테이킹 동향 주목.",
+        "impact":  "VOLATILE",
+        "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  52,
-        "date":  "2026-11-12",
-        "time":  "16:00 (KST)",
-        "category":  "upgrade",
-        "categoryName":  "🚀 메인넷/업그레이드",
-        "coin":  "ETH",
-        "title":  "이더리움(ETH) 프라하(Pectra) 2차 통합 테스트넷(Holesky) 가동",
-        "desc":  "EIP-7702 계정 추상화 및 밸리데이터 스테이킹 한도 개편에 대한 최종 대규모 통합 테스트 진행.",
-        "impact":  "BULLISH",
-        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
-    },
-    {
-        "id":  53,
+        "id":  69,
         "date":  "2026-11-12",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -6066,7 +6258,43 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  54,
+        "id":  70,
+        "date":  "2026-11-12",
+        "time":  "16:00 (KST)",
+        "category":  "upgrade",
+        "categoryName":  "🚀 메인넷/업그레이드",
+        "coin":  "ETH",
+        "title":  "이더리움(ETH) 프라하(Pectra) 2차 통합 테스트넷(Holesky) 가동",
+        "desc":  "EIP-7702 계정 추상화 및 밸리데이터 스테이킹 한도 개편에 대한 최종 대규모 통합 테스트 진행.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  71,
+        "date":  "2026-11-12",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "ETH",
+        "title":  "이더리움 데브콘 7 (Devcon SEA 방콕) 공식 개막",
+        "desc":  "이더리움 재단 공식 연례 글로벌 행사. 비탈릭 부테린 기조연설 및 펙트라(Pectra) 하드포크 로드맵 발표.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  72,
+        "date":  "2026-11-14",
+        "time":  "05:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "제롬 파월 연준 의장 댈러스 연은 경제 대담",
+        "desc":  "11월 FOMC 이후 경제 전망과 인플레이션 목표 달성에 대한 파월 의장의 후속 공식 평가.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  73,
         "date":  "2026-11-15",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6078,7 +6306,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  55,
+        "id":  74,
         "date":  "2026-11-15",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6090,7 +6318,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  56,
+        "id":  75,
+        "date":  "2026-11-15",
+        "time":  "23:00 (KST)",
+        "category":  "policy",
+        "categoryName":  "⚖️ 규제/법안",
+        "coin":  "CFTC",
+        "title":  "미국 상품선물거래위원회(CFTC) 디파이(DeFi) 규제 가이드라인 공청회",
+        "desc":  "탈중앙화 프로토콜의 파생상품 거래 등록 요건 및 스마트 컨트랙트 규제 관할권 공식 논의.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  76,
         "date":  "2026-11-16",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6102,7 +6342,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  57,
+        "id":  77,
+        "date":  "2026-11-17",
+        "time":  "22:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "RETAIL",
+        "title":  "미국 10월 소매판매(Retail Sales) 지표 발표",
+        "desc":  "연말 쇼핑 시즌(블랙프라이데이)을 앞둔 미국 소비 심리 및 실질 지출 추이.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  78,
         "date":  "2026-11-18",
         "time":  "14:00 (KST)",
         "category":  "upgrade",
@@ -6114,7 +6366,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  58,
+        "id":  79,
         "date":  "2026-11-19",
         "time":  "03:00 (KST)",
         "category":  "macro",
@@ -6126,7 +6378,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  59,
+        "id":  80,
+        "date":  "2026-11-20",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "BTC",
+        "title":  "비트코인 암스테르담 2026 (Bitcoin Amsterdam)",
+        "desc":  "유럽 최대 비트코인 단독 글로벌 서밋. 라이트닝 네트워크, 기관 커스터디, 레이어2 생태계 논의.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  81,
         "date":  "2026-11-20",
         "time":  "15:00 (KST)",
         "category":  "upgrade",
@@ -6138,7 +6402,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  60,
+        "id":  82,
         "date":  "2026-11-20",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6150,7 +6414,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  61,
+        "id":  83,
         "date":  "2026-11-24",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6162,7 +6426,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  62,
+        "id":  84,
         "date":  "2026-11-25",
         "time":  "16:00 (KST)",
         "category":  "upgrade",
@@ -6174,7 +6438,55 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  63,
+        "id":  85,
+        "date":  "2026-11-25",
+        "time":  "22:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "GDP",
+        "title":  "미국 3분기 국내총생산(GDP) 잠정치 발표",
+        "desc":  "3분기 경제 성장률 데이터 수정치 반영 및 소비·투자 세부 기여도 분석.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  86,
+        "date":  "2026-11-26",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "DOT",
+        "title":  "폴카닷 디코드 2026 아시아 (Polkadot Decoded)",
+        "desc":  "폴카닷 2.0 코어타임(Coretime) 마켓 메인넷 적용 및 파라체인 인터체인 생태계 쇼케이스.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  87,
+        "date":  "2026-11-26",
+        "time":  "04:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "미국 11월 연방공개시장위원회(FOMC) 회의록 공개",
+        "desc":  "12월 금리 결정에 대한 연준 위원들의 세부 의견 차이 및 유동성 환경 진단.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  88,
+        "date":  "2026-11-27",
+        "time":  "22:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "PCE",
+        "title":  "미국 10월 개인소비지출(PCE) 물가지수 발표",
+        "desc":  "12월 마지막 FOMC 금리 결정을 가늠할 핵심 인플레이션 수치.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  89,
         "date":  "2026-11-30",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6186,7 +6498,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  64,
+        "id":  90,
         "date":  "2026-12-01",
         "time":  "09:00 (KST)",
         "category":  "unlock",
@@ -6198,7 +6510,43 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  65,
+        "id":  91,
+        "date":  "2026-12-02",
+        "time":  "23:00 (KST)",
+        "category":  "policy",
+        "categoryName":  "⚖️ 규제/법안",
+        "coin":  "SEC",
+        "title":  "미국 SEC, 비트코인·이더리움 복합 바스켓(Crypto Basket) ETF 심사 마감",
+        "desc":  "단일 코인이 아닌 시총 상위 복합 가상자산 인덱스 기반 현물 ETF 상품 승인 여부 1차 결정.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  92,
+        "date":  "2026-12-03",
+        "time":  "04:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "FED",
+        "title":  "미국 연준 경기동향 보고서(베이지북) 공개",
+        "desc":  "12월 FOMC 연방공개시장위원회 직전 전미 지역별 경기 진단 보고서.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  93,
+        "date":  "2026-12-03",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "TAIPEI",
+        "title":  "타이베이 블록체인 위크 2026 (Taipei Blockchain Week)",
+        "desc":  "대만 최대 웹3 및 탈중앙화 AI 인프라(DePIN) 글로벌 개발자 행사.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
+    },
+    {
+        "id":  94,
         "date":  "2026-12-04",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -6210,7 +6558,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  66,
+        "id":  95,
         "date":  "2026-12-05",
         "time":  "15:00 (KST)",
         "category":  "upgrade",
@@ -6222,7 +6570,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  67,
+        "id":  96,
+        "date":  "2026-12-09",
+        "time":  "10:00 (KST)",
+        "category":  "conference",
+        "categoryName":  "🌐 글로벌 컨퍼런스",
+        "coin":  "MENA",
+        "title":  "비트코인 MENA 2026 (아부다비 국립전시센터)",
+        "desc":  "중동 국부펀드 및 아랍에미리트 금융 당국 고위 관료 참석 비트코인 준비자산 채택 서밋.",
+        "impact":  "BULLISH",
+        "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
+    },
+    {
+        "id":  97,
         "date":  "2026-12-09",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -6234,7 +6594,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  68,
+        "id":  98,
         "date":  "2026-12-10",
         "time":  "21:30 (KST)",
         "category":  "macro",
@@ -6246,7 +6606,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
     },
     {
-        "id":  69,
+        "id":  99,
+        "date":  "2026-12-10",
+        "time":  "22:15 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "ECB",
+        "title":  "유럽중앙은행(ECB) 12월 기준금리 결정 및 경제전망",
+        "desc":  "유로존 인플레이션 2% 복귀 여부 및 2027년 통화정책 가이던스 발표.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  100,
         "date":  "2026-12-11",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6258,7 +6630,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  70,
+        "id":  101,
         "date":  "2026-12-12",
         "time":  "15:00 (KST)",
         "category":  "upgrade",
@@ -6270,7 +6642,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
     },
     {
-        "id":  71,
+        "id":  102,
         "date":  "2026-12-15",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6282,7 +6654,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  72,
+        "id":  103,
         "date":  "2026-12-16",
         "time":  "18:00 (KST)",
         "category":  "unlock",
@@ -6294,7 +6666,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-rose-400 bg-rose-500/10 border-rose-500/30"
     },
     {
-        "id":  73,
+        "id":  104,
+        "date":  "2026-12-16",
+        "time":  "22:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "RETAIL",
+        "title":  "미국 11월 소매판매(Retail Sales) 발표",
+        "desc":  "블랙프라이데이 및 사이버먼데이 소비 실적 집계.",
+        "impact":  "HIGH IMPACT",
+        "impactColor":  "text-amber-400 bg-amber-500/10 border-amber-500/30"
+    },
+    {
+        "id":  105,
         "date":  "2026-12-17",
         "time":  "03:00 (KST)",
         "category":  "macro",
@@ -6306,7 +6690,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  74,
+        "id":  106,
+        "date":  "2026-12-18",
+        "time":  "12:00 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "BOJ",
+        "title":  "일본은행(BOJ) 12월 정책금리 결정 회의",
+        "desc":  "추가 금리 인상 가능성 및 엔화 환율 변동성 확대 주의.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  107,
         "date":  "2026-12-18",
         "time":  "16:00 (KST)",
         "category":  "upgrade",
@@ -6318,7 +6714,19 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-crypto-green bg-emerald-500/10 border-emerald-500/30"
     },
     {
-        "id":  75,
+        "id":  108,
+        "date":  "2026-12-23",
+        "time":  "22:30 (KST)",
+        "category":  "macro",
+        "categoryName":  "🏦 FOMC/거시경제",
+        "coin":  "PCE",
+        "title":  "미국 11월 개인소비지출(PCE) 물가지수 발표",
+        "desc":  "2026년 하반기 최종 핵심 인플레이션 보고서.",
+        "impact":  "CRITICAL",
+        "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
+    },
+    {
+        "id":  109,
         "date":  "2026-12-25",
         "time":  "17:00 (KST)",
         "category":  "macro",
@@ -6330,7 +6738,7 @@ let CRYPTO_EVENTS = [
         "impactColor":  "text-purple-400 bg-purple-500/10 border-purple-500/30"
     },
     {
-        "id":  76,
+        "id":  110,
         "date":  "2026-12-31",
         "time":  "18:00 (KST)",
         "category":  "unlock",
