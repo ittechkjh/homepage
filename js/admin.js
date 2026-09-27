@@ -514,7 +514,7 @@ const AdminAnalytics = {
             const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 0;
             const desktopPct = totalDev > 0 ? 100 - mobilePct : 0;
 
-            let realLiveCount = 1;
+            let realLiveCount = 0;
             try {
                 const presenceSnap = await firestore.collection('chat_presence').get();
                 const nowTime = Date.now();
@@ -527,11 +527,19 @@ const AdminAnalytics = {
                         pCount++;
                     }
                 });
-                if (pCount > 0) realLiveCount = pCount;
+                realLiveCount = pCount;
             } catch (e) {
                 const activeListEl = document.getElementById('chat-active-users-list');
                 if (activeListEl && activeListEl.children.length > 0) {
-                    realLiveCount = Math.max(1, activeListEl.children.length);
+                    let cCount = 0;
+                    for (let i = 0; i < activeListEl.children.length; i++) {
+                        const child = activeListEl.children[i];
+                        const text = (child.textContent || '').toLowerCase();
+                        if (!text.includes('admin')) cCount++;
+                    }
+                    realLiveCount = cCount;
+                } else {
+                    realLiveCount = 0;
                 }
             }
 
@@ -643,10 +651,16 @@ const AdminAnalytics = {
         }
         delete f.admin;
 
-        let realLiveCount = 1;
+        let realLiveCount = 0;
         const activeListEl = document.getElementById('chat-active-users-list');
         if (activeListEl && activeListEl.children.length > 0) {
-            realLiveCount = Math.max(1, activeListEl.children.length);
+            let cCount = 0;
+            for (let i = 0; i < activeListEl.children.length; i++) {
+                const child = activeListEl.children[i];
+                const text = (child.textContent || '').toLowerCase();
+                if (!text.includes('admin')) cCount++;
+            }
+            realLiveCount = cCount;
         }
 
         return {
@@ -1621,7 +1635,7 @@ const AdminApp = {
                 growthEl.className = 'text-[11px] font-semibold mt-1 flex items-center gap-1 ' +
                     (grNum > 0 ? 'text-emerald-400' : grNum < 0 ? 'text-rose-400' : 'text-slate-400');
             }
-            setVal('admin-live-users', (stats.liveUsers || 1) + '명 (실제 접속자)');
+            setVal('admin-live-users', (stats.liveUsers !== undefined ? stats.liveUsers : 0) + '명 (실제 접속자)');
             setVal('admin-weekly-visitors', (stats.weeklyVisitors || 0).toLocaleString() + '명');
             setVal('admin-total-pageviews', (stats.totalPageviewsAllTime || 0).toLocaleString() + ' PV');
 
