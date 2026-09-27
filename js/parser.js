@@ -371,7 +371,7 @@ var UpbitParser = {
         if (amount <= 0 && quantity <= 0) return null;
 
         return {
-            id: `${exchange}_${time}_${market}_${type}_${quantity}_${amount}_${rowNum}`,
+            id: `${exchange}_${time}_${market}_${type}_${quantity}_${amount}`,
             exchange: exchange,
             time: time,
             date: time.includes(' ') ? time.split(' ')[0] : time,
@@ -667,7 +667,7 @@ var UpbitParser = {
         }
 
         return {
-            id: `${exchange}_${timestamp}_${market}_${type}_${quantity}_${price}_${amount}_${rowNum}`,
+            id: `${exchange}_${timestamp}_${market}_${type}_${quantity}_${price}_${amount}`,
             exchange: exchange,
             time: timestamp,
             date: timestamp.includes(' ') ? timestamp.split(' ')[0] : timestamp,
@@ -933,20 +933,40 @@ var UpbitParser = {
         return isNaN(num) ? 0 : num;
     },
 
+    getTradeSignature: function (item) {
+        if (!item) return '';
+        const exchange = (item.exchange || 'UPBIT').toUpperCase();
+        const time = this.normalizeDate(item.time || item.date || '');
+        const symbol = (item.coinSymbol || (item.market ? item.market.replace(/^(KRW|BTC|USDT)-/, '') : '') || '').toUpperCase();
+        const type = (item.type || '').trim();
+        const qty = Number(item.quantity || 0).toFixed(8);
+        const amount = Math.round(Number(item.amount || (item.price * item.quantity) || 0));
+        return `${exchange}_${time}_${symbol}_${type}_${qty}_${amount}`;
+    },
+
     cleanAndSortTrades: function (items) {
-        const seen = new Set();
+        if (!Array.isArray(items)) return [];
+        const seenIds = new Set();
+        const seenSigs = new Set();
         const uniqueItems = [];
 
         for (const item of items) {
-            if (!seen.has(item.id)) {
-                seen.add(item.id);
-                uniqueItems.push(item);
-            }
+            if (!item) continue;
+            const sig = this.getTradeSignature(item);
+            const id = item.id;
+
+            // id 또는 비즈니스 거래 시그니처가 일치하면 중복 내역으로 간주하여 1건만 유지
+            if (id && seenIds.has(id)) continue;
+            if (sig && seenSigs.has(sig)) continue;
+
+            if (id) seenIds.add(id);
+            if (sig) seenSigs.add(sig);
+            uniqueItems.push(item);
         }
 
         uniqueItems.sort((a, b) => {
-            const timeA = this.normalizeDate(a.time);
-            const timeB = this.normalizeDate(b.time);
+            const timeA = this.normalizeDate(a.time || a.date || '');
+            const timeB = this.normalizeDate(b.time || b.date || '');
             if (timeA < timeB) return -1;
             if (timeA > timeB) return 1;
             return 0;

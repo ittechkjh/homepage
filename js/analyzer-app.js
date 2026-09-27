@@ -81,7 +81,8 @@ const AnalyzerStorage = {
 
     healTrades: function (parsed) {
         if (!Array.isArray(parsed) || parsed.length === 0) return [];
-        return parsed.map(item => {
+        const normalized = parsed.map(item => {
+            if (!item) return null;
             // MATIC -> POL 심볼 표준화만 안전하게 보정하고, 엑셀 파싱 시 결정된 원본 exchange/market/수량/단가는 100% 무손실 보존
             if (item.coinSymbol === 'MATIC') {
                 item.coinSymbol = 'POL';
@@ -91,13 +92,18 @@ const AnalyzerStorage = {
             }
             // 날짜/시간 정규화 보정: 9-13-26 등 미정규화 포맷을 표준 YYYY-MM-DD HH:mm:ss 로 자동 변환
             if (item.time && typeof UpbitParser !== 'undefined' && UpbitParser.normalizeDate) {
-                const normalized = UpbitParser.normalizeDate(item.time);
-                if (normalized && normalized.length >= 10) {
-                    item.time = normalized;
+                const normTime = UpbitParser.normalizeDate(item.time);
+                if (normTime && normTime.length >= 10) {
+                    item.time = normTime;
                 }
             }
             return item;
-        });
+        }).filter(Boolean);
+
+        if (typeof UpbitParser !== 'undefined' && typeof UpbitParser.cleanAndSortTrades === 'function') {
+            return UpbitParser.cleanAndSortTrades(normalized);
+        }
+        return normalized;
     },
 
     getTrades: function () {
@@ -1325,6 +1331,17 @@ const App = {
             this.state.reportData = ProfitCalculator.getEmptyResult(this.state.method);
             this.renderAll();
             return;
+        }
+
+        // 중복 거래 내역 완벽 단일화 및 영구 보관 동기화
+        if (typeof UpbitParser !== 'undefined' && typeof UpbitParser.cleanAndSortTrades === 'function') {
+            const cleaned = UpbitParser.cleanAndSortTrades(this.state.rawTrades);
+            if (cleaned.length !== this.state.rawTrades.length) {
+                this.state.rawTrades = cleaned;
+                if (typeof AnalyzerStorage !== 'undefined') {
+                    AnalyzerStorage.saveTrades(cleaned);
+                }
+            }
         }
 
         this.state.reportData = ProfitCalculator.calculate(this.state.rawTrades, {
@@ -3261,6 +3278,9 @@ const App = {
         if (tradesToUse.length > 0) {
             const healed = AnalyzerStorage.healTrades(tradesToUse);
             this.state.rawTrades = healed;
+            if (healed.length !== tradesToUse.length) {
+                AnalyzerStorage.saveTrades(healed);
+            }
             this.recalculate();
             this.fetchLiveTickers(false);
             this.updateUserBanner();
