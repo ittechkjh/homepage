@@ -3863,15 +3863,16 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
     }
     </INFOGRAPHIC_DATA>`;
 
-  const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 요약)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
+  const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 원문)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
 
 [분석 대상 금융 콘텐츠 정보]
 - 원본 주제/제목: ${videoDetails.title}
 - 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1200) : '제공된 설명 없음'}
-- 주요 발언/자막 내용: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3500) : '핵심 금융 및 자산 관리 포인트'}
+- 주요 발언/자막 내용: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3500) : ''}
 
-위 원본 내용의 실제 요점(가상자산 세제, 부동산 세제, ETF, 연금 등 전달된 영상의 진짜 주제)을 빠짐없이 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
+위 원본 내용(자막 및 설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
+⚠️ 중요: 원본 영상에 전혀 언급되지 않은 다른 금융 상품이나 제도(예: 연금저축, IRP, ISA, 특정 대출 규제 DSR 등)를 임의로 지어내거나 살을 붙여 왜곡하지 마세요.`;
 
   const baseContents = [
     {
@@ -4193,7 +4194,16 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   const videoDetails = await fetchYouTubeVideoDetails(youtubeUrl);
   if (!videoDetails) {
-    console.warn('[YouTube Finance Generator] Could not fetch video details, using fallback');
+    console.warn(`⚠️ [YouTube Finance Generator] 유튜브 영상 정보를 가져오지 못했습니다 (${youtubeUrl || 'URL 없음'}). 허위·추측성 글 작성을 방지하기 위해 리포트 생성을 중단합니다.`);
+    return null;
+  }
+
+  // 자막(Transcript) 추출 여부 필수 검증: 자막이 없거나 내용이 너무 짧은 경우 원본과 무관한 왜곡 글 작성을 방지하기 위해 생성 중단
+  const cleanTranscript = (videoDetails.transcript || '').trim();
+  if (!cleanTranscript || cleanTranscript.length < 50) {
+    console.warn(`⚠️ [YouTube Finance Generator] 자막(Transcript) 추출 실패: 영상 "${videoDetails.title || youtubeUrl}"의 자막을 추출하지 못했습니다.`);
+    console.warn('⚠️ 원본 영상 내용과 무관한 왜곡·할루시네이션(임의 창작) 방지를 위해 글 작성을 중단합니다.');
+    return null;
   }
 
   // Synthesize catchy title (avoid raw YouTube title & channel mentions)
@@ -4205,11 +4215,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   if (apiKey) {
     try {
       console.log('[YouTube Finance Generator] Requesting AI finance analysis from Gemini...');
-      const targetDetails = videoDetails || {
-        title: postTitle.replace(/^\[재테크\s*팁\]\s*/, ''),
-        description: '2040 직장인과 사회초년생을 위한 실전 재테크, 통장 쪼개기, 절세 계좌(연금저축, IRP, ISA) 활용법 및 장기 적립식 투자 전략',
-        transcript: '월급 관리와 현금 흐름 통제, 비상금 파킹통장, 절세 세액공제 혜택 최대화 및 노후 자산 형성 가이드'
-      };
+      const targetDetails = videoDetails;
       rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, targetDetails, apiKey);
       if (rawAiText) {
         const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
@@ -4237,7 +4243,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
         }
       }
     } catch(e) {
-      console.warn('[YouTube Finance Generator] Gemini API call failed, falling back:', e.message);
+      console.warn('[YouTube Finance Generator] Gemini API call failed:', e.message);
     }
   }
 
@@ -4255,8 +4261,8 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   }
 
   if (!contentHtml) {
-    console.log('[YouTube Finance Generator] Using dynamic finance engine fallback');
-    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, postTitle, dynamicThemeData);
+    console.warn('⚠️ [YouTube Finance Generator] AI 본문 생성 실패 또는 거부로 글 작성을 중단합니다.');
+    return null;
   }
 
   return {
@@ -4311,7 +4317,11 @@ async function main() {
   if (reportType === 'finance' || process.env.YOUTUBE_URL) {
     const ytUrl = process.env.YOUTUBE_URL || process.argv[3] || '';
     const financeReport = await buildYouTubeFinanceReport(ytUrl);
-    if (financeReport) toAdd.push(financeReport);
+    if (financeReport) {
+      toAdd.push(financeReport);
+    } else {
+      console.warn('⚠️ [Daily Report Generator] 유튜브 자막 부재 또는 분석 취소로 인해 재테크 팁 리포트 작성이 건너뛰어졌습니다.');
+    }
   }
 
   const idsToAdd = toAdd.map(item => item.id);
