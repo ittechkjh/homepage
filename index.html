@@ -8003,6 +8003,9 @@
         <button onclick="AdminApp.switchSubTab('users')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="users">
           <i data-lucide="users" class="w-4 h-4 text-purple-400"></i> 회원 계정 관리 (<span id="admin-total-users-count">7명</span>)
         </button>
+        <button onclick="AdminApp.switchSubTab('guest-trades')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="guest-trades">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i> 비회원 손익분석 내역 (<span id="admin-guest-trades-count">0건</span>)
+        </button>
         <button onclick="AdminApp.switchSubTab('moderation')" class="admin-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2" data-admintab="moderation">
           <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i> 커뮤니티 & 채팅 관리
         </button>
@@ -8299,6 +8302,108 @@
               </thead>
               <tbody id="admin-users-table-body" class="divide-y divide-navy-800/60">
                 <!-- User rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ADMIN SUBTAB: GUEST TRADES ANALYZER LOGS       -->
+      <!-- ============================================== -->
+      <div id="admin-tab-guest-trades" class="admin-tab-content hidden space-y-6">
+
+        <!-- Top Header & Refresh -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-400"></i>
+              비회원 손익분석 엑셀 업로드 실시간 모니터링
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">회원가입 없이 손익분석기에 업비트/빗썸 거래내역 엑셀을 업로드하여 분석한 게스트 방문자의 실시간 이용 통계 및 상세 로그입니다.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="AdminApp.renderGuestTrades(true)" class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 text-xs font-bold border border-navy-700 transition flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i> 새로고침
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">총 비회원 분석 횟수</span>
+              <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="upload-cloud" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-white font-mono" id="admin-guest-kpi-total-uploads">0회</div>
+            <div class="text-[11px] text-slate-400 mt-1">엑셀/CSV 파싱 완료 기준</div>
+          </div>
+
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">누적 분석 거래 건수</span>
+              <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400"><i data-lucide="list-checks" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-cyan-400 font-mono" id="admin-guest-kpi-total-trades">0건</div>
+            <div class="text-[11px] text-slate-400 mt-1">체결/입출금 총 레코드</div>
+          </div>
+
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">누적 분석 거래 대금</span>
+              <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="coins" class="w-4 h-4"></i></span>
+            </div>
+            <div class="text-2xl font-extrabold text-purple-300 font-mono" id="admin-guest-kpi-total-volume">₩0</div>
+            <div class="text-[11px] text-slate-400 mt-1">매수+매도 합산 대금</div>
+          </div>
+
+          <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="font-semibold">최근 24시간 내 이용</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
+            <div class="text-2xl font-extrabold text-emerald-400 font-mono" id="admin-guest-kpi-recent">0건 (24H)</div>
+            <div class="text-[11px] text-slate-400 mt-1">실시간 게스트 유입</div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+          <div class="flex flex-1 items-center gap-3">
+            <div class="relative flex-1 max-w-md">
+              <input type="text" id="admin-guest-trade-search" placeholder="게스트 ID, 파일명, 코인명 검색..." class="w-full bg-navy-950 border border-navy-800 text-xs rounded-xl pl-9 pr-3 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+            </div>
+            <select id="admin-guest-trade-exchange-filter" class="bg-navy-950 border border-navy-800 text-xs rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none focus:border-emerald-500">
+              <option value="ALL">전체 거래소</option>
+              <option value="UPBIT">업비트</option>
+              <option value="BITHUMB">빗썸</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-navy-950 text-slate-400 text-[11px] font-bold border-b border-navy-800 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">게스트 식별자</th>
+                  <th class="py-3.5 px-4">분석 일시</th>
+                  <th class="py-3.5 px-4">업로드 파일명</th>
+                  <th class="py-3.5 px-4">거래소</th>
+                  <th class="py-3.5 px-4 text-right">거래건수</th>
+                  <th class="py-3.5 px-4 text-right">거래대금</th>
+                  <th class="py-3.5 px-4 text-right">실현손익 (수익률)</th>
+                  <th class="py-3.5 px-4">주요 거래 코인</th>
+                  <th class="py-3.5 px-4">접속 환경</th>
+                  <th class="py-3.5 px-4 text-right">관리 조치</th>
+                </tr>
+              </thead>
+              <tbody id="admin-guest-trades-table-body" class="divide-y divide-navy-800/60">
+                <!-- Rendered dynamically -->
               </tbody>
             </table>
           </div>
@@ -8884,6 +8989,100 @@
         </button>
         <button onclick="window.AnalyzerApp && window.AnalyzerApp.shareVerificationCardToForum()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 font-black text-sm shadow-lg shadow-cyan-500/20 transition flex justify-center items-center gap-2">
           <i data-lucide="share-2" class="w-4 h-4"></i> 포럼에 공유하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Guest Trade Detail Modal -->
+  <div id="modal-admin-guest-detail" class="fixed inset-0 z-[100] hidden items-center justify-center p-3 sm:p-4">
+    <div class="absolute inset-0 bg-navy-950/80 backdrop-blur-sm" onclick="AdminApp.closeGuestTradeDetailModal()"></div>
+    <div class="relative bg-navy-900 border border-cyan-500/30 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-navy-800 flex justify-between items-center bg-navy-950/70">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-lg">
+            👤
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-black text-white">비회원 업로드 상세 분석</h3>
+              <span id="admin-modal-guest-id" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">GUEST</span>
+            </div>
+            <p id="admin-modal-guest-time" class="text-xs text-slate-400 font-mono mt-0.5"></p>
+          </div>
+        </div>
+        <button onclick="AdminApp.closeGuestTradeDetailModal()" class="w-8 h-8 rounded-xl bg-navy-800/80 hover:bg-navy-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-4">
+        <!-- Overview Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div class="bg-navy-950/60 border border-navy-800 rounded-xl p-3">
+            <span class="text-[10px] text-slate-400 block mb-1">거래소</span>
+            <span id="admin-modal-guest-exchange" class="text-sm font-bold text-white">업비트</span>
+          </div>
+          <div class="bg-navy-950/60 border border-navy-800 rounded-xl p-3">
+            <span class="text-[10px] text-slate-400 block mb-1">거래 체결건</span>
+            <span id="admin-modal-guest-trades" class="text-sm font-bold font-mono text-cyan-400">0건</span>
+          </div>
+          <div class="bg-navy-950/60 border border-navy-800 rounded-xl p-3">
+            <span class="text-[10px] text-slate-400 block mb-1">총 거래대금</span>
+            <span id="admin-modal-guest-volume" class="text-sm font-bold font-mono text-slate-200">₩0</span>
+          </div>
+          <div class="bg-navy-950/60 border border-navy-800 rounded-xl p-3">
+            <span class="text-[10px] text-slate-400 block mb-1">승률</span>
+            <span id="admin-modal-guest-winrate" class="text-sm font-bold font-mono text-emerald-400">0.0%</span>
+          </div>
+        </div>
+
+        <!-- Profit/Loss Banner -->
+        <div class="bg-navy-950/80 border border-navy-800 rounded-xl p-3.5 flex justify-between items-center">
+          <span class="text-xs text-slate-300 font-medium">실현 손익 요약</span>
+          <span id="admin-modal-guest-pnl" class="font-mono font-bold text-sm text-slate-200">0원 (0.00%)</span>
+        </div>
+
+        <!-- File & Device Info -->
+        <div class="bg-navy-950/40 border border-navy-800/80 rounded-xl p-3 space-y-2 text-xs">
+          <div class="flex justify-between items-start gap-2">
+            <span class="text-slate-400 whitespace-nowrap">업로드 파일:</span>
+            <span id="admin-modal-guest-files" class="font-mono text-slate-200 text-right break-all">-</span>
+          </div>
+          <div class="flex justify-between items-center gap-2">
+            <span class="text-slate-400 whitespace-nowrap">접속 기기/환경:</span>
+            <span id="admin-modal-guest-device" class="font-mono text-slate-300 text-right">-</span>
+          </div>
+        </div>
+
+        <!-- Coins Breakdown Table -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
+            <span>🪙 거래 코인별 손익 내역</span>
+          </h4>
+          <div class="border border-navy-800 rounded-xl overflow-hidden bg-navy-950/50">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-navy-900/80 border-b border-navy-800 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  <th class="py-2 px-3">코인</th>
+                  <th class="py-2 px-3 text-right">거래건수</th>
+                  <th class="py-2 px-3 text-right">실현손익</th>
+                </tr>
+              </thead>
+              <tbody id="admin-modal-guest-coins-body">
+                <tr><td colspan="3" class="py-4 text-center text-slate-500 text-xs">데이터 로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-navy-800 bg-navy-950/70 flex justify-end">
+        <button onclick="AdminApp.closeGuestTradeDetailModal()" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 text-slate-200 font-bold text-xs rounded-xl transition">
+          닫기
         </button>
       </div>
     </div>

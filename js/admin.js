@@ -1134,6 +1134,98 @@ const AdminUserManager = {
     }
 };
 
+const AdminGuestTradeManager = {
+    cachedList: [],
+
+    fetchGuestTrades: async function (forceRefresh = false) {
+        if (!forceRefresh && this.cachedList.length > 0) {
+            return this.cachedList;
+        }
+
+        let firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+            try { firestore = firebase.firestore(); } catch(e) {}
+        }
+
+        const map = new Map();
+
+        // 1. Load from localStorage cache
+        try {
+            const raw = localStorage.getItem('crytopnl_guest_trades_cache');
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                    arr.forEach(item => {
+                        if (item && item.id) map.set(item.id, item);
+                    });
+                }
+            }
+        } catch (e) {}
+
+        // 2. Fetch live from Firestore collection 'guest_trades'
+        if (firestore) {
+            try {
+                const snap = await firestore.collection('guest_trades')
+                    .orderBy('timestamp', 'desc')
+                    .limit(100)
+                    .get();
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data && (data.id || doc.id)) {
+                        const id = data.id || doc.id;
+                        map.set(id, { ...data, id });
+                    }
+                });
+            } catch (err) {
+                // If orderBy index is missing or building, fallback to non-ordered get
+                try {
+                    const fallbackSnap = await firestore.collection('guest_trades').limit(100).get();
+                    fallbackSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data && (data.id || doc.id)) {
+                            const id = data.id || doc.id;
+                            map.set(id, { ...data, id });
+                        }
+                    });
+                } catch(e2) {
+                    console.warn('Firestore guest_trades live fetch note:', e2);
+                }
+            }
+        }
+
+        const list = Array.from(map.values()).sort((a, b) => {
+            const tA = new Date(a.timestamp || 0).getTime();
+            const tB = new Date(b.timestamp || 0).getTime();
+            return tB - tA;
+        });
+
+        this.cachedList = list;
+        try {
+            localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(list.slice(0, 50)));
+        } catch (e) {}
+
+        return list;
+    },
+
+    deleteGuestTrade: async function (id) {
+        if (!id) return;
+        this.cachedList = this.cachedList.filter(item => item.id !== id);
+        try {
+            localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(this.cachedList));
+        } catch (e) {}
+
+        let firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        if (firestore) {
+            try {
+                await firestore.collection('guest_trades').doc(id).delete();
+            } catch (e) {
+                console.warn('Firestore guest_trades delete error:', e);
+            }
+        }
+    }
+};
+
 const AdminApp = {
     activeSubTab: 'analytics',
     featureScope: 'today',
@@ -1142,6 +1234,8 @@ const AdminApp = {
     userSearchQuery: '',
     userRoleFilter: 'ALL',
     userStatusFilter: 'ALL',
+    guestTradeSearchQuery: '',
+    guestTradeExchangeFilter: 'ALL',
 
     setFeatureScope: function (scope) {
         this.featureScope = scope;
@@ -1490,6 +1584,8 @@ const AdminApp = {
             this.renderAnalytics();
         } else if (tabId === 'users') {
             this.renderUsers();
+        } else if (tabId === 'guest-trades') {
+            this.renderGuestTrades();
         } else if (tabId === 'moderation') {
             this.renderModeration();
         } else if (tabId === 'system') {
@@ -1502,6 +1598,7 @@ const AdminApp = {
     renderAll: function () {
         this.renderAnalytics();
         this.renderUsers();
+        this.renderGuestTrades();
         this.renderModeration();
         this.renderSystemHealth();
         this.renderCloudResources();
@@ -1819,6 +1916,202 @@ const AdminApp = {
         }).join('');
     },
 
+    renderGuestTrades: async function () {
+        const tbody = document.getElementById('admin-guest-trades-table-body');
+        if (!tbody) return;
+
+        const list = await AdminGuestTradeManager.fetchGuestTrades();
+        
+        // 1. KPI 요약 카드 및 상단 탭 뱃지 수치 갱신
+        const totalUploads = list.length;
+        const totalTrades = list.reduce((sum, item) => sum + (Number(item.tradesCount) || 0), 0);
+        const totalVolume = list.reduce((sum, item) => sum + (Number(item.totalVolume) || 0), 0);
+        
+        const now = Date.now();
+        const recent24hCount = list.filter(item => {
+            const t = new Date(item.timestamp || 0).getTime();
+            return (now - t) < (24 * 3600 * 1000);
+        }).length;
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val;
+        };
+
+        setVal('admin-guest-trades-count', totalUploads + '건');
+        setVal('admin-guest-kpi-total-uploads', totalUploads.toLocaleString() + '회');
+        setVal('admin-guest-kpi-total-trades', totalTrades.toLocaleString() + '건');
+        setVal('admin-guest-kpi-total-volume', '₩' + Math.round(totalVolume).toLocaleString());
+        setVal('admin-guest-kpi-recent', recent24hCount + '건 (24H)');
+
+        // 2. 검색 및 거래소 필터링
+        const query = (this.guestTradeSearchQuery || '').toLowerCase().trim();
+        const exFilter = this.guestTradeExchangeFilter || 'ALL';
+
+        let filtered = list.filter(item => {
+            const matchQuery = !query ||
+                (item.guestId && item.guestId.toLowerCase().includes(query)) ||
+                (Array.isArray(item.fileNames) && item.fileNames.some(fn => String(fn).toLowerCase().includes(query))) ||
+                (Array.isArray(item.coins) && item.coins.some(c => String(c.symbol || '').toLowerCase().includes(query)));
+            
+            const matchExchange = (exFilter === 'ALL') || 
+                (item.exchange && item.exchange.includes(exFilter)) ||
+                (exFilter === 'UPBIT' && String(item.exchange).includes('업비트')) ||
+                (exFilter === 'BITHUMB' && String(item.exchange).includes('빗썸'));
+
+            return matchQuery && matchExchange;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-slate-400 text-xs">기록된 비회원 손익분석 내역이 없습니다. (방문자가 거래내역 엑셀을 업로드하면 실시간 표시됩니다.)</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(item => {
+            const exBadge = item.exchange?.includes('업비트+빗썸')
+                ? '<span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/30 text-[10px] font-bold">통합</span>'
+                : (item.exchange?.includes('빗썸')
+                    ? '<span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-bold">빗썸</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[10px] font-bold">업비트</span>');
+
+            const pnlNum = Number(item.realizedProfit || 0);
+            const pnlRate = Number(item.profitRate || 0);
+            const pnlClass = pnlNum > 0 ? 'text-rose-400 font-bold' : (pnlNum < 0 ? 'text-blue-400 font-bold' : 'text-slate-400');
+            const pnlSign = pnlNum > 0 ? '+' : '';
+            const pnlFormatted = `${pnlSign}${Math.round(pnlNum).toLocaleString()}원 (${pnlSign}${pnlRate.toFixed(2)}%)`;
+
+            const coinsDisplay = (Array.isArray(item.coins) && item.coins.length > 0)
+                ? item.coins.slice(0, 3).map(c => `<span class="px-1.5 py-0.5 rounded bg-navy-950 text-cyan-300 font-mono text-[10px] border border-navy-700 font-semibold">${c.symbol}</span>`).join(' ') +
+                  (item.coins.length > 3 ? ` <span class="text-[10px] text-slate-500">+${item.coins.length - 3}</span>` : '')
+                : '<span class="text-slate-500 text-[10px]">-</span>';
+
+            const firstFileName = (Array.isArray(item.fileNames) && item.fileNames.length > 0) ? item.fileNames[0] : '거래내역 파일';
+            const fileDisplay = (item.fileNames && item.fileNames.length > 1) 
+                ? `${firstFileName} 외 ${item.fileNames.length - 1}개`
+                : firstFileName;
+
+            return `
+              <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
+                <td class="py-3 px-4 font-mono font-bold text-slate-200">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-emerald-400">${item.guestId || 'GUEST'}</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-slate-300 font-mono text-[11px] whitespace-nowrap">
+                  ${AdminUserManager.formatActivityTime(item.timestamp)}
+                </td>
+                <td class="py-3 px-4 text-slate-300 font-mono text-[11px] max-w-[150px] truncate" title="${(item.fileNames || []).join(', ')}">
+                  📄 ${escapeHtml(fileDisplay)}
+                </td>
+                <td class="py-3 px-4">${exBadge}</td>
+                <td class="py-3 px-4 font-mono text-right text-cyan-400 font-bold">
+                  ${(Number(item.tradesCount) || 0).toLocaleString()}건
+                </td>
+                <td class="py-3 px-4 font-mono text-right text-slate-200">
+                  ₩${Math.round(Number(item.totalVolume) || 0).toLocaleString()}
+                </td>
+                <td class="py-3 px-4 font-mono text-right ${pnlClass} whitespace-nowrap">
+                  ${pnlFormatted}
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-1 flex-wrap">
+                    ${coinsDisplay}
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-slate-400 text-[11px]">
+                  ${item.device || 'Desktop'} <span class="text-slate-500 font-mono">(${item.browser || 'Web'})</span>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button onclick="AdminApp.openGuestTradeDetailModal('${item.id}')" class="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded text-[10px] font-bold transition border border-cyan-500/30">
+                      상세보기
+                    </button>
+                    <button onclick="AdminApp.deleteGuestTrade('${item.id}')" class="px-1.5 py-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition text-xs" title="기록 삭제">
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+        }).join('');
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    openGuestTradeDetailModal: async function (id) {
+        const list = await AdminGuestTradeManager.fetchGuestTrades();
+        const item = list.find(it => it.id === id);
+        if (!item) return;
+
+        const modal = document.getElementById('modal-admin-guest-detail');
+        if (!modal) return;
+
+        const setTxt = (elId, text) => {
+            const el = document.getElementById(elId);
+            if (el) el.innerText = text;
+        };
+
+        setTxt('admin-modal-guest-id', item.guestId || 'GUEST');
+        setTxt('admin-modal-guest-time', item.kstTime || item.timestamp || '');
+        setTxt('admin-modal-guest-files', (item.fileNames || []).join(', '));
+        setTxt('admin-modal-guest-exchange', item.exchange || '업비트');
+        setTxt('admin-modal-guest-trades', (item.tradesCount || 0).toLocaleString() + '건');
+        setTxt('admin-modal-guest-volume', '₩' + Math.round(item.totalVolume || 0).toLocaleString());
+        
+        const pnlNum = Number(item.realizedProfit || 0);
+        const pnlRate = Number(item.profitRate || 0);
+        const pnlSign = pnlNum > 0 ? '+' : '';
+        const pnlEl = document.getElementById('admin-modal-guest-pnl');
+        if (pnlEl) {
+            pnlEl.innerText = `${pnlSign}${Math.round(pnlNum).toLocaleString()}원 (${pnlSign}${pnlRate.toFixed(2)}%)`;
+            pnlEl.className = 'font-mono font-bold text-sm ' + (pnlNum > 0 ? 'text-rose-400' : (pnlNum < 0 ? 'text-blue-400' : 'text-slate-300'));
+        }
+        setTxt('admin-modal-guest-winrate', (Number(item.winRate) || 0).toFixed(1) + '%');
+        setTxt('admin-modal-guest-device', `${item.device || 'Desktop'} / ${item.browser || 'Web'}`);
+
+        // Coins table
+        const coinsTbody = document.getElementById('admin-modal-guest-coins-body');
+        if (coinsTbody) {
+            if (Array.isArray(item.coins) && item.coins.length > 0) {
+                coinsTbody.innerHTML = item.coins.map(c => {
+                    const cPnl = Number(c.realizedProfit || 0);
+                    const cSign = cPnl > 0 ? '+' : '';
+                    const cPnlClass = cPnl > 0 ? 'text-rose-400' : (cPnl < 0 ? 'text-blue-400' : 'text-slate-400');
+                    return `
+                      <tr class="border-b border-navy-800 text-xs">
+                        <td class="py-2 px-3 font-mono font-bold text-cyan-300">${c.symbol}</td>
+                        <td class="py-2 px-3 font-mono text-right text-slate-300">${c.count}건</td>
+                        <td class="py-2 px-3 font-mono text-right font-semibold ${cPnlClass}">
+                          ${cSign}${Math.round(cPnl).toLocaleString()}원
+                        </td>
+                      </tr>
+                    `;
+                }).join('');
+            } else {
+                coinsTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-slate-500 text-xs">개별 코인 요약 정보 없음</td></tr>';
+            }
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    },
+
+    closeGuestTradeDetailModal: function () {
+        const modal = document.getElementById('modal-admin-guest-detail');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    },
+
+    deleteGuestTrade: async function (id) {
+        if (!confirm('해당 비회원의 손익분석 기록을 관리자 센터에서 삭제하시겠습니까?')) return;
+        await AdminGuestTradeManager.deleteGuestTrade(id);
+        await this.renderGuestTrades();
+    },
+
     renderModeration: function () {
         const chatContainer = document.getElementById('admin-chat-preview');
         if (chatContainer && typeof chatMessages !== 'undefined') {
@@ -2075,6 +2368,22 @@ const AdminApp = {
                 this.renderUsers();
             });
         }
+
+        const guestSearchInput = document.getElementById('admin-guest-trade-search');
+        if (guestSearchInput) {
+            guestSearchInput.addEventListener('input', (e) => {
+                this.guestTradeSearchQuery = e.target.value.trim().toLowerCase();
+                this.renderGuestTrades();
+            });
+        }
+
+        const guestExchangeFilter = document.getElementById('admin-guest-trade-exchange-filter');
+        if (guestExchangeFilter) {
+            guestExchangeFilter.addEventListener('change', (e) => {
+                this.guestTradeExchangeFilter = e.target.value;
+                this.renderGuestTrades();
+            });
+        }
     }
 };
 
@@ -2082,6 +2391,7 @@ const AdminApp = {
 if (typeof window !== 'undefined') {
     window.AdminAnalytics = AdminAnalytics;
     window.AdminUserManager = AdminUserManager;
+    window.AdminGuestTradeManager = AdminGuestTradeManager;
     window.AdminApp = AdminApp;
 
     // Immediately record visit & sync stats

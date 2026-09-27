@@ -421,6 +421,160 @@ const CloudSyncManager = {
     }
 };
 
+const GuestAnalyzerTracker = {
+    getGuestId: function () {
+        let gid = '';
+        try {
+            gid = localStorage.getItem('crytopnl_guest_id');
+            if (!gid) {
+                const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+                gid = 'GUEST-' + rand;
+                localStorage.setItem('crytopnl_guest_id', gid);
+            }
+        } catch (e) {
+            gid = 'GUEST-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+        return gid;
+    },
+
+    getBrowserName: function () {
+        const ua = navigator.userAgent;
+        if (/Whale/i.test(ua)) return 'Whale';
+        if (/SamsungBrowser/i.test(ua)) return 'Samsung';
+        if (/Edg|EdgiOS/i.test(ua)) return 'Edge';
+        if (/Chrome|CriOS/i.test(ua) && !/Edg|EdgiOS|Whale|Samsung/i.test(ua)) return 'Chrome';
+        if (/Firefox|FxiOS/i.test(ua)) return 'Firefox';
+        if (/Safari/i.test(ua) && !/Chrome|CriOS|Android/i.test(ua)) return 'Safari';
+        return 'Other';
+    },
+
+    getKstDateTime: function () {
+        const now = new Date();
+        try {
+            const formatter = new Intl.DateTimeFormat('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            return formatter.format(now).replace(/\. /g, '.').replace(/\.$/, '');
+        } catch (e) {
+            return now.toISOString().replace('T', ' ').slice(0, 19);
+        }
+    },
+
+    trackUpload: async function (fileList, newItems, appState) {
+        try {
+            const uid = (typeof AnalyzerStorage !== 'undefined') ? AnalyzerStorage.getCurrentUserId() : 'user_default';
+            // 회원가입 없는 비회원(guest) 상태일 때만 기록
+            if (uid !== 'user_default') return;
+
+            const guestId = this.getGuestId();
+            const now = new Date();
+            const docId = 'guest_' + now.getTime() + '_' + Math.random().toString(36).substring(2, 7);
+
+            // 파일 정보 수집
+            const filesArr = Array.from(fileList || []);
+            const fileNames = filesArr.map(f => f.name || '거래내역');
+            const totalFileSize = filesArr.reduce((sum, f) => sum + (f.size || 0), 0);
+
+            // 파싱된 데이터에서 거래소 감지
+            let hasUpbit = false;
+            let hasBithumb = false;
+            const items = Array.isArray(newItems) && newItems.length > 0 ? newItems : (appState?.rawTrades || []);
+            items.forEach(t => {
+                const ex = String(t.exchange || '').toUpperCase();
+                if (ex.includes('UPBIT') || ex.includes('업비트')) hasUpbit = true;
+                if (ex.includes('BITHUMB') || ex.includes('빗썸')) hasBithumb = true;
+            });
+            const exchangeStr = (hasUpbit && hasBithumb) ? '업비트+빗썸' : (hasBithumb ? '빗썸' : '업비트');
+
+            // 손익 계산 요약 추출
+            const rep = appState?.reportData?.summary || {};
+            const totalBuyKrw = Number(rep.totalBuyKrw || rep.totalBuyAmount || 0);
+            const totalSellKrw = Number(rep.totalSellKrw || rep.totalSellAmount || 0);
+            const totalVolume = totalBuyKrw + totalSellKrw;
+            const realizedProfit = Number(rep.realizedProfit || 0);
+            const profitRate = Number(rep.profitRate || rep.realizedRate || 0);
+            const winRate = Number(rep.winRate || 0);
+
+            // 상위 거래 코인 요약 (최대 8개)
+            const coinMap = {};
+            items.forEach(t => {
+                const sym = t.coinSymbol || (t.market ? t.market.replace('KRW-', '') : 'UNKNOWN');
+                if (!coinMap[sym]) coinMap[sym] = { symbol: sym, count: 0, realizedProfit: 0, profitRate: 0 };
+                coinMap[sym].count++;
+            });
+            if (appState?.reportData?.coins && Array.isArray(appState.reportData.coins)) {
+                appState.reportData.coins.forEach(c => {
+                    if (coinMap[c.symbol]) {
+                        coinMap[c.symbol].realizedProfit = Number(c.realizedProfit || 0);
+                        coinMap[c.symbol].profitRate = Number(c.profitRate || 0);
+                    }
+                });
+            }
+            const topCoins = Object.values(coinMap)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 8);
+
+            const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+            const browserName = this.getBrowserName();
+            const kstTime = this.getKstDateTime();
+
+            const guestPayload = {
+                id: docId,
+                guestId: guestId,
+                timestamp: now.toISOString(),
+                kstTime: kstTime,
+                fileNames: fileNames,
+                fileCount: fileNames.length,
+                totalFileSize: totalFileSize,
+                tradesCount: items.length,
+                exchange: exchangeStr,
+                totalBuyKrw: totalBuyKrw,
+                totalSellKrw: totalSellKrw,
+                totalVolume: totalVolume,
+                realizedProfit: realizedProfit,
+                profitRate: profitRate,
+                winRate: winRate,
+                coins: topCoins,
+                coinsCount: Object.keys(coinMap).length,
+                device: isMobile ? 'Mobile' : 'Desktop',
+                browser: browserName,
+                userAgent: navigator.userAgent.slice(0, 150)
+            };
+
+            // 1. Firestore 클라우드 컬렉션 'guest_trades'에 저장
+            let firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+                try { firestore = firebase.firestore(); } catch (e) {}
+            }
+            if (firestore) {
+                firestore.collection('guest_trades').doc(docId).set(guestPayload)
+                    .then(() => console.log('✅ [Guest Tracker] 비회원 손익분석 업로드 내역 Firestore 기록 완료:', docId))
+                    .catch(err => console.warn('⚠️ [Guest Tracker] Firestore 저장 실패, 로컬 캐시로 대체:', err));
+            }
+
+            // 2. 브라우저 localStorage 캐시에 보관 (최신 50건 유지)
+            try {
+                const cachedRaw = localStorage.getItem('crytopnl_guest_trades_cache');
+                let list = cachedRaw ? JSON.parse(cachedRaw) : [];
+                if (!Array.isArray(list)) list = [];
+                list.unshift(guestPayload);
+                if (list.length > 50) list = list.slice(0, 50);
+                localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(list));
+            } catch (e) {}
+
+        } catch (e) {
+            console.warn('[Guest Tracker] Error recording guest upload:', e);
+        }
+    }
+};
+
 const ColumnManager = {
     tables: {
         coinsTable: [
@@ -1236,6 +1390,11 @@ const App = {
             this.saveTrades();
             this.recalculate();
             await this.fetchLiveTickers(false);
+
+            // 비회원 손익분석 파일 업로드 추적 (관리자 센터 모니터링 연동)
+            if (typeof GuestAnalyzerTracker !== 'undefined') {
+                GuestAnalyzerTracker.trackUpload(fileList, newItems, this.state);
+            }
 
             this.showToast('총 ' + this.state.rawTrades.length + '건의 거래/입출금 내역이 정리되었습니다.', 'success');
             this.switchSubTab('dashboard');
