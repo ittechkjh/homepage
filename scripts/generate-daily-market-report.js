@@ -3863,31 +3863,54 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
     }
     </INFOGRAPHIC_DATA>`;
 
-  const userPrompt = `다음 금융 콘텐츠의 핵심 데이터(제목, 설명, 자막 원문)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
+  const userPrompt = `다음 금융 콘텐츠(첨부된 유튜브 영상 및 메타데이터)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
 
 [분석 대상 금융 콘텐츠 정보]
 - 원본 주제/제목: ${videoDetails.title}
 - 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1200) : '제공된 설명 없음'}
-- 주요 발언/자막 내용: ${videoDetails.transcript ? videoDetails.transcript.slice(0, 3500) : ''}
+${videoDetails.transcript ? `- 참고 자막 요약: ${videoDetails.transcript.slice(0, 3500)}` : '- 자막: 제공되지 않음 (첨부된 영상을 직접 시청·청취하여 분석할 것)'}
 
-위 원본 내용(자막 및 설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
+위 원본 영상 내용(실제 영상 발언, 시각 자료 및 자막/설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
 ⚠️ 중요: 원본 영상에 전혀 언급되지 않은 다른 금융 상품이나 제도(예: 연금저축, IRP, ISA, 특정 대출 규제 DSR 등)를 임의로 지어내거나 살을 붙여 왜곡하지 마세요.`;
+
+  const userParts = [];
+  if (videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
+    userParts.push({
+      file_data: {
+        file_uri: videoDetails.url
+      }
+    });
+    console.log(`[Gemini Finance AI] Attached YouTube video URL for native multimodal understanding: ${videoDetails.url}`);
+  }
+  userParts.push({
+    text: `${systemInstruction}\n\n${userPrompt}`
+  });
 
   const baseContents = [
     {
       role: 'user',
-      parts: [{ text: `${systemInstruction}\n\n${userPrompt}` }]
+      parts: userParts
     }
   ];
 
   const modelAttempts = [
     {
+      name: 'gemini-2.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192
+        }
+      }
+    },
+    {
       name: 'gemini-3.5-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.75,
+          temperature: 0.7,
           maxOutputTokens: 8192,
           thinkingConfig: { thinkingBudget: 0 }
         }
@@ -3898,7 +3921,7 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.75,
+          temperature: 0.7,
           maxOutputTokens: 8192,
           thinkingConfig: { thinkingBudget: 0 }
         }
@@ -3909,19 +3932,9 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.75,
+          temperature: 0.7,
           maxOutputTokens: 8192,
           thinkingConfig: { thinkingLevel: 'low' }
-        }
-      }
-    },
-    {
-      name: 'gemini-2.5-flash',
-      payload: {
-        contents: baseContents,
-        generationConfig: {
-          temperature: 0.75,
-          maxOutputTokens: 8192
         }
       }
     }
@@ -3935,7 +3948,7 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item.payload),
-        signal: AbortSignal.timeout(45000)
+        signal: AbortSignal.timeout(60000)
       });
       if (res.ok) {
         const data = await res.json();
@@ -4198,12 +4211,12 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     return null;
   }
 
-  // 자막(Transcript) 추출 여부 필수 검증: 자막이 없거나 내용이 너무 짧은 경우 원본과 무관한 왜곡 글 작성을 방지하기 위해 생성 중단
+  // 자막(Transcript) 확인 및 Gemini 네이티브 비디오 분석(Method 2) 준비
   const cleanTranscript = (videoDetails.transcript || '').trim();
-  if (!cleanTranscript || cleanTranscript.length < 50) {
-    console.warn(`⚠️ [YouTube Finance Generator] 자막(Transcript) 추출 실패: 영상 "${videoDetails.title || youtubeUrl}"의 자막을 추출하지 못했습니다.`);
-    console.warn('⚠️ 원본 영상 내용과 무관한 왜곡·할루시네이션(임의 창작) 방지를 위해 글 작성을 중단합니다.');
-    return null;
+  if (cleanTranscript && cleanTranscript.length >= 50) {
+    console.log(`[YouTube Finance Generator] 자막(Transcript) 확보 성공 (${cleanTranscript.length}자).`);
+  } else {
+    console.log('[YouTube Finance Generator] 자막 추출이 제한되어 Gemini 네이티브 비디오 이해(Method 2)로 영상을 직접 시청·분석합니다.');
   }
 
   // Synthesize catchy title (avoid raw YouTube title & channel mentions)
@@ -4214,7 +4227,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   if (apiKey) {
     try {
-      console.log('[YouTube Finance Generator] Requesting AI finance analysis from Gemini...');
+      console.log('[YouTube Finance Generator] Requesting AI finance analysis from Gemini (Native Video Understanding)...');
       const targetDetails = videoDetails;
       rawAiText = await callGeminiYouTubeFinanceAPI(dateStr, dateKorean, targetDetails, apiKey);
       if (rawAiText) {
@@ -4245,6 +4258,13 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     } catch(e) {
       console.warn('[YouTube Finance Generator] Gemini API call failed:', e.message);
     }
+  }
+
+  // Gemini 영상 분석 실패 및 자막 부재 시: 원본 내용과 무관한 왜곡 글 작성을 방지하기 위해 생성 중단
+  if (!rawAiText) {
+    console.warn(`⚠️ [YouTube Finance Generator] 영상 분석 실패: Gemini 영상 시청 및 자막 수집이 불가능합니다 ("${videoDetails.title || youtubeUrl}").`);
+    console.warn('⚠️ 원본 영상 내용과 무관한 왜곡·할루시네이션(임의 창작) 방지를 위해 글 작성을 중단합니다.');
+    return null;
   }
 
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
