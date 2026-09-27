@@ -89,6 +89,13 @@ const AnalyzerStorage = {
             if (item.market === 'KRW-MATIC') {
                 item.market = 'KRW-POL';
             }
+            // 날짜/시간 정규화 보정: 9-13-26 등 미정규화 포맷을 표준 YYYY-MM-DD HH:mm:ss 로 자동 변환
+            if (item.time && typeof UpbitParser !== 'undefined' && UpbitParser.normalizeDate) {
+                const normalized = UpbitParser.normalizeDate(item.time);
+                if (normalized && normalized.length >= 10) {
+                    item.time = normalized;
+                }
+            }
             return item;
         });
     },
@@ -1808,7 +1815,7 @@ const App = {
 
             html += '<tr>' +
                 '<td><span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (t.exchange || 'UPBIT') + '</span></td>' +
-                '<td class="text-xs text-muted">' + (t.time || '-') + '</td>' +
+                '<td class="text-xs text-muted">' + ((typeof UpbitParser !== 'undefined' && t.time) ? UpbitParser.normalizeDate(t.time) : (t.time || '-')) + '</td>' +
                 '<td><span class="badge ' + badgeClass + '">' + t.type + '</span></td>' +
                 '<td><div class="flex-center-gap"><span class="coin-symbol-badge-sm">' + t.coinSymbol + '</span><span class="font-bold">' + name + '</span></div></td>' +
                 '<td class="text-right font-bold">' + qtyStr + '</td>' +
@@ -1889,6 +1896,11 @@ const App = {
         items.sort((a, b) => {
             let valA = a[sort.col] || 0;
             let valB = b[sort.col] || 0;
+            if (sort.col === 'time') {
+                const normA = typeof UpbitParser !== 'undefined' ? UpbitParser.normalizeDate(valA) : String(valA);
+                const normB = typeof UpbitParser !== 'undefined' ? UpbitParser.normalizeDate(valB) : String(valB);
+                return sort.asc ? normA.localeCompare(normB) : normB.localeCompare(normA);
+            }
             if (typeof valA === 'string') return sort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             return sort.asc ? valA - valB : valB - valA;
         });
@@ -1935,9 +1947,11 @@ const App = {
                 ? this.formatCurrency(it.settlement || it.amount) 
                 : (it.category === 'transfer' ? (it.settlement || it.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + it.coinSymbol : this.formatCurrency(it.settlement));
 
+            const displayTime = (typeof UpbitParser !== 'undefined' && it.time) ? UpbitParser.normalizeDate(it.time) : (it.time || '-');
+
             html += '<tr>' +
                 '<td><span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (it.exchange || 'UPBIT') + '</span></td>' +
-                '<td class="text-xs text-muted">' + (it.time || '-') + '</td>' +
+                '<td class="text-xs text-muted font-mono whitespace-nowrap">' + displayTime + '</td>' +
                 '<td><div class="flex-center-gap"><span class="coin-symbol-badge-sm">' + it.coinSymbol + '</span><span class="font-bold">' + name + '</span></div></td>' +
                 '<td><span class="badge ' + badgeClass + '">' + it.type + '</span></td>' +
                 '<td class="text-right font-medium">' + qtyStr + '</td>' +
@@ -2989,7 +3003,7 @@ const App = {
 
             html += `
               <tr>
-                <td class="text-xs text-muted font-mono whitespace-nowrap">${t.time || '-'}</td>
+                <td class="text-xs text-muted font-mono whitespace-nowrap">${(typeof UpbitParser !== 'undefined' && t.time) ? UpbitParser.normalizeDate(t.time) : (t.time || '-')}</td>
                 <td class="text-center whitespace-nowrap">${exBadge}</td>
                 <td>
                   <div class="flex-center-gap">

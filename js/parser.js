@@ -868,8 +868,8 @@ var UpbitParser = {
 
         str = str.replace(/\./g, '-').replace(/\//g, '-').replace(/\s+/g, ' ');
         
-        // 4. 4자리 연도 매칭
-        const dateMatch4 = str.match(/(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        // 4. 4자리 연도 시작: YYYY-MM-DD (HH:mm:ss)
+        const dateMatch4 = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
         if (dateMatch4) {
             const y = dateMatch4[1];
             const m = pad(dateMatch4[2]);
@@ -880,17 +880,45 @@ var UpbitParser = {
             return `${y}-${m}-${d} ${h}:${min}:${s}`;
         }
 
-        // 5. 2자리 연도 매칭
-        const dateMatch2 = str.match(/(\d{2})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        // 5. 4자리 연도 끝: M-D-YYYY 또는 D-M-YYYY
+        const dateMatchEnd4 = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (dateMatchEnd4) {
+            const p1 = parseInt(dateMatchEnd4[1], 10);
+            const p2 = parseInt(dateMatchEnd4[2], 10);
+            const y = dateMatchEnd4[3];
+            const h = pad(dateMatchEnd4[4] || 0);
+            const min = pad(dateMatchEnd4[5] || 0);
+            const s = pad(dateMatchEnd4[6] || 0);
+            const m = p1 > 12 ? pad(p2) : pad(p1);
+            const d = p1 > 12 ? pad(p1) : pad(p2);
+            return `${y}-${m}-${d} ${h}:${min}:${s}`;
+        }
+
+        // 6. 2자리 연도 매칭 (M-D-YY 또는 YY-MM-DD - 미국식/엑셀 9-13-26 완벽 지원)
+        const dateMatch2 = str.match(/^(\d{1,2})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
         if (dateMatch2) {
-            let y = parseInt(dateMatch2[1], 10);
-            y = y < 70 ? 2000 + y : 1900 + y;
-            const m = pad(dateMatch2[2]);
-            const d = pad(dateMatch2[3]);
+            const p1 = parseInt(dateMatch2[1], 10);
+            const p2 = parseInt(dateMatch2[2], 10);
+            const p3 = parseInt(dateMatch2[3], 10);
             const h = pad(dateMatch2[4] || 0);
             const min = pad(dateMatch2[5] || 0);
             const s = pad(dateMatch2[6] || 0);
-            return `${y}-${m}-${d} ${h}:${min}:${s}`;
+
+            // p3가 17~70 사이이면 끝이 연도 (M-D-YY 또는 D-M-YY, 예: 9-13-26 -> 2026-09-13)
+            if (p3 >= 17 && p3 <= 70) {
+                const y = 2000 + p3;
+                const m = p1 > 12 ? pad(p2) : pad(p1);
+                const d = p1 > 12 ? pad(p1) : pad(p2);
+                return `${y}-${m}-${d} ${h}:${min}:${s}`;
+            }
+
+            // p1이 17~70 사이이면 앞이 연도 (YY-MM-DD, 예: 26-09-13 -> 2026-09-13)
+            if (p1 >= 17 && p1 <= 70) {
+                const y = 2000 + p1;
+                const m = pad(p2);
+                const d = pad(p3);
+                return `${y}-${m}-${d} ${h}:${min}:${s}`;
+            }
         }
 
         return str;
@@ -917,8 +945,10 @@ var UpbitParser = {
         }
 
         uniqueItems.sort((a, b) => {
-            if (a.time < b.time) return -1;
-            if (a.time > b.time) return 1;
+            const timeA = this.normalizeDate(a.time);
+            const timeB = this.normalizeDate(b.time);
+            if (timeA < timeB) return -1;
+            if (timeA > timeB) return 1;
             return 0;
         });
 

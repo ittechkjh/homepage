@@ -277,7 +277,11 @@ const ProfitCalculator = {
             ...transferItems,
             ...stakingItems
         ];
-        allActivities.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+        allActivities.sort((a, b) => {
+            const timeA = typeof UpbitParser !== 'undefined' ? UpbitParser.normalizeDate(a.time) : (a.time || '');
+            const timeB = typeof UpbitParser !== 'undefined' ? UpbitParser.normalizeDate(b.time) : (b.time || '');
+            return (timeA < timeB ? -1 : timeA > timeB ? 1 : 0);
+        });
 
         return {
             method: method,
