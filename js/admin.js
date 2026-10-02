@@ -945,14 +945,39 @@ const AdminUserManager = {
             }
         } catch (e) {}
 
-        // 3. Load / overwrite with Firestore cloud users (Most authoritative)
+        // 3. Auto-recover registered accounts from localStorage credential keys
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('crytopnl_user_pw_') || k.startsWith('coinhub_user_pw_'))) {
+                    const uName = k.replace('crytopnl_user_pw_', '').replace('coinhub_user_pw_', '');
+                    if (uName && !userMap.has(uName.toLowerCase())) {
+                        userMap.set(uName.toLowerCase(), {
+                            id: 'usr_' + uName.toLowerCase(),
+                            username: uName,
+                            email: `${uName}@cryptopnl.com`,
+                            role: (uName.toLowerCase() === 'admin' ? 'ADMIN' : 'USER'),
+                            status: 'ACTIVE',
+                            joinedDate: this.getNowFormatted().slice(0, 10),
+                            lastLogin: '최근 활동',
+                            lastLoginAt: this.getNowFormatted(),
+                            reputation: (uName.toLowerCase() === 'admin' ? 9999 : 100),
+                            tradesCount: this.getUserTradesCount(uName),
+                            memo: '가입 회원'
+                        });
+                    }
+                }
+            }
+        } catch (e) {}
+
+        // 4. Load / overwrite with Firestore cloud users (Most authoritative)
         if (Array.isArray(this.cloudUsers) && this.cloudUsers.length > 0) {
             this.cloudUsers.forEach(c => {
                 if (c && c.username) userMap.set(c.username.toLowerCase(), c);
             });
         }
 
-        // 4. Update current logged-in user activity if present
+        // 5. Update current logged-in user activity if present
         try {
             const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
             if (currentRaw) {
@@ -968,7 +993,7 @@ const AdminUserManager = {
                         userMap.set(uKey, {
                             id: u.id || ('usr_' + uKey),
                             username: u.username,
-                            email: u.email || `${u.username}@crytopnl.com`,
+                            email: u.email || `${u.username}@cryptopnl.com`,
                             role: u.role || 'USER',
                             status: u.status || 'ACTIVE',
                             joinedDate: u.joinedDate || AdminUserManager.getNowFormatted().slice(0, 10),
@@ -983,7 +1008,7 @@ const AdminUserManager = {
             }
         } catch(e) {}
 
-        // 5. If session admin is authenticated, ensure admin is marked online
+        // 6. If session admin is authenticated, ensure admin is marked online
         if (sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || sessionStorage.getItem('coinhub_admin_authenticated') === '1') {
             const adminEntry = userMap.get('admin');
             if (adminEntry) {
@@ -992,19 +1017,21 @@ const AdminUserManager = {
             }
         }
 
-        return Array.from(userMap.values());
+        const finalUsers = Array.from(userMap.values());
+        this.saveUsers(finalUsers);
+        return finalUsers;
     },
 
     initRealUsers: function () {
         const nowFormatted = this.getNowFormatted();
-        const users = [
+        return [
             {
                 id: 'usr_admin',
                 username: 'admin',
-                email: 'admin@crytopnl.com',
+                email: 'admin@cryptopnl.com',
                 role: 'ADMIN',
                 status: 'ACTIVE',
-                joinedDate: nowFormatted.slice(0, 10),
+                joinedDate: '2025.10.15',
                 lastLogin: '방금 전 (온라인)',
                 lastLoginAt: nowFormatted,
                 reputation: 9999,
@@ -1012,13 +1039,6 @@ const AdminUserManager = {
                 memo: '최고 관리자'
             }
         ];
-
-        try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
-            localStorage.setItem('crytopnl_registered_users', JSON.stringify(users));
-        } catch (e) {}
-
-        return users;
     },
 
     getUserTradesCount: function (username, tradeCountsMap) {
@@ -1231,11 +1251,12 @@ const AdminUserManager = {
             return { success: false, message: '이미 존재하는 사용자명입니다.' };
         }
 
+        const pw = newUser.password || '1234';
         const uDoc = {
             id: 'usr_' + Date.now(),
             username: newUser.username.trim(),
             email: newUser.email.trim(),
-            password: newUser.password || '',
+            password: pw,
             role: newUser.role || 'USER',
             status: 'ACTIVE',
             joinedDate: this.getNowFormatted().slice(0, 10),
@@ -1248,6 +1269,11 @@ const AdminUserManager = {
 
         users.push(uDoc);
         this.saveUsers(users);
+
+        try {
+            localStorage.setItem('crytopnl_user_pw_' + uDoc.username.toLowerCase(), pw);
+            localStorage.setItem('coinhub_user_pw_' + uDoc.username.toLowerCase(), pw);
+        } catch (e) {}
 
         const firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (firestore) {
@@ -1939,12 +1965,90 @@ const AdminApp = {
     },
 
     renderUsers: async function () {
-        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+        const tbody = document.getElementById('admin-users-table-body');
+        if (!tbody) return;
+
         const tradeCountsMap = {};
 
+        const doRender = (userList) => {
+            let filtered = userList.filter(u => {
+                const matchQuery = !this.userSearchQuery || 
+                    u.username.toLowerCase().includes(this.userSearchQuery) || 
+                    u.email.toLowerCase().includes(this.userSearchQuery);
+                const matchRole = this.userRoleFilter === 'ALL' || 
+                    u.role === this.userRoleFilter || 
+                    (this.userRoleFilter === 'USER' && (u.role === 'MEMBER' || !u.role));
+                const matchStatus = this.userStatusFilter === 'ALL' || u.status === this.userStatusFilter;
+                return matchQuery && matchRole && matchStatus;
+            });
+
+            const totalUserCountEl = document.getElementById('admin-total-users-count');
+            if (totalUserCountEl) totalUserCountEl.innerText = userList.length + '명 등록됨';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400 text-xs">일치하는 사용자 계정이 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(u => {
+                const isMember = !u.role || u.role === 'USER' || u.role === 'MEMBER';
+                const roleBadge = u.role === 'ADMIN' 
+                    ? '<span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">👑 ADMIN</span>'
+                    : (u.role === 'PRO' 
+                        ? '<span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">⚡ PRO</span>'
+                        : '<span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-[10px] font-bold">👤 MEMBER</span>');
+
+                const statusBadge = u.status === 'ACTIVE'
+                    ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-[10px] font-bold">● 정상 활동</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30 text-[10px] font-bold">⛔ 활동 정지</span>';
+
+                const realTrades = AdminUserManager.getUserTradesCount(u.username, tradeCountsMap);
+
+                return `
+                  <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
+                    <td class="py-3 px-4">
+                      <div class="font-bold text-white flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-lg bg-navy-950 border border-navy-700 flex items-center justify-center font-mono text-[10px] text-cyan-400 font-bold">
+                          ${u.username.substring(0, 1).toUpperCase()}
+                        </div>
+                        ${escapeHtml(u.username)}
+                      </div>
+                    </td>
+                    <td class="py-3 px-4 text-slate-300 font-mono">${escapeHtml(u.email)}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${u.joinedDate}</td>
+                    <td class="py-3 px-4">${roleBadge}</td>
+                    <td class="py-3 px-4">${statusBadge}</td>
+                    <td class="py-3 px-4 font-mono font-semibold text-right ${realTrades > 0 ? 'text-cyan-400 font-bold' : 'text-slate-400'}">${realTrades.toLocaleString()}건</td>
+                    <td class="py-3 px-4 text-slate-300 font-mono text-[11px]">${AdminUserManager.formatActivityTime(u.lastLoginAt || u.lastLogin)}</td>
+                    <td class="py-3 px-4 text-right">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <button onclick="AdminApp.promptChangeRole('${u.username}', '${u.role}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 rounded text-[10px] font-semibold transition border border-navy-700" title="권한 변경">
+                          권한변경
+                        </button>
+                        <button onclick="AdminApp.toggleUserStatus('${u.username}')" class="px-2 py-1 ${u.status === 'ACTIVE' ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30'} rounded text-[10px] font-semibold transition border" title="계정 상태 변경">
+                          ${u.status === 'ACTIVE' ? '정지' : '해제'}
+                        </button>
+                        <button onclick="AdminApp.resetUserData('${u.username}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-400 hover:text-rose-400 rounded text-[10px] font-semibold transition border border-navy-700" title="거래내역 초기화">
+                          데이터초기화
+                        </button>
+                        <button onclick="AdminApp.deleteUser('${u.username}')" class="px-1.5 py-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition text-xs" title="회원 삭제">
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+            }).join('');
+        };
+
+        // 1. Instant local render for zero latency
+        const initialUsers = AdminUserManager.getUsers();
+        doRender(initialUsers);
+
+        // 2. Cloud Firestore live sync
+        const firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (firestore) {
             try {
-                // 1. Fetch live users list from Firestore
                 const snap = await firestore.collection('users').get();
                 const list = [];
                 snap.forEach(doc => {
@@ -1953,7 +2057,7 @@ const AdminApp = {
                         list.push({
                             id: data.id || ('usr_' + data.username.toLowerCase()),
                             username: data.username,
-                            email: data.email || (data.username + '@crytopnl.com'),
+                            email: data.email || (data.username + '@cryptopnl.com'),
                             role: data.role || 'USER',
                             status: data.status || 'ACTIVE',
                             joinedDate: data.joinedDate || (data.lastLoginAt ? data.lastLoginAt.slice(0, 10) : '2026.09.03'),
@@ -1966,11 +2070,9 @@ const AdminApp = {
                 });
                 if (list.length > 0) {
                     AdminUserManager.cloudUsers = list;
-                    localStorage.setItem(AdminUserManager.STORAGE_KEY, JSON.stringify(list));
-                    localStorage.setItem('crytopnl_registered_users', JSON.stringify(list));
+                    AdminUserManager.saveUsers(list);
                 }
 
-                // 2. Fetch live trade counts from Firestore user_trades
                 const tradesSnap = await firestore.collection('user_trades').get();
                 tradesSnap.forEach(doc => {
                     const data = doc.data();
@@ -1979,81 +2081,14 @@ const AdminApp = {
                         tradeCountsMap[cleanU] = data.totalCount || 0;
                     }
                 });
+
+                // Re-render with cloud data
+                const updatedUsers = AdminUserManager.getUsers();
+                doRender(updatedUsers);
             } catch (e) {
-                console.warn('Firestore live fetch error in renderUsers:', e);
+                console.warn('Firestore live fetch note in renderUsers:', e);
             }
         }
-
-        const users = AdminUserManager.getUsers();
-        const tbody = document.getElementById('admin-users-table-body');
-        if (!tbody) return;
-
-        let filtered = users.filter(u => {
-            const matchQuery = !this.userSearchQuery || 
-                u.username.toLowerCase().includes(this.userSearchQuery) || 
-                u.email.toLowerCase().includes(this.userSearchQuery);
-            const matchRole = this.userRoleFilter === 'ALL' || u.role === this.userRoleFilter;
-            const matchStatus = this.userStatusFilter === 'ALL' || u.status === this.userStatusFilter;
-            return matchQuery && matchRole && matchStatus;
-        });
-
-        const totalUserCountEl = document.getElementById('admin-total-users-count');
-        if (totalUserCountEl) totalUserCountEl.innerText = users.length + '명 등록됨';
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400 text-xs">일치하는 사용자 계정이 없습니다.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = filtered.map(u => {
-            const isMember = !u.role || u.role === 'USER' || u.role === 'MEMBER';
-            const roleBadge = u.role === 'ADMIN' 
-                ? '<span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">👑 ADMIN</span>'
-                : (u.role === 'PRO' 
-                    ? '<span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[10px] font-bold">⚡ PRO</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-[10px] font-bold">👤 MEMBER</span>');
-
-            const statusBadge = u.status === 'ACTIVE'
-                ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 text-[10px] font-bold">● 정상 활동</span>'
-                : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-500 border border-rose-500/30 text-[10px] font-bold">⛔ 활동 정지</span>';
-
-            const realTrades = AdminUserManager.getUserTradesCount(u.username, tradeCountsMap);
-
-            return `
-              <tr class="border-b border-navy-800 hover:bg-navy-800/40 transition text-xs">
-                <td class="py-3 px-4">
-                  <div class="font-bold text-white flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-lg bg-navy-950 border border-navy-700 flex items-center justify-center font-mono text-[10px] text-cyan-400 font-bold">
-                      ${u.username.substring(0, 1).toUpperCase()}
-                    </div>
-                    ${escapeHtml(u.username)}
-                  </div>
-                </td>
-                <td class="py-3 px-4 text-slate-300 font-mono">${escapeHtml(u.email)}</td>
-                <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${u.joinedDate}</td>
-                <td class="py-3 px-4">${roleBadge}</td>
-                <td class="py-3 px-4">${statusBadge}</td>
-                <td class="py-3 px-4 font-mono font-semibold text-right ${realTrades > 0 ? 'text-cyan-400 font-bold' : 'text-slate-400'}">${realTrades.toLocaleString()}건</td>
-                <td class="py-3 px-4 text-slate-300 font-mono text-[11px]">${AdminUserManager.formatActivityTime(u.lastLoginAt || u.lastLogin)}</td>
-                <td class="py-3 px-4 text-right">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button onclick="AdminApp.promptChangeRole('${u.username}', '${u.role}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-cyan-400 rounded text-[10px] font-semibold transition border border-navy-700" title="권한 변경">
-                      권한변경
-                    </button>
-                    <button onclick="AdminApp.toggleUserStatus('${u.username}')" class="px-2 py-1 ${u.status === 'ACTIVE' ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30'} rounded text-[10px] font-semibold transition border" title="계정 상태 변경">
-                      ${u.status === 'ACTIVE' ? '정지' : '해제'}
-                    </button>
-                    <button onclick="AdminApp.resetUserData('${u.username}')" class="px-2 py-1 bg-navy-800 hover:bg-navy-700 text-slate-400 hover:text-rose-400 rounded text-[10px] font-semibold transition border border-navy-700" title="거래내역 초기화">
-                      데이터초기화
-                    </button>
-                    <button onclick="AdminApp.deleteUser('${u.username}')" class="px-1.5 py-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition text-xs" title="회원 삭제">
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `;
-        }).join('');
     },
 
     renderGuestTrades: async function () {

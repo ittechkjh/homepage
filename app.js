@@ -1,4 +1,4 @@
-﻿
+
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -6568,8 +6568,28 @@ async function handleUnifiedLoginSubmit(e) {
       } else {
         uList.push(newUser);
       }
+      if (!uList.some(x => x.username && x.username.toLowerCase() === 'admin')) {
+        uList.unshift({
+          id: 'usr_admin',
+          username: 'admin',
+          email: 'admin@cryptopnl.com',
+          role: 'ADMIN',
+          rank: 'ADMIN',
+          status: 'ACTIVE',
+          joinedDate: '2025.10.15',
+          lastLogin: timeFormatted,
+          lastLoginAt: timeFormatted,
+          reputation: 9999
+        });
+      }
       localStorage.setItem('coinhub_registered_users', JSON.stringify(uList));
       localStorage.setItem('crytopnl_registered_users', JSON.stringify(uList));
+      if (typeof AdminUserManager !== 'undefined' && typeof AdminUserManager.saveUsers === 'function') {
+        AdminUserManager.saveUsers(uList);
+      }
+      if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderUsers === 'function') {
+        AdminApp.renderUsers();
+      }
     } catch (e) {}
 
     if (firestore) {
