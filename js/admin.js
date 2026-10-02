@@ -164,7 +164,8 @@ const AdminAnalytics = {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
             const dStr = this.getKstDateStr(d);
-            const bEntry = base.dailyMap[dStr] || { visitors: 20, pageviews: 85 };
+            const isToday = (i === 0);
+            const bEntry = base.dailyMap[dStr] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
             history14.push({
                 date: dStr,
                 visitors: bEntry.visitors,
@@ -341,6 +342,18 @@ const AdminAnalytics = {
         const todayStr = dateKeys[dateKeys.length - 1];
         const yesterdayStr = dateKeys[dateKeys.length - 2];
 
+        // Clean up outdated day-cache on day rollover (자정 날짜 전환 시 전날 캐시 즉시 만료)
+        try {
+            const rawCache = localStorage.getItem('coinhub_admin_cloud_stats_cache');
+            if (rawCache) {
+                const parsed = JSON.parse(rawCache);
+                if (parsed && parsed.cacheDate !== todayStr) {
+                    localStorage.removeItem('coinhub_admin_cloud_stats_cache');
+                    this.cloudStatsCache = null;
+                }
+            }
+        } catch(e) {}
+
         if (!firestore) {
             return this.getTodayStats();
         }
@@ -440,28 +453,35 @@ const AdminAnalytics = {
 
             // Merge LocalStorage & Cloudflare baseline for accurate aggregate metrics
             const base = this.CLOUDFLARE_BASELINE;
+            const isBaselineDay = (todayStr === '2026-10-02');
 
-            // 1. Devices baseline merge
+            // 1. Devices baseline merge (누적은 유지하되 당일은 자정 이후 실측치 반영)
             aggMobile = Math.max(aggMobile, base.cumDevices.mobile);
             aggDesktop = Math.max(aggDesktop, base.cumDevices.desktop);
-            todayMobile = Math.max(todayMobile, base.todayDevices.mobile);
-            todayDesktop = Math.max(todayDesktop, base.todayDevices.desktop);
+            if (isBaselineDay) {
+                todayMobile = Math.max(todayMobile, base.todayDevices.mobile);
+                todayDesktop = Math.max(todayDesktop, base.todayDevices.desktop);
+            }
 
             // 2. Browsers baseline merge
             Object.keys(base.cumBrowsers).forEach(b => {
                 aggBrowsers[b] = Math.max(aggBrowsers[b] || 0, base.cumBrowsers[b]);
             });
-            Object.keys(base.todayBrowsers).forEach(b => {
-                todayBrowsers[b] = Math.max(todayBrowsers[b] || 0, base.todayBrowsers[b]);
-            });
+            if (isBaselineDay) {
+                Object.keys(base.todayBrowsers).forEach(b => {
+                    todayBrowsers[b] = Math.max(todayBrowsers[b] || 0, base.todayBrowsers[b]);
+                });
+            }
 
             // 3. Features baseline merge
             Object.keys(base.cumFeatures).forEach(f => {
                 aggFeatures[f] = Math.max(aggFeatures[f] || 0, base.cumFeatures[f]);
             });
-            Object.keys(base.todayFeatures).forEach(f => {
-                todayFeatures[f] = Math.max(todayFeatures[f] || 0, base.todayFeatures[f]);
-            });
+            if (isBaselineDay) {
+                Object.keys(base.todayFeatures).forEach(f => {
+                    todayFeatures[f] = Math.max(todayFeatures[f] || 0, base.todayFeatures[f]);
+                });
+            }
 
             try {
                 const localData = this.getAnalyticsData();
@@ -485,9 +505,9 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
-            // Real progression for today: merge Firestore, Cloudflare baseline, and LocalStorage
+            // Real progression for today: merge Firestore and LocalStorage (자정 이후 새로운 날짜는 0부터 실시간 집계)
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
-            const cfToday = base.dailyMap[todayStr] || { visitors: 28, pageviews: 118 };
+            const cfToday = base.dailyMap[todayStr] || { visitors: 0, pageviews: 0 };
             let todayVisitors = Math.max(Number(todayEntry.visitors || 0), cfToday.visitors);
             let todayPageviews = Math.max(Number(todayEntry.pageviews || 0), cfToday.pageviews);
 
@@ -503,13 +523,17 @@ const AdminAnalytics = {
             // 14-day history array: Merge Firestore live values with Cloudflare verified baseline
             const history14 = dateKeys.map((k, idx) => {
                 const entry = dayMap[k];
-                const cfEntry = base.dailyMap[k] || { visitors: 20, pageviews: 85 };
-                let v = Math.max(entry ? Number(entry.visitors || 0) : 0, cfEntry.visitors || 0);
-                let pv = Math.max(entry ? Number(entry.pageviews || 0) : 0, cfEntry.pageviews || 0);
+                const isToday = (idx === dateKeys.length - 1);
+                const cfEntry = base.dailyMap[k] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
+                let v = entry ? Number(entry.visitors || 0) : 0;
+                let pv = entry ? Number(entry.pageviews || 0) : 0;
 
-                if (idx === dateKeys.length - 1) {
-                    v = Math.max(v, todayVisitors);
-                    pv = Math.max(pv, todayPageviews);
+                if (!isToday && cfEntry) {
+                    v = Math.max(v, cfEntry.visitors || 0);
+                    pv = Math.max(pv, cfEntry.pageviews || 0);
+                } else if (isToday) {
+                    v = todayVisitors;
+                    pv = todayPageviews;
                 }
 
                 return {
@@ -533,8 +557,8 @@ const AdminAnalytics = {
 
             // Today device breakdown
             let todayDevTotal = todayMobile + todayDesktop;
-            const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 58;
-            const todayDesktopPct = todayDevTotal > 0 ? 100 - todayMobilePct : 42;
+            const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 0;
+            const todayDesktopPct = todayDevTotal > 0 ? (100 - todayMobilePct) : 0;
 
             // Cumulative device breakdown
             let totalDev = aggMobile + aggDesktop;
@@ -571,6 +595,7 @@ const AdminAnalytics = {
             }
 
             const stats = {
+                cacheDate: todayStr,
                 todayVisitors,
                 todayPageviews,
                 yesterdayVisitors,
@@ -614,20 +639,32 @@ const AdminAnalytics = {
         const base = this.CLOUDFLARE_BASELINE;
         const data = this.getAnalyticsData();
         const todayStr = this.getKstDateStr();
-        const cfToday = base.dailyMap[todayStr] || { visitors: 28, pageviews: 118 };
+        const isBaselineDay = (todayStr === '2026-10-02');
+        const cfToday = base.dailyMap[todayStr] || { visitors: 0, pageviews: 0 };
         const today = (data.history && data.history.find(h => h.date === todayStr)) || { visitors: 0, pageviews: 0 };
         let todayVisitors = Math.max(Number(today.visitors || 0), cfToday.visitors);
         let todayPageviews = Math.max(Number(today.pageviews || 0), cfToday.pageviews);
 
-        // Merge cached cloud stats if available and higher
+        // Merge cached cloud stats if available and higher, validating cacheDate
         let cached = this.cloudStatsCache;
         if (!cached) {
             try {
                 const stored = localStorage.getItem('coinhub_admin_cloud_stats_cache');
-                if (stored) cached = JSON.parse(stored);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && parsed.cacheDate === todayStr) {
+                        cached = parsed;
+                    } else {
+                        localStorage.removeItem('coinhub_admin_cloud_stats_cache');
+                    }
+                }
             } catch (e) {}
+        } else if (cached.cacheDate !== todayStr) {
+            cached = null;
+            this.cloudStatsCache = null;
         }
-        if (cached && typeof cached === 'object') {
+
+        if (cached && typeof cached === 'object' && cached.cacheDate === todayStr) {
             todayVisitors = Math.max(todayVisitors, Number(cached.todayVisitors || 0));
             todayPageviews = Math.max(todayPageviews, Number(cached.todayPageviews || 0));
         }
@@ -640,11 +677,15 @@ const AdminAnalytics = {
             d.setDate(d.getDate() - i);
             const dStr = this.getKstDateStr(d);
             const found = data.history ? data.history.find(h => h.date === dStr) : null;
-            const cfEntry = base.dailyMap[dStr] || { visitors: 20, pageviews: 85 };
-            let v = Math.max(found ? Number(found.visitors || 0) : 0, cfEntry.visitors);
-            let pv = Math.max(found ? Number(found.pageviews || 0) : 0, cfEntry.pageviews);
+            const isToday = (i === 0);
+            const cfEntry = base.dailyMap[dStr] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
+            let v = found ? Number(found.visitors || 0) : 0;
+            let pv = found ? Number(found.pageviews || 0) : 0;
 
-            if (i === 0) {
+            if (!isToday && cfEntry) {
+                v = Math.max(v, cfEntry.visitors || 0);
+                pv = Math.max(pv, cfEntry.pageviews || 0);
+            } else if (isToday) {
                 v = Math.max(v, todayVisitors);
                 pv = Math.max(pv, todayPageviews);
             }
@@ -702,7 +743,37 @@ const AdminAnalytics = {
             realLiveCount = cCount;
         }
 
+        let todayMob = 0;
+        let todayDesk = 0;
+        let todayB = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
+        let todayF = {
+            analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0
+        };
+
+        if (isBaselineDay) {
+            todayMob = base.todayDevices.mobile;
+            todayDesk = base.todayDevices.desktop;
+            todayB = { ...base.todayBrowsers };
+            todayF = { ...base.todayFeatures };
+        } else if (cached) {
+            if (cached.todayDevices) {
+                todayMob = Number(cached.todayDevices.mobile || 0);
+                todayDesk = Number(cached.todayDevices.desktop || 0);
+            }
+            if (cached.todayBrowsers) {
+                todayB = { ...cached.todayBrowsers };
+            }
+            if (cached.todayFeatures) {
+                todayF = { ...cached.todayFeatures };
+            }
+        }
+
+        const todayDevTotal = todayMob + todayDesk;
+        const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMob / todayDevTotal) * 100) : 0;
+        const todayDesktopPct = todayDevTotal > 0 ? (100 - todayMobilePct) : 0;
+
         return {
+            cacheDate: todayStr,
             todayVisitors: todayVisitors,
             todayPageviews: todayPageviews,
             yesterdayVisitors,
@@ -722,11 +793,11 @@ const AdminAnalytics = {
             features: aggF,
             cumBrowsers: aggB,
             cumFeatures: aggF,
-            todayMobilePct: base.todayDevices ? Math.round((base.todayDevices.mobile / (base.todayDevices.mobile + base.todayDevices.desktop)) * 100) : 58,
-            todayDesktopPct: base.todayDevices ? 100 - Math.round((base.todayDevices.mobile / (base.todayDevices.mobile + base.todayDevices.desktop)) * 100) : 42,
-            todayDevices: { ...base.todayDevices },
-            todayBrowsers: { ...base.todayBrowsers },
-            todayFeatures: { ...base.todayFeatures }
+            todayMobilePct,
+            todayDesktopPct,
+            todayDevices: { mobile: todayMob, desktop: todayDesk },
+            todayBrowsers: todayB,
+            todayFeatures: todayF
         };
     }
 };
@@ -1759,7 +1830,7 @@ const AdminApp = {
 
             // 4. Update Device Share (Today vs Cumulative - percentage & visitor counts)
             const isDevToday = (this.deviceScope === 'today');
-            const todayDev = stats.todayDevices || { mobile: 16, desktop: 12 };
+            const todayDev = stats.todayDevices || { mobile: 0, desktop: 0 };
             const cumDev = stats.cumDevices || { mobile: 1061, desktop: 769 };
             const activeDev = isDevToday ? todayDev : cumDev;
             const altDev = isDevToday ? cumDev : todayDev;
@@ -1771,10 +1842,10 @@ const AdminApp = {
             const activeDevTotal = mobileCount + desktopCount;
             const altDevTotal = altMobileCount + altDesktopCount;
 
-            const mobilePctVal = activeDevTotal > 0 ? Math.round((mobileCount / activeDevTotal) * 100) : (isDevToday ? 57 : 58);
-            const desktopPctVal = 100 - mobilePctVal;
-            const altMobilePctVal = altDevTotal > 0 ? Math.round((altMobileCount / altDevTotal) * 100) : (isDevToday ? 58 : 57);
-            const altDesktopPctVal = 100 - altMobilePctVal;
+            const mobilePctVal = activeDevTotal > 0 ? Math.round((mobileCount / activeDevTotal) * 100) : 0;
+            const desktopPctVal = activeDevTotal > 0 ? (100 - mobilePctVal) : 0;
+            const altMobilePctVal = altDevTotal > 0 ? Math.round((altMobileCount / altDevTotal) * 100) : 0;
+            const altDesktopPctVal = altDevTotal > 0 ? (100 - altMobilePctVal) : 0;
 
             // Update device scope toggle button styles
             const btnDevToday = document.getElementById('admin-device-scope-today');
