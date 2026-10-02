@@ -1,4 +1,4 @@
-﻿
+
 // ==========================================
 // Firebase Database Configuration
 // ==========================================
@@ -4333,6 +4333,14 @@ function handleCafeAddComment() {
   saveStoredPosts(posts);
   if (input) input.value = '';
   renderCafeComments(post.comments);
+
+  // Firestore 클라우드 영구 저장 (모든 브라우저 및 기기 실시간 동기화)
+  const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestoreDb && typeof firestoreDb.collection === 'function') {
+    firestoreDb.collection('forum_posts').doc(String(post.id)).set({
+      comments: post.comments
+    }, { merge: true }).catch(err => console.warn('Firestore comment sync error:', err));
+  }
 }
 window.handleCafeAddComment = handleCafeAddComment;
 
@@ -4930,6 +4938,17 @@ function handleVoteInModal(delta) {
   
   const modalEl = document.getElementById('modal-post-upvotes');
   if (modalEl) modalEl.innerText = post.upvotes;
+
+  // Firestore 클라우드 추천수(upvotes) 실시간 동기화
+  const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (firestoreDb && typeof firestoreDb.collection === 'function') {
+    const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+      ? firebase.firestore.FieldValue.increment(delta)
+      : post.upvotes;
+    firestoreDb.collection('forum_posts').doc(String(post.id)).set({
+      upvotes: inc
+    }, { merge: true }).catch(err => console.warn('Firestore vote sync error:', err));
+  }
 }
 window.handleVoteInModal = handleVoteInModal;
 
@@ -7871,10 +7890,11 @@ window.addEventListener('popstate', handleRoute);
 window.addEventListener('hashchange', handleRoute);
 
 
-// Sync with Firestore
-if (db) {
+// Sync with Firestore (Cloud Persistence & Real-Time Global Sync)
+const firestoreDb = window.db || (typeof db !== 'undefined' ? db : null);
+if (firestoreDb && typeof firestoreDb.collection === 'function') {
   // 1. Real-time sync for deleted posts across all computers & browsers
-  db.collection('deleted_forum_posts').onSnapshot(snap => {
+  firestoreDb.collection('deleted_forum_posts').onSnapshot(snap => {
     if (!window._remoteDeletedPostIdsSet) window._remoteDeletedPostIdsSet = new Set();
     let hasNew = false;
     snap.forEach(doc => {
@@ -7890,15 +7910,17 @@ if (db) {
         localStorage.setItem('crytopnl_deleted_post_ids', JSON.stringify(allDeleted));
       } catch(e) {}
       const posts = getStoredPosts();
+      window._isSyncingFromFirestore = true;
       saveStoredPosts(posts);
+      window._isSyncingFromFirestore = false;
       if (typeof renderForumPosts === 'function') renderForumPosts();
     }
   }, err => {
     console.warn('Firestore deleted_forum_posts onSnapshot error:', err);
   });
 
-  // 2. Real-time sync for forum posts
-  db.collection('forum_posts').onSnapshot(snapshot => {
+  // 2. Real-time sync for forum posts across all computers & browsers
+  firestoreDb.collection('forum_posts').onSnapshot(snapshot => {
     let posts = [];
     const dummyIds = ['101', '102', '103', 101, 102, 103];
     const deletedIds = (typeof getDeletedPostIds === 'function') ? getDeletedPostIds() : [];
@@ -7919,15 +7941,51 @@ if (db) {
       }
     });
 
+    // Auto-backfill: If this browser has existing local user posts that are not yet in Firestore, sync them to cloud
+    try {
+      const localPosts = getStoredPosts();
+      if (Array.isArray(localPosts)) {
+        localPosts.forEach(lp => {
+          if (lp && lp.id && !deletedIds.includes(String(lp.id)) && !dummyIds.includes(String(lp.id))) {
+            const existsInCloud = posts.some(cp => String(cp.id) === String(lp.id));
+            if (!existsInCloud) {
+              firestoreDb.collection('forum_posts').doc(String(lp.id)).set(lp, { merge: true }).catch(() => {});
+              posts.push(lp);
+            }
+          }
+        });
+      }
+    } catch(e) {}
+
     posts = ensureDailyMarketReportPost(posts);
+
+    window._isSyncingFromFirestore = true;
     saveStoredPosts(posts);
+    window._isSyncingFromFirestore = false;
+
+    // Real-time live update for currently active modal
+    if (typeof currentCafePostId !== 'undefined' && currentCafePostId) {
+      const currentPost = posts.find(p => String(p.id) === String(currentCafePostId));
+      if (currentPost) {
+        if (typeof renderCafeComments === 'function') {
+          renderCafeComments(currentPost.comments || []);
+        }
+        const upEl = document.getElementById('cafe-post-upvotes');
+        if (upEl && currentPost.upvotes !== undefined) upEl.innerText = currentPost.upvotes;
+        const modalUpEl = document.getElementById('modal-post-upvotes');
+        if (modalUpEl && currentPost.upvotes !== undefined) modalUpEl.innerText = currentPost.upvotes;
+        const viewsEl = document.getElementById('cafe-post-views');
+        if (viewsEl && currentPost.views !== undefined) viewsEl.innerText = currentPost.views;
+      }
+    }
+
     if (typeof renderForumPosts === 'function') renderForumPosts();
   }, err => {
     console.warn('Firestore forum_posts onSnapshot error:', err);
   });
 
-  // Real-time Firestore synchronization for post views (forum_views collection - 방안 C)
-  db.collection('forum_views').onSnapshot(snapshot => {
+  // 3. Real-time Firestore synchronization for post views (forum_views collection)
+  firestoreDb.collection('forum_views').onSnapshot(snapshot => {
     let hasChanges = false;
     let localViewsMap = {};
     try {
@@ -7968,7 +8026,27 @@ if (db) {
     console.warn('Firestore forum_views onSnapshot error:', err);
   });
 
-  db.collection('chat_messages').orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
+  // 4. Real-time Firestore synchronization for registered users
+  firestoreDb.collection('users').onSnapshot(snapshot => {
+    const userList = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data && data.username) {
+        userList.push(data);
+      }
+    });
+    if (userList.length > 0) {
+      try {
+        localStorage.setItem('coinhub_registered_users', JSON.stringify(userList));
+        localStorage.setItem('crytopnl_registered_users', JSON.stringify(userList));
+      } catch(e) {}
+    }
+  }, err => {
+    console.warn('Firestore users onSnapshot note:', err);
+  });
+
+  // 5. Real-time chat sync
+  firestoreDb.collection('chat_messages').orderBy('id', 'asc').limit(100).onSnapshot(snapshot => {
     let msgs = [];
     snapshot.forEach(doc => {
       msgs.push(doc.data());
@@ -7989,12 +8067,23 @@ if (db) {
   } catch(e) {}
 }
 
-
-
-// === FIREBASE OVERRIDES ===
+// === FIREBASE OVERRIDES (Cloud Persistence on All Mutations) ===
 const originalSaveStoredPosts = saveStoredPosts;
 saveStoredPosts = function(posts) {
   originalSaveStoredPosts(posts);
+  if (!window._isSyncingFromFirestore) {
+    const fdb = window.db || (typeof db !== 'undefined' ? db : null);
+    if (fdb && typeof fdb.collection === 'function' && Array.isArray(posts)) {
+      const deletedIds = (typeof getDeletedPostIds === 'function') ? getDeletedPostIds() : [];
+      posts.forEach(p => {
+        if (p && p.id && !deletedIds.includes(String(p.id)) && !String(p.id).startsWith('dummy_')) {
+          fdb.collection('forum_posts').doc(String(p.id)).set(p, { merge: true }).catch(err => {
+            console.warn('Firestore forum post background sync warning:', err);
+          });
+        }
+      });
+    }
+  }
 };
 window.saveStoredPosts = saveStoredPosts;
 
