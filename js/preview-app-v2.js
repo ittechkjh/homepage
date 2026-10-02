@@ -7410,6 +7410,10 @@ async function handleUnifiedLoginSubmit(e) {
       }
     }
 
+    if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+      AdminAnalytics.recordVisit('community', true);
+    }
+
     updateAuthUI();
     updateAdminNavVisibility();
     closeAuthModal();
@@ -7511,6 +7515,10 @@ async function handleUnifiedLoginSubmit(e) {
     } catch (err) {
       console.warn('Firestore user doc update warning:', err);
     }
+  }
+
+  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+    AdminAnalytics.recordVisit('community', true);
   }
 
   updateAuthUI();

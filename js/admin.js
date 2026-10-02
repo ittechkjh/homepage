@@ -85,6 +85,25 @@ const AdminAnalytics = {
 
     isAdminSession: function () {
         try {
+            // If a regular user is actively logged in, they are NOT an admin session!
+            const userKeys = ['crytopnl_user', 'coinhub_user', 'cryptopnl_user'];
+            for (const k of userKeys) {
+                const raw = localStorage.getItem(k);
+                if (raw) {
+                    try {
+                        const u = JSON.parse(raw);
+                        if (u && u.username && u.username.toLowerCase() !== 'admin' && u.role !== 'ADMIN' && u.rank !== 'ADMIN') {
+                            return false;
+                        }
+                    } catch(e) {}
+                }
+            }
+            if (typeof currentUser !== 'undefined' && currentUser) {
+                if (currentUser.username && currentUser.username.toLowerCase() !== 'admin' && currentUser.role !== 'ADMIN' && currentUser.rank !== 'ADMIN') {
+                    return false;
+                }
+            }
+
             if (sessionStorage.getItem('coinhub_admin_authenticated') === '1' ||
                 sessionStorage.getItem('crytopnl_admin_authenticated') === '1' ||
                 sessionStorage.getItem('cryptopnl_admin_authenticated') === '1') {
@@ -94,7 +113,6 @@ const AdminAnalytics = {
                 localStorage.getItem('coinhub_is_admin_client') === '1') {
                 return true;
             }
-            const userKeys = ['crytopnl_user', 'coinhub_user', 'cryptopnl_user'];
             for (const k of userKeys) {
                 const raw = localStorage.getItem(k);
                 if (raw) {
@@ -118,10 +136,6 @@ const AdminAnalytics = {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             sessionStorage.setItem('crytopnl_admin_authenticated', '1');
             localStorage.setItem('crytopnl_is_admin_client', '1');
-
-            const todayStr = this.getKstDateStr();
-            sessionStorage.removeItem('crytopnl_visited_' + todayStr);
-            sessionStorage.removeItem('crytopnl_dev_logged_' + todayStr);
         } catch (e) {}
     },
 
@@ -239,6 +253,16 @@ const AdminAnalytics = {
                 data.browsers = {};
             }
 
+            if (data.todayDate !== todayStr) {
+                data.todayDate = todayStr;
+                data.todayDevices = { mobile: 0, desktop: 0 };
+                data.todayBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
+                data.todayFeatures = { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 };
+            }
+            if (!data.todayDevices) data.todayDevices = { mobile: 0, desktop: 0 };
+            if (!data.todayBrowsers) data.todayBrowsers = {};
+            if (!data.todayFeatures) data.todayFeatures = {};
+
             let todayEntry = data.history.find(h => h.date === todayStr);
 
             if (!todayEntry) {
@@ -256,11 +280,19 @@ const AdminAnalytics = {
 
             data.totalPageviewsAllTime = (data.totalPageviewsAllTime || 0) + 1;
             data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
+            data.todayFeatures[targetFeature] = (data.todayFeatures[targetFeature] || 0) + 1;
 
             // Only increment device & browser counts on unique session or initial visit
             if (isNewDeviceSession || (data.devices.mobile === 0 && data.devices.desktop === 0)) {
                 data.devices[devKey] = (data.devices[devKey] || 0) + 1;
                 data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
+                data.todayDevices[devKey] = (data.todayDevices[devKey] || 0) + 1;
+                data.todayBrowsers[browserName] = (data.todayBrowsers[browserName] || 0) + 1;
+            } else {
+                if (data.todayDevices.mobile === 0 && data.todayDevices.desktop === 0) {
+                    data.todayDevices[devKey] = 1;
+                    data.todayBrowsers[browserName] = (data.todayBrowsers[browserName] || 0) + 1;
+                }
             }
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
@@ -490,6 +522,22 @@ const AdminAnalytics = {
                         aggMobile = Math.max(aggMobile, Number(localData.devices.mobile || 0));
                         aggDesktop = Math.max(aggDesktop, Number(localData.devices.desktop || 0));
                     }
+                    if (localData.todayDate === todayStr) {
+                        if (localData.todayDevices) {
+                            todayMobile = Math.max(todayMobile, Number(localData.todayDevices.mobile || 0));
+                            todayDesktop = Math.max(todayDesktop, Number(localData.todayDevices.desktop || 0));
+                        }
+                        if (localData.todayBrowsers) {
+                            Object.keys(localData.todayBrowsers).forEach(b => {
+                                todayBrowsers[b] = Math.max(todayBrowsers[b] || 0, Number(localData.todayBrowsers[b] || 0));
+                            });
+                        }
+                        if (localData.todayFeatures) {
+                            Object.keys(localData.todayFeatures).forEach(f => {
+                                todayFeatures[f] = Math.max(todayFeatures[f] || 0, Number(localData.todayFeatures[f] || 0));
+                            });
+                        }
+                    }
                 }
             } catch (e) {}
 
@@ -556,6 +604,13 @@ const AdminAnalytics = {
             const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
 
             // Today device breakdown
+            if (todayVisitors > 0 && todayMobile === 0 && todayDesktop === 0) {
+                const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+                if (isMob) todayMobile = todayVisitors; else todayDesktop = todayVisitors;
+                const bName = this.getBrowserName();
+                todayBrowsers[bName] = (todayBrowsers[bName] || 0) + todayVisitors;
+                todayFeatures.community = (todayFeatures.community || 0) + todayVisitors;
+            }
             let todayDevTotal = todayMobile + todayDesktop;
             const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 0;
             const todayDesktopPct = todayDevTotal > 0 ? (100 - todayMobilePct) : 0;
@@ -592,6 +647,11 @@ const AdminAnalytics = {
                 } else {
                     realLiveCount = 0;
                 }
+            }
+
+            if (realLiveCount === 0) {
+                const hasSession = !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
+                if (hasSession) realLiveCount = 1;
             }
 
             const stats = {
@@ -742,6 +802,10 @@ const AdminAnalytics = {
             }
             realLiveCount = cCount;
         }
+        if (realLiveCount === 0) {
+            const hasSession = !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
+            if (hasSession) realLiveCount = 1;
+        }
 
         let todayMob = 0;
         let todayDesk = 0;
@@ -766,6 +830,31 @@ const AdminAnalytics = {
             if (cached.todayFeatures) {
                 todayF = { ...cached.todayFeatures };
             }
+        }
+
+        if (data && data.todayDate === todayStr) {
+            if (data.todayDevices) {
+                todayMob = Math.max(todayMob, Number(data.todayDevices.mobile || 0));
+                todayDesk = Math.max(todayDesk, Number(data.todayDevices.desktop || 0));
+            }
+            if (data.todayBrowsers) {
+                Object.keys(data.todayBrowsers).forEach(b => {
+                    todayB[b] = Math.max(todayB[b] || 0, Number(data.todayBrowsers[b] || 0));
+                });
+            }
+            if (data.todayFeatures) {
+                Object.keys(data.todayFeatures).forEach(f => {
+                    todayF[f] = Math.max(todayF[f] || 0, Number(data.todayFeatures[f] || 0));
+                });
+            }
+        }
+
+        if (todayVisitors > 0 && todayMob === 0 && todayDesk === 0) {
+            const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+            if (isMob) todayMob = todayVisitors; else todayDesk = todayVisitors;
+            const bName = this.getBrowserName();
+            todayB[bName] = (todayB[bName] || 0) + todayVisitors;
+            todayF.community = (todayF.community || 0) + todayVisitors;
         }
 
         const todayDevTotal = todayMob + todayDesk;
