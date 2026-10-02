@@ -300,19 +300,20 @@ function updateAuthUI() {
     } catch(e) {}
   }
 
-  const isAuth = isSessionAuth || isAdminUser;
+  const isRegularUser = !!(user && user.username && !isAdminUser);
+  const isAuth = !isRegularUser && (isSessionAuth || isAdminUser);
   const authBtn = document.getElementById('btn-header-auth');
 
-  if (isAuth) {
-    if (authBtn) {
-      authBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i><span>admin (로그아웃)</span>';
-      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
-      authBtn.onclick = handleLogout;
-    }
-  } else if (user && user.username) {
+  if (isRegularUser) {
     if (authBtn) {
       authBtn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4 text-cyan-400"></i><span>${escapeHtml(user.username)} (로그아웃)</span>`;
       authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-cyan-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
+      authBtn.onclick = handleLogout;
+    }
+  } else if (isAuth) {
+    if (authBtn) {
+      authBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i><span>admin (로그아웃)</span>';
+      authBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy-900 border border-purple-500/40 hover:border-rose-500/50 text-xs font-bold text-slate-200 hover:text-rose-300 transition shadow-sm cursor-pointer';
       authBtn.onclick = handleLogout;
     }
   } else {
@@ -325,10 +326,10 @@ function updateAuthUI() {
 
   const cardNickEl = document.getElementById('cardNick');
   if (cardNickEl) {
-    if (isAuth) {
-      cardNickEl.value = 'admin';
-    } else if (user && user.username) {
+    if (isRegularUser) {
       cardNickEl.value = user.username;
+    } else if (isAuth) {
+      cardNickEl.value = 'admin';
     }
   }
   if (window.CoinCalculators && typeof window.CoinCalculators.renderProfitCard === 'function') {
@@ -6556,6 +6557,13 @@ async function handleUnifiedLoginSubmit(e) {
     localStorage.setItem('crytopnl_user_pw_' + id.toLowerCase(), pw);
     localStorage.setItem('coinhub_user_pw_' + id.toLowerCase(), pw);
 
+    if (id.toLowerCase() !== 'admin') {
+      sessionStorage.removeItem('crytopnl_admin_authenticated');
+      sessionStorage.removeItem('coinhub_admin_authenticated');
+      localStorage.removeItem('crytopnl_is_admin_client');
+      localStorage.removeItem('coinhub_is_admin_client');
+    }
+
     try {
       const rawList = localStorage.getItem('coinhub_registered_users') || localStorage.getItem('crytopnl_registered_users');
       let uList = [];
@@ -6687,6 +6695,13 @@ async function handleUnifiedLoginSubmit(e) {
   localStorage.setItem('coinhub_user', JSON.stringify(user));
   localStorage.setItem('crytopnl_user_pw_' + id.toLowerCase(), user.password);
   localStorage.setItem('coinhub_user_pw_' + id.toLowerCase(), user.password);
+
+  if (user.role !== 'ADMIN' && user.username.toLowerCase() !== 'admin') {
+    sessionStorage.removeItem('crytopnl_admin_authenticated');
+    sessionStorage.removeItem('coinhub_admin_authenticated');
+    localStorage.removeItem('crytopnl_is_admin_client');
+    localStorage.removeItem('coinhub_is_admin_client');
+  }
 
   if (firestore) {
     try {
