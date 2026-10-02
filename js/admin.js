@@ -115,58 +115,28 @@ const AdminAnalytics = {
 
     rollbackAdminVisit: function () {
         try {
-            const todayStr = this.getKstDateStr();
-            const visitedKey = 'crytopnl_visited_' + todayStr;
-            const devKey = 'crytopnl_dev_logged_' + todayStr;
-            const hadSessionVisit = sessionStorage.getItem(visitedKey) === '1';
-
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             sessionStorage.setItem('crytopnl_admin_authenticated', '1');
             localStorage.setItem('crytopnl_is_admin_client', '1');
 
-            if (hadSessionVisit) {
-                sessionStorage.removeItem(visitedKey);
-                sessionStorage.removeItem(devKey);
-
-                const firestore = window.db || (typeof db !== 'undefined' ? db : null);
-                if (firestore && typeof firebase !== 'undefined' && firebase.firestore) {
-                    const dec = firebase.firestore.FieldValue.increment(-1);
-                    firestore.collection('site_analytics').doc(todayStr).set({
-                        visitors: dec,
-                        pageviews: dec
-                    }, { merge: true }).catch(e => console.warn('Rollback visit note:', e));
-
-                    firestore.collection('site_analytics').doc('totals').set({
-                        totalVisitors: dec,
-                        totalPageviews: dec
-                    }, { merge: true }).catch(e => console.warn('Rollback totals note:', e));
-                }
-
-                try {
-                    const data = this.getAnalyticsData();
-                    if (data && Array.isArray(data.history)) {
-                        const todayEntry = data.history.find(h => h.date === todayStr);
-                        const minVisitors = this.CLOUDFLARE_BASELINE.dailyMap[todayStr]?.visitors || 28;
-                        const minPV = this.CLOUDFLARE_BASELINE.dailyMap[todayStr]?.pageviews || 118;
-                        if (todayEntry) {
-                            todayEntry.visitors = Math.max(minVisitors, (todayEntry.visitors || 1) - 1);
-                            todayEntry.pageviews = Math.max(minPV, (todayEntry.pageviews || 1) - 1);
-                        }
-                        data.totalVisitorsAllTime = Math.max(this.CLOUDFLARE_BASELINE.totalVisitorsAllTime, (data.totalVisitorsAllTime || 1) - 1);
-                        data.totalPageviewsAllTime = Math.max(this.CLOUDFLARE_BASELINE.totalPageviewsAllTime, (data.totalPageviewsAllTime || 1) - 1);
-                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-                    }
-                } catch (e) {}
-
-                this.cloudStatsCache = null;
-                localStorage.removeItem('coinhub_admin_cloud_stats_cache');
-            }
+            const todayStr = this.getKstDateStr();
+            sessionStorage.removeItem('crytopnl_visited_' + todayStr);
+            sessionStorage.removeItem('crytopnl_dev_logged_' + todayStr);
         } catch (e) {}
     },
 
     init: function () {
         if (this.isAdminSession()) return;
-        // Do not auto-record 'analyzer' on init. Actual routed visit is handled by switchTab().
+        // 사이트 최초 접속 시 자동 고유 방문자(DAU) 및 PV 즉시 1회 실시간 집계
+        let initialFeature = 'community';
+        try {
+            const h = (window.location.hash || '').replace('#/', '').replace('#', '');
+            if (h) {
+                const p = h.split('/')[0].split('?')[0];
+                if (p) initialFeature = p;
+            }
+        } catch (e) {}
+        this.recordVisit(initialFeature);
     },
 
     getAnalyticsData: function () {
@@ -304,6 +274,7 @@ const AdminAnalytics = {
                     features: {
                         [targetFeature]: inc
                     },
+                    [`features.${targetFeature}`]: inc,
                     lastVisitAt: new Date().toISOString()
                 };
 
@@ -314,9 +285,11 @@ const AdminAnalytics = {
                     updateObj.devices = {
                         [devKey]: inc
                     };
+                    updateObj[`devices.${devKey}`] = inc;
                     updateObj.browsers = {
                         [browserName]: inc
                     };
+                    updateObj[`browsers.${browserName}`] = inc;
                 }
 
                 const p1 = firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
@@ -373,9 +346,7 @@ const AdminAnalytics = {
         }
 
         try {
-            const docsSnap = await firestore.collection('site_analytics')
-                .where(firebase.firestore.FieldPath.documentId(), '>=', dateKeys[0])
-                .get();
+            const docsSnap = await firestore.collection('site_analytics').get();
 
             const dayMap = {};
             let aggMobile = 0;
