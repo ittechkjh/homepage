@@ -1091,6 +1091,18 @@ const AdminUserManager = {
 
         // 4. Load / overwrite with Firestore cloud users (Most authoritative)
         if (Array.isArray(this.cloudUsers) && this.cloudUsers.length > 0) {
+            const cloudNames = new Set(this.cloudUsers.map(c => (c.username || '').toLowerCase()));
+            cloudNames.add('admin');
+            // Clean up any ghost/orphan local accounts that don't exist in Firestore
+            for (const [key] of userMap.entries()) {
+                if (!cloudNames.has(key)) {
+                    userMap.delete(key);
+                    try {
+                        localStorage.removeItem('crytopnl_user_pw_' + key);
+                        localStorage.removeItem('coinhub_user_pw_' + key);
+                    } catch (e) {}
+                }
+            }
             this.cloudUsers.forEach(c => {
                 if (c && c.username) userMap.set(c.username.toLowerCase(), c);
             });
@@ -1273,6 +1285,12 @@ const AdminUserManager = {
         this.saveUsers(users);
         this.resetUserData(username);
         
+        try {
+            const uLow = username.trim().toLowerCase();
+            localStorage.removeItem('crytopnl_user_pw_' + uLow);
+            localStorage.removeItem('coinhub_user_pw_' + uLow);
+        } catch (e) {}
+
         // Firestore Cloud Delete
         const firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (firestore) {
@@ -1281,13 +1299,13 @@ const AdminUserManager = {
         return true;
     },
 
-        validateUserLogin: function (identifier, password) {
+    validateUserLogin: function (identifier, password) {
         const users = this.getUsers();
         const identLower = String(identifier || '').trim().toLowerCase();
         const pw = String(password || '').trim();
 
         // 1. Check if trying to log in as admin
-        if (identLower === 'admin' || identLower === 'admin@cryptopnl.com' || identLower === '성공') {
+        if (identLower === 'admin' || identLower === 'admin@cryptopnl.com') {
             const adminPw = (typeof AdminApp !== 'undefined') ? AdminApp.getAdminPassword() : 'admin1234';
             if (pw === adminPw) {
                 let adminUser = users.find(u => u.username.toLowerCase() === 'admin');
