@@ -7411,7 +7411,7 @@ async function handleUnifiedLoginSubmit(e) {
     }
 
     if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
-      AdminAnalytics.recordVisit('community', true);
+      AdminAnalytics.recordVisit(null, true);
     }
 
     updateAuthUI();
@@ -7518,7 +7518,7 @@ async function handleUnifiedLoginSubmit(e) {
   }
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
-    AdminAnalytics.recordVisit('community', true);
+    AdminAnalytics.recordVisit(null, true);
   }
 
   updateAuthUI();

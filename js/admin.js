@@ -216,15 +216,18 @@ const AdminAnalytics = {
             const browserName = this.getBrowserName();
 
             // Normalize feature name across all 9 functional areas
-            let targetFeature = featureName || 'analyzer';
-            if (targetFeature === 'admin') {
-                return Promise.resolve();
-            }
-            if (targetFeature === 'forum' || targetFeature === 'chat' || targetFeature === 'guides') {
-                targetFeature = 'community';
-            }
-            if (targetFeature === 'yearend-tax') {
-                targetFeature = 'calculators';
+            let targetFeature = null;
+            if (featureName) {
+                targetFeature = featureName;
+                if (targetFeature === 'admin') {
+                    return Promise.resolve();
+                }
+                if (targetFeature === 'forum' || targetFeature === 'chat' || targetFeature === 'guides') {
+                    targetFeature = 'community';
+                }
+                if (targetFeature === 'yearend-tax') {
+                    targetFeature = 'calculators';
+                }
             }
 
             // 1. Session-based unique visitor check
@@ -279,8 +282,10 @@ const AdminAnalytics = {
             }
 
             data.totalPageviewsAllTime = (data.totalPageviewsAllTime || 0) + 1;
-            data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
-            data.todayFeatures[targetFeature] = (data.todayFeatures[targetFeature] || 0) + 1;
+            if (targetFeature) {
+                data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
+                data.todayFeatures[targetFeature] = (data.todayFeatures[targetFeature] || 0) + 1;
+            }
 
             // Only increment device & browser counts on unique session or initial visit
             if (isNewDeviceSession || (data.devices.mobile === 0 && data.devices.desktop === 0)) {
@@ -304,12 +309,14 @@ const AdminAnalytics = {
                 const updateObj = {
                     date: todayStr,
                     pageviews: inc,
-                    features: {
-                        [targetFeature]: inc
-                    },
-                    [`features.${targetFeature}`]: inc,
                     lastVisitAt: new Date().toISOString()
                 };
+
+                if (targetFeature) {
+                    updateObj.features = {
+                        [targetFeature]: inc
+                    };
+                }
 
                 if (isNewVisitor) {
                     updateObj.visitors = inc;
@@ -318,11 +325,9 @@ const AdminAnalytics = {
                     updateObj.devices = {
                         [devKey]: inc
                     };
-                    updateObj[`devices.${devKey}`] = inc;
                     updateObj.browsers = {
                         [browserName]: inc
                     };
-                    updateObj[`browsers.${browserName}`] = inc;
                 }
 
                 const p1 = firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
@@ -431,11 +436,16 @@ const AdminAnalytics = {
                     dayMap[doc.id] = d;
                     const isTodayDoc = (doc.id === todayStr);
 
-                    // 1. Devices: Read nested map + flat dot keys (for backwards compatibility)
-                    let mob = (d.devices && d.devices.mobile !== undefined) ? Number(d.devices.mobile || 0) : 0;
-                    let dsk = (d.devices && d.devices.desktop !== undefined) ? Number(d.devices.desktop || 0) : 0;
-                    if (d['devices.mobile'] !== undefined) mob += Number(d['devices.mobile'] || 0);
-                    if (d['devices.desktop'] !== undefined) dsk += Number(d['devices.desktop'] || 0);
+                    // 1. Devices: Read nested map, fallback to flat dot keys if not nested
+                    let mob = 0;
+                    let dsk = 0;
+                    if (d.devices && typeof d.devices === 'object' && (d.devices.mobile !== undefined || d.devices.desktop !== undefined)) {
+                        mob = Number(d.devices.mobile || 0);
+                        dsk = Number(d.devices.desktop || 0);
+                    } else {
+                        if (d['devices.mobile'] !== undefined) mob = Number(d['devices.mobile'] || 0);
+                        if (d['devices.desktop'] !== undefined) dsk = Number(d['devices.desktop'] || 0);
+                    }
                     aggMobile += mob;
                     aggDesktop += dsk;
                     if (isTodayDoc) {
@@ -443,25 +453,26 @@ const AdminAnalytics = {
                         todayDesktop += dsk;
                     }
 
-                    // 2. Browsers: Read nested map + flat dot keys
-                    if (d.browsers && typeof d.browsers === 'object') {
+                    // 2. Browsers: Read nested map, fallback to flat dot keys if not nested
+                    if (d.browsers && typeof d.browsers === 'object' && Object.keys(d.browsers).length > 0) {
                         Object.keys(d.browsers).forEach(b => {
                             const val = Number(d.browsers[b] || 0);
                             aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
                             if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
                         });
+                    } else {
+                        Object.keys(d).forEach(k => {
+                            if (k.startsWith('browsers.')) {
+                                const b = k.slice(9);
+                                const val = Number(d[k] || 0);
+                                aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
+                                if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
+                            }
+                        });
                     }
-                    Object.keys(d).forEach(k => {
-                        if (k.startsWith('browsers.')) {
-                            const b = k.slice(9);
-                            const val = Number(d[k] || 0);
-                            aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
-                            if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
-                        }
-                    });
 
-                    // 3. Features: Read nested map + flat dot keys
-                    if (d.features && typeof d.features === 'object') {
+                    // 3. Features: Read nested map, fallback to flat dot keys if not nested
+                    if (d.features && typeof d.features === 'object' && Object.keys(d.features).length > 0) {
                         Object.keys(d.features).forEach(f => {
                             if (f === 'admin') return;
                             const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
@@ -469,17 +480,18 @@ const AdminAnalytics = {
                             aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
                             if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
                         });
+                    } else {
+                        Object.keys(d).forEach(k => {
+                            if (k.startsWith('features.')) {
+                                const f = k.slice(9);
+                                if (f === 'admin') return;
+                                const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
+                                const val = Number(d[k] || 0);
+                                aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
+                                if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
+                            }
+                        });
                     }
-                    Object.keys(d).forEach(k => {
-                        if (k.startsWith('features.')) {
-                            const f = k.slice(9);
-                            if (f === 'admin') return;
-                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
-                            const val = Number(d[k] || 0);
-                            aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
-                            if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
-                        }
-                    });
                 }
             });
 
@@ -909,9 +921,9 @@ const AdminUserManager = {
     formatActivityTime: function (raw) {
         if (!raw) return '<span class="text-slate-400 font-mono text-[11px]">기록 없음</span>';
         
-        // 1. If explicitly marked online or recent
+        // 1. If explicitly marked online or recent string
         if (typeof raw === 'string' && (raw.includes('방금') || raw.includes('온라인'))) {
-            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>방금 전 (온라인)</span>';
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>방금 전 활동</span>';
         }
 
         // 2. Parse Date correctly (handles Firestore timestamp, ISO string, KST local string, numbers)
@@ -950,9 +962,9 @@ const AdminUserManager = {
         const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         const dateStr = `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 
-        // Within 3 minutes -> active online
+        // Within 3 minutes -> active recent login/activity
         if (diffSec < 180 && diffSec >= -60) {
-            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>방금 전 (온라인)</span>';
+            return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold text-[11px] border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>방금 전 활동 <span class="text-slate-400 text-[10px] font-mono font-normal">(${timeStr})</span></span>`;
         }
         // Within 60 minutes
         if (diffMin < 60 && diffMin > 0) {
@@ -991,8 +1003,8 @@ const AdminUserManager = {
                                 role: data.role || 'USER',
                                 status: data.status || 'ACTIVE',
                                 joinedDate: data.joinedDate || (data.lastLoginAt ? String(data.lastLoginAt).slice(0, 10) : '2026.09.03'),
-                                lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
-                                lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                                lastLogin: data.lastLoginAt || data.lastLogin || data.joinedDate || '기록 없음',
+                                lastLoginAt: data.lastLoginAt || data.lastLogin || data.joinedDate || '기록 없음',
                                 reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
                                 tradesCount: this.getUserTradesCount(data.username),
                                 memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
@@ -1074,9 +1086,10 @@ const AdminUserManager = {
                 if (u && u.username) {
                     const uKey = u.username.toLowerCase();
                     const existing = userMap.get(uKey);
+                    const nowFmt = this.getNowFormatted();
                     if (existing) {
-                        existing.lastLogin = '방금 전 (온라인)';
-                        existing.lastLoginAt = '방금 전 (온라인)';
+                        existing.lastLogin = u.lastLoginAt || u.lastLogin || nowFmt;
+                        existing.lastLoginAt = u.lastLoginAt || u.lastLogin || nowFmt;
                         if (u.role) existing.role = u.role;
                     } else {
                         userMap.set(uKey, {
@@ -1086,8 +1099,8 @@ const AdminUserManager = {
                             role: u.role || 'USER',
                             status: u.status || 'ACTIVE',
                             joinedDate: u.joinedDate || AdminUserManager.getNowFormatted().slice(0, 10),
-                            lastLogin: '방금 전 (온라인)',
-                            lastLoginAt: '방금 전 (온라인)',
+                            lastLogin: u.lastLoginAt || u.lastLogin || nowFmt,
+                            lastLoginAt: u.lastLoginAt || u.lastLogin || nowFmt,
                             reputation: u.reputation || 100,
                             tradesCount: this.getUserTradesCount(u.username),
                             memo: '현재 접속 회원'
@@ -1097,12 +1110,13 @@ const AdminUserManager = {
             }
         } catch(e) {}
 
-        // 6. If session admin is authenticated, ensure admin is marked online
+        // 6. If session admin is authenticated, ensure admin has valid activity time
         if (sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || sessionStorage.getItem('coinhub_admin_authenticated') === '1') {
             const adminEntry = userMap.get('admin');
-            if (adminEntry) {
-                adminEntry.lastLogin = '방금 전 (온라인)';
-                adminEntry.lastLoginAt = '방금 전 (온라인)';
+            if (adminEntry && !adminEntry.lastLoginAt) {
+                const nowFmt = this.getNowFormatted();
+                adminEntry.lastLogin = nowFmt;
+                adminEntry.lastLoginAt = nowFmt;
             }
         }
 
@@ -1121,7 +1135,7 @@ const AdminUserManager = {
                 role: 'ADMIN',
                 status: 'ACTIVE',
                 joinedDate: '2025.10.15',
-                lastLogin: '방금 전 (온라인)',
+                lastLogin: nowFormatted,
                 lastLoginAt: nowFormatted,
                 reputation: 9999,
                 tradesCount: this.getUserTradesCount('admin'),
@@ -1267,14 +1281,17 @@ const AdminUserManager = {
                         role: 'ADMIN',
                         status: 'ACTIVE',
                         joinedDate: '2025.10.15',
-                        lastLogin: '방금 전 (온라인)',
+                        lastLogin: this.getNowFormatted(),
+                        lastLoginAt: this.getNowFormatted(),
                         reputation: 9999,
                         tradesCount: 0
                     };
                     users.unshift(adminUser);
                     this.saveUsers(users);
                 } else {
-                    adminUser.lastLogin = '방금 전 (온라인)';
+                    const nowFmt = this.getNowFormatted();
+                    adminUser.lastLogin = nowFmt;
+                    adminUser.lastLoginAt = nowFmt;
                     this.saveUsers(users);
                 }
                 return { success: true, user: adminUser };
@@ -1312,7 +1329,9 @@ const AdminUserManager = {
             };
         }
 
-        user.lastLogin = '방금 전 (온라인)';
+        const nowFmt = this.getNowFormatted();
+        user.lastLogin = nowFmt;
+        user.lastLoginAt = nowFmt;
         this.saveUsers(users);
 
         return { success: true, user: user };
@@ -2150,8 +2169,8 @@ const AdminApp = {
                             role: data.role || 'USER',
                             status: data.status || 'ACTIVE',
                             joinedDate: data.joinedDate || (data.lastLoginAt ? data.lastLoginAt.slice(0, 10) : '2026.09.03'),
-                            lastLogin: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
-                            lastLoginAt: data.lastLoginAt || data.lastLogin || '방금 전 (온라인)',
+                            lastLogin: data.lastLoginAt || data.lastLogin || data.joinedDate || '기록 없음',
+                            lastLoginAt: data.lastLoginAt || data.lastLogin || data.joinedDate || '기록 없음',
                             reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
                             memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
                         });
