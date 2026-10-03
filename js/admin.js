@@ -85,7 +85,7 @@ const AdminAnalytics = {
 
     isAdminSession: function () {
         try {
-            // If a regular user is actively logged in, they are NOT an admin session!
+            // 1. If actively logged in as a non-admin member, NEVER treat as admin session!
             const userKeys = ['crytopnl_user', 'coinhub_user', 'cryptopnl_user'];
             for (const k of userKeys) {
                 const raw = localStorage.getItem(k);
@@ -104,13 +104,10 @@ const AdminAnalytics = {
                 }
             }
 
+            // 2. Check if currently authenticated as admin in this active session
             if (sessionStorage.getItem('coinhub_admin_authenticated') === '1' ||
                 sessionStorage.getItem('crytopnl_admin_authenticated') === '1' ||
                 sessionStorage.getItem('cryptopnl_admin_authenticated') === '1') {
-                return true;
-            }
-            if (localStorage.getItem('crytopnl_is_admin_client') === '1' ||
-                localStorage.getItem('coinhub_is_admin_client') === '1') {
                 return true;
             }
             for (const k of userKeys) {
@@ -135,11 +132,18 @@ const AdminAnalytics = {
         try {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             sessionStorage.setItem('crytopnl_admin_authenticated', '1');
-            localStorage.setItem('crytopnl_is_admin_client', '1');
+            localStorage.removeItem('crytopnl_is_admin_client');
+            localStorage.removeItem('coinhub_is_admin_client');
         } catch (e) {}
     },
 
     init: function () {
+        try {
+            // Clean up legacy sticky admin flags that blocked normal visit counting
+            localStorage.removeItem('crytopnl_is_admin_client');
+            localStorage.removeItem('coinhub_is_admin_client');
+        } catch (e) {}
+
         if (this.isAdminSession()) return;
         // 사이트 최초 접속 시 자동 고유 방문자(DAU) 및 PV 즉시 1회 실시간 집계
         let initialFeature = 'community';
@@ -205,11 +209,7 @@ const AdminAnalytics = {
 
     recordVisit: function (featureName = null, force = false) {
         try {
-            if (!force && this.isAdminSession()) {
-                return Promise.resolve();
-            }
             const todayStr = this.getKstDateStr();
-            // Accurate mobile detection: handles standard mobile UA, iPadOS 13+ desktop mode with touch, and narrow touch screens
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent) ||
                              (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
             const devKey = isMobile ? 'mobile' : 'desktop';
@@ -227,6 +227,14 @@ const AdminAnalytics = {
                 }
                 if (targetFeature === 'yearend-tax') {
                     targetFeature = 'calculators';
+                }
+            }
+
+            // Do not record when actively on the admin dashboard tab unless forced
+            if (!force && this.isAdminSession()) {
+                const currentHash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.toLowerCase() : '';
+                if (currentHash.includes('admin') || targetFeature === 'admin') {
+                    return Promise.resolve();
                 }
             }
 
@@ -453,45 +461,46 @@ const AdminAnalytics = {
                         todayDesktop += dsk;
                     }
 
-                    // 2. Browsers: Read nested map, fallback to flat dot keys if not nested
-                    if (d.browsers && typeof d.browsers === 'object' && Object.keys(d.browsers).length > 0) {
+                    // 2. Browsers: Read nested map, fallback to flat dot keys without double-counting
+                    const docBrowsers = {};
+                    if (d.browsers && typeof d.browsers === 'object') {
                         Object.keys(d.browsers).forEach(b => {
-                            const val = Number(d.browsers[b] || 0);
-                            aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
-                            if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
-                        });
-                    } else {
-                        Object.keys(d).forEach(k => {
-                            if (k.startsWith('browsers.')) {
-                                const b = k.slice(9);
-                                const val = Number(d[k] || 0);
-                                aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
-                                if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
-                            }
+                            docBrowsers[b] = Math.max(docBrowsers[b] || 0, Number(d.browsers[b] || 0));
                         });
                     }
+                    Object.keys(d).forEach(k => {
+                        if (k.startsWith('browsers.')) {
+                            const b = k.slice(9);
+                            docBrowsers[b] = Math.max(docBrowsers[b] || 0, Number(d[k] || 0));
+                        }
+                    });
+                    Object.keys(docBrowsers).forEach(b => {
+                        const val = docBrowsers[b];
+                        aggBrowsers[b] = (aggBrowsers[b] || 0) + val;
+                        if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
+                    });
 
-                    // 3. Features: Read nested map, fallback to flat dot keys if not nested
-                    if (d.features && typeof d.features === 'object' && Object.keys(d.features).length > 0) {
+                    // 3. Features: Read nested map, fallback to flat dot keys without double-counting
+                    const docFeatures = {};
+                    if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
-                            if (f === 'admin') return;
                             const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
-                            const val = Number(d.features[f] || 0);
-                            aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
-                            if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
-                        });
-                    } else {
-                        Object.keys(d).forEach(k => {
-                            if (k.startsWith('features.')) {
-                                const f = k.slice(9);
-                                if (f === 'admin') return;
-                                const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
-                                const val = Number(d[k] || 0);
-                                aggFeatures[targetKey] = (aggFeatures[targetKey] || 0) + val;
-                                if (isTodayDoc) todayFeatures[targetKey] = (todayFeatures[targetKey] || 0) + val;
-                            }
+                            docFeatures[targetKey] = Math.max(docFeatures[targetKey] || 0, Number(d.features[f] || 0));
                         });
                     }
+                    Object.keys(d).forEach(k => {
+                        if (k.startsWith('features.')) {
+                            const f = k.slice(9);
+                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
+                            docFeatures[targetKey] = Math.max(docFeatures[targetKey] || 0, Number(d[k] || 0));
+                        }
+                    });
+                    Object.keys(docFeatures).forEach(f => {
+                        if (f === 'admin') return;
+                        const val = docFeatures[f];
+                        aggFeatures[f] = (aggFeatures[f] || 0) + val;
+                        if (isTodayDoc) todayFeatures[f] = (todayFeatures[f] || 0) + val;
+                    });
                 }
             });
 
@@ -534,7 +543,9 @@ const AdminAnalytics = {
                         aggMobile = Math.max(aggMobile, Number(localData.devices.mobile || 0));
                         aggDesktop = Math.max(aggDesktop, Number(localData.devices.desktop || 0));
                     }
-                    if (localData.todayDate === todayStr) {
+                    // Firestore 클라우드에 당일 문서가 존재하지 않는 경우에만 로컬 캐시를 fallback으로 활용
+                    const hasCloudToday = !!dayMap[todayStr];
+                    if (!hasCloudToday && localData.todayDate === todayStr) {
                         if (localData.todayDevices) {
                             todayMobile = Math.max(todayMobile, Number(localData.todayDevices.mobile || 0));
                             todayDesktop = Math.max(todayDesktop, Number(localData.todayDevices.desktop || 0));
@@ -565,7 +576,7 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
-            // Real progression for today: merge Firestore and LocalStorage (자정 이후 새로운 날짜는 0부터 실시간 집계)
+            // Real progression for today: Firestore 우선 반영 (자정 이후 새로운 날짜는 0부터 실시간 집계)
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
             const cfToday = base.dailyMap[todayStr] || { visitors: 0, pageviews: 0 };
             let todayVisitors = Math.max(Number(todayEntry.visitors || 0), cfToday.visitors);
@@ -574,7 +585,8 @@ const AdminAnalytics = {
             try {
                 const localData = this.getAnalyticsData();
                 const localToday = localData && localData.history ? localData.history.find(h => h.date === todayStr) : null;
-                if (localToday) {
+                const hasCloudToday = !!dayMap[todayStr];
+                if (!hasCloudToday && localToday) {
                     todayVisitors = Math.max(todayVisitors, Number(localToday.visitors || 0));
                     todayPageviews = Math.max(todayPageviews, Number(localToday.pageviews || 0));
                 }
@@ -621,7 +633,6 @@ const AdminAnalytics = {
                 if (isMob) todayMobile = todayVisitors; else todayDesktop = todayVisitors;
                 const bName = this.getBrowserName();
                 todayBrowsers[bName] = (todayBrowsers[bName] || 0) + todayVisitors;
-                todayFeatures.community = (todayFeatures.community || 0) + todayVisitors;
             }
             let todayDevTotal = todayMobile + todayDesktop;
             const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 0;
@@ -662,7 +673,7 @@ const AdminAnalytics = {
             }
 
             if (realLiveCount === 0) {
-                const hasSession = !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
+                const hasSession = !this.isAdminSession() && !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
                 if (hasSession) realLiveCount = 1;
             }
 
@@ -699,6 +710,14 @@ const AdminAnalytics = {
             this.cloudStatsCache = stats;
             try {
                 localStorage.setItem('coinhub_admin_cloud_stats_cache', JSON.stringify(stats));
+                const localData = this.getAnalyticsData();
+                if (localData) {
+                    localData.todayDate = todayStr;
+                    localData.todayDevices = { mobile: todayMobile, desktop: todayDesktop };
+                    localData.todayBrowsers = { ...todayBrowsers };
+                    localData.todayFeatures = { ...todayFeatures };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(localData));
+                }
             } catch (e) {}
             return stats;
         } catch (err) {
@@ -844,7 +863,7 @@ const AdminAnalytics = {
             }
         }
 
-        if (data && data.todayDate === todayStr) {
+        if (!cached && data && data.todayDate === todayStr) {
             if (data.todayDevices) {
                 todayMob = Math.max(todayMob, Number(data.todayDevices.mobile || 0));
                 todayDesk = Math.max(todayDesk, Number(data.todayDevices.desktop || 0));
@@ -866,7 +885,6 @@ const AdminAnalytics = {
             if (isMob) todayMob = todayVisitors; else todayDesk = todayVisitors;
             const bName = this.getBrowserName();
             todayB[bName] = (todayB[bName] || 0) + todayVisitors;
-            todayF.community = (todayF.community || 0) + todayVisitors;
         }
 
         const todayDevTotal = todayMob + todayDesk;
@@ -1792,7 +1810,8 @@ const AdminApp = {
         if (pw === currentAdminPw) {
             sessionStorage.setItem('coinhub_admin_authenticated', '1');
             sessionStorage.setItem('crytopnl_admin_authenticated', '1');
-            localStorage.setItem('crytopnl_is_admin_client', '1');
+            localStorage.removeItem('crytopnl_is_admin_client');
+            localStorage.removeItem('coinhub_is_admin_client');
             
             const adminUser = {
                 username: id || 'admin',
