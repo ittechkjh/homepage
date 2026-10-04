@@ -2951,18 +2951,46 @@ async function fetchYouTubeVideoDetails(youtubeUrl) {
         description = descMatch[1].replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
       }
 
+      let captionJson = null;
       const captionMatch = html.match(/"captionTracks":\s*(\[[^\]]+\])/);
       if (captionMatch && captionMatch[1]) {
         try {
-          const tracks = JSON.parse(captionMatch[1]);
+          captionJson = JSON.parse(captionMatch[1]);
+        } catch(e) {}
+      }
+      if (!captionJson) {
+        const idx = html.indexOf('"captionTracks":');
+        if (idx !== -1) {
+          const start = html.indexOf('[', idx);
+          if (start !== -1) {
+            let depth = 0;
+            let end = -1;
+            for (let i = start; i < html.length; i++) {
+              if (html[i] === '[') depth++;
+              else if (html[i] === ']') {
+                depth--;
+                if (depth === 0) { end = i + 1; break; }
+              }
+            }
+            if (end !== -1) {
+              try {
+                captionJson = JSON.parse(html.slice(start, end));
+              } catch(e) {}
+            }
+          }
+        }
+      }
+      if (captionJson && Array.isArray(captionJson)) {
+        try {
+          const tracks = captionJson;
           const track = tracks.find(t => t.languageCode === 'ko') || tracks.find(t => t.languageCode === 'en') || tracks[0];
           if (track && track.baseUrl) {
-            const trackRes = await fetch(track.baseUrl, { signal: AbortSignal.timeout(5000) });
+            const trackRes = await fetch(track.baseUrl, { signal: AbortSignal.timeout(8000) });
             if (trackRes.ok) {
               const xml = await trackRes.text();
               const textMatches = [...xml.matchAll(/<text[^>]*>([^<]+)<\/text>/g)];
               if (textMatches.length > 0) {
-                transcript = textMatches.map(m => m[1].replace(/&amp;#39;/g, "'").replace(/&amp;quot;/g, '"').replace(/&amp;/g, '&')).join(' ');
+                transcript = textMatches.map(m => m[1].replace(/&amp;#39;/g, "'").replace(/&amp;quot;/g, '"').replace(/&amp;gt;/g, '>').replace(/&amp;lt;/g, '<').replace(/&amp;/g, '&')).join(' ');
                 console.log(`[YouTube Finance] Successfully extracted video transcript (${transcript.length} chars)`);
               }
             }
@@ -3863,19 +3891,38 @@ async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, ap
     }
     </INFOGRAPHIC_DATA>`;
 
-  const userPrompt = `다음 금융 콘텐츠(첨부된 유튜브 영상 및 메타데이터)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
+  const hasTranscript = Boolean(videoDetails.transcript && videoDetails.transcript.trim().length >= 50);
+
+  let userPrompt = '';
+  if (hasTranscript) {
+    userPrompt = `다음 금융 콘텐츠의 영상 자막(Transcript)과 메타데이터를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
 (주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
 
 [분석 대상 금융 콘텐츠 정보]
 - 원본 주제/제목: ${videoDetails.title}
-- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1200) : '제공된 설명 없음'}
-${videoDetails.transcript ? `- 참고 자막 요약: ${videoDetails.transcript.slice(0, 3500)}` : '- 자막: 제공되지 않음 (첨부된 영상을 직접 시청·청취하여 분석할 것)'}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1500) : '제공된 설명 없음'}
+- 영상 전체 자막 전문(Transcript):
+${videoDetails.transcript.slice(0, 35000)}
 
-위 원본 영상 내용(실제 영상 발언, 시각 자료 및 자막/설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
+위 원본 영상의 발언 내용(실제 대화, 구체적 사례, 숫자, 조언 등)을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
+⚠️ 중요: 영상에 전혀 언급되지 않은 엉뚱한 금융 상품이나 제도(예: 연금저축, IRP, ISA, 특정 대출 규제 DSR 등)를 임의로 지어내거나 왜곡하지 마세요.`;
+  } else {
+    userPrompt = `다음 금융 콘텐츠(첨부된 유튜브 영상 및 메타데이터)를 면밀히 분석하고, 영상의 본래 주제를 충실하게 살려 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.
+(주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
+
+[분석 대상 금융 콘텐츠 정보]
+- 원본 주제/제목: ${videoDetails.title}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1500) : '제공된 설명 없음'}
+- 자막: 제공되지 않음 (첨부된 영상을 직접 시청·청취하여 분석할 것)
+
+위 원본 영상 내용(실제 영상 발언, 시각 자료 및 설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.
 ⚠️ 중요: 원본 영상에 전혀 언급되지 않은 다른 금융 상품이나 제도(예: 연금저축, IRP, ISA, 특정 대출 규제 DSR 등)를 임의로 지어내거나 살을 붙여 왜곡하지 마세요.`;
+  }
 
   const userParts = [];
-  if (videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
+  // Only attach file_uri if there is NO transcript.
+  // When transcript is present, pure text inference is 10x faster and 100% immune to video processing timeouts!
+  if (!hasTranscript && videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
     userParts.push({
       file_data: {
         file_uri: videoDetails.url
@@ -3940,15 +3987,17 @@ ${videoDetails.transcript ? `- 참고 자막 요약: ${videoDetails.transcript.s
     }
   ];
 
+  const apiTimeout = hasTranscript ? 45000 : 120000;
+
   for (const item of modelAttempts) {
     try {
-      console.log(`[Gemini Finance AI] Calling ${item.name}...`);
+      console.log(`[Gemini Finance AI] Calling ${item.name} (hasTranscript=${hasTranscript}, timeout=${apiTimeout / 1000}s)...`);
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item.payload),
-        signal: AbortSignal.timeout(60000)
+        signal: AbortSignal.timeout(apiTimeout)
       });
       if (res.ok) {
         const data = await res.json();
@@ -3967,6 +4016,40 @@ ${videoDetails.transcript ? `- 참고 자막 요약: ${videoDetails.transcript.s
       console.warn(`[Gemini Finance AI] Error with ${item.name}:`, e.message);
     }
   }
+
+  // If native video call failed (and we had file_uri without transcript), retry text-only fallback with title + description
+  if (!hasTranscript && userParts.length > 1) {
+    console.log('[Gemini Finance AI] Multimodal video call timed out or failed. Retrying with metadata text-only...');
+    const fallbackPrompt = `${systemInstruction}\n\n다음 금융 콘텐츠(제목 및 핵심 설명)를 바탕으로 10년 차 에디터 톤으로 전문 분석 칼럼을 작성해주세요.\n\n[콘텐츠 정보]\n- 제목: ${videoDetails.title}\n- 설명: ${videoDetails.description ? videoDetails.description.slice(0, 2000) : '설명 없음'}\n\n위 내용을 충실하게 반영하여 4개 인포그래픽 카드와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
+    const fallbackParts = [{ text: fallbackPrompt }];
+
+    for (const item of modelAttempts) {
+      try {
+        const fallbackPayload = {
+          contents: [{ role: 'user', parts: fallbackParts }],
+          generationConfig: item.payload.generationConfig
+        };
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fallbackPayload),
+          signal: AbortSignal.timeout(45000)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || '')?.join('')?.trim();
+          if (text && text.length > 500) {
+            console.log(`[Gemini Finance AI] Successfully generated finance report via fallback with ${item.name} (${text.length} chars)`);
+            return text;
+          }
+        }
+      } catch(fbErr) {
+        console.warn(`[Gemini Finance AI] Fallback error with ${item.name}:`, fbErr.message);
+      }
+    }
+  }
+
   return null;
 }
 

@@ -2530,7 +2530,8 @@ async function executeManualReportTrigger() {
     if (res.status === 204) {
       // Successfully triggered!
       const triggerTime = Date.now();
-      const totalSeconds = 80;
+      const isYoutubeFinance = selectedType === 'finance' && Boolean(youtubeUrl);
+      const totalSeconds = isYoutubeFinance ? 180 : 80;
       let secondsLeft = totalSeconds;
       let isCompleted = false;
       const typeDesc = selectedType === 'perspective' 
@@ -2635,8 +2636,9 @@ async function executeManualReportTrigger() {
           statusDesc.innerHTML = `AI 퀀트 엔진이 ${typeDesc} 중입니다.<br/><span class="font-bold text-amber-300 text-sm">약 ${Math.max(1, secondsLeft)}초 후 새 글이 자동 반영됩니다...</span>`;
         }
 
-        // Start polling after 40 seconds elapsed, every ~4 seconds
-        if (elapsed >= 40 && !pollRunning) {
+        // Start polling after 25s elapsed for YouTube or 40s for others, every ~4 seconds
+        const pollStartSec = isYoutubeFinance ? 25 : 40;
+        if (elapsed >= pollStartSec && !pollRunning) {
           pollRunning = true;
           const found = await checkNewReportExists();
           pollRunning = false;
@@ -2663,8 +2665,9 @@ async function executeManualReportTrigger() {
             }
           }
 
-          // Timeout safety: after 115 seconds total (secondsLeft <= -35)
-          if (secondsLeft <= -35) {
+          // Timeout safety: for YouTube 180 + 60 = 240s total; for standard reports 80 + 35 = 115s total
+          const timeoutBuffer = isYoutubeFinance ? -60 : -35;
+          if (secondsLeft <= timeoutBuffer) {
             clearInterval(_manualReportTimer);
             if (progressBar) progressBar.style.width = '100%';
             if (statusTitle) {
