@@ -4005,6 +4005,9 @@
                 <button type="button" onclick="CoinCalculators.resetScenario()" class="px-2.5 py-1.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="새 시나리오를 작성합니다">
                   <span>✨ 새 계획</span>
                 </button>
+                <button type="button" id="waterScenarioShareBtn" onclick="CoinCalculators.shareSavedScenarioToForum()" class="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="저장된 물타기 계획을 포럼 트레이딩 게시판에 게시합니다">
+                  <span>📈 포럼 게시</span>
+                </button>
                 <button type="button" id="waterScenarioDeleteBtn" onclick="CoinCalculators.deleteScenario()" style="display:none;" class="px-2 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition cursor-pointer" title="현재 시나리오 삭제">
                   <span>🗑️</span>
                 </button>
@@ -4213,8 +4216,8 @@
                 </div>
               </div>
               <button type="button" onclick="CoinCalculators.shareWaterToForum()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 text-xs font-extrabold transition flex items-center gap-1.5 shrink-0 shadow-lg shadow-cyan-500/20 cursor-pointer">
-                <i data-lucide="messages-square" class="w-3.5 h-3.5"></i>
-                <span>포럼에 질문/공유하기 ➡️</span>
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                <span>트레이딩 게시판에 게시하기 📈</span>
               </button>
             </div>
           </div>

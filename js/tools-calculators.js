@@ -807,6 +807,13 @@ const CoinCalculators = {
         if (deleteBtn) {
             deleteBtn.style.display = this.currentScenarioId ? 'inline-flex' : 'none';
         }
+
+        const shareBtn = document.getElementById('waterScenarioShareBtn');
+        if (shareBtn) {
+            shareBtn.title = this.currentScenarioId
+                ? '현재 선택된 물타기 계획을 포럼 트레이딩 게시판에 게시합니다'
+                : '현재 작성된 물타기 계획을 포럼 트레이딩 게시판에 게시합니다';
+        }
     },
 
     showScenarioToast: function (msg) {
@@ -1825,38 +1832,169 @@ const CoinCalculators = {
         }
     },
 
-    // 포럼 질문/공유 연동: 물타기 계획
-    shareWaterToForum: function () {
+    // 저장된 시나리오 또는 현재 계획을 포럼 트레이딩 게시판에 게시
+    shareSavedScenarioToForum: function (scenarioId) {
+        const targetId = scenarioId || this.currentScenarioId || document.getElementById('waterScenarioSelect')?.value;
+        const list = this.getSavedScenarios();
+        let targetScenario = null;
+
+        if (targetId) {
+            targetScenario = list.find(s => s.id === targetId);
+            if (targetScenario && this.currentScenarioId !== targetId) {
+                this.loadScenario(targetId, false);
+            }
+        }
+
+        // 최신 수치 계산 보장
+        this.calcWater();
+
         const isUsd = this.waterCurrency === 'USD';
         const unit = isUsd ? '$' : '원';
-        const curPrice = document.getElementById('waterCurrentPrice')?.value || '0';
-        const curQty = document.getElementById('waterCurrentQty')?.value || '0';
+        const curPriceStr = document.getElementById('waterCurrentPrice')?.value || '0';
+        const curQtyStr = document.getElementById('waterCurrentQty')?.value || '0';
+        const curPrice = this.parseNum(curPriceStr);
+        const curQty = this.parseNum(curQtyStr);
+        const curCost = curPrice * curQty;
+
         const newAvg = document.getElementById('waterResNewAvg')?.innerText || '0';
         const breakEven = document.getElementById('waterResBreakEven')?.innerText || '0';
         const totalCost = document.getElementById('waterResTotalCost')?.innerText || '0';
+        const totalQty = document.getElementById('waterResTotalQty')?.innerText || '0';
         const requiredGain = document.getElementById('waterResRequiredGain')?.innerText || '+0.00%';
 
-        const title = `[물타기 탈출 상담] 기존 평단 ${curPrice}${unit} ➡️ 목표 평단 ${newAvg} 탈출 조언 부탁드립니다`;
+        const planName = targetScenario ? targetScenario.title : '물타기 분할 매수 및 탈출 플랜';
+        const title = `[트레이딩 플랜] ${planName} | 기존 평단 ${curPriceStr}${unit} ➡️ 목표 평단 ${newAvg}`;
+
+        // 1. DCA 분할 매수 차수 테이블 생성
+        let buyTiersHtml = '';
+        if (this.waterTiers && this.waterTiers.length > 0) {
+            let runningQ = curQty;
+            let runningC = curCost;
+            const rows = this.waterTiers.map((tier, idx) => {
+                const p = this.parseNum(tier.price);
+                const mode = tier.mode || 'amount';
+                const val = this.parseNum(tier.val);
+                let addedQty = 0;
+                let addedAmt = 0;
+                if (mode === 'amount') {
+                    addedAmt = val;
+                    addedQty = p > 0 ? (val / p) : 0;
+                } else if (mode === 'qty') {
+                    addedQty = val;
+                    addedAmt = val * p;
+                } else if (mode === 'pct') {
+                    addedQty = (val / 100) * curQty;
+                    addedAmt = addedQty * p;
+                }
+                runningQ += addedQty;
+                runningC += addedAmt;
+                const tierAvg = runningQ > 0 ? (runningC / runningQ) : 0;
+                const diffFromInit = curPrice > 0 ? (((p - curPrice) / curPrice) * 100).toFixed(1) + '%' : '-';
+                const pFormatted = this.formatNumber(p) + unit;
+                const amtFormatted = isUsd ? '$' + Math.round(addedAmt).toLocaleString() : Math.round(addedAmt).toLocaleString() + '원';
+                const avgFormatted = this.formatNumber(Math.round(tierAvg)) + unit;
+
+                return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <td style="padding: 8px 10px; text-align: center; font-weight: bold; color: #38bdf8;">${idx + 1}차</td>
+                  <td style="padding: 8px 10px; text-align: right; font-family: monospace;">${pFormatted} <span style="font-size: 11px; color: #94a3b8;">(${diffFromInit})</span></td>
+                  <td style="padding: 8px 10px; text-align: right; font-family: monospace;">${amtFormatted} (${addedQty.toFixed(4)}개)</td>
+                  <td style="padding: 8px 10px; text-align: right; font-weight: bold; color: #34d399; font-family: monospace;">${avgFormatted}</td>
+                </tr>`;
+            }).join('');
+
+            buyTiersHtml = `
+            <div style="margin-top: 16px; margin-bottom: 16px;">
+              <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #38bdf8;">💧 분할 매수(물타기) 차수별 상세 전략</h4>
+              <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 4px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.15); color: #94a3b8;">
+                      <th style="padding: 8px 10px; text-align: center;">차수</th>
+                      <th style="padding: 8px 10px; text-align: right;">목표 매수가</th>
+                      <th style="padding: 8px 10px; text-align: right;">투입 금액(수량)</th>
+                      <th style="padding: 8px 10px; text-align: right;">체결 후 예상 평단</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows}
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+        }
+
+        // 2. 분할 매도(탈출/익절) 차수 테이블 생성
+        let sellTiersHtml = '';
+        if (this.sellTiers && this.sellTiers.length > 0) {
+            const sellRows = this.sellTiers.map((tier, idx) => {
+                const sp = this.parseNum(tier.price);
+                const ratio = this.parseNum(tier.val);
+                const spFormatted = this.formatNumber(sp) + unit;
+                return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <td style="padding: 8px 10px; text-align: center; font-weight: bold; color: #f43f5e;">${idx + 1}차</td>
+                  <td style="padding: 8px 10px; text-align: right; font-family: monospace;">${spFormatted}</td>
+                  <td style="padding: 8px 10px; text-align: right; font-family: monospace;">${ratio}% 매도</td>
+                </tr>`;
+            }).join('');
+
+            sellTiersHtml = `
+            <div style="margin-top: 16px; margin-bottom: 16px;">
+              <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #f43f5e;">🎯 분할 익절 & 본전 탈출 매도 전략</h4>
+              <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 12px; padding: 4px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.15); color: #94a3b8;">
+                      <th style="padding: 8px 10px; text-align: center;">차수</th>
+                      <th style="padding: 8px 10px; text-align: right;">목표 매도가</th>
+                      <th style="padding: 8px 10px; text-align: right;">매도 비중</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${sellRows}
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+        }
+
         const content = `
-<p>안녕하세요. <strong>CrytoPnL 물타기 시뮬레이터</strong>로 계획을 세워보고 있는 투자자입니다.</p>
-<hr>
-<h4>📊 물타기 시뮬레이션 요약</h4>
-<ul>
-  <li><strong>기준 통화:</strong> ${isUsd ? 'USD ($)' : 'KRW (원)'}</li>
-  <li><strong>현재 보유 평단가:</strong> ${curPrice} ${unit} (보유 수량: ${curQty})</li>
-  <li><strong>추가 매수 후 예상 평단가:</strong> <span style="color:#06b6d4; font-weight:bold;">${newAvg}</span></li>
-  <li><strong>수수료 포함 본전 탈출 목표가:</strong> <span style="color:#f43f5e; font-weight:bold;">${breakEven}</span></li>
-  <li><strong>필요 반등 상승률:</strong> <span style="color:#10b981; font-weight:bold;">${requiredGain}</span></li>
-  <li><strong>총 투입 예정 자금:</strong> ${totalCost}</li>
-</ul>
-<hr>
-<p>현재 차트 지지선과 시장 상황을 볼 때, 이 가격대에서 추가 분할 매수로 대응하는 전략이 유효할지 선배 트레이더 분들의 실전 관점과 조언을 구합니다!</p>
+<p>안녕하세요. <strong>CrytoPnL 실전 물타기 시뮬레이터</strong>에 저장된 포지션 탈출 및 트레이딩 계획을 공유합니다.</p>
+
+<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 14px 18px; margin: 14px 0;">
+  <h4 style="margin: 0 0 10px 0; color: #38bdf8; font-size: 15px;">📊 포지션 및 트레이딩 요약 [${planName}]</h4>
+  <ul style="margin: 0; padding-left: 20px; line-height: 1.8; font-size: 13px;">
+    <li><strong>기준 통화:</strong> ${isUsd ? 'USD ($)' : 'KRW (원)'}</li>
+    <li><strong>현재 보유 평단:</strong> ${curPriceStr} ${unit} (보유 수량: ${curQtyStr})</li>
+    <li><strong>기존 진입 원금:</strong> ${isUsd ? '$' + Math.round(curCost).toLocaleString() : Math.round(curCost).toLocaleString() + '원'}</li>
+    <li><strong>DCA 완료 후 목표 평단:</strong> <span style="color:#38bdf8; font-weight:bold;">${newAvg}</span> (총 수량: ${totalQty})</li>
+    <li><strong>수수료 포함 본전 탈출 목표가:</strong> <span style="color:#f43f5e; font-weight:bold;">${breakEven}</span></li>
+    <li><strong>필요 반등 상승률:</strong> <span style="color:#34d399; font-weight:bold;">${requiredGain}</span></li>
+    <li><strong>최종 투입 예정 총액:</strong> <strong style="color:#f8fafc;">${totalCost}</strong></li>
+  </ul>
+</div>
+
+${buyTiersHtml}
+${sellTiersHtml}
+
+<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
+<p style="font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+현재 주요 지지선과 캔들 흐름을 분석하며 위와 같이 분할 매수 및 탈출 구간을 설정했습니다.<br>
+이 구간에서의 분할 진입 비중과 손절/익절 타점에 대해 다른 트레이더 분들의 실전 피드백 및 조언 부탁드립니다!
+</p>
 `;
+
         if (typeof openForumWithPreload === 'function') {
-            openForumWithPreload('perspective', title, content.trim());
+            openForumWithPreload('trading', title, content.trim());
         } else {
             alert('포럼 연동 모듈을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
         }
+    },
+
+    // 포럼 질문/공유 연동: 물타기 계획
+    shareWaterToForum: function () {
+        this.shareSavedScenarioToForum();
     },
 
     // 포럼 질문/공유 연동: 코인 세금

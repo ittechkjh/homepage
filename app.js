@@ -8711,5 +8711,23 @@ if (document.readyState === 'loading') {
   if (typeof loadDailyMarketReports === 'function') loadDailyMarketReports();
 }
 
+// Forum Preload Integration Helper
+function openForumWithPreload(category, title, contentHtml) {
+  if (typeof switchTab === 'function') switchTab('forum');
+  if (typeof showForumWriteView === 'function') showForumWriteView();
+  
+  setTimeout(() => {
+    const catSelect = document.getElementById('cafe-write-category');
+    const titleInput = document.getElementById('cafe-write-title');
+    const editor = document.getElementById('cafe-write-content');
+    if (catSelect && category) catSelect.value = category;
+    if (titleInput && title) titleInput.value = title;
+    if (editor && contentHtml) editor.innerHTML = contentHtml;
+    if (titleInput) titleInput.focus();
+  }, 150);
+}
+window.openForumWithPreload = openForumWithPreload;
+
+
 
 
