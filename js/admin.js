@@ -183,7 +183,7 @@ const AdminAnalytics = {
             d.setDate(d.getDate() - i);
             const dStr = this.getKstDateStr(d);
             const isToday = (i === 0);
-            const bEntry = base.dailyMap[dStr] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
+            const bEntry = base.dailyMap[dStr] || { visitors: 0, pageviews: 0 };
             history14.push({
                 date: dStr,
                 visitors: bEntry.visitors,
@@ -596,7 +596,7 @@ const AdminAnalytics = {
             const history14 = dateKeys.map((k, idx) => {
                 const entry = dayMap[k];
                 const isToday = (idx === dateKeys.length - 1);
-                const cfEntry = base.dailyMap[k] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
+                const cfEntry = base.dailyMap[k] || null;
                 let v = entry ? Number(entry.visitors || 0) : 0;
                 let pv = entry ? Number(entry.pageviews || 0) : 0;
 
@@ -769,7 +769,7 @@ const AdminAnalytics = {
             const dStr = this.getKstDateStr(d);
             const found = data.history ? data.history.find(h => h.date === dStr) : null;
             const isToday = (i === 0);
-            const cfEntry = base.dailyMap[dStr] || (isToday ? { visitors: 0, pageviews: 0 } : { visitors: 20, pageviews: 85 });
+            const cfEntry = base.dailyMap[dStr] || null;
             let v = found ? Number(found.visitors || 0) : 0;
             let pv = found ? Number(found.pageviews || 0) : 0;
 
