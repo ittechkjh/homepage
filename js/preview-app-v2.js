@@ -7793,7 +7793,10 @@ function switchTab(tabId, updateHash = true) {
 
     if (tabId === 'forum') {
       if (typeof loadDailyMarketReports === 'function') loadDailyMarketReports(true);
-      showForumListView();
+      if (!window._preventNextForumListView) {
+        showForumListView();
+      }
+      window._preventNextForumListView = false;
       updateAdminNavVisibility();
     }
 
@@ -9784,10 +9787,12 @@ if (document.readyState === 'loading') {
 // PWA & Forum Preload Integration Engine
 // ==========================================
 function openForumWithPreload(category, title, contentHtml) {
+  window._preventNextForumListView = true;
   if (typeof switchTab === 'function') switchTab('forum');
   if (typeof showForumWriteView === 'function') showForumWriteView();
   
-  setTimeout(() => {
+  const applyPreloadData = () => {
+    if (typeof showForumWriteView === 'function') showForumWriteView();
     const catSelect = document.getElementById('cafe-write-category');
     const titleInput = document.getElementById('cafe-write-title');
     const editor = document.getElementById('cafe-write-content');
@@ -9795,7 +9800,11 @@ function openForumWithPreload(category, title, contentHtml) {
     if (titleInput && title) titleInput.value = title;
     if (editor && contentHtml) editor.innerHTML = contentHtml;
     if (titleInput) titleInput.focus();
-  }, 150);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  setTimeout(applyPreloadData, 50);
+  setTimeout(applyPreloadData, 200);
 }
 window.openForumWithPreload = openForumWithPreload;
 

@@ -4005,7 +4005,7 @@
                 <button type="button" onclick="CoinCalculators.resetScenario()" class="px-2.5 py-1.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white border border-navy-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="새 시나리오를 작성합니다">
                   <span>✨ 새 계획</span>
                 </button>
-                <button type="button" id="waterScenarioShareBtn" onclick="CoinCalculators.shareSavedScenarioToForum()" class="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="저장된 물타기 계획을 포럼 트레이딩 게시판에 게시합니다">
+                <button type="button" id="waterScenarioShareBtn" onclick="if(window.shareSavedScenarioToForum){shareSavedScenarioToForum();}else if(window.CoinCalculators){CoinCalculators.shareSavedScenarioToForum();}" class="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-navy-950 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="저장된 물타기 계획을 포럼 트레이딩 게시판에 게시합니다">
                   <span>📈 포럼 게시</span>
                 </button>
                 <button type="button" id="waterScenarioDeleteBtn" onclick="CoinCalculators.deleteScenario()" style="display:none;" class="px-2 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition cursor-pointer" title="현재 시나리오 삭제">
@@ -8946,14 +8946,14 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20260923_08"></script>
+  <script src="js/tools-calculators.js?v=20261012_02"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260927_02"></script>
 
   <script src="js/admin.js?v=20261003_06"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260923_04"></script>
-  <script src="js/preview-app-v2.js?v=20261003_04"></script>
+  <script src="js/preview-app-v2.js?v=20261012_02"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

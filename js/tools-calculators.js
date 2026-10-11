@@ -1983,12 +1983,26 @@ ${sellTiersHtml}
 현재 주요 지지선과 캔들 흐름을 분석하며 위와 같이 분할 매수 및 탈출 구간을 설정했습니다.<br>
 이 구간에서의 분할 진입 비중과 손절/익절 타점에 대해 다른 트레이더 분들의 실전 피드백 및 조언 부탁드립니다!
 </p>
-`;
+        const opener = (typeof window !== 'undefined' && typeof window.openForumWithPreload === 'function')
+            ? window.openForumWithPreload
+            : (typeof openForumWithPreload === 'function' ? openForumWithPreload : null);
 
-        if (typeof openForumWithPreload === 'function') {
-            openForumWithPreload('trading', title, content.trim());
+        if (typeof opener === 'function') {
+            opener('trading', title, content.trim());
         } else {
-            alert('포럼 연동 모듈을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+            // Direct DOM fallback
+            if (typeof switchTab === 'function') switchTab('forum');
+            if (typeof showForumWriteView === 'function') showForumWriteView();
+            setTimeout(() => {
+                const catSelect = document.getElementById('cafe-write-category');
+                const titleInput = document.getElementById('cafe-write-title');
+                const editor = document.getElementById('cafe-write-content');
+                if (catSelect) catSelect.value = 'trading';
+                if (titleInput) titleInput.value = title;
+                if (editor) editor.innerHTML = content.trim();
+                if (titleInput) titleInput.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 150);
         }
     },
 
@@ -4368,8 +4382,15 @@ if (typeof window !== 'undefined') {
     window.AnalyzerApp.downloadVerificationCard = function () {
         CoinCalculators.downloadProfitCard('pnl-card-canvas');
     };
-    window.AnalyzerApp.shareVerificationCardToForum = function () {
-        CoinCalculators.shareVerificationCardToForum('pnl-card-canvas');
+    window.shareSavedScenarioToForum = function (scenarioId) {
+        if (typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.shareSavedScenarioToForum === 'function') {
+            CoinCalculators.shareSavedScenarioToForum(scenarioId);
+        }
+    };
+    window.shareWaterToForum = function () {
+        if (typeof CoinCalculators !== 'undefined' && typeof CoinCalculators.shareWaterToForum === 'function') {
+            CoinCalculators.shareWaterToForum();
+        }
     };
 }
 
