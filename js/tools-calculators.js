@@ -5893,6 +5893,52 @@ ${sellTiersHtml}
             return `<tr><td style="padding:6px 8px; text-align:center;">${idx + 1}차</td><td style="padding:6px 8px; text-align:right;">${p}</td><td style="padding:6px 8px; text-align:right;">${desc}</td></tr>`;
         }).join('');
 
+        // 실시간 롤링 스텝 차트 SVG 추출 및 포럼 본문 이미지 블록 생성
+        let chartHtml = '';
+        let svgEl = document.getElementById('rollingStepSvg');
+        if (!svgEl || !svgEl.innerHTML.trim() || svgEl.innerHTML.length < 50) {
+            // 차트가 아직 그려지지 않은 경우 렌더링 재호출
+            if (typeof this.calcCoinRolling === 'function') {
+                this.calcCoinRolling();
+            }
+            svgEl = document.getElementById('rollingStepSvg');
+        }
+
+        if (svgEl && svgEl.innerHTML.trim().length > 50) {
+            try {
+                const clone = svgEl.cloneNode(true);
+                clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                clone.setAttribute('width', '100%');
+                clone.setAttribute('height', '180');
+                clone.setAttribute('viewBox', clone.getAttribute('viewBox') || '0 0 600 180');
+                clone.style.backgroundColor = '#0b1120';
+                clone.style.borderRadius = '12px';
+                clone.style.display = 'block';
+
+                const svgStr = new XMLSerializer().serializeToString(clone);
+                const svgDataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgStr);
+
+                chartHtml = `
+<div class="forum-chart-box post-img-container" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 16px; margin: 18px 0; text-align: center;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
+    <span style="font-size: 13px; font-weight: bold; color: #f8fafc;">📊 롤링 수량 증식 &amp; 평단가 스텝 차트</span>
+    <span style="font-size: 11px; font-family: monospace; color: #34d399; font-weight: bold; background: rgba(6, 78, 59, 0.6); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(52, 211, 153, 0.3);">${qtyGain} | 체감 평단 ${avgDrop}</span>
+  </div>
+  <div style="background: #0b1120; border-radius: 12px; padding: 10px; border: 1px solid rgba(30, 41, 59, 0.8); overflow: hidden;">
+    <img src="${svgDataUri}" alt="롤링 수량 증식 및 평단가 스텝 차트" style="width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto; border-radius: 8px;" />
+  </div>
+  <div style="display: flex; justify-content: center; gap: 14px; margin-top: 12px; font-size: 11px; color: #94a3b8; flex-wrap: wrap;">
+    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 12px; height: 2px; border-top: 2px dashed #f43f5e;"></span> 기존 평단가</span>
+    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 12px; height: 2px; background: #34d399;"></span> 실질 체감 평단가</span>
+    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f43f5e;"></span> 매도가</span>
+    <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #06b6d4;"></span> 재매수가</span>
+  </div>
+</div>`;
+            } catch (err) {
+                console.warn('[shareRollingToForum] 차트 SVG 추출 실패:', err);
+            }
+        }
+
         const title = `[롤링 전략] 원금 추가 투입 없이 코인 수량 늘리기 시뮬레이션 (매도 ${this.rollingSellTiers.length}차/매수 ${this.rollingBuyTiers.length}차, ${qtyGain})`;
         const content = `
 <p>안녕하세요! <strong>CrytoPnL 코인 수량 늘리기(롤링) 계산기</strong>로 원금 추가 투입 0원 기준 수량 증식 시뮬레이션을 진행해 보았습니다.</p>
@@ -5907,6 +5953,7 @@ ${sellTiersHtml}
     <li><strong>원금 추가 투입:</strong> 0원 (고점 분할 매도 ➡️ 저점 분할 재매수 복리 회전)</li>
   </ul>
 </div>
+${chartHtml}
 
 <div style="margin: 14px 0;">
   <h4 data-color="rose" style="font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #be123c;">🔴 1. 고점 분할 매도 계획</h4>
