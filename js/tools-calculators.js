@@ -5532,10 +5532,15 @@ ${sellTiersHtml}
         });
 
         // 2. 저점 분할 재매수 시뮬레이션
-        let availableCash = totalNetCashSecured;
+        // 매도 차수와 매수 차수 관계에 따른 확보금 배분 (1:1 차수 매칭 또는 분할)
+        const buyTiersCount = this.rollingBuyTiers.length;
+        const sellTiersCount = this.rollingSellTiers.length;
+        const isOneToOne = (buyTiersCount === sellTiersCount && buyTiersCount > 1);
+
         let totalReboughtQty = 0;
         let accumulatedResidualCash = 0;
         const buyProgressList = [];
+        let runningAvailablePool = totalNetCashSecured;
 
         this.rollingBuyTiers.forEach((tier, idx) => {
             const p = tier.price || 0;
@@ -5544,46 +5549,54 @@ ${sellTiersHtml}
             let reboughtQty = 0;
             let modeDesc = '';
 
+            // 1:1 차수 매칭일 경우, all_cash는 해당 차수의 매도 확보금을 전액 사용
+            let tierBudget = runningAvailablePool;
+            if (isOneToOne && mode === 'all_cash') {
+                tierBudget = sellProgressList[idx] ? sellProgressList[idx].netCash : (totalNetCashSecured / buyTiersCount);
+            }
+
             if (mode === 'all_cash') {
-                cashUsed = availableCash;
+                cashUsed = isOneToOne ? Math.min(runningAvailablePool, tierBudget) : runningAvailablePool;
                 const grossQty = p > 0 ? (cashUsed / p) : 0;
                 reboughtQty = Math.max(0, grossQty * (1 - feeRate));
-                availableCash = 0;
-                modeDesc = '매도확보금 전액 재투자';
+                runningAvailablePool = Math.max(0, runningAvailablePool - cashUsed);
+                modeDesc = isOneToOne ? `${idx + 1}차 매도금 전액 재투자` : '매도확보금 전액 재투자';
             } else if (mode === 'pct') {
                 const pct = Math.max(0, Math.min(100, Number(tier.val !== undefined ? tier.val : 100)));
-                cashUsed = availableCash * (pct / 100);
+                const baseCash = isOneToOne && sellProgressList[idx] ? sellProgressList[idx].netCash : totalNetCashSecured;
+                const targetCash = baseCash * (pct / 100);
+                cashUsed = Math.min(runningAvailablePool, targetCash);
                 const grossQty = p > 0 ? (cashUsed / p) : 0;
                 reboughtQty = Math.max(0, grossQty * (1 - feeRate));
-                availableCash = Math.max(0, availableCash - cashUsed);
-                modeDesc = `확보금의 ${pct}% 재투자`;
+                runningAvailablePool = Math.max(0, runningAvailablePool - cashUsed);
+                modeDesc = `${pct}% 재투자`;
             } else if (mode === 'amount') {
                 const targetAmt = Math.max(0, Number(tier.val) || 0);
-                cashUsed = Math.min(availableCash, targetAmt);
+                cashUsed = Math.min(runningAvailablePool, targetAmt);
                 const grossQty = p > 0 ? (cashUsed / p) : 0;
                 reboughtQty = Math.max(0, grossQty * (1 - feeRate));
-                availableCash = Math.max(0, availableCash - cashUsed);
+                runningAvailablePool = Math.max(0, runningAvailablePool - cashUsed);
                 modeDesc = isUsd ? `$${cashUsed.toLocaleString()} 투입` : `${Math.round(cashUsed).toLocaleString('ko-KR')}원 투입`;
             } else if (mode === 'qty') {
                 const targetQty = Math.max(0, Number(tier.val) || 0);
                 const neededCash = targetQty * p * (1 + feeRate);
-                if (neededCash > availableCash) {
-                    cashUsed = availableCash;
+                if (neededCash > runningAvailablePool) {
+                    cashUsed = runningAvailablePool;
                     const grossQty = p > 0 ? (cashUsed / p) : 0;
                     reboughtQty = Math.max(0, grossQty * (1 - feeRate));
-                    availableCash = 0;
+                    runningAvailablePool = 0;
                     modeDesc = `한도 내 최대 ${reboughtQty.toFixed(2)}개 매수`;
                 } else {
                     cashUsed = targetQty * p;
                     reboughtQty = targetQty;
-                    availableCash = Math.max(0, availableCash - cashUsed * (1 + feeRate));
+                    runningAvailablePool = Math.max(0, runningAvailablePool - cashUsed * (1 + feeRate));
                     modeDesc = `${targetQty.toLocaleString(undefined, { maximumFractionDigits: 4 })}개 지정 매수`;
                 }
             }
 
             totalReboughtQty += reboughtQty;
             const currentTotalCoins = remainingHeldQty + totalReboughtQty;
-            const tierEffectiveAvg = currentTotalCoins > 0 ? ((initialCost - (totalNetCashSecured - cashUsed)) / currentTotalCoins) : 0;
+            const tierEffectiveAvg = currentTotalCoins > 0 ? ((initialCost - (totalNetCashSecured - (totalNetCashSecured - runningAvailablePool))) / currentTotalCoins) : 0;
 
             buyProgressList.push({
                 tierNum: idx + 1,
@@ -5598,7 +5611,7 @@ ${sellTiersHtml}
             });
         });
 
-        accumulatedResidualCash = availableCash;
+        accumulatedResidualCash = runningAvailablePool;
 
         // 3. 파동별 시뮬레이션 테이블 렌더링
         const tbody = document.getElementById('rollingSimTableBody');
@@ -5618,6 +5631,7 @@ ${sellTiersHtml}
             runningCoins += waveAdded;
             const signGain = waveAdded >= 0 ? '+' : '';
             const gainColor = waveAdded >= 0 ? 'text-emerald-400' : 'text-rose-400';
+            const displayRowCoins = bt ? bt.endQty : runningCoins;
 
             rowsHtml += `
               <tr class="border-b border-navy-800/60 hover:bg-navy-800/30 transition text-[11px]">
@@ -5634,7 +5648,7 @@ ${sellTiersHtml}
                 <td class="py-2.5 px-2.5 text-right font-bold ${gainColor}">
                   <div>${signGain}${waveAdded.toLocaleString(undefined, { maximumFractionDigits: 4 })}개</div>
                 </td>
-                <td class="py-2.5 px-2.5 text-right font-bold text-emerald-400">${(bt ? bt.endQty : runningCoins).toLocaleString(undefined, { maximumFractionDigits: 4 })}개</td>
+                <td class="py-2.5 px-2.5 text-right font-bold text-emerald-400">${displayRowCoins.toLocaleString(undefined, { maximumFractionDigits: 4 })}개</td>
               </tr>
             `;
         }
