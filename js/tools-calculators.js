@@ -4808,7 +4808,16 @@ ${sellTiersHtml}
     getMyHoldingsList: function () {
         const rep = this.getAnalyzerData();
         if (rep && rep.coinSummaries && Array.isArray(rep.coinSummaries)) {
-            const held = rep.coinSummaries.filter(c => (c.holdingQty > 1e-6 || c.holdingCost > 100));
+            // 실제 현재 보유 중인 유효 코인만 엄격히 필터링 (수량 0.0001개 초과 및 보유 원금/평가금액 100원 이상인 실보유 자산만)
+            const held = rep.coinSummaries.filter(c => {
+                const qty = Number(c.holdingQty) || 0;
+                const cost = Number(c.holdingCost) || 0;
+                const curVal = Number(c.currentValue) || 0;
+                const avgBuy = Number(c.avgBuyPrice) || 0;
+                // 전량 매도 완료(수량 0)되었거나 미보유인 종목 제외
+                return qty > 1e-4 && (cost >= 100 || curVal >= 100 || (qty * avgBuy >= 100));
+            });
+
             if (held.length > 0) {
                 return held.map((c, idx) => {
                     const sym = (c.currency || c.coinSymbol || (c.market ? c.market.replace('KRW-', '').replace(/.*:::/, '') : 'COIN')).toUpperCase();
@@ -4844,7 +4853,7 @@ ${sellTiersHtml}
         return [];
     },
 
-    // 보유 코인 드롭다운 옵션 및 검색 목록 채우기 (업비트 / 빗썸 구분)
+    // 보유 코인 드롭다운 옵션 및 검색 목록 채우기 (실제 보유 코인만 업비트 / 빗썸 구분 표기)
     populateRollingCoinOptions: function () {
         const select = document.getElementById('rollingCoinSelect');
         if (!select) return;
@@ -4874,27 +4883,9 @@ ${sellTiersHtml}
                 });
                 optionsHtml += '</optgroup>';
             }
+        } else {
+            optionsHtml += '<option value="" disabled>💼 손익 분석기에 등록된 보유 코인이 없습니다 (직접 입력 가능)</option>';
         }
-
-        // 주요 메이저 및 알트코인 프리셋 (기본 시세 조회용)
-        const defaultMarketCoins = [
-            { symbol: 'BTC', name: '비트코인' },
-            { symbol: 'ETH', name: '이더리움' },
-            { symbol: 'XRP', name: '리플' },
-            { symbol: 'SOL', name: '솔라나' },
-            { symbol: 'DOGE', name: '도지코인' },
-            { symbol: 'ADA', name: '에이다' },
-            { symbol: 'SUI', name: '수이' },
-            { symbol: 'AVAX', name: '아발란체' },
-            { symbol: 'NEAR', name: '니어프로토콜' },
-            { symbol: 'SHIB', name: '시바이누' }
-        ];
-
-        optionsHtml += '<optgroup label="🔥 주요 관심 코인 (업비트 실시간 시세 연동)">';
-        defaultMarketCoins.forEach(c => {
-            optionsHtml += `<option value="MARKET_${c.symbol}" data-source="market" data-symbol="${c.symbol}" data-exchange="UPBIT" data-fee="0.05">🪙 [업비트] ${c.name} (${c.symbol})</option>`;
-        });
-        optionsHtml += '</optgroup>';
 
         select.innerHTML = optionsHtml;
     },
@@ -4907,7 +4898,7 @@ ${sellTiersHtml}
         if (!selectedOpt) return;
 
         const isHolding = selectedOpt.getAttribute('data-source') === 'holding';
-        const symbol = selectedOpt.getAttribute('data-symbol') || selectedId.replace(/^MARKET_/, '');
+        const symbol = selectedOpt.getAttribute('data-symbol') || selectedId;
         const exchange = selectedOpt.getAttribute('data-exchange') || 'UPBIT';
         const feeRateVal = selectedOpt.getAttribute('data-fee') || (exchange === 'BITHUMB' ? '0.04' : '0.05');
 
@@ -4947,31 +4938,6 @@ ${sellTiersHtml}
             return;
         }
 
-        // 일반 코인 선택 시 실시간 시세 조회 적용
-        if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fetchTickers) {
-            try {
-                const tickerMap = await UpbitAPI.fetchTickers([`KRW-${symbol}`]);
-                const t = tickerMap[`KRW-${symbol}`] || tickerMap[symbol];
-                if (t && t.tradePrice > 0) {
-                    const liveP = Math.round(t.tradePrice);
-                    if (priceEl) priceEl.value = this.formatNumber(liveP);
-                    if (this.rollingSellTiers.length > 0) {
-                        this.rollingSellTiers[0].price = Math.round(liveP * 1.15);
-                    }
-                    if (this.rollingBuyTiers.length > 0) {
-                        this.rollingBuyTiers[0].price = Math.round(liveP * 0.95);
-                    }
-                    this.renderRollingSellTiers();
-                    this.renderRollingBuyTiers();
-                    this.calcCoinRolling();
-                    this.showScenarioToast(`${exchangeLabel} '${symbol}' 실시간 시세(${liveP.toLocaleString()}원)를 적용했습니다.`);
-                    return;
-                }
-            } catch (e) {
-                console.warn('코인 시세 조회 실패:', e);
-            }
-        }
-
         this.calcCoinRolling();
     },
 
@@ -4984,6 +4950,7 @@ ${sellTiersHtml}
         // 드롭다운 옵션 중 일치하는 항목 탐색 (심볼, 코인명, 또는 업비트/빗썸 검색어 포함)
         for (let i = 0; i < select.options.length; i++) {
             const opt = select.options[i];
+            if (!opt.value) continue; // 빈 옵션 또는 안내 문구 제외
             const sym = (opt.getAttribute('data-symbol') || opt.value || '').toUpperCase();
             const txt = (opt.text || '').toUpperCase();
             if (sym === q || txt.includes(q)) {
