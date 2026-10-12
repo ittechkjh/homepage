@@ -2277,7 +2277,7 @@ const CoinCalculators = {
 
             buyTiersHtml = `
             <div style="margin-top: 16px; margin-bottom: 16px;">
-              <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #38bdf8;">💧 분할 매수(물타기) 차수별 상세 전략</h4>
+              <h4 data-color="emerald" style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #047857;">💧 분할 매수(물타기) 차수별 상세 전략</h4>
               <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 4px;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                   <thead>
@@ -2313,7 +2313,7 @@ const CoinCalculators = {
 
             sellTiersHtml = `
             <div style="margin-top: 16px; margin-bottom: 16px;">
-              <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #f43f5e;">🎯 분할 익절 & 본전 탈출 매도 전략</h4>
+              <h4 data-color="rose" style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #be123c;">🎯 분할 익절 & 본전 탈출 매도 전략</h4>
               <div style="overflow-x: auto; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 12px; padding: 4px;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                   <thead>
@@ -5897,19 +5897,19 @@ ${sellTiersHtml}
         const content = `
 <p>안녕하세요! <strong>CrytoPnL 코인 수량 늘리기(롤링) 계산기</strong>로 원금 추가 투입 0원 기준 수량 증식 시뮬레이션을 진행해 보았습니다.</p>
 
-<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 18px; margin: 14px 0;">
-  <h4 style="margin: 0 0 10px 0; color: #34d399; font-size: 15px;">🔄 코인 롤링(수량 늘리기) 시뮬레이션 결과</h4>
+<div class="forum-callout-box" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 18px; margin: 14px 0;">
+  <h4 style="margin: 0 0 10px 0; color: #10b981; font-size: 15px; font-weight: bold;">🔄 코인 롤링(수량 늘리기) 시뮬레이션 결과</h4>
   <ul style="margin: 0; padding-left: 20px; line-height: 1.8; font-size: 13px;">
     <li><strong>초기 포지션:</strong> 평단 ${currentPrice} ${unit} / 보유 ${currentQty}개</li>
-    <li><strong>최종 코인 수량:</strong> <span style="color:#34d399; font-weight:bold;">${finalQty}</span> (${qtyGain})</li>
-    <li><strong>실질 체감 평단가:</strong> <span style="color:#38bdf8; font-weight:bold;">${effectiveAvg}</span> (${avgDrop})</li>
-    <li><strong>총 수량 증가율:</strong> <span style="color:#34d399; font-weight:bold;">${totalRoi}</span></li>
+    <li><strong>최종 코인 수량:</strong> <span style="color:#059669; font-weight:bold;">${finalQty}</span> (${qtyGain})</li>
+    <li><strong>실질 체감 평단가:</strong> <span style="color:#0284c7; font-weight:bold;">${effectiveAvg}</span> (${avgDrop})</li>
+    <li><strong>총 수량 증가율:</strong> <span style="color:#059669; font-weight:bold;">${totalRoi}</span></li>
     <li><strong>원금 추가 투입:</strong> 0원 (고점 분할 매도 ➡️ 저점 분할 재매수 복리 회전)</li>
   </ul>
 </div>
 
 <div style="margin: 14px 0;">
-  <h4 style="font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #f43f5e;">🔴 1. 고점 분할 매도 계획</h4>
+  <h4 data-color="rose" style="font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #be123c;">🔴 1. 고점 분할 매도 계획</h4>
   <table style="width:100%; border-collapse:collapse; font-size:12px; background:rgba(15,23,42,0.6); border:1px solid rgba(244,63,94,0.2); border-radius:8px;">
     <thead>
       <tr style="border-bottom:1px solid rgba(255,255,255,0.15); color:#94a3b8;">
@@ -5925,7 +5925,7 @@ ${sellTiersHtml}
 </div>
 
 <div style="margin: 14px 0;">
-  <h4 style="font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #38bdf8;">🟢 2. 저점 분할 재매수 계획</h4>
+  <h4 data-color="emerald" style="font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #047857;">🟢 2. 저점 분할 재매수 계획</h4>
   <table style="width:100%; border-collapse:collapse; font-size:12px; background:rgba(15,23,42,0.6); border:1px solid rgba(56,189,248,0.2); border-radius:8px;">
     <thead>
       <tr style="border-bottom:1px solid rgba(255,255,255,0.15); color:#94a3b8;">
@@ -5941,7 +5941,7 @@ ${sellTiersHtml}
 </div>
 
 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;">
-<p style="font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+<p style="font-size: 13px; line-height: 1.6; margin-top: 10px;">
 지지 저항선과 캔들 변동성을 활용하여 수량을 극대화하는 롤링 전략입니다.<br>
 매도 후 재매수 타점 잡는 팁이나 분할 비중에 대해 고수님들의 실전 의견 부탁드립니다!
 </p>
