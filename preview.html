@@ -4327,21 +4327,23 @@
 
                 <!-- 보유 코인 검색 및 불러오기 선택기 -->
                 <div class="p-2 rounded-xl bg-navy-900/90 border border-emerald-500/20 space-y-1.5">
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between gap-1 flex-wrap">
                     <label class="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
                       <span>💼</span> 보유 코인 선택 / 검색
                     </label>
-                    <span class="text-[10px] text-slate-400">손익분석기 데이터 자동 연동</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] text-slate-400 hidden sm:inline">손익분석기 연동</span>
+                      <button type="button" onclick="TradeCandleChart.openFromRollingCalculator()" class="px-2 py-0.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/40 rounded-lg text-cyan-300 hover:text-white text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer shadow-xs" title="선택한 코인의 업비트/빗썸 매수·매도 체결 타점 캔들 차트 열기">
+                        <span>📈</span>
+                        <span>타점차트</span>
+                      </button>
+                    </div>
                   </div>
                   <div class="flex gap-1.5">
-                    <select id="rollingCoinSelect" onchange="CoinCalculators.onSelectRollingCoin(this.value)" class="flex-1 bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none cursor-pointer">
+                    <select id="rollingCoinSelect" onchange="CoinCalculators.onSelectRollingCoin(this.value)" class="flex-1 min-w-0 bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none cursor-pointer">
                       <option value="">-- 내 보유 코인 불러오기 / 직접 입력 --</option>
                     </select>
-                    <input type="text" id="rollingCoinSearchInput" placeholder="심볼/코인명 검색" oninput="CoinCalculators.searchRollingCoin(this.value)" class="w-20 sm:w-24 bg-navy-950 border border-navy-700 rounded-xl px-2 py-1.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none placeholder-slate-500">
-                    <button type="button" onclick="TradeCandleChart.openFromRollingCalculator()" class="px-2.5 py-1.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/40 rounded-xl text-cyan-300 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0 shadow-sm" title="선택한 코인의 업비트/빗썸 매수·매도 체결 타점 캔들 차트 열기">
-                      <span>📈</span>
-                      <span class="hidden sm:inline">타점차트</span>
-                    </button>
+                    <input type="text" id="rollingCoinSearchInput" placeholder="심볼/코인명 검색" oninput="CoinCalculators.searchRollingCoin(this.value)" class="w-24 sm:w-28 bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none placeholder-slate-500 shrink-0">
                   </div>
                 </div>
 

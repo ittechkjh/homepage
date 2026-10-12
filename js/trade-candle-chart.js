@@ -11,6 +11,7 @@
         chartInstance: null,
         candleSeries: null,
         avgPriceLine: null,
+        seriesMarkersPlugin: null,
         currentCoin: null,
         currentTrades: [],
         currentCandles: [],
@@ -34,31 +35,41 @@
             let coinSummary = null;
             let trades = [];
 
-            // 1. 손익분석기 데이터 조회
+            const cleanSym = marketOrSymbol.replace(/^KRW-/, '').replace(/.*:::/, '').replace(/^[A-Z]+_([A-Z0-9]+)_.*$/, '$1').toUpperCase();
+
+            // 1. 손익분석기 데이터 조회 (App 또는 ProfitCalculator 캐시)
             const app = (typeof window.App !== 'undefined' ? window.App : null);
-            if (app && app.state && app.state.reportData) {
-                const rep = app.state.reportData;
-                if (rep.coinSummaries) {
-                    coinSummary = rep.coinSummaries.find(c => 
-                        c.market === marketOrSymbol || 
-                        c.coinSymbol === marketOrSymbol || 
-                        (c.market && c.market.endsWith('-' + marketOrSymbol))
-                    );
-                }
+            let rep = (app && app.state && app.state.reportData) ? app.state.reportData : null;
+            if (!rep && typeof window.CoinCalculators !== 'undefined' && window.CoinCalculators.getAnalyzerData) {
+                rep = window.CoinCalculators.getAnalyzerData();
+            }
+
+            if (rep && Array.isArray(rep.coinSummaries)) {
+                coinSummary = rep.coinSummaries.find(c => {
+                    const cSym = (c.currency || c.coinSymbol || (c.market ? c.market.replace(/^KRW-/, '').replace(/.*:::/, '') : '')).toUpperCase();
+                    return c.market === marketOrSymbol || 
+                           c.coinSymbol === marketOrSymbol || 
+                           cSym === cleanSym ||
+                           (c.market && c.market.endsWith('-' + cleanSym));
+                });
             }
 
             // 2. 전체 거래내역에서 해당 코인 체결 필터링
             const storage = (typeof window.AnalyzerStorage !== 'undefined' ? window.AnalyzerStorage : null);
-            if (storage && storage.getTrades) {
-                const allTrades = storage.getTrades() || [];
-                const sym = (coinSummary?.coinSymbol || marketOrSymbol.replace(/.*-/, '').replace(/.*:::/, '')).toUpperCase();
-                trades = allTrades.filter(t => {
-                    const tSym = (t.coinSymbol || (t.market ? t.market.replace(/.*-/, '').replace(/.*:::/, '') : '')).toUpperCase();
-                    return tSym === sym && (t.type === '매수' || t.type === '매도');
-                });
+            let allTrades = [];
+            if (app && app.state && Array.isArray(app.state.rawTrades) && app.state.rawTrades.length > 0) {
+                allTrades = app.state.rawTrades;
+            } else if (storage && storage.getTrades) {
+                allTrades = storage.getTrades() || [];
             }
 
-            const sym = (coinSummary?.coinSymbol || marketOrSymbol.replace(/.*-/, '').replace(/.*:::/, '')).toUpperCase();
+            const targetSym = (coinSummary?.coinSymbol || cleanSym).toUpperCase();
+            trades = allTrades.filter(t => {
+                const tSym = (t.coinSymbol || (t.market ? t.market.replace(/^KRW-/, '').replace(/.*:::/, '') : '')).toUpperCase();
+                return tSym === targetSym && (t.type === '매수' || t.type === '매도');
+            });
+
+            const sym = targetSym;
             const name = coinSummary?.koreanName || coinSummary?.name || sym;
             const market = coinSummary?.market || (marketOrSymbol.includes('-') ? marketOrSymbol : `KRW-${sym}`);
             const exchange = coinSummary?.exchange || (market.includes('BITHUMB') ? 'BITHUMB' : 'UPBIT');
@@ -82,7 +93,16 @@
             if (!select) return;
 
             const selectedOpt = select.selectedOptions[0];
-            const sym = selectedOpt?.getAttribute('data-symbol') || (select.value || '').replace(/^.*_/, '');
+            let sym = selectedOpt?.getAttribute('data-symbol') || '';
+            if (!sym && select.value) {
+                const parts = select.value.split('_');
+                if (parts.length >= 2) {
+                    sym = parts[1]; // e.g. UPBIT_ALGO_0 -> ALGO
+                } else {
+                    sym = select.value;
+                }
+            }
+
             if (!sym) {
                 alert('먼저 롤링 계산기에서 코인을 선택해 주세요.');
                 return;
@@ -375,9 +395,22 @@
                 });
             }
 
-            // 시간순 정렬 후 마커 적용
+            // 시간순 정렬 후 마커 적용 (Lightweight Charts v5 createSeriesMarkers 및 v4 setMarkers 완벽 호환)
             markers.sort((a, b) => a.time - b.time);
-            candleSeries.setMarkers(markers);
+
+            if (markers.length > 0) {
+                try {
+                    if (typeof LightweightCharts.createSeriesMarkers === 'function') {
+                        // Lightweight Charts v5 공식 권장 API
+                        this.seriesMarkersPlugin = LightweightCharts.createSeriesMarkers(candleSeries, markers);
+                    } else if (typeof candleSeries.setMarkers === 'function') {
+                        // Lightweight Charts v4/v3 레거시 API
+                        candleSeries.setMarkers(markers);
+                    }
+                } catch (markerErr) {
+                    console.warn('체결 타점 마커 설정 중 경고:', markerErr);
+                }
+            }
 
             // 전체 캔들 화면에 맞게 자동 줌
             chart.timeScale().fitContent();
@@ -400,6 +433,14 @@
             if (this._resizeHandler) {
                 window.removeEventListener('resize', this._resizeHandler);
                 this._resizeHandler = null;
+            }
+            if (this.seriesMarkersPlugin) {
+                try {
+                    if (typeof this.seriesMarkersPlugin.detach === 'function') {
+                        this.seriesMarkersPlugin.detach();
+                    }
+                } catch (e) {}
+                this.seriesMarkersPlugin = null;
             }
             if (this.chartInstance) {
                 try {
