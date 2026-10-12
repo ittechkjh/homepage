@@ -1228,6 +1228,7 @@ const CoinCalculators = {
         this.initCloudRealtimeSync();
         this.renderCrypto2027CoinRows();
         this.calcWater();
+        this.populateRollingCoinOptions();
         this.renderRollingScenarioUI();
         this.restoreSavedOrDraftRollingState();
         this.renderRollingSellTiers();
@@ -1418,6 +1419,7 @@ const CoinCalculators = {
             this.calcCrypto2027Tax();
             this.calcStockTax();
         } else if (tabId === 'coinrolling') {
+            this.populateRollingCoinOptions();
             this.renderRollingScenarioUI();
             if (!this.currentRollingScenarioId) {
                 this.restoreSavedOrDraftRollingState();
@@ -4798,6 +4800,154 @@ ${sellTiersHtml}
         this.renderRollingSellTiers();
         this.renderRollingBuyTiers();
         this.calcCoinRolling();
+    },
+
+    // ========================================================
+    // 보유 코인 데이터 불러오기 및 검색/선택 지원
+    // ========================================================
+    getMyHoldingsList: function () {
+        const rep = this.getAnalyzerData();
+        if (rep && rep.coinSummaries && Array.isArray(rep.coinSummaries)) {
+            const held = rep.coinSummaries.filter(c => (c.holdingQty > 1e-6 || c.holdingCost > 100));
+            if (held.length > 0) {
+                return held.map(c => {
+                    const sym = (c.currency || c.coinSymbol || (c.market ? c.market.replace('KRW-', '').replace(/.*:::/, '') : 'COIN')).toUpperCase();
+                    const name = c.koreanName || c.name || sym;
+                    const qty = Number(c.holdingQty) || 0;
+                    const avgPrice = Math.round(Number(c.avgBuyPrice || c.holdingCost / (qty || 1)) || 0);
+                    const curPrice = Math.round(Number(c.currentPrice || avgPrice) || 0);
+                    return {
+                        symbol: sym,
+                        name: name,
+                        qty: qty,
+                        avgPrice: avgPrice,
+                        curPrice: curPrice,
+                        holdingCost: Math.round(Number(c.holdingCost) || 0)
+                    };
+                });
+            }
+        }
+        return [];
+    },
+
+    // 보유 코인 드롭다운 옵션 및 검색 목록 채우기
+    populateRollingCoinOptions: function () {
+        const select = document.getElementById('rollingCoinSelect');
+        if (!select) return;
+
+        const myHoldings = this.getMyHoldingsList();
+        let optionsHtml = '<option value="">-- 내 보유 코인 불러오기 / 직접 입력 --</option>';
+
+        if (myHoldings.length > 0) {
+            optionsHtml += '<optgroup label="💼 손익 분석기 내 보유 코인 (' + myHoldings.length + '종목)">';
+            myHoldings.forEach(c => {
+                const qtyStr = c.qty >= 1 ? c.qty.toLocaleString(undefined, { maximumFractionDigits: 4 }) : c.qty.toFixed(6);
+                optionsHtml += `<option value="${c.symbol}" data-source="holding" data-qty="${c.qty}" data-avg="${c.avgPrice}" data-cur="${c.curPrice}">🌟 ${c.name}(${c.symbol}) - ${qtyStr}개 (평단 ${c.avgPrice.toLocaleString()}원)</option>`;
+            });
+            optionsHtml += '</optgroup>';
+        }
+
+        // 주요 메이저 및 알트코인 프리셋
+        const defaultMarketCoins = [
+            { symbol: 'BTC', name: '비트코인' },
+            { symbol: 'ETH', name: '이더리움' },
+            { symbol: 'XRP', name: '리플' },
+            { symbol: 'SOL', name: '솔라나' },
+            { symbol: 'DOGE', name: '도지코인' },
+            { symbol: 'ADA', name: '에이다' },
+            { symbol: 'SUI', name: '수이' },
+            { symbol: 'AVAX', name: '아발란체' },
+            { symbol: 'NEAR', name: '니어프로토콜' },
+            { symbol: 'SHIB', name: '시바이누' }
+        ];
+
+        optionsHtml += '<optgroup label="🔥 주요 관심 코인 (시세 조회 연동)">';
+        defaultMarketCoins.forEach(c => {
+            if (!myHoldings.some(h => h.symbol === c.symbol)) {
+                optionsHtml += `<option value="${c.symbol}" data-source="market">🪙 ${c.name} (${c.symbol})</option>`;
+            }
+        });
+        optionsHtml += '</optgroup>';
+
+        select.innerHTML = optionsHtml;
+    },
+
+    // 코인 선택 시 현재 평단가와 수량 자동 적용
+    onSelectRollingCoin: async function (symbol) {
+        if (!symbol) return;
+        const select = document.getElementById('rollingCoinSelect');
+        const selectedOpt = select ? select.selectedOptions[0] : null;
+        const isHolding = selectedOpt && selectedOpt.getAttribute('data-source') === 'holding';
+
+        const priceEl = document.getElementById('rollingCurrentPrice');
+        const qtyEl = document.getElementById('rollingCurrentQty');
+
+        if (isHolding) {
+            const qty = parseFloat(selectedOpt.getAttribute('data-qty')) || 0;
+            const avg = parseFloat(selectedOpt.getAttribute('data-avg')) || 0;
+            if (priceEl && avg > 0) priceEl.value = this.formatNumber(avg);
+            if (qtyEl && qty > 0) qtyEl.value = qty >= 1 ? parseFloat(qty.toFixed(4)) : parseFloat(qty.toFixed(6));
+
+            // 기본 매도 목표가/매수 목표가도 현재 평단 기반으로 센스 있게 자동 제안
+            if (avg > 0 && this.rollingSellTiers.length > 0) {
+                this.rollingSellTiers[0].price = Math.round(avg * 1.15);
+            }
+            if (avg > 0 && this.rollingBuyTiers.length > 0) {
+                this.rollingBuyTiers[0].price = Math.round(avg * 0.95);
+            }
+
+            this.renderRollingSellTiers();
+            this.renderRollingBuyTiers();
+            this.calcCoinRolling();
+            this.showScenarioToast(`'${symbol}' 보유 데이터(수량 ${qty.toLocaleString()}개, 평단 ${avg.toLocaleString()}원)를 불러왔습니다.`);
+            return;
+        }
+
+        // 일반 코인 선택 시 실시간 시세 조회 적용
+        if (typeof UpbitAPI !== 'undefined' && UpbitAPI.fetchTickers) {
+            try {
+                const tickerMap = await UpbitAPI.fetchTickers([`KRW-${symbol}`]);
+                const t = tickerMap[`KRW-${symbol}`] || tickerMap[symbol];
+                if (t && t.tradePrice > 0) {
+                    const liveP = Math.round(t.tradePrice);
+                    if (priceEl) priceEl.value = this.formatNumber(liveP);
+                    if (this.rollingSellTiers.length > 0) {
+                        this.rollingSellTiers[0].price = Math.round(liveP * 1.15);
+                    }
+                    if (this.rollingBuyTiers.length > 0) {
+                        this.rollingBuyTiers[0].price = Math.round(liveP * 0.95);
+                    }
+                    this.renderRollingSellTiers();
+                    this.renderRollingBuyTiers();
+                    this.calcCoinRolling();
+                    this.showScenarioToast(`'${symbol}' 실시간 시세(${liveP.toLocaleString()}원)를 적용했습니다.`);
+                    return;
+                }
+            } catch (e) {
+                console.warn('코인 시세 조회 실패:', e);
+            }
+        }
+
+        this.calcCoinRolling();
+    },
+
+    // 코인명/심볼 검색 처리
+    searchRollingCoin: function (query) {
+        const q = (query || '').trim().toUpperCase();
+        const select = document.getElementById('rollingCoinSelect');
+        if (!select || !q) return;
+
+        // 드롭다운 옵션 중 일치하는 항목 탐색
+        for (let i = 0; i < select.options.length; i++) {
+            const opt = select.options[i];
+            const val = (opt.value || '').toUpperCase();
+            const txt = (opt.text || '').toUpperCase();
+            if (val === q || txt.includes(q)) {
+                select.selectedIndex = i;
+                this.onSelectRollingCoin(opt.value);
+                return;
+            }
+        }
     },
 
     // 롤링 시나리오 로컬스토리지 키

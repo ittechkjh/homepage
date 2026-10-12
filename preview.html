@@ -4294,6 +4294,23 @@
                   </span>
                   <span id="rollingInitialValueBadge" class="text-[11px] font-mono text-cyan-300 font-bold">초기 평가액: 1,000,000원</span>
                 </div>
+
+                <!-- 보유 코인 검색 및 불러오기 선택기 -->
+                <div class="p-2 rounded-xl bg-navy-900/90 border border-emerald-500/20 space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                      <span>💼</span> 보유 코인 선택 / 검색
+                    </label>
+                    <span class="text-[10px] text-slate-400">손익분석기 데이터 자동 연동</span>
+                  </div>
+                  <div class="flex gap-1.5">
+                    <select id="rollingCoinSelect" onchange="CoinCalculators.onSelectRollingCoin(this.value)" class="flex-1 bg-navy-950 border border-navy-700 text-slate-200 rounded-xl px-2.5 py-1.5 text-xs focus:border-emerald-500 focus:outline-none cursor-pointer">
+                      <option value="">-- 내 보유 코인 불러오기 / 직접 입력 --</option>
+                    </select>
+                    <input type="text" id="rollingCoinSearchInput" placeholder="심볼/코인명 검색" oninput="CoinCalculators.searchRollingCoin(this.value)" class="w-24 sm:w-28 bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none placeholder-slate-500">
+                  </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-2">
                   <div>
                     <label id="rollingCurrentPriceLabel" class="block font-semibold text-slate-400 mb-1">현재 코인 평단가 (KRW)</label>
@@ -9172,7 +9189,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20261012_10"></script>
+  <script src="js/tools-calculators.js?v=20261012_11"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260927_02"></script>
 
