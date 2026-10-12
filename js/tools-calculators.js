@@ -4803,20 +4803,34 @@ ${sellTiersHtml}
     },
 
     // ========================================================
-    // 보유 코인 데이터 불러오기 및 검색/선택 지원
+    // 보유 코인 데이터 불러오기 및 검색/선택 지원 (거래소 구분: 업비트 / 빗썸)
     // ========================================================
     getMyHoldingsList: function () {
         const rep = this.getAnalyzerData();
         if (rep && rep.coinSummaries && Array.isArray(rep.coinSummaries)) {
             const held = rep.coinSummaries.filter(c => (c.holdingQty > 1e-6 || c.holdingCost > 100));
             if (held.length > 0) {
-                return held.map(c => {
+                return held.map((c, idx) => {
                     const sym = (c.currency || c.coinSymbol || (c.market ? c.market.replace('KRW-', '').replace(/.*:::/, '') : 'COIN')).toUpperCase();
                     const name = c.koreanName || c.name || sym;
                     const qty = Number(c.holdingQty) || 0;
-                    const avgPrice = Math.round(Number(c.avgBuyPrice || c.holdingCost / (qty || 1)) || 0);
+                    const avgPrice = Math.round(Number(c.avgBuyPrice || (c.holdingCost / (qty || 1))) || 0);
                     const curPrice = Math.round(Number(c.currentPrice || avgPrice) || 0);
+
+                    // 거래소 감지: c.exchange, c.market prefix(BITHUMB::: 등), 또는 trades 내역 기반
+                    const rawEx = (c.exchange || (c.market && c.market.includes(':::') ? c.market.split(':::')[0] : '')).toUpperCase();
+                    const isBithumb = rawEx.includes('BITHUMB') || rawEx.includes('빗썸');
+                    const exchange = isBithumb ? 'BITHUMB' : 'UPBIT';
+                    const exchangeName = isBithumb ? '빗썸' : '업비트';
+                    const exchangeTag = isBithumb ? '🔶 [빗썸]' : '🔷 [업비트]';
+                    const defaultFeeRate = isBithumb ? 0.04 : 0.05;
+
                     return {
+                        id: `${exchange}_${sym}_${idx}`,
+                        exchange: exchange,
+                        exchangeName: exchangeName,
+                        exchangeTag: exchangeTag,
+                        defaultFeeRate: defaultFeeRate,
                         symbol: sym,
                         name: name,
                         qty: qty,
@@ -4830,7 +4844,7 @@ ${sellTiersHtml}
         return [];
     },
 
-    // 보유 코인 드롭다운 옵션 및 검색 목록 채우기
+    // 보유 코인 드롭다운 옵션 및 검색 목록 채우기 (업비트 / 빗썸 구분)
     populateRollingCoinOptions: function () {
         const select = document.getElementById('rollingCoinSelect');
         if (!select) return;
@@ -4839,15 +4853,30 @@ ${sellTiersHtml}
         let optionsHtml = '<option value="">-- 내 보유 코인 불러오기 / 직접 입력 --</option>';
 
         if (myHoldings.length > 0) {
-            optionsHtml += '<optgroup label="💼 손익 분석기 내 보유 코인 (' + myHoldings.length + '종목)">';
-            myHoldings.forEach(c => {
-                const qtyStr = c.qty >= 1 ? c.qty.toLocaleString(undefined, { maximumFractionDigits: 4 }) : c.qty.toFixed(6);
-                optionsHtml += `<option value="${c.symbol}" data-source="holding" data-qty="${c.qty}" data-avg="${c.avgPrice}" data-cur="${c.curPrice}">🌟 ${c.name}(${c.symbol}) - ${qtyStr}개 (평단 ${c.avgPrice.toLocaleString()}원)</option>`;
-            });
-            optionsHtml += '</optgroup>';
+            // 업비트와 빗썸 보유 분리
+            const upbitHoldings = myHoldings.filter(h => h.exchange === 'UPBIT');
+            const bithumbHoldings = myHoldings.filter(h => h.exchange === 'BITHUMB');
+
+            if (upbitHoldings.length > 0) {
+                optionsHtml += `<optgroup label="🔷 업비트(Upbit) 내 보유 코인 (${upbitHoldings.length}종목)">`;
+                upbitHoldings.forEach(c => {
+                    const qtyStr = c.qty >= 1 ? c.qty.toLocaleString(undefined, { maximumFractionDigits: 4 }) : c.qty.toFixed(6);
+                    optionsHtml += `<option value="${c.id}" data-source="holding" data-symbol="${c.symbol}" data-exchange="${c.exchange}" data-fee="${c.defaultFeeRate}" data-qty="${c.qty}" data-avg="${c.avgPrice}" data-cur="${c.curPrice}">🔷 [업비트] ${c.name}(${c.symbol}) - ${qtyStr}개 (평단 ${c.avgPrice.toLocaleString()}원)</option>`;
+                });
+                optionsHtml += '</optgroup>';
+            }
+
+            if (bithumbHoldings.length > 0) {
+                optionsHtml += `<optgroup label="🔶 빗썸(Bithumb) 내 보유 코인 (${bithumbHoldings.length}종목)">`;
+                bithumbHoldings.forEach(c => {
+                    const qtyStr = c.qty >= 1 ? c.qty.toLocaleString(undefined, { maximumFractionDigits: 4 }) : c.qty.toFixed(6);
+                    optionsHtml += `<option value="${c.id}" data-source="holding" data-symbol="${c.symbol}" data-exchange="${c.exchange}" data-fee="${c.defaultFeeRate}" data-qty="${c.qty}" data-avg="${c.avgPrice}" data-cur="${c.curPrice}">🔶 [빗썸] ${c.name}(${c.symbol}) - ${qtyStr}개 (평단 ${c.avgPrice.toLocaleString()}원)</option>`;
+                });
+                optionsHtml += '</optgroup>';
+            }
         }
 
-        // 주요 메이저 및 알트코인 프리셋
+        // 주요 메이저 및 알트코인 프리셋 (기본 시세 조회용)
         const defaultMarketCoins = [
             { symbol: 'BTC', name: '비트코인' },
             { symbol: 'ETH', name: '이더리움' },
@@ -4861,26 +4890,41 @@ ${sellTiersHtml}
             { symbol: 'SHIB', name: '시바이누' }
         ];
 
-        optionsHtml += '<optgroup label="🔥 주요 관심 코인 (시세 조회 연동)">';
+        optionsHtml += '<optgroup label="🔥 주요 관심 코인 (업비트 실시간 시세 연동)">';
         defaultMarketCoins.forEach(c => {
-            if (!myHoldings.some(h => h.symbol === c.symbol)) {
-                optionsHtml += `<option value="${c.symbol}" data-source="market">🪙 ${c.name} (${c.symbol})</option>`;
-            }
+            optionsHtml += `<option value="MARKET_${c.symbol}" data-source="market" data-symbol="${c.symbol}" data-exchange="UPBIT" data-fee="0.05">🪙 [업비트] ${c.name} (${c.symbol})</option>`;
         });
         optionsHtml += '</optgroup>';
 
         select.innerHTML = optionsHtml;
     },
 
-    // 코인 선택 시 현재 평단가와 수량 자동 적용
-    onSelectRollingCoin: async function (symbol) {
-        if (!symbol) return;
+    // 코인 선택 시 현재 평단가와 수량 및 거래소 수수료율 자동 적용
+    onSelectRollingCoin: async function (selectedId) {
+        if (!selectedId) return;
         const select = document.getElementById('rollingCoinSelect');
         const selectedOpt = select ? select.selectedOptions[0] : null;
-        const isHolding = selectedOpt && selectedOpt.getAttribute('data-source') === 'holding';
+        if (!selectedOpt) return;
+
+        const isHolding = selectedOpt.getAttribute('data-source') === 'holding';
+        const symbol = selectedOpt.getAttribute('data-symbol') || selectedId.replace(/^MARKET_/, '');
+        const exchange = selectedOpt.getAttribute('data-exchange') || 'UPBIT';
+        const feeRateVal = selectedOpt.getAttribute('data-fee') || (exchange === 'BITHUMB' ? '0.04' : '0.05');
 
         const priceEl = document.getElementById('rollingCurrentPrice');
         const qtyEl = document.getElementById('rollingCurrentQty');
+        const feePresetEl = document.getElementById('rollingFeePreset');
+        const feeRateEl = document.getElementById('rollingFeeRate');
+
+        // 거래소 수수료율 프리셋 자동 동기화
+        if (feePresetEl) {
+            feePresetEl.value = feeRateVal;
+        }
+        if (feeRateEl) {
+            feeRateEl.value = feeRateVal;
+        }
+
+        const exchangeLabel = exchange === 'BITHUMB' ? '🔶 빗썸' : '🔷 업비트';
 
         if (isHolding) {
             const qty = parseFloat(selectedOpt.getAttribute('data-qty')) || 0;
@@ -4888,7 +4932,7 @@ ${sellTiersHtml}
             if (priceEl && avg > 0) priceEl.value = this.formatNumber(avg);
             if (qtyEl && qty > 0) qtyEl.value = qty >= 1 ? parseFloat(qty.toFixed(4)) : parseFloat(qty.toFixed(6));
 
-            // 기본 매도 목표가/매수 목표가도 현재 평단 기반으로 센스 있게 자동 제안
+            // 기본 매도 목표가/매수 목표가도 현재 평단 기반으로 자동 제안
             if (avg > 0 && this.rollingSellTiers.length > 0) {
                 this.rollingSellTiers[0].price = Math.round(avg * 1.15);
             }
@@ -4899,7 +4943,7 @@ ${sellTiersHtml}
             this.renderRollingSellTiers();
             this.renderRollingBuyTiers();
             this.calcCoinRolling();
-            this.showScenarioToast(`'${symbol}' 보유 데이터(수량 ${qty.toLocaleString()}개, 평단 ${avg.toLocaleString()}원)를 불러왔습니다.`);
+            this.showScenarioToast(`${exchangeLabel} '${symbol}' 보유 데이터 (수량 ${qty.toLocaleString()}개, 평단 ${avg.toLocaleString()}원)를 불러왔습니다.`);
             return;
         }
 
@@ -4920,7 +4964,7 @@ ${sellTiersHtml}
                     this.renderRollingSellTiers();
                     this.renderRollingBuyTiers();
                     this.calcCoinRolling();
-                    this.showScenarioToast(`'${symbol}' 실시간 시세(${liveP.toLocaleString()}원)를 적용했습니다.`);
+                    this.showScenarioToast(`${exchangeLabel} '${symbol}' 실시간 시세(${liveP.toLocaleString()}원)를 적용했습니다.`);
                     return;
                 }
             } catch (e) {
@@ -4931,18 +4975,18 @@ ${sellTiersHtml}
         this.calcCoinRolling();
     },
 
-    // 코인명/심볼 검색 처리
+    // 코인명/심볼/거래소 검색 처리
     searchRollingCoin: function (query) {
         const q = (query || '').trim().toUpperCase();
         const select = document.getElementById('rollingCoinSelect');
         if (!select || !q) return;
 
-        // 드롭다운 옵션 중 일치하는 항목 탐색
+        // 드롭다운 옵션 중 일치하는 항목 탐색 (심볼, 코인명, 또는 업비트/빗썸 검색어 포함)
         for (let i = 0; i < select.options.length; i++) {
             const opt = select.options[i];
-            const val = (opt.value || '').toUpperCase();
+            const sym = (opt.getAttribute('data-symbol') || opt.value || '').toUpperCase();
             const txt = (opt.text || '').toUpperCase();
-            if (val === q || txt.includes(q)) {
+            if (sym === q || txt.includes(q)) {
                 select.selectedIndex = i;
                 this.onSelectRollingCoin(opt.value);
                 return;
