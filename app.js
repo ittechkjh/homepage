@@ -6903,8 +6903,13 @@ function switchTab(tabId, updateHash = true) {
       if (!CoinCalculators._initialized) {
         CoinCalculators.init();
         CoinCalculators._initialized = true;
-      } else if (typeof CoinCalculators.renderScenarioUI === 'function') {
-        CoinCalculators.renderScenarioUI();
+      } else {
+        if (typeof CoinCalculators.renderScenarioUI === 'function') {
+          CoinCalculators.renderScenarioUI();
+        }
+        if (typeof CoinCalculators.restoreSavedOrDraftState === 'function') {
+          CoinCalculators.restoreSavedOrDraftState();
+        }
       }
       const loggedUser = typeof CoinCalculators.getLoggedInUsername === 'function' ? CoinCalculators.getLoggedInUsername() : null;
       const nickEl = document.getElementById('cardNick');

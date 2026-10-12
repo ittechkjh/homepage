@@ -110,6 +110,205 @@ const CoinCalculators = {
     currentScenarioId: null,
     _cloudUnsubscribe: null,
 
+    // Google Cloud Firestore에 영구 보존된 공용/관리자 5대 핵심 시나리오 내장 캐시 (네트워크 지연 시 즉시 렌더링)
+    PRESET_SCENARIOS: [
+        {
+            "id": "dca_1790415542766",
+            "title": "미나0926",
+            "currency": "KRW",
+            "currentPrice": 130,
+            "currentQty": 250,
+            "feeRate": "0.05",
+            "updatedAt": "10. 6. 오후 09:48",
+            "waterTiers": [
+                { "id": 1, "mode": "qty", "price": 155, "val": 300 },
+                { "id": 2, "mode": "qty", "price": 173, "val": 350 },
+                { "id": 3, "mode": "qty", "price": 184, "val": 600 },
+                { "id": 4, "mode": "qty", "price": 192, "val": 600 },
+                { "id": 5, "mode": "qty", "price": 197, "val": 400 },
+                { "id": 6, "mode": "qty", "price": 208, "val": 500 },
+                { "id": 7, "mode": "qty", "price": 215, "val": 316 },
+                { "id": 8, "mode": "qty", "price": 224, "val": 300 },
+                { "id": 9, "mode": "qty", "price": 238, "val": 150 },
+                { "id": 10, "mode": "qty", "price": 242, "val": 150 }
+            ],
+            "sellTiers": [
+                { "id": 1, "mode": "qty", "price": 189, "val": 255.57432931 },
+                { "id": 2, "mode": "amount", "price": 189, "val": 273647 },
+                { "id": 3, "mode": "amount", "price": 212, "val": 131991 },
+                { "id": 4, "mode": "amount", "price": 221, "val": 72099 },
+                { "id": 5, "mode": "amount", "price": 181, "val": 136971 },
+                { "id": 6, "mode": "amount", "price": 178, "val": 136834 }
+            ]
+        },
+        {
+            "id": "dca_1790415310007",
+            "title": "니어0926",
+            "currency": "KRW",
+            "currentPrice": 3558,
+            "currentQty": 10,
+            "feeRate": "0.05",
+            "updatedAt": "10. 8. 오후 09:16",
+            "waterTiers": [
+                { "id": 1, "mode": "qty", "price": 3730, "val": 10 },
+                { "id": 2, "mode": "qty", "price": 3970, "val": 10 },
+                { "id": 3, "mode": "qty", "price": 4147, "val": 10 },
+                { "id": 4, "mode": "qty", "price": 4325, "val": 10 },
+                { "id": 5, "mode": "qty", "price": 4499, "val": 10 },
+                { "id": 6, "mode": "qty", "price": 4780, "val": 10 },
+                { "id": 7, "mode": "qty", "price": 4792, "val": 10 },
+                { "id": 8, "mode": "qty", "price": 4975, "val": 20 },
+                { "id": 9, "mode": "qty", "price": 5250, "val": 20 },
+                { "id": 10, "mode": "qty", "price": 5140, "val": 5 },
+                { "id": 11, "mode": "qty", "price": 5370, "val": 10 },
+                { "id": 12, "mode": "qty", "price": 5470, "val": 10 },
+                { "id": 13, "mode": "qty", "price": 5645, "val": 20 },
+                { "id": 14, "mode": "qty", "price": 5840, "val": 70 },
+                { "id": 15, "mode": "qty", "price": 5800, "val": 5 },
+                { "id": 16, "mode": "qty", "price": 6350, "val": 100 },
+                { "id": 17, "mode": "qty", "price": 6600, "val": 100 },
+                { "id": 18, "mode": "qty", "price": 6995, "val": 100 },
+                { "id": 20, "mode": "qty", "price": 6850, "val": 20 },
+                { "id": 21, "mode": "qty", "price": 6995, "val": 30 },
+                { "id": 22, "mode": "qty", "price": 7355, "val": 100 },
+                { "id": 23, "mode": "qty", "price": 7525, "val": 100 },
+                { "id": 24, "mode": "qty", "price": 7100, "val": 20 },
+                { "id": 25, "mode": "qty", "price": 7100, "val": 50 },
+                { "id": 26, "mode": "qty", "price": 7180, "val": 50 },
+                { "id": 27, "mode": "qty", "price": 7425, "val": 100 }
+            ],
+            "sellTiers": [
+                { "id": 1, "mode": "amount", "price": 6465, "val": 698801 },
+                { "id": 2, "mode": "amount", "price": 6955, "val": 829671 },
+                { "id": 3, "mode": "amount", "price": 6700, "val": 656765 },
+                { "id": 4, "mode": "amount", "price": 6655, "val": 141858 },
+                { "id": 5, "mode": "amount", "price": 6460, "val": 346505 },
+                { "id": 6, "mode": "amount", "price": 6895, "val": 354814 },
+                { "id": 7, "mode": "amount", "price": 6660, "val": 358810 }
+            ]
+        },
+        {
+            "id": "dca_1790414732429",
+            "title": "에테나0926",
+            "currency": "KRW",
+            "currentPrice": 262,
+            "currentQty": 100,
+            "feeRate": "0.05",
+            "updatedAt": "10. 6. 오후 09:50",
+            "waterTiers": [
+                { "id": 1, "mode": "qty", "price": 276, "val": 150 },
+                { "id": 2, "mode": "qty", "price": 320, "val": 150 },
+                { "id": 3, "mode": "qty", "price": 325, "val": 100 },
+                { "id": 4, "mode": "qty", "price": 350, "val": 300 },
+                { "id": 5, "mode": "qty", "price": 373, "val": 500 },
+                { "id": 6, "mode": "qty", "price": 379, "val": 200 },
+                { "id": 7, "mode": "qty", "price": 399, "val": 500 }
+            ],
+            "sellTiers": [
+                { "id": 1, "mode": "amount", "price": 380, "val": 199302 },
+                { "id": 2, "mode": "amount", "price": 345, "val": 515161 }
+            ]
+        },
+        {
+            "id": "dca_1790407500198",
+            "title": "비트코인 0926",
+            "currency": "KRW",
+            "currentPrice": 0,
+            "currentQty": 0,
+            "feeRate": "0.05",
+            "updatedAt": "10. 6. 오후 03:11",
+            "waterTiers": [
+                { "id": 2, "mode": "qty", "price": 90100000, "val": 0.00055494 },
+                { "id": 3, "mode": "qty", "price": 92200000, "val": 0.0005423 },
+                { "id": 4, "mode": "qty", "price": 95485000, "val": 0.00052176 },
+                { "id": 5, "mode": "qty", "price": 95815000, "val": 0.00052184 },
+                { "id": 6, "mode": "qty", "price": 98999000, "val": 0.00050506 },
+                { "id": 7, "mode": "qty", "price": 100242000, "val": 0.00006765 },
+                { "id": 8, "mode": "qty", "price": 100242000, "val": 0.00092738 },
+                { "id": 9, "mode": "qty", "price": 101000000, "val": 0.00049505 },
+                { "id": 10, "mode": "qty", "price": 101700000, "val": 0.00049165 },
+                { "id": 11, "mode": "qty", "price": 102702000, "val": 0.00048685 },
+                { "id": 12, "mode": "qty", "price": 103900000, "val": 0.00048124 },
+                { "id": 13, "mode": "qty", "price": 105000000, "val": 0.00095239 },
+                { "id": 14, "mode": "qty", "price": 107000000, "val": 0.00046729 },
+                { "id": 15, "mode": "qty", "price": 107500000, "val": 0.00046512 },
+                { "id": 16, "mode": "qty", "price": 108500000, "val": 0.00046083 },
+                { "id": 17, "mode": "qty", "price": 105753000, "val": 0.00047281 },
+                { "id": 18, "mode": "qty", "price": 106534000, "val": 0.00046934 },
+                { "id": 19, "mode": "qty", "price": 108137000, "val": 0.00046238 },
+                { "id": 20, "mode": "qty", "price": 109900000, "val": 0.00181984 },
+                { "id": 21, "mode": "qty", "price": 111200000, "val": 0.00089929 },
+                { "id": 22, "mode": "qty", "price": 110008000, "val": 0.00090903 },
+                { "id": 23, "mode": "qty", "price": 111830000, "val": 0.00089423 },
+                { "id": 24, "mode": "qty", "price": 114000000, "val": 0.00175439 },
+                { "id": 25, "mode": "qty", "price": 117056000, "val": 0.00170932 },
+                { "id": 26, "mode": "qty", "price": 117266000, "val": 0.00085277 },
+                { "id": 27, "mode": "qty", "price": 117351000, "val": 0.00085215 }
+            ],
+            "sellTiers": [
+                { "id": 1, "mode": "qty", "price": 104000000, "val": 0.00240384 },
+                { "id": 2, "mode": "qty", "price": 106100000, "val": 0.00094157 },
+                { "id": 3, "mode": "qty", "price": 105102000, "val": 0.00427821 },
+                { "id": 4, "mode": "qty", "price": 103878000, "val": 0.00264064 },
+                { "id": 5, "mode": "qty", "price": 113800000, "val": 0.00351334 },
+                { "id": 6, "mode": "qty", "price": 114870000, "val": 0.00086968 },
+                { "id": 7, "mode": "qty", "price": 115674000, "val": 0.00086276 }
+            ]
+        },
+        {
+            "id": "dca_1790423467484",
+            "title": "마이크로스트래티지0926",
+            "currency": "USD",
+            "currentPrice": 139,
+            "currentQty": 1,
+            "feeRate": "0.05",
+            "updatedAt": "10. 8. 오후 06:07",
+            "waterTiers": [
+                { "id": 1, "mode": "qty", "price": 149.9, "val": 1 },
+                { "id": 2, "mode": "qty", "price": 157.34, "val": 1 },
+                { "id": 3, "mode": "qty", "price": 170, "val": 1 }
+            ],
+            "sellTiers": [
+                { "id": 1, "mode": "qty", "price": 159, "val": 1 },
+                { "id": 2, "mode": "qty", "price": 151.95, "val": 1 },
+                { "id": 3, "mode": "qty", "price": 152, "val": 2 }
+            ]
+        }
+    ],
+
+    // Firestore REST API를 이용해 클라우드 시나리오를 직접 동기화 (SDK 접속 불가/오류 시 강력 폴백)
+    fetchCloudScenariosRest: async function (docName = 'admin') {
+        try {
+            const apiKey = (window.firebaseConfig && window.firebaseConfig.apiKey) || 'AIzaSyBeitTmyXj2MNAyCETk1FkD2h9mIDA8Z2Y';
+            const url = `https://firestore.googleapis.com/v1/projects/homepage-437c0/databases/(default)/documents/user_water_scenarios/${docName}?key=${apiKey}`;
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (!data.fields || !data.fields.scenarios || !data.fields.scenarios.arrayValue || !data.fields.scenarios.arrayValue.values) {
+                return null;
+            }
+            const parseVal = (v) => {
+                if (!v) return null;
+                if (v.stringValue !== undefined) return v.stringValue;
+                if (v.integerValue !== undefined) return Number(v.integerValue);
+                if (v.doubleValue !== undefined) return Number(v.doubleValue);
+                if (v.booleanValue !== undefined) return v.booleanValue;
+                if (v.arrayValue && v.arrayValue.values) return v.arrayValue.values.map(parseVal);
+                if (v.mapValue && v.mapValue.fields) {
+                    const obj = {};
+                    for (const k in v.mapValue.fields) {
+                        obj[k] = parseVal(v.mapValue.fields[k]);
+                    }
+                    return obj;
+                }
+                return null;
+            };
+            return data.fields.scenarios.arrayValue.values.map(parseVal).filter(Boolean);
+        } catch (e) {
+            return null;
+        }
+    },
+
     // Google Cloud (Firebase Firestore) 실시간 동기화 저장 (다른 브라우저의 최신 목록과 안전 병합)
     saveScenarioToCloud: async function (list, isDelete = false) {
         const user = this.getLoggedInUsername();
@@ -181,6 +380,26 @@ const CoinCalculators = {
                         cloudList = adminDoc.data().scenarios;
                     }
                 } catch (e) {}
+            }
+
+            // 클라우드 SDK 조회가 비어있거나 실패한 경우, Firestore REST API로 직접 2차 조회
+            if (!cloudList || cloudList.length === 0) {
+                try {
+                    const restList = await this.fetchCloudScenariosRest(docUser);
+                    if (restList && restList.length > 0) {
+                        cloudList = restList;
+                    } else if (docUser !== 'admin') {
+                        const adminRestList = await this.fetchCloudScenariosRest('admin');
+                        if (adminRestList && adminRestList.length > 0) {
+                            cloudList = adminRestList;
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // 여전히 비어있다면 내장 프리셋 시나리오 5개 사용
+            if ((!cloudList || cloudList.length === 0) && Array.isArray(this.PRESET_SCENARIOS)) {
+                cloudList = [...this.PRESET_SCENARIOS];
             }
 
             const localList = this.getSavedScenarios();
@@ -461,8 +680,19 @@ const CoinCalculators = {
                     } catch (e) {}
                 }
             }
+
+            // 최후 폴백: 로컬스토리지가 완전히 비어있는 경우 내장된 프리셋(Firestore 보존본) 자동 복원 및 로컬스토리지 주입
+            if (Array.isArray(this.PRESET_SCENARIOS) && this.PRESET_SCENARIOS.length > 0) {
+                const presets = this.PRESET_SCENARIOS;
+                const jsonStr = JSON.stringify(presets);
+                localStorage.setItem(primaryKey, jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                return presets;
+            }
         } catch (e) {}
-        return [];
+        return (Array.isArray(this.PRESET_SCENARIOS) ? this.PRESET_SCENARIOS : []);
     },
 
     // 실시간 작업 내용 자동 임시 저장 (브라우저 종료 및 탭 전환 시 유실 방지)
