@@ -1850,8 +1850,11 @@ const App = {
             const changeStr = coin.change24h !== undefined ? '<div class="text-xs ' + this.getProfitColorClass(coin.change24h) + '">' + (coin.change24h > 0 ? '+' : '') + Number(coin.change24h).toFixed(2) + '%</div>' : '';
             const winRateStr = (coin.winRate || 0).toFixed(0);
 
+            const coinTargetKey = coin.market || coin.coinSymbol || '';
+            const chartBtnHtml = coinTargetKey ? '<button type="button" onclick="event.stopPropagation(); window.TradeCandleChart && window.TradeCandleChart.openForCoin(\'' + coinTargetKey + '\')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold transition shadow-xs cursor-pointer ml-1" title="매수·매도 체결 타점 캔들 차트 열기"><span>📈</span><span>타점</span></button>' : '';
+
             html += '<tr>' +
-                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + (coin.coinSymbol || '-') + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (coin.exchange || 'UPBIT') + '</span></div><div class="coin-market-code">' + (coin.market || '-') + '</div></div></div></td>' +
+                '<td><div class="coin-info-cell"><span class="coin-symbol-badge">' + (coin.coinSymbol || '-') + '</span><div><div class="coin-korean-name">' + coinName + ' <span class="badge ' + (isBithumb ? 'badge-bithumb' : 'badge-upbit') + '">' + (coin.exchange || 'UPBIT') + '</span>' + chartBtnHtml + '</div><div class="coin-market-code">' + (coin.market || '-') + '</div></div></div></td>' +
                 '<td class="text-right ' + profitClass + '"><div class="font-bold">' + this.formatCurrency(coin.realizedProfit) + '</div><div class="text-xs">' + (coin.realizedRoi > 0 ? '+' : '') + (coin.realizedRoi || 0).toFixed(2) + '%</div></td>' +
                 '<td class="text-right ' + stackingClass + '"><div class="font-bold">' + gainedQtyStr + '</div><div class="text-xs">' + gainedRoiStr + '</div></td>' +
                 '<td class="text-right"><div class="font-medium">' + (coin.holdingQty > 0 ? Number(coin.holdingQty).toLocaleString(undefined, { maximumFractionDigits: 6 }) : '-') + '</div><div class="text-xs text-muted">' + (coin.holdingCost > 0 ? this.formatCurrency(coin.holdingCost) : '') + '</div></td>' +
