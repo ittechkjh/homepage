@@ -3948,6 +3948,10 @@
           <button type="button" onclick="CoinCalculators.switchSubTab('water')" data-calctab="water" class="calc-subtab-btn active px-3 py-2 rounded-xl transition flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-pointer">
             <span>💧 코인 물타기</span>
           </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('coinrolling')" data-calctab="coinrolling" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-emerald-300 hover:text-white bg-emerald-500/10 border border-emerald-500/30 cursor-pointer">
+            <span>🔄 코인 수량 늘리기</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-400 text-navy-950">롤링</span>
+          </button>
           <button type="button" onclick="CoinCalculators.switchSubTab('stockwater')" data-calctab="stockwater" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-300 hover:text-white bg-cyan-500/10 border border-cyan-500/30 cursor-pointer">
             <span>📊 주식 물타기 &amp; BEP</span>
             <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-cyan-400 text-navy-950">NEW</span>
@@ -4223,6 +4227,170 @@
               <button type="button" onclick="CoinCalculators.shareWaterToForum()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-navy-950 text-xs font-extrabold transition flex items-center gap-1.5 shrink-0 shadow-lg shadow-cyan-500/20 cursor-pointer">
                 <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
                 <span>트레이딩 게시판에 게시하기 📈</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL: 코인 수량 늘리기 & 롤링 복리 증식 시뮬레이터 -->
+      <div id="calc-tab-coinrolling" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left Column: Input Form (5 cols) -->
+          <div class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="space-y-2 pb-3 border-b border-navy-800">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                  <span>🔄</span> 코인 수량 늘리기 (롤링 전략)
+                </h3>
+                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold">
+                  원금 추가 투입 0원
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                고점 매도 ➡️ 저점 재매수를 통해 추가 자금 없이 코인 개수를 복리로 불리는 롤링 시뮬레이터입니다.
+              </p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <!-- 통화 선택 -->
+              <div class="flex items-center justify-between p-2.5 px-3.5 rounded-2xl bg-navy-950/90 border border-navy-800">
+                <span class="font-bold text-slate-300 text-xs flex items-center gap-1.5">
+                  <span>🌐</span> 계산 기준 통화
+                </span>
+                <div class="inline-flex p-0.5 rounded-xl bg-navy-900 border border-navy-700 text-xs font-bold">
+                  <button type="button" id="rollingCurrKrwBtn" onclick="CoinCalculators.setRollingCurrency('KRW')" class="px-3 py-1 rounded-lg transition text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 shadow-sm cursor-pointer flex items-center gap-1">
+                    <span>₩</span> 원화 (KRW)
+                  </button>
+                  <button type="button" id="rollingCurrUsdBtn" onclick="CoinCalculators.setRollingCurrency('USD')" class="px-3 py-1 rounded-lg transition text-slate-400 hover:text-white cursor-pointer flex items-center gap-1">
+                    <span>$</span> 달러 (USD)
+                  </button>
+                </div>
+              </div>
+
+              <!-- 1. 현재 보유 코인 포지션 -->
+              <div class="p-3.5 rounded-2xl bg-navy-950/80 border border-navy-800 space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                    <span>🪙</span> 1. 현재 보유 포지션
+                  </span>
+                  <span id="rollingInitialValueBadge" class="text-[11px] font-mono text-cyan-300 font-bold">초기 평가액: 1,000,000원</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label id="rollingCurrentPriceLabel" class="block font-semibold text-slate-400 mb-1">현재 코인 평단가 (KRW)</label>
+                    <input type="text" inputmode="numeric" id="rollingCurrentPrice" value="1,000" placeholder="예: 1,000" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcCoinRolling()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-400 mb-1">현재 보유 코인 수량</label>
+                    <input type="number" step="any" id="rollingCurrentQty" value="1,000" placeholder="예: 1,000" oninput="CoinCalculators.calcCoinRolling()" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                  </div>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-400 mb-1">거래소 매매 수수료율 (%)</label>
+                  <div class="flex gap-1.5">
+                    <select id="rollingFeePreset" onchange="document.getElementById('rollingFeeRate').value = this.value; CoinCalculators.calcCoinRolling();" class="bg-navy-900 border border-navy-700 text-slate-300 rounded-xl px-2 py-1.5 text-xs focus:outline-none">
+                      <option value="0.05" selected>업비트 (0.05%)</option>
+                      <option value="0.04">빗썸 (0.04%)</option>
+                      <option value="0.02">바이낸스 (0.02%)</option>
+                      <option value="0.01">선물 VIP (0.01%)</option>
+                      <option value="custom">직접 입력</option>
+                    </select>
+                    <input type="number" step="any" id="rollingFeeRate" value="0.05" oninput="CoinCalculators.calcCoinRolling()" class="flex-1 bg-navy-900 border border-navy-700 rounded-xl px-3 py-1.5 text-white font-mono text-xs focus:border-emerald-500 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. 롤링 파동 차수 설정 -->
+              <div class="pt-2 border-t border-navy-800 space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-emerald-300 flex items-center gap-1">
+                    <span>🌊</span> 2. 고점 매도 ➡️ 저점 재매수 파동
+                  </span>
+                  <button type="button" onclick="CoinCalculators.addRollingTier()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-navy-950 border border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <span>+ 파동 추가</span>
+                  </button>
+                </div>
+                <div id="rollingTiersContainer" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                  <!-- Dynamic Rolling Tiers rendered by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Results & Visualization (7 cols) -->
+          <div class="lg:col-span-7 space-y-4">
+            <!-- Summary Result Cards (4 cards) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-3.5 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold truncate">최종 코인 수량</div>
+                <div id="rollingResFinalQty" class="text-base sm:text-lg font-black text-emerald-400 font-mono mt-1 truncate">0</div>
+                <div id="rollingResQtyGainBadge" class="text-[10px] text-emerald-300 font-mono mt-0.5 font-bold truncate">+0개 (+0.00%)</div>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold truncate">실질 체감 평단가</div>
+                <div id="rollingResEffectiveAvg" class="text-base sm:text-lg font-bold text-cyan-300 font-mono mt-1 truncate">0원</div>
+                <div id="rollingResAvgDropBadge" class="text-[10px] text-cyan-400 font-mono mt-0.5 truncate">-0.00% 인하 효과</div>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold truncate">순증가 코인 가치</div>
+                <div id="rollingResGainValue" class="text-base sm:text-lg font-bold text-amber-300 font-mono mt-1 truncate">+0원</div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">현금 추가투입 0원</div>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-navy-900 border border-navy-800">
+                <div class="text-[11px] text-slate-400 font-semibold truncate">총 롤링 수익률</div>
+                <div id="rollingResTotalRoi" class="text-base sm:text-lg font-black text-emerald-400 font-mono mt-1 truncate">+0.00%</div>
+                <div id="rollingResCyclesBadge" class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">총 1회전 완료</div>
+              </div>
+            </div>
+
+            <!-- Detailed Rolling Waves Simulation Table -->
+            <div class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                  <span>📊</span> 파동별 코인 수량 증식 시뮬레이션
+                </h4>
+                <span class="text-xs text-slate-400">수수료 왕복 2회 정밀 반영</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr class="border-b border-navy-800 text-[11px] text-slate-400 font-semibold">
+                      <th class="pb-2 px-2.5">파동</th>
+                      <th class="pb-2 px-2.5 text-right">고점 매도가</th>
+                      <th class="pb-2 px-2.5 text-right">매도 확보금</th>
+                      <th class="pb-2 px-2.5 text-right">저점 재매수가</th>
+                      <th class="pb-2 px-2.5 text-right">순증가량</th>
+                      <th class="pb-2 px-2.5 text-right font-bold text-emerald-400">최종 수량</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rollingSimTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Risk Warning & Strategy Guide -->
+            <div class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-xs space-y-2">
+              <div class="flex items-center gap-2 font-bold text-emerald-300">
+                <span>💡</span> 롤링(수량 늘리기) 실전 운용 팁 &amp; 리스크 관리
+              </div>
+              <p class="text-slate-300 text-[11.5px] leading-relaxed">
+                • <strong>전량 매도(100%) 주의</strong>: 매도 후 목표가까지 조정이 오지 않고 전고점을 돌파할 경우 코인 수량이 줄어들거나 포지션을 놓칠 수 있습니다(FOMO 리스크).<br>
+                • <strong>분할 매도(30~50%) 추천</strong>: 보유량의 50%만 매도 후 저점에서 재매수하면, 상승 시에도 나머지 50% 수익을 지키면서 안정적으로 수량을 늘릴 수 있습니다.
+              </p>
+            </div>
+
+            <!-- Forum Share Banner -->
+            <div class="p-4 rounded-2xl bg-navy-950/90 border border-navy-800 flex items-center justify-between gap-3 flex-wrap">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">📈</span>
+                <div>
+                  <div class="text-xs font-bold text-white">나의 코인 수량 늘리기 전략 포럼에 공유하기</div>
+                  <div class="text-[11px] text-slate-400">설정한 롤링 파동과 수량 증가 시뮬레이션을 트레이딩 게시판에 게시하고 의견을 나눠보세요.</div>
+                </div>
+              </div>
+              <button type="button" onclick="CoinCalculators.shareRollingToForum()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-navy-950 text-xs font-extrabold transition flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20 cursor-pointer">
+                <span>트레이딩 게시판에 게시 🚀</span>
               </button>
             </div>
           </div>
@@ -8951,7 +9119,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20261012_06"></script>
+  <script src="js/tools-calculators.js?v=20261012_07"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260927_02"></script>
 
