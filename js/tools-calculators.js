@@ -160,16 +160,27 @@ const CoinCalculators = {
 
     // Google Cloud (Firebase Firestore) 실시간 동기화 불러오기 및 로컬 병합
     syncScenariosWithCloud: async function () {
-        const user = this.getLoggedInUsername();
-        if (!user || user === 'guest') return;
         const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
         if (!firestore) return;
 
+        const user = this.getLoggedInUsername();
+        const docUser = (user && user !== 'guest') ? user.toLowerCase() : 'admin';
+
         try {
-            const doc = await firestore.collection('user_water_scenarios').doc(user.toLowerCase()).get();
+            let doc = await firestore.collection('user_water_scenarios').doc(docUser).get();
             let cloudList = [];
             if (doc.exists && doc.data() && Array.isArray(doc.data().scenarios)) {
                 cloudList = doc.data().scenarios;
+            }
+
+            // docUser가 admin이 아닌데 비어있다면, admin 문서에서 추가 복원 시도
+            if ((!cloudList || cloudList.length === 0) && docUser !== 'admin') {
+                try {
+                    const adminDoc = await firestore.collection('user_water_scenarios').doc('admin').get();
+                    if (adminDoc.exists && adminDoc.data() && Array.isArray(adminDoc.data().scenarios)) {
+                        cloudList = adminDoc.data().scenarios;
+                    }
+                } catch (e) {}
             }
 
             const localList = this.getSavedScenarios();
@@ -195,20 +206,22 @@ const CoinCalculators = {
                 }
             });
 
-            const primaryKey = this.getScenarioStorageKey();
-            const jsonStr = JSON.stringify(merged);
-            localStorage.setItem(primaryKey, jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            if (merged.length > 0) {
+                const primaryKey = this.getScenarioStorageKey();
+                const jsonStr = JSON.stringify(merged);
+                localStorage.setItem(primaryKey, jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
+                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
 
-            if (changed || (cloudList.length !== merged.length)) {
-                await this.saveScenarioToCloud(merged);
-            }
+                if (changed || (cloudList.length !== merged.length && user && user !== 'guest')) {
+                    await this.saveScenarioToCloud(merged);
+                }
 
-            this.renderScenarioUI();
-            if (!this.currentScenarioId && merged.length > 0) {
-                this.loadScenario(merged[0].id, false);
+                this.renderScenarioUI();
+                if (!this.currentScenarioId && merged.length > 0) {
+                    this.loadScenario(merged[0].id, false);
+                }
             }
         } catch (e) {
             console.warn('물타기 시나리오 클라우드 동기화 실패:', e);
@@ -218,7 +231,7 @@ const CoinCalculators = {
     // 다른 브라우저/기기 변경사항을 실시간 수신하여 화면에 즉각 반영하는 Firestore 리스너
     initCloudRealtimeSync: function () {
         const user = this.getLoggedInUsername();
-        if (!user || user === 'guest') return;
+        const docUser = (user && user !== 'guest') ? user.toLowerCase() : 'admin';
         const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
         if (!firestore) return;
 
@@ -228,7 +241,7 @@ const CoinCalculators = {
         }
 
         try {
-            const docRef = firestore.collection('user_water_scenarios').doc(user.toLowerCase());
+            const docRef = firestore.collection('user_water_scenarios').doc(docUser);
             this._cloudUnsubscribe = docRef.onSnapshot(doc => {
                 if (!doc || !doc.exists || !doc.data()) return;
                 const cloudList = (doc.data().scenarios || []);
@@ -237,7 +250,7 @@ const CoinCalculators = {
 
                 const localList = this.getSavedScenarios();
                 const isDifferent = JSON.stringify(cleanedCloud) !== JSON.stringify(localList);
-                if (isDifferent) {
+                if (isDifferent && cleanedCloud.length > 0) {
                     const primaryKey = this.getScenarioStorageKey();
                     const jsonStr = JSON.stringify(cleanedCloud);
                     localStorage.setItem(primaryKey, jsonStr);
@@ -252,6 +265,8 @@ const CoinCalculators = {
                         if (updatedActive) {
                             this.loadScenario(this.currentScenarioId, false);
                         }
+                    } else if (cleanedCloud.length > 0) {
+                        this.loadScenario(cleanedCloud[0].id, false);
                     }
                 }
             }, err => {
@@ -403,15 +418,48 @@ const CoinCalculators = {
         return cleanedList;
     },
 
-    // 저장된 시나리오 목록 반환 (저장소에서 직접 조회하여 불필요한 재스캔 및 자동 중복생성 방지)
+    // 저장된 시나리오 목록 반환 (저장소에서 직접 조회, 비어있을 시 알려진 백업 키 자동 복원)
     getSavedScenarios: function () {
         const primaryKey = this.getScenarioStorageKey();
         try {
-            const raw = localStorage.getItem(primaryKey);
-            if (!raw) return [];
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-                return parsed.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
+            let raw = localStorage.getItem(primaryKey);
+            let parsed = null;
+            if (raw) {
+                try { parsed = JSON.parse(raw); } catch (e) {}
+            }
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                const cleaned = parsed.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
+                if (cleaned.length > 0) return cleaned;
+            }
+
+            // 폴백: 현재 활성 키에 데이터가 없는 경우, 다른 계정 및 레거시 스토리지 키에서 자동 복원
+            const fallbackKeys = [
+                'crytopnl_dca_scenarios_admin',
+                'crytopnl_dca_scenarios',
+                'crytopnl_dca_scenarios_guest',
+                'cryptopnl_dca_scenarios',
+                'cryptopnl_dca_scenarios_admin',
+                'cryptopnl_dca_scenarios_guest',
+                'coinhub_dca_scenarios'
+            ];
+            for (const fk of fallbackKeys) {
+                if (fk === primaryKey) continue;
+                const fRaw = localStorage.getItem(fk);
+                if (fRaw) {
+                    try {
+                        const fParsed = JSON.parse(fRaw);
+                        if (Array.isArray(fParsed) && fParsed.length > 0) {
+                            const cleaned = fParsed.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
+                            if (cleaned.length > 0) {
+                                // 현재 키 및 공용 키에 동기화 백업
+                                localStorage.setItem(primaryKey, JSON.stringify(cleaned));
+                                localStorage.setItem('crytopnl_dca_scenarios_guest', JSON.stringify(cleaned));
+                                localStorage.setItem('crytopnl_dca_scenarios', JSON.stringify(cleaned));
+                                return cleaned;
+                            }
+                        }
+                    } catch (e) {}
+                }
             }
         } catch (e) {}
         return [];
@@ -874,6 +922,11 @@ const CoinCalculators = {
 
     init: function () {
         this.bindEvents();
+        // 저장된 시나리오가 로컬에 없으면 딥 스캔 복구 즉시 실행
+        const existingList = this.getSavedScenarios();
+        if (!existingList || existingList.length === 0) {
+            this.scanAndRecoverScenarios(false);
+        }
         this.restoreSavedOrDraftState();
         this.syncScenariosWithCloud();
         this.initCloudRealtimeSync();
