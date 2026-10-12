@@ -3190,6 +3190,7 @@ window.saveStoredPosts = saveStoredPosts;
 
 function filterForum(category) {
   activeCategory = category;
+  forumCurrentPage = 1; // 카테고리 변경 시 1페이지로 리셋
   const buttons = document.querySelectorAll('#forum-category-filters .category-btn');
   buttons.forEach(btn => {
     if (btn.dataset.cat === category) {
@@ -3208,9 +3209,12 @@ function filterForum(category) {
 window.filterForum = filterForum;
 
 let forumSearchQuery = '';
+let forumCurrentPage = 1;
+const FORUM_POSTS_PER_PAGE = 10;
 
 function handleForumSearch(query) {
   forumSearchQuery = (query || '').trim().toLowerCase();
+  forumCurrentPage = 1; // 검색 시 1페이지로 리셋
   const clearBtn = document.getElementById('forum-search-clear');
   if (clearBtn) {
     clearBtn.classList.toggle('hidden', !forumSearchQuery);
@@ -3221,6 +3225,7 @@ window.handleForumSearch = handleForumSearch;
 
 function clearForumSearch() {
   forumSearchQuery = '';
+  forumCurrentPage = 1; // 검색 초기화 시 1페이지로 리셋
   const input = document.getElementById('forum-search-input');
   if (input) input.value = '';
   const clearBtn = document.getElementById('forum-search-clear');
@@ -3228,6 +3233,18 @@ function clearForumSearch() {
   renderForumPosts();
 }
 window.clearForumSearch = clearForumSearch;
+
+function goToForumPage(page) {
+  const p = parseInt(page, 10);
+  if (isNaN(p) || p < 1) return;
+  forumCurrentPage = p;
+  renderForumPosts();
+  const listView = document.getElementById('forum-list-view');
+  if (listView) {
+    listView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+window.goToForumPage = goToForumPage;
 
 /**
  * Automatically ensures '💰 재테크 팁' exists in category filter buttons and dropdowns,
@@ -3331,6 +3348,7 @@ window.adjustCalloutBoxesContrast = adjustCalloutBoxesContrast;
 function renderForumPosts() {
   ensureForumCategoriesInDOM();
   const container = document.getElementById('forum-posts-list');
+  const paginationContainer = document.getElementById('forum-pagination-container');
   if (!container) return;
 
   let posts = getStoredPosts();
@@ -3382,6 +3400,7 @@ function renderForumPosts() {
   });
 
   if (posts.length === 0) {
+    if (paginationContainer) paginationContainer.innerHTML = '';
     if (forumSearchQuery) {
       container.innerHTML = `
         <div class="bg-navy-900 border border-navy-800 rounded-2xl p-10 text-center text-slate-400">
@@ -3403,16 +3422,30 @@ function renderForumPosts() {
     return;
   }
 
-  container.innerHTML = posts.map(post => {
+  // 페이지네이션 슬라이스 계산
+  const totalPosts = posts.length;
+  const totalPages = Math.ceil(totalPosts / FORUM_POSTS_PER_PAGE) || 1;
+  if (forumCurrentPage > totalPages) forumCurrentPage = totalPages;
+  if (forumCurrentPage < 1) forumCurrentPage = 1;
+
+  const startIndex = (forumCurrentPage - 1) * FORUM_POSTS_PER_PAGE;
+  const endIndex = Math.min(startIndex + FORUM_POSTS_PER_PAGE, totalPosts);
+  const paginatedPosts = posts.slice(startIndex, endIndex);
+
+  container.innerHTML = paginatedPosts.map((post, idx) => {
     const commentsCount = post.comments ? post.comments.length : 0;
     const plainText = (post.content || '').replace(/<[^>]+>/g, ' ').trim();
     const hasImage = (post.content && post.content.includes('<img')) || post.image;
+    // 전체 글 수 기준 역순 번호 (공지사항은 '공지' 라벨 부여)
+    const postNumber = totalPosts - (startIndex + idx);
 
     return `
       <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal('${post.id}')">
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
-            ${post.isNotice ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">📢 공지</span>' : ''}
+            ${post.isNotice 
+              ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">📢 공지</span>' 
+              : `<span class="forum-post-num text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-navy-950 text-cyan-400/90 border border-navy-800" title="게시글 번호">No. ${postNumber}</span>`}
             ${post.category === 'perspective' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">🎯 차트 관점</span>' : post.category === 'finance' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">💰 재테크 팁</span>' : (post.category === 'trading' || post.categoryName === '📈 트레이딩자료' || post.categoryName === '📈 트레이딩') ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">📈 트레이딩</span>' : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '📊 시장 분위기' : post.categoryName)}</span>`}
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
             <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.time || post.timestamp))}</span>
@@ -3447,6 +3480,70 @@ function renderForumPosts() {
       </div>
     `;
   }).join('');
+
+  // 하단 페이지네이션 바 렌더링
+  if (paginationContainer) {
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = `
+        <div class="flex items-center justify-between text-xs text-slate-500 px-3 py-2 border-t border-navy-800/60 font-mono">
+          <span>전체 <strong>${totalPosts}</strong>개 게시글</span>
+          <span>1 / 1 페이지</span>
+        </div>
+      `;
+    } else {
+      let pageButtonsHtml = '';
+      const windowSize = 5;
+      let startP = Math.max(1, forumCurrentPage - Math.floor(windowSize / 2));
+      let endP = Math.min(totalPages, startP + windowSize - 1);
+      if (endP - startP + 1 < windowSize) {
+        startP = Math.max(1, endP - windowSize + 1);
+      }
+
+      for (let p = startP; p <= endP; p++) {
+        const isActive = (p === forumCurrentPage);
+        pageButtonsHtml += `
+          <button type="button" onclick="goToForumPage(${p})" class="forum-page-btn w-8 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+            isActive 
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-navy-950 font-black shadow-md shadow-cyan-500/25 border border-cyan-400' 
+              : 'bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800'
+          }">
+            ${p}
+          </button>
+        `;
+      }
+
+      paginationContainer.innerHTML = `
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 pb-2 border-t border-navy-800/80">
+          <div class="text-xs text-slate-400 font-mono">
+            총 <strong class="text-cyan-400 font-bold">${totalPosts}</strong>개 글 (${startIndex + 1} - ${endIndex}번째 글)
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap justify-center">
+            <button type="button" onclick="goToForumPage(1)" ${forumCurrentPage === 1 ? 'disabled' : ''} class="forum-page-btn px-2.5 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center ${
+              forumCurrentPage === 1 ? 'opacity-40 cursor-not-allowed bg-navy-950 text-slate-600 border border-navy-900' : 'bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800 cursor-pointer'
+            }" title="첫 페이지">
+              « 처음
+            </button>
+            <button type="button" onclick="goToForumPage(${forumCurrentPage - 1})" ${forumCurrentPage === 1 ? 'disabled' : ''} class="forum-page-btn px-2.5 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center ${
+              forumCurrentPage === 1 ? 'opacity-40 cursor-not-allowed bg-navy-950 text-slate-600 border border-navy-900' : 'bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800 cursor-pointer'
+            }" title="이전 페이지">
+              ‹ 이전
+            </button>
+            ${pageButtonsHtml}
+            <button type="button" onclick="goToForumPage(${forumCurrentPage + 1})" ${forumCurrentPage === totalPages ? 'disabled' : ''} class="forum-page-btn px-2.5 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center ${
+              forumCurrentPage === totalPages ? 'opacity-40 cursor-not-allowed bg-navy-950 text-slate-600 border border-navy-900' : 'bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800 cursor-pointer'
+            }" title="다음 페이지">
+              다음 ›
+            </button>
+            <button type="button" onclick="goToForumPage(${totalPages})" ${forumCurrentPage === totalPages ? 'disabled' : ''} class="forum-page-btn px-2.5 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center ${
+              forumCurrentPage === totalPages ? 'opacity-40 cursor-not-allowed bg-navy-950 text-slate-600 border border-navy-900' : 'bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white border border-navy-800 cursor-pointer'
+            }" title="마지막 페이지">
+              끝 »
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  }
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }

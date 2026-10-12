@@ -1133,6 +1133,38 @@ html.theme-light .calendar-month-today-cell {
   box-shadow: 0 4px 16px rgba(2, 132, 199, 0.3) !important;
 }
 
+/* 16. Forum Post Number & Pagination Styling */
+.forum-post-num {
+  letter-spacing: -0.02em;
+}
 
+html.theme-light .forum-post-num {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0284c7 !important;
+}
 
+html.theme-light .forum-page-btn:not([disabled]) {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
 
+html.theme-light .forum-page-btn:not([disabled]):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .forum-page-btn.bg-gradient-to-r,
+html.theme-light .forum-page-btn[class*="from-cyan-500"] {
+  background: linear-gradient(to right, #0284c7, #2563eb) !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3) !important;
+}
+
+html.theme-light .forum-page-btn[disabled] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
