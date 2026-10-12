@@ -2283,7 +2283,7 @@ ${sellTiersHtml}
 <p style="font-size: 13px; line-height: 1.6; color: #cbd5e1;">
 현재 주요 지지선과 캔들 흐름을 분석하며 위와 같이 분할 매수 및 탈출 구간을 설정했습니다.<br>
 이 구간에서의 분할 진입 비중과 손절/익절 타점에 대해 다른 트레이더 분들의 실전 피드백 및 조언 부탁드립니다!
-</p>
+</p>`;
         const opener = (typeof window !== 'undefined' && typeof window.openForumWithPreload === 'function')
             ? window.openForumWithPreload
             : (typeof openForumWithPreload === 'function' ? openForumWithPreload : null);
