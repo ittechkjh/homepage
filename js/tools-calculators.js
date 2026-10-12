@@ -94,12 +94,42 @@ const CoinCalculators = {
     // 물타기 계산기 기준 통화 ('KRW' | 'USD')
     waterCurrency: 'KRW',
 
-    // 코인 수량 늘리기(롤링) 기준 통화 및 파동 차수 상태
+    // 코인 수량 늘리기(롤링) 기준 통화, 파동 차수, 활성 시나리오 상태
     rollingCurrency: 'KRW',
+    currentRollingScenarioId: null,
     rollingTiers: [
-        { id: 1, sellPrice: 1200, sellPct: 100, buyPrice: 1000 }
+        { id: 1, sellMode: 'pct', sellPrice: 1200, sellVal: 100, buyMode: 'all_cash', buyPrice: 1000, buyVal: 100 }
     ],
     nextRollingTierId: 2,
+
+    // 내장 롤링 프리셋 시나리오
+    PRESET_ROLLING_SCENARIOS: [
+        {
+            id: "rolling_preset_xrp",
+            title: "리플(XRP) 박스권 롤링 수량 증식",
+            currency: "KRW",
+            currentPrice: 800,
+            currentQty: 10000,
+            feeRate: "0.05",
+            updatedAt: "10. 12. 오후 04:30",
+            rollingTiers: [
+                { id: 1, sellMode: 'pct', sellPrice: 950, sellVal: 100, buyMode: 'all_cash', buyPrice: 820, buyVal: 100 },
+                { id: 2, sellMode: 'pct', sellPrice: 960, sellVal: 50, buyMode: 'all_cash', buyPrice: 830, buyVal: 100 }
+            ]
+        },
+        {
+            id: "rolling_preset_btc",
+            title: "비트코인(BTC) 횡보장 스윙 롤링",
+            currency: "KRW",
+            currentPrice: 92000000,
+            currentQty: 0.1,
+            feeRate: "0.05",
+            updatedAt: "10. 12. 오후 04:35",
+            rollingTiers: [
+                { id: 1, sellMode: 'pct', sellPrice: 98000000, sellVal: 50, buyMode: 'all_cash', buyPrice: 91000000, buyVal: 100 }
+            ]
+        }
+    ],
 
     // 매수 차수 (mode: 'amount' | 'qty' | 'pct')
     waterTiers: [
@@ -1187,6 +1217,8 @@ const CoinCalculators = {
         this.initCloudRealtimeSync();
         this.renderCrypto2027CoinRows();
         this.calcWater();
+        this.renderRollingScenarioUI();
+        this.restoreSavedOrDraftRollingState();
         this.renderRollingTiers();
         this.calcCoinRolling();
         this.calcTax();
@@ -1374,6 +1406,10 @@ const CoinCalculators = {
             this.calcCrypto2027Tax();
             this.calcStockTax();
         } else if (tabId === 'coinrolling') {
+            this.renderRollingScenarioUI();
+            if (!this.currentRollingScenarioId) {
+                this.restoreSavedOrDraftRollingState();
+            }
             this.renderRollingTiers();
             this.calcCoinRolling();
         } else if (tabId === 'dividend') {
@@ -4689,6 +4725,9 @@ ${sellTiersHtml}
     // ========================================================
     // 코인 수량 늘리기(롤링 전략 & 복리 회전 증식) 엔진
     // ========================================================
+    // ========================================================
+    // 코인 수량 늘리기(롤링 전략 & 복리 회전 증식) 엔진
+    // ========================================================
     setRollingCurrency: function (curr) {
         if (!curr) curr = 'KRW';
         const isSwitched = (this.rollingCurrency !== curr);
@@ -4741,27 +4780,315 @@ ${sellTiersHtml}
         this.calcCoinRolling();
     },
 
+    // 롤링 시나리오 로컬스토리지 키
+    getRollingScenarioStorageKey: function () {
+        const user = this.getLoggedInUsername();
+        if (!user || user === 'guest') {
+            return 'crytopnl_rolling_scenarios_guest';
+        }
+        return `crytopnl_rolling_scenarios_${user.trim()}`;
+    },
+
+    // 저장된 롤링 시나리오 목록 조회 (프리셋 포함)
+    getSavedRollingScenarios: function () {
+        const primaryKey = this.getRollingScenarioStorageKey();
+        try {
+            const raw = localStorage.getItem(primaryKey) || localStorage.getItem('crytopnl_rolling_scenarios');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(this.PRESET_ROLLING_SCENARIOS || []));
+    },
+
+    // 롤링 시나리오 드롭다운 UI 렌더링
+    renderRollingScenarioUI: function () {
+        const select = document.getElementById('rollingScenarioSelect');
+        const badge = document.getElementById('rollingScenarioUserBadge');
+        const delBtn = document.getElementById('rollingScenarioDeleteBtn');
+        if (!select) return;
+
+        const list = this.getSavedRollingScenarios();
+        const activeId = this.currentRollingScenarioId;
+
+        select.innerHTML = '<option value="">-- 새 롤링 계획 (직접 입력) --</option>' + list.map(s => {
+            const isPreset = String(s.id).startsWith('rolling_preset_');
+            const icon = isPreset ? '⭐' : '📋';
+            const date = s.updatedAt ? ` (${s.updatedAt})` : '';
+            const isSelected = (s.id === activeId) ? 'selected' : '';
+            return `<option value="${s.id}" ${isSelected}>${icon} ${s.title}${date}</option>`;
+        }).join('');
+
+        if (delBtn) {
+            const isPreset = activeId && String(activeId).startsWith('rolling_preset_');
+            delBtn.style.display = (activeId && !isPreset) ? 'inline-block' : 'none';
+        }
+
+        if (badge) {
+            const user = this.getLoggedInUsername();
+            badge.innerText = (user && user !== 'guest') ? `👤 ${user} 보관함` : '👤 로컬 보관함';
+        }
+    },
+
+    // 현재 롤링 설정을 시나리오로 저장
+    saveRollingScenario: function (customTitle) {
+        const curPrice = this.parseNum(document.getElementById('rollingCurrentPrice')?.value);
+        const curQty = this.parseNum(document.getElementById('rollingCurrentQty')?.value);
+        const feeRate = document.getElementById('rollingFeeRate')?.value || '0.05';
+
+        const list = this.getSavedRollingScenarios();
+        let active = list.find(s => s.id === this.currentRollingScenarioId);
+
+        let title = customTitle;
+        if (!title) {
+            const defaultTitle = active ? active.title : `롤링 플랜 ${list.length + 1} (${new Date().toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })})`;
+            title = prompt('저장할 롤링 시나리오 이름을 입력하세요:', defaultTitle);
+            if (!title) return;
+        }
+        title = title.trim();
+        if (!title) return;
+
+        const nowStr = new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        if (active && active.title === title && !String(active.id).startsWith('rolling_preset_')) {
+            active.currency = this.rollingCurrency || 'KRW';
+            active.currentPrice = curPrice;
+            active.currentQty = curQty;
+            active.feeRate = feeRate;
+            active.rollingTiers = JSON.parse(JSON.stringify(this.rollingTiers));
+            active.updatedAt = nowStr;
+        } else {
+            const newId = 'rolling_' + Date.now();
+            const newScenario = {
+                id: newId,
+                title: title,
+                currency: this.rollingCurrency || 'KRW',
+                currentPrice: curPrice,
+                currentQty: curQty,
+                feeRate: feeRate,
+                rollingTiers: JSON.parse(JSON.stringify(this.rollingTiers)),
+                updatedAt: nowStr
+            };
+            list.unshift(newScenario);
+            this.currentRollingScenarioId = newId;
+        }
+
+        try {
+            const primaryKey = this.getRollingScenarioStorageKey();
+            const jsonStr = JSON.stringify(list);
+            localStorage.setItem(primaryKey, jsonStr);
+            localStorage.setItem('crytopnl_rolling_scenarios', jsonStr);
+        } catch (e) {
+            alert('저장 실패: 브라우저 저장 공간을 확인하세요.');
+            return;
+        }
+
+        this.renderRollingScenarioUI();
+        this.showScenarioToast(`'${title}' 롤링 계획이 저장되었습니다.`);
+    },
+
+    // 선택된 롤링 시나리오 불러오기
+    loadRollingScenario: function (scenarioId, showToast = true) {
+        if (!scenarioId) {
+            this.resetRollingScenario();
+            return;
+        }
+
+        const list = this.getSavedRollingScenarios();
+        let target = list.find(s => s.id === scenarioId);
+        if (!target) return;
+
+        this.currentRollingScenarioId = target.id;
+        if (target.currency) {
+            this.setRollingCurrency(target.currency);
+        }
+
+        const priceEl = document.getElementById('rollingCurrentPrice');
+        const qtyEl = document.getElementById('rollingCurrentQty');
+        const feeEl = document.getElementById('rollingFeeRate');
+
+        if (priceEl && target.currentPrice !== undefined) {
+            priceEl.value = this.formatNumber(target.currentPrice);
+        }
+        if (qtyEl && target.currentQty !== undefined) {
+            qtyEl.value = target.currentQty;
+        }
+        if (feeEl && target.feeRate !== undefined) {
+            feeEl.value = target.feeRate;
+        }
+
+        if (target.rollingTiers && Array.isArray(target.rollingTiers) && target.rollingTiers.length > 0) {
+            this.rollingTiers = JSON.parse(JSON.stringify(target.rollingTiers));
+            this.nextRollingTierId = Math.max(...this.rollingTiers.map(t => t.id || 0), 0) + 1;
+        }
+
+        this.renderRollingTiers();
+        this.calcCoinRolling();
+        this.renderRollingScenarioUI();
+        if (showToast) {
+            this.showScenarioToast(`'${target.title}' 롤링 계획을 불러왔습니다.`);
+        }
+    },
+
+    // 새 롤링 시나리오 작성 (초기화)
+    resetRollingScenario: function () {
+        this.currentRollingScenarioId = null;
+        const isUsd = (this.rollingCurrency === 'USD');
+        const priceEl = document.getElementById('rollingCurrentPrice');
+        const qtyEl = document.getElementById('rollingCurrentQty');
+        if (priceEl) priceEl.value = isUsd ? '1.0' : '1,000';
+        if (qtyEl) qtyEl.value = '1,000';
+
+        this.rollingTiers = [
+            { id: 1, sellMode: 'pct', sellPrice: (isUsd ? 1.2 : 1200), sellVal: 100, buyMode: 'all_cash', buyPrice: (isUsd ? 1.0 : 1000), buyVal: 100 }
+        ];
+        this.nextRollingTierId = 2;
+        this.renderRollingTiers();
+        this.calcCoinRolling();
+        this.renderRollingScenarioUI();
+        this.showScenarioToast('새 롤링 시나리오 작성 모드로 전환되었습니다.');
+    },
+
+    // 롤링 시나리오 삭제
+    deleteRollingScenario: function () {
+        if (!this.currentRollingScenarioId) return;
+        const list = this.getSavedRollingScenarios();
+        const target = list.find(s => s.id === this.currentRollingScenarioId);
+        if (!target) return;
+        if (String(target.id).startsWith('rolling_preset_')) {
+            alert('기본 제공 프리셋은 삭제할 수 없습니다.');
+            return;
+        }
+        if (!confirm(`'${target.title}' 롤링 계획을 삭제하시겠습니까?`)) return;
+
+        const updated = list.filter(s => s.id !== this.currentRollingScenarioId);
+        try {
+            const primaryKey = this.getRollingScenarioStorageKey();
+            localStorage.setItem(primaryKey, JSON.stringify(updated));
+            localStorage.setItem('crytopnl_rolling_scenarios', JSON.stringify(updated));
+        } catch (e) {}
+
+        this.showScenarioToast(`'${target.title}' 계획이 삭제되었습니다.`);
+        this.resetRollingScenario();
+    },
+
+    // 초기 또는 이전 상태 복원
+    restoreSavedOrDraftRollingState: function () {
+        const list = this.getSavedRollingScenarios();
+        const select = document.getElementById('rollingScenarioSelect');
+        const selectedId = this.currentRollingScenarioId || (select && select.value ? select.value : null) || (list.length > 0 ? list[0].id : null);
+        if (selectedId) {
+            const target = list.find(s => s.id === selectedId) || list[0];
+            if (target) {
+                this.loadRollingScenario(target.id, false);
+                return;
+            }
+        }
+    },
+
+    // 롤링 차수 매도/매수 모드 전환
+    updateRollingTierMode: function (id, type, mode) {
+        const tier = this.rollingTiers.find(t => t.id === id);
+        if (!tier) return;
+
+        if (type === 'sell') {
+            tier.sellMode = mode;
+            if (mode === 'pct') {
+                if (tier.sellVal > 100 || !tier.sellVal) tier.sellVal = 100;
+            } else if (mode === 'qty') {
+                if (!tier.sellVal || tier.sellVal > 1000000000) tier.sellVal = 500;
+            } else if (mode === 'amount') {
+                const isUsd = (this.rollingCurrency === 'USD');
+                tier.sellVal = isUsd ? 500 : 500000;
+            }
+        } else if (type === 'buy') {
+            tier.buyMode = mode;
+            if (mode === 'all_cash') {
+                tier.buyVal = 100;
+            } else if (mode === 'pct') {
+                if (tier.buyVal > 100 || !tier.buyVal) tier.buyVal = 100;
+            } else if (mode === 'qty') {
+                if (!tier.buyVal || tier.buyVal > 1000000000) tier.buyVal = 500;
+            } else if (mode === 'amount') {
+                const isUsd = (this.rollingCurrency === 'USD');
+                tier.buyVal = isUsd ? 500 : 500000;
+            }
+        }
+
+        this.renderRollingTiers();
+        this.calcCoinRolling();
+    },
+
+    // 롤링 파동 차수 렌더링
     renderRollingTiers: function () {
         const container = document.getElementById('rollingTiersContainer');
         if (!container) return;
 
         const isUsd = (this.rollingCurrency === 'USD');
         const currLabel = isUsd ? 'USD' : 'KRW';
+        const currSymbol = isUsd ? '$' : '₩';
 
         container.innerHTML = this.rollingTiers.map((tier, idx) => {
+            const sellMode = tier.sellMode || 'pct';
+            const buyMode = tier.buyMode || 'all_cash';
             const sellPriceFormatted = this.formatNumber(tier.sellPrice);
             const buyPriceFormatted = this.formatNumber(tier.buyPrice);
-            const sellPct = Number(tier.sellPct) || 100;
+
+            // 매도 입력값 라벨 및 렌더링
+            let sellValLabel = '매도 비중 (%)';
+            let sellValInputHtml = '';
+            if (sellMode === 'qty') {
+                sellValLabel = '매도 수량 (개)';
+                sellValInputHtml = `<input type="number" step="any" min="0" value="${tier.sellVal !== undefined ? tier.sellVal : 500}" placeholder="예: 500" oninput="CoinCalculators.updateRollingTier(${tier.id}, 'sellVal', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">`;
+            } else if (sellMode === 'amount') {
+                sellValLabel = `매도 금액 (${currLabel})`;
+                const formattedVal = this.formatNumber(tier.sellVal !== undefined ? tier.sellVal : (isUsd ? 500 : 500000));
+                sellValInputHtml = `<input type="text" inputmode="numeric" value="${formattedVal}" placeholder="${isUsd ? '500' : '500,000'}" oninput="CoinCalculators.formatInputWithCommas(this, ${isUsd}); CoinCalculators.updateRollingTier(${tier.id}, 'sellVal', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">`;
+            } else {
+                sellValLabel = '매도 비중 (%)';
+                const sellPct = (tier.sellVal !== undefined ? tier.sellVal : (tier.sellPct !== undefined ? tier.sellPct : 100));
+                sellValInputHtml = `
+                  <div class="flex items-center gap-1">
+                    <input type="number" step="1" min="1" max="100" value="${sellPct}" oninput="CoinCalculators.updateRollingTier(${tier.id}, 'sellVal', this.value)" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">
+                    <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'sellVal', 50); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-950 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-300 border border-navy-700 cursor-pointer">50%</button>
+                    <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'sellVal', 100); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-950 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-300 border border-navy-700 cursor-pointer">100%</button>
+                  </div>`;
+            }
+
+            // 재매수 입력값 라벨 및 렌더링
+            let buyValLabel = '재매수 기준';
+            let buyValInputHtml = '';
+            if (buyMode === 'all_cash') {
+                buyValLabel = '재매수 실행';
+                buyValInputHtml = `<div class="h-[31px] px-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-[10.5px] font-bold flex items-center justify-center">매도 확보금 전액 100% 재투자</div>`;
+            } else if (buyMode === 'pct') {
+                buyValLabel = '확보금 비중 (%)';
+                const buyPct = (tier.buyVal !== undefined ? tier.buyVal : 100);
+                buyValInputHtml = `
+                  <div class="flex items-center gap-1">
+                    <input type="number" step="1" min="1" max="100" value="${buyPct}" oninput="CoinCalculators.updateRollingTier(${tier.id}, 'buyVal', this.value)" class="flex-1 bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'buyVal', 50); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-950 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-navy-700 cursor-pointer">50%</button>
+                    <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'buyVal', 100); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-950 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-navy-700 cursor-pointer">100%</button>
+                  </div>`;
+            } else if (buyMode === 'qty') {
+                buyValLabel = '목표 수량 (개)';
+                buyValInputHtml = `<input type="number" step="any" min="0" value="${tier.buyVal !== undefined ? tier.buyVal : 500}" placeholder="예: 500" oninput="CoinCalculators.updateRollingTier(${tier.id}, 'buyVal', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">`;
+            } else if (buyMode === 'amount') {
+                buyValLabel = `투입 금액 (${currLabel})`;
+                const formattedVal = this.formatNumber(tier.buyVal !== undefined ? tier.buyVal : (isUsd ? 500 : 500000));
+                buyValInputHtml = `<input type="text" inputmode="numeric" value="${formattedVal}" placeholder="${isUsd ? '500' : '500,000'}" oninput="CoinCalculators.formatInputWithCommas(this, ${isUsd}); CoinCalculators.updateRollingTier(${tier.id}, 'buyVal', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">`;
+            }
 
             let estBadge = '';
             if (tier.sellPrice > tier.buyPrice && tier.buyPrice > 0) {
                 const singleWaveRatio = (tier.sellPrice / tier.buyPrice);
-                const estGainPct = ((singleWaveRatio * (sellPct / 100) + (1 - sellPct / 100)) - 1) * 100;
-                estBadge = `<span class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/20">예상 +${estGainPct.toFixed(2)}% 수량</span>`;
+                const estGainPct = (singleWaveRatio - 1) * 100;
+                estBadge = `<span class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/20">단가 갭 +${estGainPct.toFixed(2)}%</span>`;
             }
 
             return `
-              <div class="p-3 rounded-2xl bg-navy-950 border border-emerald-500/30 space-y-2 relative" data-rolling-tier-id="${tier.id}">
+              <div class="p-3.5 rounded-2xl bg-navy-950 border border-emerald-500/30 space-y-2.5 relative" data-rolling-tier-id="${tier.id}">
                 <div class="flex justify-between items-center text-xs">
                   <div class="flex items-center gap-2">
                     <span class="font-bold text-emerald-300 flex items-center gap-1">
@@ -4772,23 +5099,54 @@ ${sellTiersHtml}
                   </div>
                   ${this.rollingTiers.length > 1 ? `<button type="button" onclick="CoinCalculators.removeRollingTier(${tier.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 rounded transition cursor-pointer" title="파동 삭제">✕ 삭제</button>` : ''}
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">고점 매도가 (${currLabel})</label>
-                    <input type="text" inputmode="numeric" value="${sellPriceFormatted}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateRollingTier(${tier.id}, 'sellPrice', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">
+
+                <!-- 1. 고점 매도 설정 -->
+                <div class="p-2.5 rounded-xl bg-navy-900/80 border border-navy-800 space-y-1.5">
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="font-bold text-slate-300 flex items-center gap-1">
+                      <span>🔴</span> 고점 매도 설정
+                    </span>
+                    <select onchange="CoinCalculators.updateRollingTierMode(${tier.id}, 'sell', this.value)" class="bg-navy-950 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
+                      <option value="pct" ${sellMode === 'pct' ? 'selected' : ''}>％ 비중 매도</option>
+                      <option value="qty" ${sellMode === 'qty' ? 'selected' : ''}>🪙 수량 매도</option>
+                      <option value="amount" ${sellMode === 'amount' ? 'selected' : ''}>${currSymbol} 금액 매도</option>
+                    </select>
                   </div>
-                  <div>
-                    <label class="block font-semibold text-slate-400 mb-1 text-[11px]">매도 비중 (%)</label>
-                    <div class="flex items-center gap-1">
-                      <input type="number" step="1" min="1" max="100" value="${sellPct}" oninput="CoinCalculators.updateRollingTier(${tier.id}, 'sellPct', this.value)" class="flex-1 bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">
-                      <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'sellPct', 50); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-900 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-300 border border-navy-700">50%</button>
-                      <button type="button" onclick="CoinCalculators.updateRollingTier(${tier.id}, 'sellPct', 100); CoinCalculators.renderRollingTiers();" class="px-1.5 py-1 rounded-lg text-[10px] font-bold bg-navy-900 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-300 border border-navy-700">100%</button>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label class="block font-semibold text-slate-400 mb-1 text-[10.5px]">고점 매도가 (${currLabel})</label>
+                      <input type="text" inputmode="numeric" value="${sellPriceFormatted}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateRollingTier(${tier.id}, 'sellPrice', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-400 focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block font-semibold text-slate-400 mb-1 text-[10.5px]">${sellValLabel}</label>
+                      ${sellValInputHtml}
                     </div>
                   </div>
                 </div>
-                <div class="text-xs">
-                  <label class="block font-semibold text-slate-400 mb-1 text-[11px]">저점 재매수가 (${currLabel})</label>
-                  <input type="text" inputmode="numeric" value="${buyPriceFormatted}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateRollingTier(${tier.id}, 'buyPrice', this.value)" class="w-full bg-navy-900 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+
+                <!-- 2. 저점 재매수 설정 -->
+                <div class="p-2.5 rounded-xl bg-navy-900/80 border border-navy-800 space-y-1.5">
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="font-bold text-slate-300 flex items-center gap-1">
+                      <span>🟢</span> 저점 재매수 설정
+                    </span>
+                    <select onchange="CoinCalculators.updateRollingTierMode(${tier.id}, 'buy', this.value)" class="bg-navy-950 border border-cyan-500/30 text-cyan-400 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none cursor-pointer">
+                      <option value="all_cash" ${buyMode === 'all_cash' ? 'selected' : ''}>💰 전액 재매수 (100%)</option>
+                      <option value="pct" ${buyMode === 'pct' ? 'selected' : ''}>％ 확보금 비중</option>
+                      <option value="qty" ${buyMode === 'qty' ? 'selected' : ''}>🪙 수량 재매수</option>
+                      <option value="amount" ${buyMode === 'amount' ? 'selected' : ''}>${currSymbol} 금액 투입</option>
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label class="block font-semibold text-slate-400 mb-1 text-[10.5px]">저점 재매수가 (${currLabel})</label>
+                      <input type="text" inputmode="numeric" value="${buyPriceFormatted}" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.updateRollingTier(${tier.id}, 'buyPrice', this.value)" class="w-full bg-navy-950 border border-navy-700 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold text-xs focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block font-semibold text-slate-400 mb-1 text-[10.5px]">${buyValLabel}</label>
+                      ${buyValInputHtml}
+                    </div>
+                  </div>
                 </div>
               </div>
             `;
@@ -4800,10 +5158,16 @@ ${sellTiersHtml}
         const lastTier = this.rollingTiers[this.rollingTiers.length - 1];
         let defaultSell = 1200;
         let defaultBuy = 1000;
-        let defaultPct = 100;
+        let sellMode = 'pct';
+        let sellVal = 100;
+        let buyMode = 'all_cash';
+        let buyVal = 100;
 
         if (lastTier) {
-            defaultPct = lastTier.sellPct || 100;
+            sellMode = lastTier.sellMode || 'pct';
+            sellVal = lastTier.sellVal !== undefined ? lastTier.sellVal : 100;
+            buyMode = lastTier.buyMode || 'all_cash';
+            buyVal = lastTier.buyVal !== undefined ? lastTier.buyVal : 100;
             if (lastTier.buyPrice > 0) {
                 defaultSell = Number((lastTier.buyPrice * 1.15).toFixed(isUsd ? 4 : 2));
                 defaultBuy = Number((lastTier.buyPrice * 0.95).toFixed(isUsd ? 4 : 2));
@@ -4815,9 +5179,12 @@ ${sellTiersHtml}
 
         this.rollingTiers.push({
             id: this.nextRollingTierId++,
+            sellMode: sellMode,
             sellPrice: defaultSell,
-            sellPct: defaultPct,
-            buyPrice: defaultBuy
+            sellVal: sellVal,
+            buyMode: buyMode,
+            buyPrice: defaultBuy,
+            buyVal: buyVal
         });
         this.renderRollingTiers();
         this.calcCoinRolling();
@@ -4852,23 +5219,84 @@ ${sellTiersHtml}
         }
 
         let runningQty = currentQty;
+        let accumulatedResidualCash = 0;
         const tbody = document.getElementById('rollingSimTableBody');
         let rowsHtml = '';
 
         this.rollingTiers.forEach((tier, idx) => {
             const waveStartQty = runningQty;
-            const sellPct = Math.max(0, Math.min(100, Number(tier.sellPct) || 100));
-            const sellQty = (sellPct / 100) * runningQty;
-            const heldQty = runningQty - sellQty;
+            const sellMode = tier.sellMode || 'pct';
+            const buyMode = tier.buyMode || 'all_cash';
 
+            // 1. 매도 수량 계산
+            let sellQty = 0;
+            let sellModeDesc = '';
+            if (sellMode === 'qty') {
+                sellQty = Math.min(runningQty, Math.max(0, Number(tier.sellVal) || 0));
+                sellModeDesc = `${sellQty.toLocaleString(undefined, { maximumFractionDigits: 4 })}개 매도`;
+            } else if (sellMode === 'amount') {
+                const targetAmount = Math.max(0, Number(tier.sellVal) || 0);
+                sellQty = tier.sellPrice > 0 ? Math.min(runningQty, targetAmount / tier.sellPrice) : 0;
+                sellModeDesc = isUsd ? `$${targetAmount.toLocaleString()} 매도` : `${Math.round(targetAmount).toLocaleString('ko-KR')}원 매도`;
+            } else {
+                const sellPct = Math.max(0, Math.min(100, Number(tier.sellVal !== undefined ? tier.sellVal : (tier.sellPct !== undefined ? tier.sellPct : 100))));
+                sellQty = (sellPct / 100) * runningQty;
+                sellModeDesc = `비중 ${sellPct}% 매도`;
+            }
+
+            const heldQty = Math.max(0, runningQty - sellQty);
             const grossCash = sellQty * tier.sellPrice;
             const sellFee = grossCash * feeRate;
-            const netCash = grossCash - sellFee;
+            const netCash = Math.max(0, grossCash - sellFee);
 
-            const grossReboughtQty = tier.buyPrice > 0 ? (netCash / tier.buyPrice) : 0;
-            const buyFeeQty = grossReboughtQty * feeRate;
-            const netReboughtQty = grossReboughtQty - buyFeeQty;
+            // 2. 저점 재매수 계산
+            let netReboughtQty = 0;
+            let cashUsedForRebuy = 0;
+            let cashLeftover = 0;
+            let buyModeDesc = '';
 
+            if (buyMode === 'all_cash') {
+                cashUsedForRebuy = netCash;
+                const grossRebought = tier.buyPrice > 0 ? (cashUsedForRebuy / tier.buyPrice) : 0;
+                const buyFeeQty = grossRebought * feeRate;
+                netReboughtQty = Math.max(0, grossRebought - buyFeeQty);
+                cashLeftover = 0;
+                buyModeDesc = '확보금 전액 재투자';
+            } else if (buyMode === 'pct') {
+                const buyPct = Math.max(0, Math.min(100, Number(tier.buyVal !== undefined ? tier.buyVal : 100)));
+                cashUsedForRebuy = netCash * (buyPct / 100);
+                const grossRebought = tier.buyPrice > 0 ? (cashUsedForRebuy / tier.buyPrice) : 0;
+                const buyFeeQty = grossRebought * feeRate;
+                netReboughtQty = Math.max(0, grossRebought - buyFeeQty);
+                cashLeftover = netCash - cashUsedForRebuy;
+                buyModeDesc = `확보금의 ${buyPct}% 재투자`;
+            } else if (buyMode === 'amount') {
+                const targetAmount = Math.max(0, Number(tier.buyVal) || 0);
+                cashUsedForRebuy = Math.min(netCash, targetAmount);
+                const grossRebought = tier.buyPrice > 0 ? (cashUsedForRebuy / tier.buyPrice) : 0;
+                const buyFeeQty = grossRebought * feeRate;
+                netReboughtQty = Math.max(0, grossRebought - buyFeeQty);
+                cashLeftover = netCash - cashUsedForRebuy;
+                buyModeDesc = isUsd ? `$${cashUsedForRebuy.toLocaleString()} 투입` : `${Math.round(cashUsedForRebuy).toLocaleString('ko-KR')}원 투입`;
+            } else if (buyMode === 'qty') {
+                const targetQty = Math.max(0, Number(tier.buyVal) || 0);
+                const neededCash = targetQty * tier.buyPrice * (1 + feeRate);
+                if (neededCash > netCash) {
+                    cashUsedForRebuy = netCash;
+                    const grossRebought = tier.buyPrice > 0 ? (cashUsedForRebuy / tier.buyPrice) : 0;
+                    const buyFeeQty = grossRebought * feeRate;
+                    netReboughtQty = Math.max(0, grossRebought - buyFeeQty);
+                    cashLeftover = 0;
+                    buyModeDesc = `한도 내 최대 ${netReboughtQty.toFixed(2)}개 매수`;
+                } else {
+                    cashUsedForRebuy = targetQty * tier.buyPrice;
+                    netReboughtQty = targetQty;
+                    cashLeftover = Math.max(0, netCash - cashUsedForRebuy * (1 + feeRate));
+                    buyModeDesc = `${targetQty.toLocaleString(undefined, { maximumFractionDigits: 4 })}개 지정 매수`;
+                }
+            }
+
+            accumulatedResidualCash += cashLeftover;
             const waveEndQty = heldQty + netReboughtQty;
             const waveNetAddedQty = waveEndQty - waveStartQty;
             const waveGainPct = waveStartQty > 0 ? (waveNetAddedQty / waveStartQty) * 100 : 0;
@@ -4880,15 +5308,23 @@ ${sellTiersHtml}
             const signGain = waveNetAddedQty >= 0 ? '+' : '';
             const gainColor = waveNetAddedQty >= 0 ? 'text-emerald-400' : 'text-rose-400';
 
+            const leftoverNotice = cashLeftover > 0 ? `<div class="text-[9.5px] text-amber-400 font-mono">잔여현금: ${isUsd ? '$' + cashLeftover.toFixed(2) : Math.round(cashLeftover).toLocaleString('ko-KR') + '원'}</div>` : '';
+
             rowsHtml += `
               <tr class="border-b border-navy-800/60 hover:bg-navy-800/30 transition text-[11px]">
                 <td class="py-2.5 px-2.5">
                   <div class="font-bold text-white">${idx + 1}차 파동</div>
-                  <div class="text-[10px] text-slate-400">매도비중 ${sellPct}%</div>
+                  <div class="text-[10px] text-slate-400">${sellModeDesc}</div>
                 </td>
                 <td class="py-2.5 px-2.5 text-right font-medium text-slate-200">${formattedSellPrice}</td>
-                <td class="py-2.5 px-2.5 text-right font-medium text-amber-300">${formattedNetCash}</td>
-                <td class="py-2.5 px-2.5 text-right font-medium text-cyan-300">${formattedBuyPrice}</td>
+                <td class="py-2.5 px-2.5 text-right font-medium text-amber-300">
+                  <div>${formattedNetCash}</div>
+                  ${leftoverNotice}
+                </td>
+                <td class="py-2.5 px-2.5 text-right font-medium text-cyan-300">
+                  <div>${formattedBuyPrice}</div>
+                  <div class="text-[10px] text-slate-400">${buyModeDesc}</div>
+                </td>
                 <td class="py-2.5 px-2.5 text-right font-bold ${gainColor}">
                   <div>${signGain}${waveNetAddedQty.toLocaleString(undefined, { maximumFractionDigits: 4 })}개</div>
                   <div class="text-[10px]">(${signGain}${waveGainPct.toFixed(2)}%)</div>
@@ -4931,7 +5367,12 @@ ${sellTiersHtml}
         }
         const gainValueEl = document.getElementById('rollingResGainValue');
         if (gainValueEl) {
-            gainValueEl.innerText = `${signAdded}${isUsd ? '$' + gainValue.toLocaleString(undefined, { maximumFractionDigits: 2 }) : Math.round(gainValue).toLocaleString('ko-KR') + '원'}`;
+            let gainTxt = `${signAdded}${isUsd ? '$' + gainValue.toLocaleString(undefined, { maximumFractionDigits: 2 }) : Math.round(gainValue).toLocaleString('ko-KR') + '원'}`;
+            if (accumulatedResidualCash > 0) {
+                const resCashTxt = isUsd ? `+$${accumulatedResidualCash.toFixed(2)} 현금` : `+${Math.round(accumulatedResidualCash).toLocaleString('ko-KR')}원 현금`;
+                gainTxt += ` (${resCashTxt})`;
+            }
+            gainValueEl.innerText = gainTxt;
             gainValueEl.className = `text-base sm:text-lg font-bold font-mono mt-1 truncate ${gainValue >= 0 ? 'text-amber-300' : 'text-rose-400'}`;
         }
         const totalRoiEl = document.getElementById('rollingResTotalRoi');
@@ -4960,7 +5401,11 @@ ${sellTiersHtml}
         let waveRows = this.rollingTiers.map((tier, idx) => {
             const sellPrice = isUsd ? '$' + tier.sellPrice : Number(tier.sellPrice).toLocaleString('ko-KR') + '원';
             const buyPrice = isUsd ? '$' + tier.buyPrice : Number(tier.buyPrice).toLocaleString('ko-KR') + '원';
-            return `<tr><td style="padding:6px 8px; text-align:center;">${idx + 1}차</td><td style="padding:6px 8px; text-align:right;">${sellPrice} (${tier.sellPct}%)</td><td style="padding:6px 8px; text-align:right;">${buyPrice}</td></tr>`;
+            const sellMode = tier.sellMode || 'pct';
+            const buyMode = tier.buyMode || 'all_cash';
+            let sellDesc = (sellMode === 'qty' ? `${tier.sellVal}개` : (sellMode === 'amount' ? `${tier.sellVal}원` : `${tier.sellVal || 100}%`));
+            let buyDesc = (buyMode === 'all_cash' ? '전액' : (buyMode === 'qty' ? `${tier.buyVal}개` : (buyMode === 'amount' ? `${tier.buyVal}원` : `${tier.buyVal}%`)));
+            return `<tr><td style="padding:6px 8px; text-align:center;">${idx + 1}차</td><td style="padding:6px 8px; text-align:right;">${sellPrice} (${sellDesc})</td><td style="padding:6px 8px; text-align:right;">${buyPrice} (${buyDesc})</td></tr>`;
         }).join('');
 
         const title = `[롤링 전략] 원금 추가 투입 없이 코인 수량 늘리기 시뮬레이션 (${cycles}회전 완료, ${qtyGain})`;
@@ -4984,8 +5429,8 @@ ${sellTiersHtml}
     <thead>
       <tr style="border-bottom:1px solid rgba(255,255,255,0.15); color:#94a3b8;">
         <th style="padding:6px 8px; text-align:center;">파동</th>
-        <th style="padding:6px 8px; text-align:right;">고점 매도가 (비중)</th>
-        <th style="padding:6px 8px; text-align:right;">저점 재매수가</th>
+        <th style="padding:6px 8px; text-align:right;">고점 매도가 (기준)</th>
+        <th style="padding:6px 8px; text-align:right;">저점 재매수가 (기준)</th>
       </tr>
     </thead>
     <tbody>
