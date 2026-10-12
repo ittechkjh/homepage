@@ -63,10 +63,37 @@
                 allTrades = storage.getTrades() || [];
             }
 
+            // localStorage 전체 스캔 폴백
+            if ((!allTrades || allTrades.length === 0) && typeof localStorage !== 'undefined') {
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.includes('trades')) {
+                            const val = localStorage.getItem(k);
+                            if (val && val.startsWith('[')) {
+                                const parsed = JSON.parse(val);
+                                if (Array.isArray(parsed) && parsed.length > allTrades.length) {
+                                    allTrades = parsed;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
             const targetSym = (coinSummary?.coinSymbol || cleanSym).toUpperCase();
             trades = allTrades.filter(t => {
-                const tSym = (t.coinSymbol || (t.market ? t.market.replace(/^KRW-/, '').replace(/.*:::/, '') : '')).toUpperCase();
-                return tSym === targetSym && (t.type === '매수' || t.type === '매도');
+                const tSym = (t.coinSymbol || t.currency || (t.market ? t.market.replace(/^KRW-/, '').replace(/.*:::/, '') : '')).toUpperCase();
+                const isTypeMatch = (t.type === '매수' || t.type === '매도' || t.side === 'bid' || t.side === 'ask');
+                return tSym === targetSym && isTypeMatch;
+            });
+
+            // 매수/매도 표준화
+            trades.forEach(t => {
+                if (!t.type) {
+                    if (t.side === 'bid') t.type = '매수';
+                    else if (t.side === 'ask') t.type = '매도';
+                }
             });
 
             const sym = targetSym;
