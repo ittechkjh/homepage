@@ -4319,18 +4319,33 @@
                 </div>
               </div>
 
-              <!-- 2. 롤링 파동 차수 설정 -->
+              <!-- 2. 추가 매도 계획 (고점 분할 매도) -->
               <div class="pt-2 border-t border-navy-800 space-y-2.5">
                 <div class="flex justify-between items-center">
-                  <span class="font-bold text-emerald-300 flex items-center gap-1">
-                    <span>🌊</span> 2. 고점 매도 ➡️ 저점 재매수 파동
+                  <span class="font-bold text-rose-300 flex items-center gap-1 text-xs">
+                    <span>🔴</span> 2. 고점 매도 계획 (분할 매도/익절)
                   </span>
-                  <button type="button" onclick="CoinCalculators.addRollingTier()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-navy-950 border border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
-                    <span>+ 파동 추가</span>
+                  <button type="button" onclick="CoinCalculators.addRollingSellTier()" class="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-navy-950 border border-rose-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <span>+ 매도 차수 추가</span>
                   </button>
                 </div>
-                <div id="rollingTiersContainer" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                  <!-- Dynamic Rolling Tiers rendered by JS -->
+                <div id="rollingSellTiersContainer" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                  <!-- Dynamic Rolling Sell Tiers rendered by JS -->
+                </div>
+              </div>
+
+              <!-- 3. 추가 매수 계획 (저점 수량 늘리기 DCA) -->
+              <div class="pt-2 border-t border-navy-800 space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-emerald-300 flex items-center gap-1 text-xs">
+                    <span>🟢</span> 3. 저점 재매수 계획 (수량 늘리기 DCA)
+                  </span>
+                  <button type="button" onclick="CoinCalculators.addRollingBuyTier()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-navy-950 border border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                    <span>+ 매수 차수 추가</span>
+                  </button>
+                </div>
+                <div id="rollingBuyTiersContainer" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                  <!-- Dynamic Rolling Buy Tiers rendered by JS -->
                 </div>
               </div>
             </div>
@@ -4359,6 +4374,26 @@
                 <div class="text-[11px] text-slate-400 font-semibold truncate">총 롤링 수익률</div>
                 <div id="rollingResTotalRoi" class="text-base sm:text-lg font-black text-emerald-400 font-mono mt-1 truncate">+0.00%</div>
                 <div id="rollingResCyclesBadge" class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">총 1회전 완료</div>
+              </div>
+            </div>
+
+            <!-- 롤링 수량 증식 & 평단가 스텝 차트 시각화 (Step Chart) -->
+            <div id="rollingStepChartContainer" class="p-5 rounded-3xl bg-navy-900 border border-navy-800 shadow-xl space-y-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <span>📊</span> 롤링 수량 증식 &amp; 평단가 스텝 차트
+                </span>
+                <span id="rollingStepChartBadge" class="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20 font-bold"></span>
+              </div>
+              <div class="relative w-full h-44 sm:h-52 bg-navy-950/80 rounded-2xl p-3 border border-navy-800/80 flex flex-col justify-between">
+                <svg id="rollingStepSvg" class="w-full h-full overflow-visible"></svg>
+              </div>
+              <div class="flex items-center justify-center gap-3 sm:gap-4 mt-2 text-[10.5px] sm:text-[11px] text-slate-400 flex-wrap">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-rose-400 inline-block border-t border-dashed"></span> 기존 평단가</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-cyan-400 inline-block"></span> 실질 체감 평단가</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-emerald-400 inline-block"></span> 최종 코인 수량</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span> 매도가</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span> 재매수가</span>
               </div>
             </div>
 
@@ -9137,7 +9172,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20261012_08"></script>
+  <script src="js/tools-calculators.js?v=20261012_09"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20260927_02"></script>
 
