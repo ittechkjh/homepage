@@ -1084,19 +1084,29 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
     }
   ];
 
-  // Candidates in prioritized order:
-  // 1. gemini-3.5-flash with thinkingBudget: 0 (Fastest, ~14s, full complete text)
-  // 2. gemini-flash-latest with thinkingBudget: 0
-  // 3. gemini-3.6-flash with thinkingLevel: 'low'
+  // Candidates in prioritized order for fastest response and highest reasoning quality on Free Tier:
+  // 1. gemini-2.5-flash: Google's flagship reasoning hybrid model (super fast, high depth, 1M context)
+  // 2. gemini-2.0-flash: Next-gen production workhorse (ultra-low latency, ~5-8s)
+  // 3. gemini-flash-latest: Stable fallback
   const modelAttempts = [
     {
-      name: 'gemini-3.5-flash',
+      name: 'gemini-2.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.65,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-2.0-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          maxOutputTokens: 8192
         }
       }
     },
@@ -1106,19 +1116,7 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
         contents: baseContents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
-        }
-      }
-    },
-    {
-      name: 'gemini-3.6-flash',
-      payload: {
-        contents: baseContents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingLevel: 'low' }
+          maxOutputTokens: 8192
         }
       }
     }
@@ -2383,40 +2381,28 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 
   const modelAttempts = [
     {
-      name: 'gemini-3.5-flash',
+      name: 'gemini-2.5-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
+        }
+      }
+    },
+    {
+      name: 'gemini-2.0-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
           temperature: 0.75,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          maxOutputTokens: 8192
         }
       }
     },
     {
       name: 'gemini-flash-latest',
-      payload: {
-        contents: baseContents,
-        generationConfig: {
-          temperature: 0.75,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
-        }
-      }
-    },
-    {
-      name: 'gemini-3.6-flash',
-      payload: {
-        contents: baseContents,
-        generationConfig: {
-          temperature: 0.75,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingLevel: 'low' }
-        }
-      }
-    },
-    {
-      name: 'gemini-2.5-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
@@ -3948,18 +3934,18 @@ ${videoDetails.transcript.slice(0, 35000)}
         contents: baseContents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 8192
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingBudget: 0 }
         }
       }
     },
     {
-      name: 'gemini-3.5-flash',
+      name: 'gemini-2.0-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          maxOutputTokens: 8192
         }
       }
     },
@@ -3969,19 +3955,7 @@ ${videoDetails.transcript.slice(0, 35000)}
         contents: baseContents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
-        }
-      }
-    },
-    {
-      name: 'gemini-3.6-flash',
-      payload: {
-        contents: baseContents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 8192,
-          thinkingConfig: { thinkingLevel: 'low' }
+          maxOutputTokens: 8192
         }
       }
     }
