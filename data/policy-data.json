@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-15T22:17:50.422Z",
+  "updatedAt": "2026-10-16T22:05:56.782Z",
   "source": "행정안전부 대한민국 공공서비스(혜택) 정보 API (data.go.kr)",
   "totalCount": 849,
   "policies": [
@@ -509,7 +509,7 @@
       "details": [
         "범죄피해자의 피해정도 및 보호, 지원의 필요성에 등에 따라 상담, 의료제공, 구조금지급, 법률구조, 취업관련 지원, 주거지원 등 구조 방안 마련"
       ],
-      "agency": "대검찰청",
+      "agency": "공소청",
       "applyUrl": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/128000000001",
       "applyName": "정부24 바로가기",
       "docs": [
@@ -534,7 +534,7 @@
       "details": [
         "범죄로 인해 피해를 당한 피해자에게 치료비, 심리치료비, 생계비, 학자금, 장례비, 긴급생활안정비 등 경제적 지원"
       ],
-      "agency": "대검찰청",
+      "agency": "공소청",
       "applyUrl": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/128000000003",
       "applyName": "정부24 바로가기",
       "docs": [
