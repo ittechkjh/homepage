@@ -395,9 +395,9 @@ const CoinCalculators = {
                 const primaryKey = this.getScenarioStorageKey();
                 const jsonStr = JSON.stringify(finalScenarios);
                 localStorage.setItem(primaryKey, jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                if (user === 'admin') {
+                    localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                }
                 this.renderScenarioUI();
             }
         } catch (e) {
@@ -407,9 +407,11 @@ const CoinCalculators = {
 
     // Google Cloud (Firebase Firestore) 실시간 동기화 불러오기 및 로컬 병합
     syncScenariosWithCloud: async function () {
-        const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
         const user = this.getLoggedInUsername();
-        const docUser = (user && user !== 'guest') ? user.toLowerCase() : 'admin';
+        if (!user || user === 'guest') return; // 비로그인(게스트) 상태에서는 클라우드 동기화 및 타 사용자 데이터 로드 차단
+
+        const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
+        const docUser = user.toLowerCase();
 
         try {
             let cloudList = [];
@@ -419,10 +421,10 @@ const CoinCalculators = {
                     if (doc.exists && doc.data() && Array.isArray(doc.data().scenarios)) {
                         cloudList = doc.data().scenarios;
                     }
-                    if ((!cloudList || cloudList.length === 0) && docUser !== 'admin') {
-                        const adminDoc = await firestore.collection('user_water_scenarios').doc('admin').get();
-                        if (adminDoc.exists && adminDoc.data() && Array.isArray(adminDoc.data().scenarios)) {
-                            cloudList = adminDoc.data().scenarios;
+                    if ((!cloudList || cloudList.length === 0) && docUser === 'admin') {
+                        // 관리자 전용 프리셋 폴백
+                        if (Array.isArray(this.PRESET_SCENARIOS)) {
+                            cloudList = [...this.PRESET_SCENARIOS];
                         }
                     }
                 } catch (e) {}
@@ -434,18 +436,8 @@ const CoinCalculators = {
                     const restList = await this.fetchCloudScenariosRest(docUser);
                     if (restList && restList.length > 0) {
                         cloudList = restList;
-                    } else if (docUser !== 'admin') {
-                        const adminRestList = await this.fetchCloudScenariosRest('admin');
-                        if (adminRestList && adminRestList.length > 0) {
-                            cloudList = adminRestList;
-                        }
                     }
                 } catch (e) {}
-            }
-
-            // 여전히 비어있다면 내장 프리셋 시나리오 5개 사용
-            if ((!cloudList || cloudList.length === 0) && Array.isArray(this.PRESET_SCENARIOS)) {
-                cloudList = [...this.PRESET_SCENARIOS];
             }
 
             const localList = this.getSavedScenarios();
@@ -475,9 +467,9 @@ const CoinCalculators = {
                 const primaryKey = this.getScenarioStorageKey();
                 const jsonStr = JSON.stringify(merged);
                 localStorage.setItem(primaryKey, jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                if (user === 'admin') {
+                    localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                }
 
                 if (changed || (cloudList.length !== merged.length && user && user !== 'guest')) {
                     await this.saveScenarioToCloud(merged);
@@ -503,7 +495,9 @@ const CoinCalculators = {
     // 다른 브라우저/기기 변경사항을 실시간 수신하여 화면에 즉각 반영하는 Firestore 리스너
     initCloudRealtimeSync: function () {
         const user = this.getLoggedInUsername();
-        const docUser = (user && user !== 'guest') ? user.toLowerCase() : 'admin';
+        if (!user || user === 'guest') return; // 비로그인 시 클라우드 실시간 리스너 구독 차단
+
+        const docUser = user.toLowerCase();
         const firestore = window.db || (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
         if (!firestore) return;
 
@@ -526,9 +520,9 @@ const CoinCalculators = {
                     const primaryKey = this.getScenarioStorageKey();
                     const jsonStr = JSON.stringify(cleanedCloud);
                     localStorage.setItem(primaryKey, jsonStr);
-                    localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-                    localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-                    localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                    if (user === 'admin') {
+                        localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+                    }
                     this.renderScenarioUI();
 
                     // 현재 열려있는 시나리오가 다른 기기에서 수정되었거나 삭제된 경우 화면도 실시간 자동 동기화
@@ -602,69 +596,52 @@ const CoinCalculators = {
             } catch (e) {}
         };
 
+        const user = this.getLoggedInUsername();
+        const isGuest = (!user || user === 'guest');
+
         // 1. 현재 사용자 키 우선
         tryParseAndAdd(localStorage.getItem(primaryKey));
 
-        // 2. 알려진 모든 레거시 및 계정별 키 탐색
-        const knownKeys = [
-            'crytopnl_dca_scenarios',
-            'crytopnl_dca_scenarios_guest',
-            'crytopnl_dca_scenarios_admin',
-            'cryptopnl_dca_scenarios',
-            'cryptopnl_dca_scenarios_guest',
-            'cryptopnl_dca_scenarios_admin',
-            'coinhub_dca_scenarios',
-            'coinhub_dca_scenarios_guest',
-            'coinhub_dca_scenarios_admin',
-            'dca_scenarios',
-            'dca_scenarios_guest',
-            'dca_scenarios_admin',
-            'crytopnl_water_scenarios',
-            'cryptopnl_water_scenarios',
-            'coinhub_water_scenarios',
-            'water_scenarios',
-            'water_plans',
-            'water_calculator_scenarios',
-            'water_calculator_data'
-        ];
-        knownKeys.forEach(k => {
-            if (k !== primaryKey) tryParseAndAdd(localStorage.getItem(k));
-        });
+        // 2. 알려진 모든 레거시 및 계정별 키 탐색 (게스트 모드에서는 관리자/타계정 키 스캔 차단)
+        if (!isGuest) {
+            const knownKeys = (user === 'admin') ? [
+                'crytopnl_dca_scenarios_admin',
+                'cryptopnl_dca_scenarios_admin',
+                'coinhub_dca_scenarios_admin',
+                'dca_scenarios_admin'
+            ] : [
+                `crytopnl_dca_scenarios_${user}`,
+                `cryptopnl_dca_scenarios_${user}`,
+                `coinhub_dca_scenarios_${user}`
+            ];
+            knownKeys.forEach(k => {
+                if (k !== primaryKey) tryParseAndAdd(localStorage.getItem(k));
+            });
+        }
 
-        // 3. 브라우저 localStorage 전체 전수 스캔 (물타기 관련 저장된 계획 복구)
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (!k) continue;
-                const lower = k.toLowerCase();
-                // 분석/방문/테마/임시저장(draft, temp) 키는 정식 시나리오가 아니므로 건너뜀
-                if (lower.includes('analytic') || lower.includes('visit') || lower.includes('log') || lower.includes('view') || lower.includes('theme') || lower.includes('token') || lower.includes('draft') || lower.includes('temp')) continue;
-                if (lower.includes('scenario') || lower.includes('water') || lower.includes('dca') || lower.includes('calc') || lower.includes('plan')) {
-                    tryParseAndAdd(localStorage.getItem(k));
-                }
-            }
-        } catch (e) {}
+        let cleanedList = mergedList.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
 
-        const cleanedList = mergedList.filter(s => s && s.id !== 'dca_btc_krw_default' && !(typeof s.id === 'string' && s.id.startsWith('draft_')) && !(s.title && s.title.includes('작업 복구 데이터')));
+        if (isGuest) {
+            const adminPresetIds = new Set((this.PRESET_SCENARIOS || []).map(p => p.id));
+            const adminPresetTitles = new Set(['미나0926', '니어0926', '에테나0926', '비트코인 0926', '마이크로스트래티지0926']);
+            cleanedList = cleanedList.filter(s => !adminPresetIds.has(s.id) && !adminPresetTitles.has(s.title));
+        }
 
-        // 4. 복구된 유효 데이터가 존재하면 기본 저장소 및 게스트 키에 안전 동기화 (영구 보존)
+        // 4. 복구된 유효 데이터가 존재하면 기본 저장소에 안전 동기화
         if (cleanedList.length > 0) {
             try {
                 const validJson = JSON.stringify(cleanedList);
                 localStorage.setItem(primaryKey, validJson);
-                localStorage.setItem('crytopnl_dca_scenarios_guest', validJson);
-                localStorage.setItem('crytopnl_dca_scenarios', validJson);
-                localStorage.setItem('crytopnl_dca_scenarios_admin', validJson);
+                if (user === 'admin') {
+                    localStorage.setItem('crytopnl_dca_scenarios_admin', validJson);
+                }
             } catch (e) {}
         } else {
             // 더미 데이터만 있던 경우 저장소 청소
             try {
                 const currentRaw = localStorage.getItem(primaryKey);
-                if (currentRaw && (currentRaw.includes('dca_btc_krw_default') || currentRaw.includes('draft_') || currentRaw.includes('작업 복구 데이터'))) {
+                if (currentRaw && (currentRaw.includes('dca_btc_krw_default') || currentRaw.includes('draft_') || currentRaw.includes('작업 복구 데이터') || (isGuest && (currentRaw.includes('dca_1790415542766') || currentRaw.includes('미나0926'))))) {
                     localStorage.setItem(primaryKey, '[]');
-                    localStorage.setItem('crytopnl_dca_scenarios_guest', '[]');
-                    localStorage.setItem('crytopnl_dca_scenarios', '[]');
-                    localStorage.setItem('crytopnl_dca_scenarios_admin', '[]');
                 }
             } catch (e) {}
         }
@@ -690,24 +667,20 @@ const CoinCalculators = {
         return cleanedList;
     },
 
-    // 저장된 시나리오 목록 반환 (저장소에서 직접 조회, 내장 프리셋과 항상 안전 병합)
+    // 저장된 시나리오 목록 반환 (계정별 완전 격리)
     getSavedScenarios: function () {
+        const user = this.getLoggedInUsername();
+        const isGuest = (!user || user === 'guest');
         const primaryKey = this.getScenarioStorageKey();
-        const presets = Array.isArray(this.PRESET_SCENARIOS) ? this.PRESET_SCENARIOS : [];
         let list = [];
+
         try {
             let raw = localStorage.getItem(primaryKey);
-            if (!raw) {
-                // 폴백: 현재 활성 키에 데이터가 없는 경우, 다른 계정 및 레거시 스토리지 키에서 자동 복원
-                const fallbackKeys = [
-                    'crytopnl_dca_scenarios_admin',
-                    'crytopnl_dca_scenarios',
-                    'crytopnl_dca_scenarios_guest',
-                    'cryptopnl_dca_scenarios',
-                    'cryptopnl_dca_scenarios_admin',
-                    'cryptopnl_dca_scenarios_guest',
-                    'coinhub_dca_scenarios'
-                ];
+            if (!raw && !isGuest) {
+                // 로그인 회원의 경우에만 계정별 레거시 키 폴백 허용 (관리자일 때만 admin 키 조회)
+                const fallbackKeys = (user === 'admin')
+                    ? ['crytopnl_dca_scenarios_admin', 'cryptopnl_dca_scenarios_admin']
+                    : [`cryptopnl_dca_scenarios_${user}`, `coinhub_dca_scenarios_${user}`];
                 for (const fk of fallbackKeys) {
                     if (fk === primaryKey) continue;
                     const fRaw = localStorage.getItem(fk);
@@ -732,25 +705,30 @@ const CoinCalculators = {
             }
         } catch (e) {}
 
-        // 내장된 Firestore 공용/관리자 프리셋 시나리오 5개를 항상 병합하여 절대 누락되지 않도록 보장
-        presets.forEach(p => {
-            const idx = list.findIndex(s => s.id === p.id);
-            if (idx === -1) {
-                list.push(p);
-            } else {
-                // 저장된 시나리오에 차수 데이터가 없거나 비어있는 경우 프리셋의 정상 데이터로 보강
-                if ((!list[idx].waterTiers || list[idx].waterTiers.length === 0) && p.waterTiers && p.waterTiers.length > 0) {
+        // 게스트 상태에서는 관리자 전용 프리셋(미나0926, 니어0926 등)이 로컬스토리지에 오염 저장되어 있더라도 완전히 제거하여 노출 차단
+        if (isGuest) {
+            const adminPresetIds = new Set((this.PRESET_SCENARIOS || []).map(p => p.id));
+            const adminPresetTitles = new Set(['미나0926', '니어0926', '에테나0926', '비트코인 0926', '마이크로스트래티지0926']);
+            list = list.filter(s => !adminPresetIds.has(s.id) && !adminPresetTitles.has(s.title));
+        } else if (user === 'admin') {
+            // 관리자 로그인 시에만 내장 관리자 프리셋 병합
+            const presets = Array.isArray(this.PRESET_SCENARIOS) ? this.PRESET_SCENARIOS : [];
+            presets.forEach(p => {
+                const idx = list.findIndex(s => s.id === p.id);
+                if (idx === -1) {
+                    list.push(p);
+                } else if ((!list[idx].waterTiers || list[idx].waterTiers.length === 0) && p.waterTiers && p.waterTiers.length > 0) {
                     list[idx] = p;
                 }
-            }
-        });
+            });
+        }
 
         try {
             const jsonStr = JSON.stringify(list);
             localStorage.setItem(primaryKey, jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            if (user === 'admin') {
+                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            }
         } catch (e) {}
 
         return list;
@@ -851,13 +829,15 @@ const CoinCalculators = {
 
     // 저장된 시나리오 또는 최근 작업 중이던 임시 저장본(Draft) 자동 복원
     restoreSavedOrDraftState: function () {
+        const user = this.getLoggedInUsername();
+        const isGuest = (!user || user === 'guest');
         const list = this.getSavedScenarios();
         const selectEl = document.getElementById('waterScenarioSelect');
         const selectedId = this.currentScenarioId || (selectEl && selectEl.value ? selectEl.value : null) || (list.length > 0 ? list[0].id : null);
 
         // 1. 드롭다운 선택값, 활성 시나리오, 또는 첫 번째 시나리오 자동 로드
         if (selectedId) {
-            const target = list.find(s => s.id === selectedId) || (Array.isArray(this.PRESET_SCENARIOS) && this.PRESET_SCENARIOS.find(s => s.id === selectedId)) || list[0];
+            const target = list.find(s => s.id === selectedId) || (!isGuest && Array.isArray(this.PRESET_SCENARIOS) && this.PRESET_SCENARIOS.find(s => s.id === selectedId)) || list[0];
             if (target) {
                 this.loadScenario(target.id, false);
                 return;
@@ -929,8 +909,9 @@ const CoinCalculators = {
             const primaryKey = this.getScenarioStorageKey();
             const jsonStr = JSON.stringify(list);
             localStorage.setItem(primaryKey, jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
+            if (user === 'admin') {
+                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            }
         } catch (e) {
             alert('저장 실패: 브라우저 저장 공간을 확인하세요.');
             return;
@@ -954,9 +935,11 @@ const CoinCalculators = {
             return;
         }
 
+        const user = this.getLoggedInUsername();
+        const isGuest = (!user || user === 'guest');
         const list = this.getSavedScenarios();
         let target = list.find(s => s.id === scenarioId);
-        if (!target && Array.isArray(this.PRESET_SCENARIOS)) {
+        if (!target && !isGuest && Array.isArray(this.PRESET_SCENARIOS)) {
             target = this.PRESET_SCENARIOS.find(s => s.id === scenarioId);
         }
         if (!target) return;
@@ -1085,9 +1068,10 @@ const CoinCalculators = {
             const jsonStr = JSON.stringify(filtered);
             const primaryKey = this.getScenarioStorageKey();
             localStorage.setItem(primaryKey, jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_guest', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios', jsonStr);
-            localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            const user = this.getLoggedInUsername();
+            if (user === 'admin') {
+                localStorage.setItem('crytopnl_dca_scenarios_admin', jsonStr);
+            }
         } catch (e) {}
 
         this.saveScenarioToCloud(filtered, true);
