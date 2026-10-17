@@ -1,7 +1,7 @@
 {
   "lastUpdated": "2026-10-17",
-  "lastUpdatedTimeKst": "10. 17. 09:07",
-  "timestamp": 1792195668748,
+  "lastUpdatedTimeKst": "10. 18. 08:43",
+  "timestamp": 1792280591225,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -86,16 +86,16 @@
       "lastUpdated": "2026-10-17"
     },
     "goldFut": {
-      "value": 4186.7,
-      "change": -0.09,
+      "value": 4181.1,
+      "change": -0.23,
       "text": "금값 조정",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
       "lastUpdated": "2026-10-17"
     },
     "wti": {
-      "value": 99.04,
-      "change": 5.65,
+      "value": 99.02,
+      "change": 5.63,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
@@ -109,54 +109,54 @@
     },
     "cryptoSnapshot": {
       "BTC": {
-        "price": 110277000,
-        "change24h": 0.00090682,
-        "timestamp": 1792195668065
+        "price": 109984000,
+        "change24h": -0.26479016,
+        "timestamp": 1792280588934
       },
       "ETH": {
-        "price": 3276000,
-        "change24h": -0.030515719999999996,
-        "timestamp": 1792195668055
+        "price": 3243000,
+        "change24h": -1.03753433,
+        "timestamp": 1792280580951
       },
       "XRP": {
-        "price": 1770,
-        "change24h": -0.16920474,
-        "timestamp": 1792195664483
+        "price": 1746,
+        "change24h": -1.52284264,
+        "timestamp": 1792280590217
       },
       "SOL": {
-        "price": 141200,
-        "change24h": 0,
-        "timestamp": 1792195665146
+        "price": 139500,
+        "change24h": -1.20396601,
+        "timestamp": 1792280583180
       },
       "DOGE": {
-        "price": 109,
-        "change24h": -0.9090909100000001,
-        "timestamp": 1792195660780
+        "price": 108,
+        "change24h": -1.8181818200000002,
+        "timestamp": 1792280590840
       },
       "ADA": {
-        "price": 305,
-        "change24h": 0,
-        "timestamp": 1792195628261
+        "price": 297,
+        "change24h": -2.6229508200000002,
+        "timestamp": 1792280494217
       },
       "AVAX": {
-        "price": 13460,
-        "change24h": -0.07423905,
-        "timestamp": 1792195639910
+        "price": 13180,
+        "change24h": -2.1529324400000003,
+        "timestamp": 1792280467982
       },
       "SUI": {
-        "price": 1378,
-        "change24h": -0.21723389,
-        "timestamp": 1792195663838
+        "price": 1319,
+        "change24h": -4.48950036,
+        "timestamp": 1792280579354
       },
       "LINK": {
-        "price": 16670,
-        "change24h": -0.17964072,
-        "timestamp": 1792195620291
+        "price": 16160,
+        "change24h": -3.23353293,
+        "timestamp": 1792280521025
       },
       "DOT": {
-        "price": 1591,
-        "change24h": -0.5003126999999999,
-        "timestamp": 1792195666433
+        "price": 1507,
+        "change24h": -5.753596,
+        "timestamp": 1792280552425
       }
     }
   }
