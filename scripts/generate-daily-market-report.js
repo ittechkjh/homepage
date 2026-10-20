@@ -3526,6 +3526,142 @@ const svgDefs = `
   </defs>
 `;
 
+// Helper: Build tailored prompt for Imagen 3 AI illustration matching the reference picture style
+function buildFinanceIllustrationPrompt(videoDetails, dynamicThemeData) {
+  const title = (videoDetails?.title || '').toLowerCase();
+  const desc = (videoDetails?.description || '').toLowerCase();
+  const leftSub = dynamicThemeData?.contrastLeft?.title || '';
+  const rightSub = dynamicThemeData?.contrastRight?.title || '';
+
+  const isRealEstate = /부동산|아파트|신도시|재개발|청약|전세|월세|내집|상가|건물|토지|콤팩트/.test(title + desc + leftSub + rightSub);
+  const isCrypto = /비트코인|코인|가상자산|이더리움|업비트|빗썸|바이낸스|차트|알트/.test(title + desc + leftSub + rightSub);
+
+  if (isRealEstate) {
+    return "Detailed Korean webtoon style isometric 3D architectural illustration, 16:9 widescreen ratio. High-angle perspective of a divided city street. Left side features low-rise vacant suburban shops, empty parking lots, asphalt roads with sparse cars, and quiet houses in warm reddish-orange sunset tones. Right side features bustling high-density modern skyscrapers, luxury residential towers, green walkable avenues, lush trees, pedestrians walking, and clean modern urban infrastructure in cool daylight blue and fresh emerald green tones. Crisp editorial line art, lively lighting, highly detailed isometric art, no text, no letters.";
+  } else if (isCrypto) {
+    return "Detailed Korean webtoon style isometric 3D financial tech illustration, 16:9 widescreen ratio. Split contrast composition. Left side shows volatile stormy market scene, falling red candlestick blocks, warning signals, and financial stress in dark reddish warm tones. Right side shows futuristic digital wealth vault, steady glowing green and blue upward crystal bars, secure blockchain vaults, and thriving financial ecosystem in high-tech cyan and emerald tones. Crisp line art, isometric perspective, highly detailed, vibrant lighting, no text, no letters.";
+  } else {
+    return "Detailed Korean webtoon style isometric 3D financial lifestyle illustration, 16:9 widescreen ratio. Split contrast composition. Left side illustrates financial anxiety, scattered receipts, leaking piggy bank, and inflation pressures in warm reddish-orange tones. Right side illustrates thriving wealth accumulation, lush green compound interest money trees, golden shield of tax protection, steady stairways of investment growth, and modern skyscraper district in confident blue and emerald green tones. Crisp editorial infographic line art, isometric perspective, highly detailed, bright lighting, no text, no letters.";
+  }
+}
+
+// Helper: Call Google Imagen 3 API via Gemini / Generative Language to render the rich illustration picture
+async function generateFinanceAiIllustration(videoDetails, dynamicThemeData, apiKey) {
+  if (!apiKey) return null;
+  const prompt = buildFinanceIllustrationPrompt(videoDetails, dynamicThemeData);
+
+  // Attempt 1: Imagen 3 REST predict endpoint (Standard Gemini API format)
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+    const payload = {
+      instances: [{ prompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: '16:9',
+        outputOptions: { mimeType: 'image/jpeg' }
+      }
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+      if (b64) {
+        console.log('[Finance AI Image] Successfully generated Imagen 3 illustration via predict endpoint');
+        return `data:image/jpeg;base64,${b64}`;
+      }
+    }
+  } catch (e) {
+    console.warn('[Finance AI Image] Imagen 3 predict attempt failed:', e.message);
+  }
+
+  // Attempt 2: Imagen 3 generateImages endpoint
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${apiKey}`;
+    const payload = {
+      prompt,
+      config: {
+        numberOfImages: 1,
+        aspectRatio: '16:9',
+        outputMimeType: 'image/jpeg'
+      }
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const b64 = data.generatedImages?.[0]?.image?.imageBytes;
+      if (b64) {
+        console.log('[Finance AI Image] Successfully generated Imagen 3 illustration via generateImages endpoint');
+        return `data:image/jpeg;base64,${b64}`;
+      }
+    }
+  } catch (e) {
+    console.warn('[Finance AI Image] Imagen 3 generateImages attempt failed:', e.message);
+  }
+
+  // Attempt 3: Gemini 3.1 Flash Image via Interactions API
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+    const payload = {
+      model: 'gemini-3.1-flash-image',
+      input: [{ type: 'text', text: prompt }]
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const b64 = data.output_image?.data || data.outputs?.[0]?.data;
+      if (b64) {
+        console.log('[Finance AI Image] Successfully generated Gemini Flash Image illustration');
+        return `data:image/png;base64,${b64}`;
+      }
+    }
+  } catch (e) {
+    console.warn('[Finance AI Image] Gemini Flash Image attempt failed:', e.message);
+  }
+
+  return null;
+}
+
+// Helper: Isometric Tree
+function renderIsometricTree(x, y, r = 10, color = '#22c55e') {
+  return `
+  <g opacity="0.9">
+    <ellipse cx="${x}" cy="${y + 8}" rx="${r * 0.8}" ry="${r * 0.4}" fill="#0f172a" opacity="0.15"/>
+    <line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y - 4}" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${x}" cy="${y - 4}" r="${r}" fill="${color}"/>
+    <circle cx="${x - r * 0.3}" cy="${y - 7}" r="${r * 0.6}" fill="#86efac" opacity="0.6"/>
+  </g>`;
+}
+
+// Helper: Isometric Car
+function renderIsometricCar(x, y, color = '#ef4444', isRight = true) {
+  const flip = isRight ? 1 : -1;
+  return `
+  <g transform="translate(${x}, ${y}) scale(${flip * 0.85}, 0.85)">
+    <polygon points="-14,4 0,-4 14,4 0,12" fill="#0f172a" opacity="0.25"/>
+    <polygon points="-12,0 0,-7 12,0 0,7" fill="${color}"/>
+    <polygon points="-7,-2 0,-6 7,-2 0,2" fill="#f8fafc"/>
+    <polygon points="-7,-2 0,-6 0,-10 -7,-6" fill="${color}" opacity="0.8"/>
+  </g>`;
+}
+
 // Helper: Isometric Background Grid & Roads (Split 50% left warm tint / 50% right cool tint)
 function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', roadColor = '#cbd5e1') {
   return `
@@ -3533,24 +3669,40 @@ function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', 
   <rect x="400" y="55" width="400" height="395" fill="${rightTint}"/>
   <line x1="400" y1="55" x2="400" y2="450" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>
 
-  <g opacity="0.8">
+  <!-- Left: Vacant Low-density Lot & Roads -->
+  <g opacity="0.85">
     <polygon points="0,280 220,150 400,250 180,450 0,450" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
     <polygon points="120,180 230,120 340,185 230,245" fill="#fed7aa" fill-opacity="0.6" stroke="#f97316" stroke-width="1.8" stroke-dasharray="5,3"/>
-    <text x="230" y="190" fill="#c2410c" font-size="11" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">계획의 맹점 (공실 구간)</text>
+    <text x="230" y="190" fill="#c2410c" font-size="11" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">계획의 맹점 (외연적 확산·공실)</text>
 
-    <polygon points="0,340 400,110 400,160 0,390" fill="${roadColor}" opacity="0.65"/>
-    <line x1="0" y1="365" x2="400" y2="135" stroke="#ffffff" stroke-width="2" stroke-dasharray="8,8" opacity="0.9"/>
+    <!-- Main Asphalt Road with dashed lane markings -->
+    <polygon points="0,340 400,110 400,160 0,390" fill="${roadColor}" opacity="0.75"/>
+    <line x1="0" y1="365" x2="400" y2="135" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="10,8" opacity="0.95"/>
 
-    <polygon points="0,170 300,340 250,370 0,225" fill="${roadColor}" opacity="0.65"/>
+    <polygon points="0,170 300,340 250,370 0,225" fill="${roadColor}" opacity="0.7"/>
     <line x1="0" y1="197" x2="275" y2="355" stroke="#ffffff" stroke-width="2" stroke-dasharray="8,8" opacity="0.9"/>
+
+    <!-- Cars on the road -->
+    ${renderIsometricCar(180, 240, '#ef4444', false)}
+    ${renderIsometricCar(80, 315, '#64748b', false)}
   </g>
 
+  <!-- Left low-rise suburban buildings -->
   ${renderIsometricBuilding(65, 230, 32, 28, 40, '#fca5a5', '#ef4444', '#b91c1c', false)}
   ${renderIsometricBuilding(70, 360, 45, 35, 35, '#fed7aa', '#f97316', '#c2410c', false)}
   ${renderIsometricBuilding(330, 290, 40, 30, 35, '#fecaca', '#f87171', '#dc2626', false)}
+  ${renderIsometricTree(120, 250, 9, '#ef4444')}
+  ${renderIsometricTree(45, 385, 11, '#f97316')}
 
+  <!-- Right: Compact Modern High-density City -->
   <g opacity="0.95">
     <polygon points="400,250 580,150 800,280 800,450 580,450" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
+    
+    <!-- Green Walkable Avenue / Pedestrian Promenade -->
+    <polygon points="400,310 800,180 800,230 400,360" fill="#38bdf8" opacity="0.2"/>
+    <line x1="400" y1="335" x2="800" y2="205" stroke="#0284c7" stroke-width="2" stroke-dasharray="6,4" opacity="0.5"/>
+
+    <!-- High Rise Towers -->
     ${renderIsometricBuilding(490, 180, 38, 95, 42, '#93c5fd', '#3b82f6', '#1d4ed8', true, '#ffffff')}
     ${renderIsometricBuilding(565, 175, 42, 120, 45, '#bae6fd', '#0284c7', '#0369a1', true, '#ffffff')}
     ${renderIsometricBuilding(645, 185, 45, 135, 48, '#a7f3d0', '#10b981', '#047857', true, '#ffffff')}
@@ -3558,13 +3710,24 @@ function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', 
     ${renderIsometricBuilding(530, 365, 55, 75, 48, '#7dd3fc', '#0ea5e9', '#0284c7', true, '#ffffff')}
     ${renderIsometricBuilding(635, 380, 50, 85, 50, '#6ee7b7', '#059669', '#065f46', true, '#ffffff')}
     ${renderIsometricBuilding(730, 395, 45, 70, 45, '#93c5fd', '#2563eb', '#1e40af', true, '#ffffff')}
+
+    <!-- Lush green trees along the compact city -->
+    ${renderIsometricTree(460, 260, 11, '#10b981')}
+    ${renderIsometricTree(485, 290, 13, '#059669')}
+    ${renderIsometricTree(580, 330, 10, '#10b981')}
+    ${renderIsometricTree(685, 345, 12, '#047857')}
+    ${renderIsometricTree(770, 360, 11, '#10b981')}
+
+    <!-- Compact city clean transit -->
+    ${renderIsometricCar(440, 340, '#0284c7', true)}
+    ${renderIsometricCar(540, 310, '#10b981', true)}
   </g>
   `;
 }
 
 
 // SVG 1: 메인 썸네일 - 입체 쿼터뷰(아이소메트릭) 좌/우 비교 대비 인포그래픽 카드 (16:9 800x450)
-function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null, bgImageBase64 = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const safeTitle = (customTitle || videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
   const cleanTitle = safeTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
@@ -3596,36 +3759,50 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
   <rect width="800" height="450" fill="#f8fafc"/>
 
   <!-- Top Headline Header (User Image: 3. '신도시 계획의 맹점과 '콤팩트 시티'의 중요성) -->
-  <g transform="translate(25, 34)">
+  <rect x="0" y="0" width="800" height="58" fill="#ffffff" filter="url(#iso_drop)"/>
+  <g transform="translate(25, 36)">
     <circle cx="10" cy="-6" r="6" fill="#e11d48"/>
-    <text x="24" y="0" fill="#0f172a" font-size="22" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${chapterText}</text>
+    <text x="24" y="0" fill="#0f172a" font-size="21" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${chapterText}</text>
     <rect x="660" y="-18" width="115" height="24" rx="6" fill="#0f172a"/>
     <text x="717" y="-2" fill="#38bdf8" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
 
-  <!-- 50/50 Isometric Contrast Background -->
-  ${renderIsometricBackground('#fff1f2', '#f0fdf4', '#cbd5e1')}
+  <!-- 50/50 Isometric Contrast Background: AI Generated Illustration or Rich Procedural Fallback -->
+  ${bgImageBase64 ? `
+  <g>
+    <image href="${bgImageBase64}" x="0" y="58" width="800" height="392" preserveAspectRatio="xMidYMid slice" />
+    <rect x="0" y="58" width="400" height="392" fill="#fee2e2" opacity="0.10"/>
+    <rect x="400" y="58" width="400" height="392" fill="#e0f2fe" opacity="0.10"/>
+    <line x1="400" y1="58" x2="400" y2="450" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.9"/>
+  </g>
+  ` : renderIsometricBackground('#fff1f2', '#f0fdf4', '#cbd5e1')}
 
   <!-- Left Side: Risk / Problem Badges (Red / Orange Theme) -->
-  <g transform="translate(20, 75)">
+  <g transform="translate(20, 78)">
     <rect width="135" height="30" rx="15" fill="#dc2626" filter="url(#iso_drop)"/>
     <text x="67" y="20" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(cLeft.title, 11)}</text>
-    <text x="145" y="20" fill="#991b1b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">${clampSvgText(cLeft.sub, 24)}</text>
+    <g transform="translate(142, 2)">
+      <rect width="235" height="26" rx="6" fill="#ffffff" fill-opacity="0.92" stroke="#fca5a5" stroke-width="1" filter="url(#iso_drop)"/>
+      <text x="10" y="18" fill="#991b1b" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(cLeft.sub, 22)}</text>
+    </g>
 
-    ${renderIsometricCallout(25, 40, cLeft.badges?.[0]?.tag || '상가 공실', cLeft.badges?.[0]?.note || '', 190, 85, true)}
-    ${renderIsometricCallout(150, 85, cLeft.badges?.[1]?.tag || '계획의 폭탄', cLeft.badges?.[1]?.note || '', 130, 160, true)}
-    ${renderIsometricCallout(15, 175, cLeft.badges?.[2]?.tag || '외연적 확산', cLeft.badges?.[2]?.note || '', 95, 230, true)}
+    ${renderIsometricCallout(25, 42, cLeft.badges?.[0]?.tag || '상가 공실', cLeft.badges?.[0]?.note || '', 190, 85, true)}
+    ${renderIsometricCallout(150, 88, cLeft.badges?.[1]?.tag || '계획의 폭탄', cLeft.badges?.[1]?.note || '', 130, 160, true)}
+    ${renderIsometricCallout(15, 178, cLeft.badges?.[2]?.tag || '외연적 확산', cLeft.badges?.[2]?.note || '', 95, 230, true)}
   </g>
 
   <!-- Right Side: Solution / Strategy Badges (Blue / Emerald Theme) -->
-  <g transform="translate(420, 75)">
+  <g transform="translate(420, 78)">
     <rect width="135" height="30" rx="15" fill="#0284c7" filter="url(#iso_drop)"/>
     <text x="67" y="20" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(cRight.title, 11)}</text>
-    <text x="145" y="20" fill="#0369a1" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">${clampSvgText(cRight.sub, 24)}</text>
+    <g transform="translate(142, 2)">
+      <rect width="235" height="26" rx="6" fill="#ffffff" fill-opacity="0.92" stroke="#7dd3fc" stroke-width="1" filter="url(#iso_drop)"/>
+      <text x="10" y="18" fill="#0369a1" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(cRight.sub, 22)}</text>
+    </g>
 
-    ${renderIsometricCallout(195, 40, cRight.badges?.[0]?.tag || '콤팩트 시티', cRight.badges?.[0]?.note || '', 160, 85, false)}
-    ${renderIsometricCallout(120, 85, cRight.badges?.[1]?.tag || '고밀도 복합 개발', cRight.badges?.[1]?.note || '', 195, 140, false)}
-    ${renderIsometricCallout(205, 175, cRight.badges?.[2]?.tag || '보행 네트워크', cRight.badges?.[2]?.note || '', 240, 240, false)}
+    ${renderIsometricCallout(195, 42, cRight.badges?.[0]?.tag || '콤팩트 시티', cRight.badges?.[0]?.note || '', 160, 85, false)}
+    ${renderIsometricCallout(120, 88, cRight.badges?.[1]?.tag || '고밀도 복합 개발', cRight.badges?.[1]?.note || '', 195, 140, false)}
+    ${renderIsometricCallout(205, 178, cRight.badges?.[2]?.tag || '보행 네트워크', cRight.badges?.[2]?.note || '', 240, 240, false)}
   </g>
 
   <!-- Center Focal Hero Box (The signature card from user upload) -->
@@ -4389,7 +4566,22 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
   const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
-  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
+
+  // Generate rich AI illustration for main thumbnail matching reference style
+  let aiIllustrationBase64 = null;
+  if (apiKey) {
+    try {
+      console.log('[YouTube Finance Generator] Requesting Imagen 3 / Gemini AI illustration for main thumbnail...');
+      aiIllustrationBase64 = await generateFinanceAiIllustration(videoDetails, dynamicThemeData, apiKey);
+      if (aiIllustrationBase64) {
+        console.log('[YouTube Finance Generator] Successfully obtained rich AI illustration picture for main thumbnail!');
+      }
+    } catch(imgErr) {
+      console.warn('[YouTube Finance Generator] AI illustration generation skipped/failed:', imgErr.message);
+    }
+  }
+
+  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData, aiIllustrationBase64);
   const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img3 = generateFinanceImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img4 = generateFinanceImage4(dateStr, videoDetails, postTitle, dynamicThemeData);
