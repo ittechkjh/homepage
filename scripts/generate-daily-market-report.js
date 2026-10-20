@@ -2743,13 +2743,13 @@ function formatMarkdownToCleanHtml(rawText) {
 
     // Headings
     if (/^#\s+(.+)$/m.test(b)) {
-      return b.replace(/^#\s+(.+)$/gm, '<h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h2>');
+      return b.replace(/^#\s+(.+)$/gm, '<h2 style="font-size: 19px; font-weight: 800; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h2>');
     }
     if (/^##\s+(.+)$/m.test(b)) {
-      return b.replace(/^##\s+(.+)$/gm, '<h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h3>');
+      return b.replace(/^##\s+(.+)$/gm, '<h3 style="font-size: 17px; font-weight: 800; margin-top: 26px; margin-bottom: 12px; line-height: 1.5;">$1</h3>');
     }
     if (/^###\s+(.+)$/m.test(b)) {
-      return b.replace(/^###\s+(.+)$/gm, '<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 12px; line-height: 1.5;">$1</h4>');
+      return b.replace(/^###\s+(.+)$/gm, '<h4 style="font-size: 16px; font-weight: 800; margin-top: 28px; margin-bottom: 12px; line-height: 1.5;">$1</h4>');
     }
     if (/^####\s+(.+)$/m.test(b)) {
       return b.replace(/^####\s+(.+)$/gm, '<h5 style="font-size: 15px; font-weight: 800; color: #0284c7; margin-top: 22px; margin-bottom: 10px; line-height: 1.5;">$1</h5>');
@@ -2760,16 +2760,16 @@ function formatMarkdownToCleanHtml(rawText) {
       const items = b.split('\n').filter(Boolean);
       const listHtml = items.map(it => {
         const itemText = it.replace(/^[\*\-]\s+/, '').trim();
-        const boldParsed = itemText.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
-        return `<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;"><span style="color: #0284c7; font-weight: 800;">•</span><div>${boldParsed}</div></div>`;
+        const boldParsed = itemText.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800;">$1</strong>');
+        return `<div class="post-bullet-item" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75;"><span style="color: #0284c7; font-weight: 800;">•</span><div>${boldParsed}</div></div>`;
       }).join('');
       return `<div style="margin: 14px 0 18px 0;">${listHtml}</div>`;
     }
 
     // Standard paragraph with inline bold & break conversion
-    let pContent = b.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800; color: #0f172a;">$1</strong>');
+    let pContent = b.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 800;">$1</strong>');
     pContent = pContent.replace(/\n/g, '<br/>');
-    return `<p style="font-size: 15px; line-height: 1.85; margin-bottom: 18px; color: #1e293b; word-break: keep-all;">${pContent}</p>`;
+    return `<p style="font-size: 15px; line-height: 1.85; margin-bottom: 18px; word-break: keep-all;">${pContent}</p>`;
   });
 
   return formattedBlocks.filter(Boolean).join('\n\n');
@@ -3384,695 +3384,421 @@ function renderSvgDesc(text, x = 12, y = 86, maxVisualWidth = 13.5, maxLines = 2
   return xml;
 }
 
-
-// ==============================================================================
-// Isometric 3D Illustration & Contrast Infographic Engine (YouTube Finance Only)
-// ==============================================================================
-
-// Helper: Renders an isometric 3D building / block with top, left, right faces
-function renderIsometricBuilding(cx, cy, width, height, length, topColor, leftColor, rightColor, windows = true, winColor = '#ffffff') {
-  const cos30 = 0.866;
-  const sin30 = 0.5;
-
-  const w_dx = width * cos30;
-  const w_dy = width * sin30;
-  const l_dx = length * cos30;
-  const l_dy = length * sin30;
-
-  const pTop = [
-    `${cx},${cy - height}`,
-    `${cx + l_dx},${cy - height + l_dy}`,
-    `${cx + l_dx - w_dx},${cy - height + l_dy + w_dy}`,
-    `${cx - w_dx},${cy - height + w_dy}`
-  ].join(' ');
-
-  const pLeft = [
-    `${cx - w_dx},${cy - height + w_dy}`,
-    `${cx + l_dx - w_dx},${cy - height + l_dy + w_dy}`,
-    `${cx + l_dx - w_dx},${cy + l_dy + w_dy}`,
-    `${cx - w_dx},${cy + w_dy}`
-  ].join(' ');
-
-  const pRight = [
-    `${cx},${cy - height}`,
-    `${cx + l_dx},${cy - height + l_dy}`,
-    `${cx + l_dx},${cy + l_dy}`,
-    `${cx},${cy}`
-  ].join(' ');
-
-  let svg = `<g>
-    <polygon points="${pLeft}" fill="${leftColor}" stroke="#1e293b" stroke-width="0.8" stroke-linejoin="round"/>
-    <polygon points="${pRight}" fill="${rightColor}" stroke="#1e293b" stroke-width="0.8" stroke-linejoin="round"/>
-    <polygon points="${pTop}" fill="${topColor}" stroke="#1e293b" stroke-width="0.8" stroke-linejoin="round"/>`;
-
-  if (windows && height > 35) {
-    const rows = Math.min(5, Math.floor(height / 14));
-    for (let r = 0; r < rows; r++) {
-      const wy = cy - height + 12 + r * 13;
-      const wx1 = cx + 8;
-      const wy1 = wy + 4.5;
-      const wx2 = cx + 22;
-      const wy2 = wy + 12.5;
-      svg += `<line x1="${wx1}" y1="${wy1}" x2="${wx2}" y2="${wy2}" stroke="${winColor}" stroke-width="3" stroke-linecap="round" opacity="0.85"/>`;
-      svg += `<line x1="${wx1 + 18}" y1="${wy1 + 10}" x2="${wx2 + 18}" y2="${wy2 + 10}" stroke="${winColor}" stroke-width="3" stroke-linecap="round" opacity="0.85"/>`;
-    }
-  }
-
-  svg += `</g>`;
-  return svg;
-}
-
-// Helper: Renders an isometric callout badge with pointing arrow/line
-function renderIsometricCallout(x, y, text, subText, targetX, targetY, isLeft = true, customColor = null) {
-  const safeText = clampSvgText(text, 14);
-  const safeSub = subText ? clampSvgText(subText, 22) : null;
-  const badgeWidth = Math.max(85, Math.min(170, (getVisualLength(safeText) * 8.5) + 24));
-  const height = safeSub ? 38 : 26;
-
-  const bg = customColor ? customColor.bg : (isLeft ? '#e11d48' : '#0284c7');
-  const border = customColor ? customColor.border : (isLeft ? '#f43f5e' : '#38bdf8');
-  const textColor = '#ffffff';
-
-  let svg = `<g>
-    <line x1="${x + (isLeft ? badgeWidth : 0)}" y1="${y + height / 2}" x2="${targetX}" y2="${targetY}" stroke="${border}" stroke-width="1.6" stroke-dasharray="3,3" opacity="0.85"/>
-    <circle cx="${targetX}" cy="${targetY}" r="3.5" fill="${border}"/>
-    <rect x="${x}" y="${y}" width="${badgeWidth}" height="${height}" rx="${height / 2}" fill="${bg}" stroke="${border}" stroke-width="1.4" filter="url(#iso_drop)"/>
-    <text x="${x + badgeWidth / 2}" y="${y + (safeSub ? 16 : 17)}" fill="${textColor}" font-size="11.5" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${safeText}</text>`;
-
-  if (safeSub) {
-    svg += `<text x="${x + badgeWidth / 2}" y="${y + 30}" fill="#f1f5f9" font-size="9" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle" opacity="0.95">${safeSub}</text>`;
-  }
-
-  svg += `</g>`;
-  return svg;
-}
-
-// Helper: Renders the Center Hero Summary Box (The signature white centerpiece card from reference)
-function renderCenterHeroBox(title, subTitle, editorName = '10년 차 재테크 에디터') {
-  const cleanTitle = (title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/^[0-9]+\.\s*/, '').replace(/^\[재테크\s*팁\]\s*/, '').trim();
-  const titleLines = wrapSvgText(cleanTitle, 19, 2);
-  const safeSub = clampSvgText(subTitle || '외연적 확장보다 선제적 구조화가 계좌 생명력을 결정한다', 34);
-
-  return `
-  <!-- Center Focus Hero Box (User Image Reference Style) -->
-  <g transform="translate(190, 160)" filter="url(#iso_hero_drop)">
-    <!-- White Rounded Container -->
-    <rect width="420" height="215" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
-
-    <!-- Top Editor Stamp Badge -->
-    <g transform="translate(210, -22)">
-      <circle cx="0" cy="0" r="22" fill="#ffffff" stroke="#0ea5e9" stroke-width="2" filter="url(#iso_drop)"/>
-      <circle cx="0" cy="-4" r="8" fill="#38bdf8"/>
-      <path d="M -12 12 Q 0 2 12 12 Z" fill="#0284c7"/>
-      <rect x="26" y="-12" width="135" height="24" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
-      <text x="93" y="4" fill="#38bdf8" font-size="10.5" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(editorName, 14)}</text>
-    </g>
-
-    <!-- Main Headline Inside White Card -->
-    <g transform="translate(210, 48)">
-      ${titleLines.map((line, idx) => {
-        const yOffset = idx * 28;
-        return `<text x="0" y="${yOffset}" fill="#0f172a" font-size="21" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle" letter-spacing="-0.5">${line}</text>`;
-      }).join('')}
-    </g>
-
-    <!-- Divider Line -->
-    <line x1="45" y1="120" x2="375" y2="120" stroke="#e2e8f0" stroke-width="1.5"/>
-
-    <!-- Subtitle / One-line Insight -->
-    <text x="210" y="152" fill="#334155" font-size="13" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">
-      ${safeSub}
-    </text>
-
-    <!-- Mini Checklist / Tag Badges inside Card -->
-    <g transform="translate(210, 184)">
-      <rect x="-160" y="-12" width="320" height="24" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="0" y="4" fill="#0284c7" font-size="10.5" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">
-        ✓ 팩트 체크 검증  •  ✓ 실전 세법 기준  •  ✓ 실행 1순위
-      </text>
-    </g>
-  </g>`;
-}
-
-// Helper: Common SVG Definitions for Isometric Rendering
-const svgDefs = `
-  <defs>
-    <filter id="iso_drop" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.35"/>
-    </filter>
-    <filter id="iso_hero_drop" x="-15%" y="-15%" width="135%" height="135%">
-      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#0f172a" flood-opacity="0.25"/>
-    </filter>
-  </defs>
-`;
-
-// Helper: Build tailored prompt for Imagen 3 AI illustration matching the reference picture style
-function buildFinanceIllustrationPrompt(videoDetails, dynamicThemeData) {
-  const title = (videoDetails?.title || '').toLowerCase();
-  const desc = (videoDetails?.description || '').toLowerCase();
-  const leftSub = dynamicThemeData?.contrastLeft?.title || '';
-  const rightSub = dynamicThemeData?.contrastRight?.title || '';
-
-  const isRealEstate = /부동산|아파트|신도시|재개발|청약|전세|월세|내집|상가|건물|토지|콤팩트/.test(title + desc + leftSub + rightSub);
-  const isCrypto = /비트코인|코인|가상자산|이더리움|업비트|빗썸|바이낸스|차트|알트/.test(title + desc + leftSub + rightSub);
-
-  if (isRealEstate) {
-    return "Detailed Korean webtoon style isometric 3D architectural illustration, 16:9 widescreen ratio. High-angle perspective of a divided city street. Left side features low-rise vacant suburban shops, empty parking lots, asphalt roads with sparse cars, and quiet houses in warm reddish-orange sunset tones. Right side features bustling high-density modern skyscrapers, luxury residential towers, green walkable avenues, lush trees, pedestrians walking, and clean modern urban infrastructure in cool daylight blue and fresh emerald green tones. Crisp editorial line art, lively lighting, highly detailed isometric art, no text, no letters.";
-  } else if (isCrypto) {
-    return "Detailed Korean webtoon style isometric 3D financial tech illustration, 16:9 widescreen ratio. Split contrast composition. Left side shows volatile stormy market scene, falling red candlestick blocks, warning signals, and financial stress in dark reddish warm tones. Right side shows futuristic digital wealth vault, steady glowing green and blue upward crystal bars, secure blockchain vaults, and thriving financial ecosystem in high-tech cyan and emerald tones. Crisp line art, isometric perspective, highly detailed, vibrant lighting, no text, no letters.";
-  } else {
-    return "Detailed Korean webtoon style isometric 3D financial lifestyle illustration, 16:9 widescreen ratio. Split contrast composition. Left side illustrates financial anxiety, scattered receipts, leaking piggy bank, and inflation pressures in warm reddish-orange tones. Right side illustrates thriving wealth accumulation, lush green compound interest money trees, golden shield of tax protection, steady stairways of investment growth, and modern skyscraper district in confident blue and emerald green tones. Crisp editorial infographic line art, isometric perspective, highly detailed, bright lighting, no text, no letters.";
-  }
-}
-
-// Helper: Call Google Imagen 3 API via Gemini / Generative Language to render the rich illustration picture
-async function generateFinanceAiIllustration(videoDetails, dynamicThemeData, apiKey) {
-  if (!apiKey) return null;
-  const prompt = buildFinanceIllustrationPrompt(videoDetails, dynamicThemeData);
-
-  // Attempt 1: Imagen 3 REST predict endpoint (Standard Gemini API format)
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
-    const payload = {
-      instances: [{ prompt }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: '16:9',
-        outputOptions: { mimeType: 'image/jpeg' }
-      }
-    };
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-      if (b64) {
-        console.log('[Finance AI Image] Successfully generated Imagen 3 illustration via predict endpoint');
-        return `data:image/jpeg;base64,${b64}`;
-      }
-    }
-  } catch (e) {
-    console.warn('[Finance AI Image] Imagen 3 predict attempt failed:', e.message);
-  }
-
-  // Attempt 2: Imagen 3 generateImages endpoint
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:generateImages?key=${apiKey}`;
-    const payload = {
-      prompt,
-      config: {
-        numberOfImages: 1,
-        aspectRatio: '16:9',
-        outputMimeType: 'image/jpeg'
-      }
-    };
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const b64 = data.generatedImages?.[0]?.image?.imageBytes;
-      if (b64) {
-        console.log('[Finance AI Image] Successfully generated Imagen 3 illustration via generateImages endpoint');
-        return `data:image/jpeg;base64,${b64}`;
-      }
-    }
-  } catch (e) {
-    console.warn('[Finance AI Image] Imagen 3 generateImages attempt failed:', e.message);
-  }
-
-  // Attempt 3: Gemini 3.1 Flash Image via Interactions API
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
-    const payload = {
-      model: 'gemini-3.1-flash-image',
-      input: [{ type: 'text', text: prompt }]
-    };
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'x-goog-api-key': apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const b64 = data.output_image?.data || data.outputs?.[0]?.data;
-      if (b64) {
-        console.log('[Finance AI Image] Successfully generated Gemini Flash Image illustration');
-        return `data:image/png;base64,${b64}`;
-      }
-    }
-  } catch (e) {
-    console.warn('[Finance AI Image] Gemini Flash Image attempt failed:', e.message);
-  }
-
-  return null;
-}
-
-// Helper: Isometric Tree
-function renderIsometricTree(x, y, r = 10, color = '#22c55e') {
-  return `
-  <g opacity="0.9">
-    <ellipse cx="${x}" cy="${y + 8}" rx="${r * 0.8}" ry="${r * 0.4}" fill="#0f172a" opacity="0.15"/>
-    <line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y - 4}" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="${x}" cy="${y - 4}" r="${r}" fill="${color}"/>
-    <circle cx="${x - r * 0.3}" cy="${y - 7}" r="${r * 0.6}" fill="#86efac" opacity="0.6"/>
-  </g>`;
-}
-
-// Helper: Isometric Car
-function renderIsometricCar(x, y, color = '#ef4444', isRight = true) {
-  const flip = isRight ? 1 : -1;
-  return `
-  <g transform="translate(${x}, ${y}) scale(${flip * 0.85}, 0.85)">
-    <polygon points="-14,4 0,-4 14,4 0,12" fill="#0f172a" opacity="0.25"/>
-    <polygon points="-12,0 0,-7 12,0 0,7" fill="${color}"/>
-    <polygon points="-7,-2 0,-6 7,-2 0,2" fill="#f8fafc"/>
-    <polygon points="-7,-2 0,-6 0,-10 -7,-6" fill="${color}" opacity="0.8"/>
-  </g>`;
-}
-
-// Helper: Isometric Pedestrian Silhouette
-function renderIsometricPedestrian(x, y, color = '#0284c7') {
-  return `
-  <g transform="translate(${x}, ${y}) scale(0.85)" opacity="0.95">
-    <ellipse cx="0" cy="5" rx="3.5" ry="1.5" fill="#0f172a" opacity="0.2"/>
-    <circle cx="0" cy="-14" r="3.2" fill="${color}"/>
-    <line x1="0" y1="-10.5" x2="0" y2="-3" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
-    <line x1="0" y1="-3" x2="-3.2" y2="4.5" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
-    <line x1="0" y1="-3" x2="3.2" y2="4.5" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
-    <line x1="-3" y1="-8" x2="3" y2="-6" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
-  </g>`;
-}
-
-// Helper: Isometric Background Grid & Roads (Split 50% left warm tint / 50% right cool tint - 100% Free Vector Picture)
-function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', roadColor = '#cbd5e1') {
-  return `
-  <rect x="0" y="55" width="400" height="395" fill="${leftTint}"/>
-  <rect x="400" y="55" width="400" height="395" fill="${rightTint}"/>
-  <line x1="400" y1="55" x2="400" y2="450" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>
-
-  <!-- Left: Vacant Low-density Lot & Roads (Sprawl / Risk Visual) -->
-  <g opacity="0.85">
-    <polygon points="0,280 220,150 400,250 180,450 0,450" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
-    <polygon points="120,180 230,120 340,185 230,245" fill="#fed7aa" fill-opacity="0.6" stroke="#f97316" stroke-width="1.8" stroke-dasharray="5,3"/>
-    <text x="230" y="190" fill="#c2410c" font-size="11" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">계획의 맹점 (외연적 확산·공실)</text>
-
-    <!-- Main Asphalt Road with dashed lane markings -->
-    <polygon points="0,340 400,110 400,160 0,390" fill="${roadColor}" opacity="0.75"/>
-    <line x1="0" y1="365" x2="400" y2="135" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="10,8" opacity="0.95"/>
-
-    <polygon points="0,170 300,340 250,370 0,225" fill="${roadColor}" opacity="0.7"/>
-    <line x1="0" y1="197" x2="275" y2="355" stroke="#ffffff" stroke-width="2" stroke-dasharray="8,8" opacity="0.9"/>
-
-    <!-- Parking Lines on Vacant Commercial Lot -->
-    <line x1="140" y1="205" x2="165" y2="190" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
-    <line x1="160" y1="215" x2="185" y2="200" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
-    <line x1="180" y1="225" x2="205" y2="210" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
-
-    <!-- Cars on the road -->
-    ${renderIsometricCar(180, 240, '#ef4444', false)}
-    ${renderIsometricCar(80, 315, '#64748b', false)}
-    ${renderIsometricCar(270, 345, '#ea580c', true)}
-  </g>
-
-  <!-- Left low-rise suburban buildings -->
-  ${renderIsometricBuilding(65, 230, 32, 28, 40, '#fca5a5', '#ef4444', '#b91c1c', false)}
-  ${renderIsometricBuilding(70, 360, 45, 35, 35, '#fed7aa', '#f97316', '#c2410c', false)}
-  ${renderIsometricBuilding(330, 290, 40, 30, 35, '#fecaca', '#f87171', '#dc2626', false)}
-  ${renderIsometricTree(120, 250, 9, '#ef4444')}
-  ${renderIsometricTree(45, 385, 11, '#f97316')}
-  ${renderIsometricTree(310, 360, 10, '#ea580c')}
-
-  <!-- Right: Compact Modern High-density City (Solution / Value Visual) -->
-  <g opacity="0.95">
-    <polygon points="400,250 580,150 800,280 800,450 580,450" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
-    
-    <!-- Green Walkable Avenue / Pedestrian Promenade -->
-    <polygon points="400,310 800,180 800,230 400,360" fill="#38bdf8" opacity="0.22"/>
-    <line x1="400" y1="335" x2="800" y2="205" stroke="#0284c7" stroke-width="2" stroke-dasharray="6,4" opacity="0.5"/>
-
-    <!-- Pedestrian Crosswalk Stripes (Zebra Crossing) -->
-    <g opacity="0.8">
-      <polygon points="480,280 495,275 500,288 485,293" fill="#ffffff"/>
-      <polygon points="492,276 507,271 512,284 497,289" fill="#ffffff"/>
-      <polygon points="504,272 519,267 524,280 509,285" fill="#ffffff"/>
-      <polygon points="516,268 531,263 536,276 521,281" fill="#ffffff"/>
-    </g>
-
-    <!-- High Rise Towers -->
-    ${renderIsometricBuilding(490, 180, 38, 95, 42, '#93c5fd', '#3b82f6', '#1d4ed8', true, '#ffffff')}
-    ${renderIsometricBuilding(565, 175, 42, 120, 45, '#bae6fd', '#0284c7', '#0369a1', true, '#ffffff')}
-    ${renderIsometricBuilding(645, 185, 45, 135, 48, '#a7f3d0', '#10b981', '#047857', true, '#ffffff')}
-    ${renderIsometricBuilding(735, 205, 40, 105, 42, '#c7d2fe', '#6366f1', '#4338ca', true, '#ffffff')}
-    ${renderIsometricBuilding(530, 365, 55, 75, 48, '#7dd3fc', '#0ea5e9', '#0284c7', true, '#ffffff')}
-    ${renderIsometricBuilding(635, 380, 50, 85, 50, '#6ee7b7', '#059669', '#065f46', true, '#ffffff')}
-    ${renderIsometricBuilding(730, 395, 45, 70, 45, '#93c5fd', '#2563eb', '#1e40af', true, '#ffffff')}
-
-    <!-- Lush green trees along the compact city -->
-    ${renderIsometricTree(460, 260, 11, '#10b981')}
-    ${renderIsometricTree(485, 290, 13, '#059669')}
-    ${renderIsometricTree(580, 330, 10, '#10b981')}
-    ${renderIsometricTree(685, 345, 12, '#047857')}
-    ${renderIsometricTree(770, 360, 11, '#10b981')}
-
-    <!-- Pedestrians walking along the promenade -->
-    ${renderIsometricPedestrian(475, 295, '#0284c7')}
-    ${renderIsometricPedestrian(535, 275, '#047857')}
-    ${renderIsometricPedestrian(620, 245, '#0369a1')}
-    ${renderIsometricPedestrian(660, 235, '#059669')}
-
-    <!-- Compact city clean transit -->
-    ${renderIsometricCar(440, 340, '#0284c7', true)}
-    ${renderIsometricCar(540, 310, '#10b981', true)}
-  </g>
-  `;
-}
-
-
-// SVG 1: 메인 썸네일 - 입체 쿼터뷰(아이소메트릭) 좌/우 비교 대비 인포그래픽 카드 (16:9 800x450)
-function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null, bgImageBase64 = null) {
+// SVG 1: 메인 썸네일 & 핵심 브리핑 카드 (16:9 800x450)
+function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const safeTitle = (customTitle || videoDetails?.title || '2040 직장인 맞춤 실전 재테크 가이드').replace(/[<>&"]/g, '');
   const cleanTitle = safeTitle.replace(/^\[재테크\s*팁\]\s*/, '').trim();
+  const displayTitle1 = clampSvgText(cleanTitle, 22);
 
-  const cLeft = tData.contrastLeft || {
-    title: '외연적 확산 & 맹점',
-    sub: '넓은 도로, 텅 빈 상가, 스프롤 현상',
-    badges: [
-      { tag: '상가 공실', note: '자금 동결' },
-      { tag: '계획 폭탄', note: '인프라 비용 폭증' },
-      { tag: '세금 누수', note: '비과세 박탈' }
-    ]
-  };
+  const b1 = clampSvgText(tData.bullets[0] || '① 지출 통제 및 시드머니 방어', 33);
+  const b2 = clampSvgText(tData.bullets[1] || '② 절세 계좌 활용 혜택 극대화', 33);
+  const b3 = clampSvgText(tData.bullets[2] || '③ 장기 복리 성장 시스템 구축', 33);
 
-  const cRight = tData.contrastRight || {
-    title: '콤팩트 시티 & 전략',
-    sub: '고밀도 복합 개발, 보행 중심 네트워크',
-    badges: [
-      { tag: '콤팩트 시티', note: '고밀도 복합 개발' },
-      { tag: '안전 마진', note: '세금 0원 복리' },
-      { tag: '핵심지 압축', note: '똘똘한 자산' }
-    ]
-  };
-
-  const chapterText = clampSvgText(tData.chapter || ("1. '" + cleanTitle.slice(0, 12) + "...'의 맹점과 해결 전략"), 32);
+  const safeBadge = clampSvgText(tData.badge, 16);
+  const safeHeroSub = clampSvgText(tData.heroSub, 17);
+  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 15);
+  const safeTarget = clampSvgText(tData.target, 13);
+  const safeBenefit = clampSvgText(tData.benefit, 13);
+  const safeBenefitSub = clampSvgText(tData.benefitSub, 16);
+  const safeCaution = clampSvgText(tData.caution, 14);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
-  ${svgDefs}
-  <rect width="800" height="450" fill="#f8fafc"/>
+  <defs>
+    <linearGradient id="f1_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
+    </linearGradient>
+    <radialGradient id="f1_glow1" cx="20%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="f1_glow2" cx="80%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.25"/><stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="f1_gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="f1_drop" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+    <clipPath id="f1_right_clip">
+      <rect width="245" height="280" rx="20"/>
+    </clipPath>
+  </defs>
 
-  <!-- Top Headline Header (User Image: 3. '신도시 계획의 맹점과 '콤팩트 시티'의 중요성) -->
-  <rect x="0" y="0" width="800" height="58" fill="#ffffff" filter="url(#iso_drop)"/>
-  <g transform="translate(25, 36)">
-    <circle cx="10" cy="-6" r="6" fill="#e11d48"/>
-    <text x="24" y="0" fill="#0f172a" font-size="21" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${chapterText}</text>
-    <rect x="660" y="-18" width="115" height="24" rx="6" fill="#0f172a"/>
-    <text x="717" y="-2" fill="#38bdf8" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  <rect width="800" height="450" fill="url(#f1_bg)"/>
+  <rect width="800" height="450" fill="url(#f1_glow1)"/>
+  <rect width="800" height="450" fill="url(#f1_glow2)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.05" stroke="#f59e0b" stroke-width="1">
+    <line x1="0" y1="90" x2="800" y2="90"/><line x1="0" y1="180" x2="800" y2="180"/>
+    <line x1="0" y1="270" x2="800" y2="270"/><line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="160" y1="0" x2="160" y2="450"/><line x1="320" y1="0" x2="320" y2="450"/>
+    <line x1="480" y1="0" x2="480" y2="450"/><line x1="640" y1="0" x2="640" y2="450"/>
   </g>
 
-  <!-- 50/50 Isometric Contrast Background: AI Generated Illustration or Rich Procedural Fallback -->
-  ${bgImageBase64 ? `
-  <g>
-    <image href="${bgImageBase64}" x="0" y="58" width="800" height="392" preserveAspectRatio="xMidYMid slice" />
-    <rect x="0" y="58" width="400" height="392" fill="#fee2e2" opacity="0.10"/>
-    <rect x="400" y="58" width="400" height="392" fill="#e0f2fe" opacity="0.10"/>
-    <line x1="400" y1="58" x2="400" y2="450" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.9"/>
-  </g>
-  ` : renderIsometricBackground('#fff1f2', '#f0fdf4', '#cbd5e1')}
+  <!-- Top Badges -->
+  <g transform="translate(30, 24)">
+    <rect width="225" height="30" rx="8" fill="#d97706" filter="url(#f1_drop)"/>
+    <circle cx="18" cy="15" r="5" fill="#ffffff"/>
+    <text x="32" y="21" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${safeBadge}</text>
 
-  <!-- Left Side: Risk / Problem Badges (Red / Orange Theme) -->
-  <g transform="translate(20, 78)">
-    <rect width="135" height="30" rx="15" fill="#dc2626" filter="url(#iso_drop)"/>
-    <text x="67" y="20" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(cLeft.title, 11)}</text>
-    <g transform="translate(142, 2)">
-      <rect width="235" height="26" rx="6" fill="#ffffff" fill-opacity="0.92" stroke="#fca5a5" stroke-width="1" filter="url(#iso_drop)"/>
-      <text x="10" y="18" fill="#991b1b" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(cLeft.sub, 22)}</text>
+    <rect x="235" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="302" y="20" fill="#fbbf24" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 블로거 뷰</text>
+
+    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+
+  <!-- Main Hero Title -->
+  <g transform="translate(35, 90)">
+    <rect x="0" y="0" width="250" height="28" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="14" y="19" fill="#fcd34d" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">💡 ${safeBadge}</text>
+
+    <text x="0" y="66" fill="#ffffff" font-size="27" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${displayTitle1}</text>
+    <text x="0" y="106" fill="url(#f1_gold)" font-size="26" font-weight="900" font-family="'Pretendard', sans-serif" filter="url(#f1_drop)">${safeHeroSub}</text>
+
+    <g transform="translate(0, 134)">
+      <rect width="460" height="46" rx="12" fill="#1b1c2b" stroke="#f59e0b" stroke-width="1.8" filter="url(#f1_drop)"/>
+      <circle cx="28" cy="23" r="14" fill="#d97706"/>
+      <text x="28" y="28" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">✓</text>
+      <text x="52" y="29" fill="#fef3c7" font-size="13.5" font-weight="800" font-family="'Pretendard', sans-serif">
+        <tspan fill="#f59e0b">실전 재테크 팁</tspan> • <tspan fill="#34d399">절세·혜택 극대화</tspan> • 팩트 체크 검증
+      </text>
     </g>
 
-    ${renderIsometricCallout(25, 42, cLeft.badges?.[0]?.tag || '상가 공실', cLeft.badges?.[0]?.note || '', 190, 85, true)}
-    ${renderIsometricCallout(150, 88, cLeft.badges?.[1]?.tag || '계획의 폭탄', cLeft.badges?.[1]?.note || '', 130, 160, true)}
-    ${renderIsometricCallout(15, 178, cLeft.badges?.[2]?.tag || '외연적 확산', cLeft.badges?.[2]?.note || '', 95, 230, true)}
+    <!-- Bullets -->
+    <g transform="translate(5, 204)">
+      <circle cx="6" cy="6" r="4" fill="#f59e0b"/>
+      <text x="18" y="11" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b1}</text>
+      <circle cx="6" cy="34" r="4" fill="#38bdf8"/>
+      <text x="18" y="39" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b2}</text>
+      <circle cx="6" cy="62" r="4" fill="#34d399"/>
+      <text x="18" y="67" fill="#e2e8f0" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">${b3}</text>
+    </g>
   </g>
 
-  <!-- Right Side: Solution / Strategy Badges (Blue / Emerald Theme) -->
-  <g transform="translate(420, 78)">
-    <rect width="135" height="30" rx="15" fill="#0284c7" filter="url(#iso_drop)"/>
-    <text x="67" y="20" fill="#ffffff" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(cRight.title, 11)}</text>
-    <g transform="translate(142, 2)">
-      <rect width="235" height="26" rx="6" fill="#ffffff" fill-opacity="0.92" stroke="#7dd3fc" stroke-width="1" filter="url(#iso_drop)"/>
-      <text x="10" y="18" fill="#0369a1" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(cRight.sub, 22)}</text>
+  <!-- Right Floating Matrix Card -->
+  <g transform="translate(525, 88)" clip-path="url(#f1_right_clip)">
+    <rect x="0" y="0" width="245" height="280" rx="20" fill="#0f172a" fill-opacity="0.95" stroke="#334155" stroke-width="2" filter="url(#f1_drop)"/>
+    <rect x="0" y="0" width="245" height="42" rx="20" fill="#1e293b"/>
+    <text x="122" y="27" fill="#f8fafc" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${safeMatrixTitle}</text>
+
+    <g transform="translate(18, 54)">
+      <rect width="210" height="66" rx="12" fill="#181e2b" stroke="#f59e0b" stroke-width="1.2"/>
+      <text x="14" y="22" fill="#94a3b8" font-size="11" font-weight="700">권장 타깃 (Target)</text>
+      <text x="14" y="48" fill="#fbbf24" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeTarget}</text>
     </g>
 
-    ${renderIsometricCallout(195, 42, cRight.badges?.[0]?.tag || '콤팩트 시티', cRight.badges?.[0]?.note || '', 160, 85, false)}
-    ${renderIsometricCallout(120, 88, cRight.badges?.[1]?.tag || '고밀도 복합 개발', cRight.badges?.[1]?.note || '', 195, 140, false)}
-    ${renderIsometricCallout(205, 178, cRight.badges?.[2]?.tag || '보행 네트워크', cRight.badges?.[2]?.note || '', 240, 240, false)}
+    <g transform="translate(18, 130)">
+      <rect width="210" height="68" rx="12" fill="#0b241c" stroke="#10b981" stroke-width="1.2"/>
+      <text x="14" y="22" fill="#a7f3d0" font-size="11" font-weight="700">핵심 기대 효과 (Benefits)</text>
+      <text x="14" y="46" fill="#34d399" font-size="13.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeBenefit}</text>
+      <text x="196" y="60" fill="#6ee7b7" font-size="10" font-weight="800" text-anchor="end">${safeBenefitSub}</text>
+    </g>
+
+    <g transform="translate(18, 208)">
+      <rect width="210" height="54" rx="10" fill="#24141d" stroke="#f43f5e" stroke-width="1.2"/>
+      <text x="14" y="20" fill="#fda4af" font-size="11" font-weight="800">주의사항 (Caution)</text>
+      <text x="14" y="40" fill="#f43f5e" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif">${safeCaution}</text>
+    </g>
   </g>
 
-  <!-- Center Focal Hero Box (The signature card from user upload) -->
-  ${renderCenterHeroBox(cleanTitle, tData.heroSub, '10년 차 재테크 에디터')}
+  <!-- Footer Banner -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#050811" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#1e293b" stroke-width="1"/>
+    <line x1="0" y1="0" x2="420" y2="0" stroke="#f59e0b" stroke-width="3"/>
+    <circle cx="420" cy="0" r="4" fill="#f59e0b"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 2026 실전 재테크 가이드 • 팩트 기반 맞춤형 전략</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Finance Lab</text>
+  </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
-
-// SVG 2: 3단계 실천 로드맵 - 입체 쿼터뷰 대비 인포그래픽 카드 (16:9 800x450)
+// SVG 2: 2040 직장인을 위한 3단계 실천 로드맵 (16:9 800x450)
 function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
-  const s1 = tData.steps?.[0] || { title: '1단계 시드머니', sub: '비상금 구축', items: ['✓ 생활비 6개월 파킹', '• 고금리 부채 청산'] };
-  const s2 = tData.steps?.[1] || { title: '2단계 절세 계좌', sub: '세액공제 납입', items: ['✓ 연금저축/IRP 900만', '• ISA 비과세 바구니'] };
-  const s3 = tData.steps?.[2] || { title: '3단계 자산 증식', sub: '복리 엔진 탑재', items: ['✓ 글로벌 지수 ETF DCA', '• 배당금 100% 재투자'] };
+  const s1 = tData.steps?.[0] || { title: '1단계 시드머니', sub: '비상금 구축', items: ['✓ 3~6개월 생활비 확보', '• 파킹통장 활용', '✓ 고금리 부채 청산', '• 리볼빙 0원', '✓ 통장 분리', '• 급여/소비/비상금'] };
+  const s2 = tData.steps?.[1] || { title: '2단계 절세 계좌', sub: '세액공제 납입', items: ['✓ 연금저축 600만', '• 16.5% 세액공제', '✓ 개인형 IRP 300만', '• 합산 900만 공제', '✓ 중개형 ISA 2000만', '• 배당 비과세'] };
+  const s3 = tData.steps?.[2] || { title: '3단계 자산 증식', sub: '복리 엔진 탑재', items: ['✓ 지수 ETF 매수', '• 글로벌 우량주', '✓ 분할 적립식(DCA)', '• 매월 자동이체', '✓ 배당금 재투자', '• 스노우볼 복리'] };
 
-  const safeRoadmapTitle = clampSvgText(tData.roadmapTitle || '2040 직장인 3단계 실천 로드맵', 32);
+  const safeRoadmapTitle = clampSvgText(tData.roadmapTitle, 28);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
-  ${svgDefs}
-  <rect width="800" height="450" fill="#f8fafc"/>
+  <defs>
+    <linearGradient id="f2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060913"/><stop offset="50%" stop-color="#0e172a"/><stop offset="100%" stop-color="#060913"/>
+    </linearGradient>
+    <filter id="f2_drop">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+    <clipPath id="f2_step_clip">
+      <rect width="230" height="315" rx="16"/>
+    </clipPath>
+  </defs>
 
-  <!-- Top Headline -->
-  <g transform="translate(25, 34)">
-    <circle cx="10" cy="-6" r="6" fill="#0284c7"/>
-    <text x="24" y="0" fill="#0f172a" font-size="22" font-weight="900" font-family="'Pretendard', sans-serif">${safeRoadmapTitle}</text>
-    <rect x="660" y="-18" width="115" height="24" rx="6" fill="#0f172a"/>
-    <text x="717" y="-2" fill="#38bdf8" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  <rect width="800" height="450" rx="16" fill="url(#f2_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Header -->
+  <g transform="translate(25, 20)">
+    <rect width="150" height="28" rx="7" fill="#d97706" filter="url(#f2_drop)"/>
+    <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ACTION ROADMAP</text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeRoadmapTitle}</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
-  <rect x="0" y="55" width="280" height="395" fill="#fff1f2"/>
-  <rect x="280" y="55" width="520" height="395" fill="#f0fdf4"/>
-  <line x1="280" y1="55" x2="280" y2="450" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <!-- 3 Steps -->
+  <g transform="translate(30, 80)">
+    <!-- Step 1 -->
+    <g transform="translate(0, 0)" clip-path="url(#f2_step_clip)">
+      <rect width="230" height="315" rx="16" fill="#0b172a" stroke="#0284c7" stroke-width="1.8" filter="url(#f2_drop)"/>
+      <rect x="18" y="18" width="80" height="26" rx="6" fill="#0284c7"/>
+      <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">1단계</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s1.title, 13)}</text>
+      <text x="18" y="94" fill="#38bdf8" font-size="12" font-weight="800">${clampSvgText(s1.sub, 15)}</text>
 
-  <!-- Left: Common Mistakes -->
-  <g transform="translate(25, 75)">
-    <rect width="120" height="26" rx="13" fill="#dc2626"/>
-    <text x="60" y="18" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">흔한 실패 맹점</text>
-    <text x="0" y="50" fill="#991b1b" font-size="12.5" font-weight="800">• 무계획 탕진 &amp; 카드 리볼빙</text>
-    <text x="0" y="74" fill="#991b1b" font-size="12.5" font-weight="800">• 비상금 없이 테마주 몰빵</text>
-    <text x="0" y="98" fill="#991b1b" font-size="12.5" font-weight="800">• 잦은 단타로 양도세·수수료 낭비</text>
-  </g>
-
-  ${renderIsometricBuilding(90, 280, 40, 45, 40, '#fca5a5', '#ef4444', '#b91c1c', false)}
-  ${renderIsometricBuilding(190, 340, 35, 30, 35, '#fed7aa', '#f97316', '#c2410c', false)}
-
-  <!-- Right: 3 Step Road Towers -->
-  <g transform="translate(300, 75)">
-    <!-- Step 1 Tower Card -->
-    <g transform="translate(0, 0)">
-      <rect width="155" height="315" rx="14" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.8" filter="url(#iso_drop)"/>
-      <rect x="14" y="14" width="60" height="22" rx="11" fill="#0284c7"/>
-      <text x="44" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">1단계</text>
-      <text x="14" y="60" fill="#0f172a" font-size="14.5" font-weight="900">${clampSvgText(s1.title, 11)}</text>
-      <text x="14" y="78" fill="#0284c7" font-size="11" font-weight="700">${clampSvgText(s1.sub, 12)}</text>
-      <line x1="14" y1="92" x2="141" y2="92" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="14" y="115" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s1.items[0] || '', 14)}</text>
-      <text x="14" y="135" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s1.items[1] || '', 14)}</text>
-      <text x="14" y="165" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s1.items[2] || '', 14)}</text>
-      <text x="14" y="185" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s1.items[3] || '', 14)}</text>
-      <polygon points="15,285 77,250 140,285 77,310" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1"/>
-      <text x="77" y="286" fill="#0284c7" font-size="10" font-weight="900" text-anchor="middle">시드머니 방어</text>
+      <g transform="translate(16, 115)">
+        <rect width="198" height="175" rx="10" fill="#071320" stroke="#0ea5e9" stroke-width="1"/>
+        <text x="12" y="26" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#bae6fd" font-size="12" font-weight="800">${clampSvgText(s1.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s1.items[5] || '', 15)}</text>
+      </g>
     </g>
 
-    <!-- Step 2 Tower Card -->
-    <g transform="translate(165, 0)">
-      <rect width="155" height="315" rx="14" fill="#ffffff" stroke="#10b981" stroke-width="2" filter="url(#iso_drop)"/>
-      <rect x="14" y="14" width="60" height="22" rx="11" fill="#059669"/>
-      <text x="44" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">2단계</text>
-      <text x="14" y="60" fill="#0f172a" font-size="14.5" font-weight="900">${clampSvgText(s2.title, 11)}</text>
-      <text x="14" y="78" fill="#059669" font-size="11" font-weight="700">${clampSvgText(s2.sub, 12)}</text>
-      <line x1="14" y1="92" x2="141" y2="92" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="14" y="115" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s2.items[0] || '', 14)}</text>
-      <text x="14" y="135" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s2.items[1] || '', 14)}</text>
-      <text x="14" y="165" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s2.items[2] || '', 14)}</text>
-      <text x="14" y="185" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s2.items[3] || '', 14)}</text>
-      <polygon points="15,285 77,250 140,285 77,310" fill="#d1fae5" stroke="#10b981" stroke-width="1"/>
-      <text x="77" y="286" fill="#047857" font-size="10" font-weight="900" text-anchor="middle">비과세 세액공제</text>
+    <!-- Step 2 -->
+    <g transform="translate(255, 0)" clip-path="url(#f2_step_clip)">
+      <rect width="230" height="315" rx="16" fill="#0c1e18" stroke="#10b981" stroke-width="2" filter="url(#f2_drop)"/>
+      <rect x="18" y="18" width="80" height="26" rx="6" fill="#059669"/>
+      <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">2단계</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s2.title, 13)}</text>
+      <text x="18" y="94" fill="#34d399" font-size="12" font-weight="800">${clampSvgText(s2.sub, 15)}</text>
+
+      <g transform="translate(16, 115)">
+        <rect width="198" height="175" rx="10" fill="#051d16" stroke="#10b981" stroke-width="1"/>
+        <text x="12" y="26" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#a7f3d0" font-size="12" font-weight="800">${clampSvgText(s2.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s2.items[5] || '', 15)}</text>
+      </g>
     </g>
 
-    <!-- Step 3 Tower Card -->
-    <g transform="translate(330, 0)">
-      <rect width="155" height="315" rx="14" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.8" filter="url(#iso_drop)"/>
-      <rect x="14" y="14" width="60" height="22" rx="11" fill="#7e22ce"/>
-      <text x="44" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">3단계</text>
-      <text x="14" y="60" fill="#0f172a" font-size="14.5" font-weight="900">${clampSvgText(s3.title, 11)}</text>
-      <text x="14" y="78" fill="#7e22ce" font-size="11" font-weight="700">${clampSvgText(s3.sub, 12)}</text>
-      <line x1="14" y1="92" x2="141" y2="92" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="14" y="115" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s3.items[0] || '', 14)}</text>
-      <text x="14" y="135" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s3.items[1] || '', 14)}</text>
-      <text x="14" y="165" fill="#334155" font-size="11" font-weight="800">${clampSvgText(s3.items[2] || '', 14)}</text>
-      <text x="14" y="185" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(s3.items[3] || '', 14)}</text>
-      <polygon points="15,285 77,250 140,285 77,310" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1"/>
-      <text x="77" y="286" fill="#6b21a8" font-size="10" font-weight="900" text-anchor="middle">복리 스노우볼</text>
+    <!-- Step 3 -->
+    <g transform="translate(510, 0)" clip-path="url(#f2_step_clip)">
+      <rect width="230" height="315" rx="16" fill="#191329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f2_drop)"/>
+      <rect x="18" y="18" width="80" height="26" rx="6" fill="#7e22ce"/>
+      <text x="58" y="35" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">3단계</text>
+      <text x="18" y="74" fill="#ffffff" font-size="16" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s3.title, 13)}</text>
+      <text x="18" y="94" fill="#c084fc" font-size="12" font-weight="800">${clampSvgText(s3.sub, 15)}</text>
+
+      <g transform="translate(16, 115)">
+        <rect width="198" height="175" rx="10" fill="#140e24" stroke="#8b5cf6" stroke-width="1"/>
+        <text x="12" y="26" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[0] || '', 14.5)}</text>
+        <text x="12" y="48" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[1] || '', 15)}</text>
+        <text x="12" y="72" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[2] || '', 14.5)}</text>
+        <text x="12" y="94" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[3] || '', 15)}</text>
+        <text x="12" y="120" fill="#e9d5ff" font-size="12" font-weight="800">${clampSvgText(s3.items[4] || '', 14.5)}</text>
+        <text x="12" y="142" fill="#94a3b8" font-size="11" font-weight="600">${clampSvgText(s3.items[5] || '', 15)}</text>
+      </g>
     </g>
   </g>
 
-  <line x1="25" y1="415" x2="775" y2="415" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="400" y="434" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif" text-anchor="middle">
-    1단계 비상금 방어 ➔ 2단계 절세계좌 세팅 ➔ 3단계 지수 ETF 적립 순서를 사수하세요
-  </text>
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실행이 곧 자산입니다 • 맞춤 단계별 전략을 미리 세우고 대응하는 것이 성공의 열쇠입니다</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
-
-// SVG 3: 핵심 비교 분석 & 스펙 매트릭스 - 입체 쿼터뷰 대비 인포그래픽 카드 (16:9 800x450)
+// SVG 3: 핵심 비교 분석 & 수익/공제율 매트릭스 (16:9 800x450)
 function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const cards = tData.matrixCards || [
-    { tag: '일반 예·적금', sub: '단기 안정성', main: '연 3.0% ~ 3.5%', bullets: ['• 이자소득세 15.4% 원천징수', '⚠️ 실질 가치 훼손'] },
-    { tag: '연금저축/IRP', sub: '연말정산 방패', main: '최대 148.5만원 환급', bullets: ['• 연 900만 세액공제', '✓ 필수 절세 방패'] },
-    { tag: '중개형 ISA', sub: '만능 비과세', main: '순익 200~400만 비과세', bullets: ['• 배당소득 0% 비과세', '✓ 연금 전환 추가공제'] },
-    { tag: '지수 ETF DCA', sub: '장기 복리 정석', main: '연평균 8% ~ 11%', bullets: ['• 배당 재투자 복리 엔진', '✓ 10년 이상 장기 보유'] }
+    { tag: '일반 예·적금', sub: '단기 안정성 1순위', main: '연 3.0% ~ 3.5%', bullets: ['• 이자소득세 15.4% 원천징수', '• 예금자보호 5천만 원', '⚠️ 물가 감안 시 한계'] },
+    { tag: '연금저축 + IRP', sub: '연말정산 13.2%~16.5%', main: '최대 148.5만원 환급', bullets: ['• 연 900만 세액공제', '• 배당 과세이연', '✓ 필수 절세 방패'] },
+    { tag: '중개형 ISA', sub: '만능 절세 바구니', main: '비과세 200~400만', bullets: ['• 손익 통산 비과세', '• 9.9% 분리과세', '✓ 연금 전환 추가 공제'] },
+    { tag: '미국 지수 ETF', sub: 'S&P500 / 나스닥100', main: '연평균 8% ~ 11%', bullets: ['• 우량 기업 묶음 투자', '• 분기 배당 지급', '✓ 장기 복리 효과'] }
   ];
 
-  const safeMatrixTitle = clampSvgText(tData.matrixTitle ? (tData.matrixTitle + ' 심층 비교 분석') : '핵심 제도 및 상품 스펙 비교', 32);
-
-  const cardColors = [
-    { border: '#fca5a5', badgeBg: '#ef4444', mainColor: '#991b1b' },
-    { border: '#38bdf8', badgeBg: '#0284c7', mainColor: '#0369a1' },
-    { border: '#34d399', badgeBg: '#059669', mainColor: '#047857' },
-    { border: '#c084fc', badgeBg: '#7e22ce', mainColor: '#6b21a8' }
-  ];
-
-  const cardsSvg = cards.slice(0, 4).map((c, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = col * 375;
-    const y = row * 155;
-    const clr = cardColors[i] || cardColors[0];
-
-    return `
-    <g transform="translate(${x}, ${y})">
-      <rect width="360" height="142" rx="14" fill="#ffffff" stroke="${clr.border}" stroke-width="1.8" filter="url(#iso_drop)"/>
-      <rect x="14" y="14" width="95" height="22" rx="11" fill="${clr.badgeBg}"/>
-      <text x="61" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(c.tag || '', 10)}</text>
-      <text x="120" y="30" fill="#64748b" font-size="12" font-weight="700">${clampSvgText(c.sub || '', 15)}</text>
-      <text x="14" y="68" fill="${clr.mainColor}" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(c.main || '', 18)}</text>
-      <line x1="14" y1="82" x2="346" y2="82" stroke="#f1f5f9" stroke-width="1.2"/>
-      <text x="14" y="104" fill="#334155" font-size="11.5" font-weight="600">${clampSvgText(c.bullets?.[0] || '', 27)}</text>
-      <text x="14" y="125" fill="${clr.mainColor}" font-size="11" font-weight="800">${clampSvgText(c.bullets?.[1] || c.bullets?.[2] || '', 27)}</text>
-    </g>`;
-  }).join('');
+  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 24);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
-  ${svgDefs}
-  <rect width="800" height="450" fill="#f8fafc"/>
+  <defs>
+    <linearGradient id="f3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070d18"/><stop offset="50%" stop-color="#0c182c"/><stop offset="100%" stop-color="#060912"/>
+    </linearGradient>
+    <filter id="f3_drop">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <clipPath id="f3_card_clip">
+      <rect width="360" height="150" rx="14"/>
+    </clipPath>
+  </defs>
 
-  <!-- Top Headline -->
-  <g transform="translate(25, 34)">
-    <circle cx="10" cy="-6" r="6" fill="#0284c7"/>
-    <text x="24" y="0" fill="#0f172a" font-size="22" font-weight="900" font-family="'Pretendard', sans-serif">${safeMatrixTitle}</text>
-    <rect x="660" y="-18" width="115" height="24" rx="6" fill="#0f172a"/>
-    <text x="717" y="-2" fill="#38bdf8" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  <rect width="800" height="450" rx="16" fill="url(#f3_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Header -->
+  <g transform="translate(25, 20)">
+    <rect width="150" height="28" rx="7" fill="#0284c7" filter="url(#f3_drop)"/>
+    <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ANALYSIS MATRIX</text>
+    <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeMatrixTitle} <tspan fill="#38bdf8">심층 비교 분석</tspan></text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
+
+  <!-- 4 Comparison Cards (2x2 Grid) -->
+  <g transform="translate(30, 80)">
+    <!-- Card 1 -->
+    <g transform="translate(0, 0)" clip-path="url(#f3_card_clip)">
+      <rect width="360" height="150" rx="14" fill="#0f172a" stroke="#334155" stroke-width="1.2" filter="url(#f3_drop)"/>
+      <rect x="18" y="14" width="95" height="22" rx="6" fill="#475569"/>
+      <text x="65" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[0]?.tag || '', 10)}</text>
+      <text x="125" y="30" fill="#94a3b8" font-size="13" font-weight="700">${clampSvgText(cards[0]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#f8fafc" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[0]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#cbd5e1" font-size="12" font-weight="600">${clampSvgText(cards[0]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#cbd5e1" font-size="12" font-weight="600">${clampSvgText(cards[0]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="800">${clampSvgText(cards[0]?.bullets?.[2] || '', 26)}</text>
+    </g>
+
+    <!-- Card 2 -->
+    <g transform="translate(380, 0)" clip-path="url(#f3_card_clip)">
+      <rect width="360" height="150" rx="14" fill="#072018" stroke="#10b981" stroke-width="1.8" filter="url(#f3_drop)"/>
+      <rect x="18" y="14" width="105" height="22" rx="6" fill="#059669"/>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[1]?.tag || '', 10)}</text>
+      <text x="135" y="30" fill="#34d399" font-size="13" font-weight="800">${clampSvgText(cards[1]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#34d399" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[1]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#a7f3d0" font-size="12" font-weight="600">${clampSvgText(cards[1]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#a7f3d0" font-size="12" font-weight="600">${clampSvgText(cards[1]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#34d399" font-size="11" font-weight="900">${clampSvgText(cards[1]?.bullets?.[2] || '', 26)}</text>
+    </g>
+
+    <!-- Card 3 -->
+    <g transform="translate(0, 165)" clip-path="url(#f3_card_clip)">
+      <rect width="360" height="150" rx="14" fill="#091b2c" stroke="#0284c7" stroke-width="1.8" filter="url(#f3_drop)"/>
+      <rect x="18" y="14" width="100" height="22" rx="6" fill="#0284c7"/>
+      <text x="68" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[2]?.tag || '', 10)}</text>
+      <text x="130" y="30" fill="#38bdf8" font-size="13" font-weight="800">${clampSvgText(cards[2]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#38bdf8" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[2]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#bae6fd" font-size="12" font-weight="600">${clampSvgText(cards[2]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#bae6fd" font-size="12" font-weight="600">${clampSvgText(cards[2]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#38bdf8" font-size="11" font-weight="900">${clampSvgText(cards[2]?.bullets?.[2] || '', 26)}</text>
+    </g>
+
+    <!-- Card 4 -->
+    <g transform="translate(380, 165)" clip-path="url(#f3_card_clip)">
+      <rect width="360" height="150" rx="14" fill="#181329" stroke="#8b5cf6" stroke-width="1.8" filter="url(#f3_drop)"/>
+      <rect x="18" y="14" width="105" height="22" rx="6" fill="#7e22ce"/>
+      <text x="70" y="29" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">${clampSvgText(cards[3]?.tag || '', 10)}</text>
+      <text x="135" y="30" fill="#c084fc" font-size="13" font-weight="800">${clampSvgText(cards[3]?.sub || '', 16)}</text>
+      <text x="18" y="65" fill="#c084fc" font-size="18" font-weight="900" font-family="monospace">${clampSvgText(cards[3]?.main || '', 18)}</text>
+      <text x="18" y="90" fill="#e9d5ff" font-size="12" font-weight="600">${clampSvgText(cards[3]?.bullets?.[0] || '', 25)}</text>
+      <text x="18" y="110" fill="#e9d5ff" font-size="12" font-weight="600">${clampSvgText(cards[3]?.bullets?.[1] || '', 25)}</text>
+      <text x="18" y="132" fill="#c084fc" font-size="11" font-weight="900">${clampSvgText(cards[3]?.bullets?.[2] || '', 26)}</text>
+    </g>
   </g>
 
-  <!-- 2x2 Matrix Cards Area -->
-  <g transform="translate(32, 75)">
-    ${cardsSvg}
-  </g>
-
-  <!-- Bottom Stamp Line -->
-  <line x1="25" y1="405" x2="775" y2="405" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif" text-anchor="middle">
-    상품별 세제 혜택과 중도해지 조건을 숙지하여 불필요한 세금 유출을 원천 방어하세요
-  </text>
+  <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건과 혜택을 사전에 숙지할 때 불필요한 세금 유출과 리스크를 원천 차단할 수 있습니다</text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
 
-
-// SVG 4: 필수 주의사항 & 리스크 방어 4대 수칙 - 입체 쿼터뷰 대비 인포그래픽 카드 (16:9 800x450)
+// SVG 4: 필수 주의사항 & 리스크 방어 4대 수칙 (16:9 800x450)
 function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
   const tData = dynamicThemeData || extractFinanceThemeData(videoDetails, customTitle);
   const rList = tData.risks || [
-    { code: '01', title: '확정 고수익 사기', sub: '"원금 보장 월 10%"', desc: '100% 폰지 사기 의심', tag: '✓ 고수익엔 고위험' },
-    { code: '02', title: '중도해지 페널티', sub: '55세 이전 해지 시', desc: '16.5% 기타소득세 추징', tag: '✓ 장기 여유자금만' },
-    { code: '03', title: '무리한 빚투 금지', sub: '신용·대출 레버리지', desc: '하락장 패닉셀 주원인', tag: '✓ 여유자금 투자' },
-    { code: '04', title: '숨은 보수·비용', sub: '총보수비용(TER)', desc: '매매중개수수료 합산', tag: '✓ 실질비용 최저' }
+    { code: '01', title: '확정 고수익 의심', sub: '"원금 보장 월 10%"', desc: '100% 폰지 사기 의심', tag: '✓ 하이리턴엔 하이리스크' },
+    { code: '02', title: '중도해지 페널티', sub: '55세 이전 해지 시', desc: '16.5% 기타소득세 추징', tag: '✓ 장기 여유자금만 납입' },
+    { code: '03', title: '무리한 빚투 금지', sub: '신용·대출 레버리지', desc: '하락장 패닉셀 주원인', tag: '✓ 본업에 지장 없는 투자' },
+    { code: '04', title: '숨은 보수·비용', sub: '총보수비용(TER)', desc: '매매중개수수료 합산', tag: '✓ 실질부담비용 최저 선택' }
   ];
 
-  const safeRiskTitle = clampSvgText(tData.riskTitle || '투자 전 필수 주의사항 & 리스크 방어 4대 수칙', 32);
-  const safeQuote = clampSvgText(tData.summaryQuote || '재테크의 승패는 단기 고수익을 쫓는 데 있지 않고, 잃지 않는 비과세 복리 시스템을 지켜내는 데 있습니다.', 45);
+  const colors = [
+    { bg: '#25121a', stroke: '#f43f5e', badge: '#e11d48', sub: '#fda4af', tag: '#fda4af' },
+    { bg: '#20150a', stroke: '#f59e0b', badge: '#d97706', sub: '#fde68a', tag: '#fde68a' },
+    { bg: '#0b172a', stroke: '#0284c7', badge: '#0284c7', sub: '#bae6fd', tag: '#bae6fd' },
+    { bg: '#0b201a', stroke: '#10b981', badge: '#059669', sub: '#a7f3d0', tag: '#a7f3d0' }
+  ];
+
+  const xPositions = [0, 188, 376, 565];
 
   const cardsSvg = rList.slice(0, 4).map((r, i) => {
-    const xPos = i * 186;
+    const xPos = xPositions[i];
+    const c = colors[i] || colors[0];
+    const safeTitle = clampSvgText(r.title, 11.5);
+    const safeSub = clampSvgText(r.sub, 13);
+    const descXml = renderSvgDesc(r.desc, 12, 86, 13.5, 2, 15);
+    const safeTag = clampSvgText(r.tag, 14);
+
     return `
-    <g transform="translate(${xPos}, 0)">
-      <rect width="176" height="155" rx="14" fill="#ffffff" stroke="#fca5a5" stroke-width="1.8" filter="url(#iso_drop)"/>
-      <rect x="12" y="12" width="60" height="20" rx="10" fill="#e11d48"/>
-      <text x="42" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${r.code || ('0' + (i + 1))}</text>
-      <text x="12" y="52" fill="#0f172a" font-size="13" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(r.title, 11)}</text>
-      <text x="12" y="70" fill="#e11d48" font-size="10" font-weight="800">• ${clampSvgText(r.sub, 13)}</text>
-      <text x="12" y="94" fill="#64748b" font-size="10.5" font-weight="600">${clampSvgText(r.desc, 14)}</text>
-      <line x1="12" y1="112" x2="164" y2="112" stroke="#f1f5f9" stroke-width="1"/>
-      <text x="12" y="134" fill="#059669" font-size="11" font-weight="900">${clampSvgText(r.tag, 13)}</text>
+    <g transform="translate(${xPos}, 0)" clip-path="url(#f4_card_clip)">
+      <rect width="175" height="150" rx="12" fill="${c.bg}" stroke="${c.stroke}" stroke-width="1.4" filter="url(#f4_drop)"/>
+      <rect x="12" y="12" width="65" height="20" rx="5" fill="${c.badge}"/>
+      <text x="44" y="26" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">수칙 ${r.code || ('0' + (i + 1))}</text>
+      <text x="12" y="50" fill="#ffffff" font-size="12.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeTitle}</text>
+      <text x="12" y="68" fill="${c.sub}" font-size="10.5" font-weight="700">• ${safeSub}</text>
+      ${descXml}
+      <text x="12" y="126" fill="${c.tag}" font-size="10.5" font-weight="800">${safeTag}</text>
     </g>`;
   }).join('');
 
+  const safeQuote = clampSvgText(tData.summaryQuote || '', 52);
+  const safeBullet0 = clampSvgText(tData.summaryBullets?.[0] || '', 55);
+  const safeBullet1 = clampSvgText(tData.summaryBullets?.[1] || '', 55);
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
-  ${svgDefs}
-  <rect width="800" height="450" fill="#f8fafc"/>
+  <defs>
+    <linearGradient id="f4_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050811"/><stop offset="50%" stop-color="#0b162a"/><stop offset="100%" stop-color="#040710"/>
+    </linearGradient>
+    <filter id="f4_drop">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+    <clipPath id="f4_card_clip">
+      <rect width="175" height="150" rx="12"/>
+    </clipPath>
+    <clipPath id="f4_callout_clip">
+      <rect width="740" height="135" rx="14"/>
+    </clipPath>
+  </defs>
 
-  <!-- Top Headline -->
-  <g transform="translate(25, 34)">
-    <circle cx="10" cy="-6" r="6" fill="#e11d48"/>
-    <text x="24" y="0" fill="#0f172a" font-size="22" font-weight="900" font-family="'Pretendard', sans-serif">${safeRiskTitle}</text>
-    <rect x="660" y="-18" width="115" height="24" rx="6" fill="#0f172a"/>
-    <text x="717" y="-2" fill="#38bdf8" font-size="11" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+  <rect width="800" height="450" rx="16" fill="url(#f4_bg)"/>
+  <rect width="800" height="450" rx="16" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Header -->
+  <g transform="translate(25, 20)">
+    <rect width="145" height="28" rx="7" fill="#e11d48" filter="url(#f4_drop)"/>
+    <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge, 14)}</text>
+    <text x="160" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle, 30)}</text>
+    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
+    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
   </g>
+  <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
-  <!-- 4 Warning Rule Cards -->
-  <g transform="translate(32, 75)">
+  <!-- 4 Danger Rules -->
+  <g transform="translate(30, 80)">
     ${cardsSvg}
   </g>
 
-  <!-- Bottom Hero Box Callout (Editor Final Insight) -->
-  <g transform="translate(32, 255)" filter="url(#iso_drop)">
-    <rect width="736" height="150" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>
-    <rect x="20" y="-14" width="170" height="28" rx="14" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="105" y="4" fill="#38bdf8" font-size="11" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">💡 10년 차 에디터 실전 총평</text>
-
-    <text x="25" y="48" fill="#0f172a" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">"${safeQuote}"</text>
-
-    <g transform="translate(25, 80)">
-      <circle cx="6" cy="-4" r="3.5" fill="#e11d48"/>
-      <text x="18" y="0" fill="#334155" font-size="12" font-weight="700">원칙 1: 수익률보다 절세 혜택과 비과세 계좌(ISA·연금) 세팅이 계좌 잔고를 10년 먼저 불려줍니다.</text>
-      <circle cx="6" cy="22" r="3.5" fill="#059669"/>
-      <text x="18" y="26" fill="#059669" font-size="12" font-weight="800">원칙 2: 잦은 손절과 뇌동매매를 멈추고 우량 자산 분할 적립식 자동이체 시스템을 지금 당장 가동하세요.</text>
-    </g>
+  <!-- Bottom Callout -->
+  <g transform="translate(30, 260)" clip-path="url(#f4_callout_clip)">
+    <rect width="740" height="135" rx="14" fill="#13122b" stroke="#8b5cf6" stroke-width="1.5" filter="url(#f4_drop)"/>
+    <text x="24" y="32" fill="#c084fc" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">💡 10년 차 재테크 에디터의 실전 총평</text>
+    <text x="24" y="60" fill="#e9d5ff" font-size="12.5" font-weight="700">"${safeQuote}"</text>
+    <text x="24" y="86" fill="#cbd5e1" font-size="11.5" font-weight="500">• ${safeBullet0}</text>
+    <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${safeBullet1}</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
-
 
 // Gemini AI Call for Finance Tips
 async function callGeminiYouTubeFinanceAPI(dateStr, dateKorean, videoDetails, apiKey) {
@@ -4600,12 +4326,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
 
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
   const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
-
-  // 100% 무료 고정 모드: 외부 유료 이미지 API(Imagen 3 등) 호출 없이, 로컬 고품질 벡터 일러스트(비용 0원)로 즉시 렌더링
-  console.log('[YouTube Finance Generator] 100% 무료 고정 모드 가동: 추가 과금 없는 고밀도 로컬 아이소메트릭 일러스트(비용 0원)로 메인 썸네일을 생성합니다.');
-  const aiIllustrationBase64 = null;
-
-  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData, aiIllustrationBase64);
+  const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img3 = generateFinanceImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img4 = generateFinanceImage4(dateStr, videoDetails, postTitle, dynamicThemeData);
