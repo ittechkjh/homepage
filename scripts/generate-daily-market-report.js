@@ -3662,14 +3662,27 @@ function renderIsometricCar(x, y, color = '#ef4444', isRight = true) {
   </g>`;
 }
 
-// Helper: Isometric Background Grid & Roads (Split 50% left warm tint / 50% right cool tint)
+// Helper: Isometric Pedestrian Silhouette
+function renderIsometricPedestrian(x, y, color = '#0284c7') {
+  return `
+  <g transform="translate(${x}, ${y}) scale(0.85)" opacity="0.95">
+    <ellipse cx="0" cy="5" rx="3.5" ry="1.5" fill="#0f172a" opacity="0.2"/>
+    <circle cx="0" cy="-14" r="3.2" fill="${color}"/>
+    <line x1="0" y1="-10.5" x2="0" y2="-3" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="0" y1="-3" x2="-3.2" y2="4.5" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="0" y1="-3" x2="3.2" y2="4.5" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="-3" y1="-8" x2="3" y2="-6" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
+  </g>`;
+}
+
+// Helper: Isometric Background Grid & Roads (Split 50% left warm tint / 50% right cool tint - 100% Free Vector Picture)
 function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', roadColor = '#cbd5e1') {
   return `
   <rect x="0" y="55" width="400" height="395" fill="${leftTint}"/>
   <rect x="400" y="55" width="400" height="395" fill="${rightTint}"/>
   <line x1="400" y1="55" x2="400" y2="450" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>
 
-  <!-- Left: Vacant Low-density Lot & Roads -->
+  <!-- Left: Vacant Low-density Lot & Roads (Sprawl / Risk Visual) -->
   <g opacity="0.85">
     <polygon points="0,280 220,150 400,250 180,450 0,450" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
     <polygon points="120,180 230,120 340,185 230,245" fill="#fed7aa" fill-opacity="0.6" stroke="#f97316" stroke-width="1.8" stroke-dasharray="5,3"/>
@@ -3682,9 +3695,15 @@ function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', 
     <polygon points="0,170 300,340 250,370 0,225" fill="${roadColor}" opacity="0.7"/>
     <line x1="0" y1="197" x2="275" y2="355" stroke="#ffffff" stroke-width="2" stroke-dasharray="8,8" opacity="0.9"/>
 
+    <!-- Parking Lines on Vacant Commercial Lot -->
+    <line x1="140" y1="205" x2="165" y2="190" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <line x1="160" y1="215" x2="185" y2="200" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+    <line x1="180" y1="225" x2="205" y2="210" stroke="#f97316" stroke-width="1.5" opacity="0.7"/>
+
     <!-- Cars on the road -->
     ${renderIsometricCar(180, 240, '#ef4444', false)}
     ${renderIsometricCar(80, 315, '#64748b', false)}
+    ${renderIsometricCar(270, 345, '#ea580c', true)}
   </g>
 
   <!-- Left low-rise suburban buildings -->
@@ -3693,14 +3712,23 @@ function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', 
   ${renderIsometricBuilding(330, 290, 40, 30, 35, '#fecaca', '#f87171', '#dc2626', false)}
   ${renderIsometricTree(120, 250, 9, '#ef4444')}
   ${renderIsometricTree(45, 385, 11, '#f97316')}
+  ${renderIsometricTree(310, 360, 10, '#ea580c')}
 
-  <!-- Right: Compact Modern High-density City -->
+  <!-- Right: Compact Modern High-density City (Solution / Value Visual) -->
   <g opacity="0.95">
     <polygon points="400,250 580,150 800,280 800,450 580,450" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
     
     <!-- Green Walkable Avenue / Pedestrian Promenade -->
-    <polygon points="400,310 800,180 800,230 400,360" fill="#38bdf8" opacity="0.2"/>
+    <polygon points="400,310 800,180 800,230 400,360" fill="#38bdf8" opacity="0.22"/>
     <line x1="400" y1="335" x2="800" y2="205" stroke="#0284c7" stroke-width="2" stroke-dasharray="6,4" opacity="0.5"/>
+
+    <!-- Pedestrian Crosswalk Stripes (Zebra Crossing) -->
+    <g opacity="0.8">
+      <polygon points="480,280 495,275 500,288 485,293" fill="#ffffff"/>
+      <polygon points="492,276 507,271 512,284 497,289" fill="#ffffff"/>
+      <polygon points="504,272 519,267 524,280 509,285" fill="#ffffff"/>
+      <polygon points="516,268 531,263 536,276 521,281" fill="#ffffff"/>
+    </g>
 
     <!-- High Rise Towers -->
     ${renderIsometricBuilding(490, 180, 38, 95, 42, '#93c5fd', '#3b82f6', '#1d4ed8', true, '#ffffff')}
@@ -3717,6 +3745,12 @@ function renderIsometricBackground(leftTint = '#fff1f2', rightTint = '#f0fdf4', 
     ${renderIsometricTree(580, 330, 10, '#10b981')}
     ${renderIsometricTree(685, 345, 12, '#047857')}
     ${renderIsometricTree(770, 360, 11, '#10b981')}
+
+    <!-- Pedestrians walking along the promenade -->
+    ${renderIsometricPedestrian(475, 295, '#0284c7')}
+    ${renderIsometricPedestrian(535, 275, '#047857')}
+    ${renderIsometricPedestrian(620, 245, '#0369a1')}
+    ${renderIsometricPedestrian(660, 235, '#059669')}
 
     <!-- Compact city clean transit -->
     ${renderIsometricCar(440, 340, '#0284c7', true)}
@@ -4567,19 +4601,9 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
   const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
 
-  // Generate rich AI illustration for main thumbnail matching reference style
-  let aiIllustrationBase64 = null;
-  if (apiKey) {
-    try {
-      console.log('[YouTube Finance Generator] Requesting Imagen 3 / Gemini AI illustration for main thumbnail...');
-      aiIllustrationBase64 = await generateFinanceAiIllustration(videoDetails, dynamicThemeData, apiKey);
-      if (aiIllustrationBase64) {
-        console.log('[YouTube Finance Generator] Successfully obtained rich AI illustration picture for main thumbnail!');
-      }
-    } catch(imgErr) {
-      console.warn('[YouTube Finance Generator] AI illustration generation skipped/failed:', imgErr.message);
-    }
-  }
+  // 100% 무료 고정 모드: 외부 유료 이미지 API(Imagen 3 등) 호출 없이, 로컬 고품질 벡터 일러스트(비용 0원)로 즉시 렌더링
+  console.log('[YouTube Finance Generator] 100% 무료 고정 모드 가동: 추가 과금 없는 고밀도 로컬 아이소메트릭 일러스트(비용 0원)로 메인 썸네일을 생성합니다.');
+  const aiIllustrationBase64 = null;
 
   const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData, aiIllustrationBase64);
   const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
