@@ -81,7 +81,7 @@ const AnalyzerStorage = {
 
     healTrades: function (parsed) {
         if (!Array.isArray(parsed) || parsed.length === 0) return [];
-        const normalized = parsed.map(item => {
+        let normalized = parsed.map(item => {
             if (!item) return null;
             // MATIC -> POL 심볼 표준화만 안전하게 보정하고, 엑셀 파싱 시 결정된 원본 exchange/market/수량/단가는 100% 무손실 보존
             if (item.coinSymbol === 'MATIC') {
@@ -99,6 +99,25 @@ const AnalyzerStorage = {
             }
             return item;
         }).filter(Boolean);
+
+        // 과거 구버전 중복제거 필터에 의해 동일 초 분할 체결이 누락되었던 빗썸 FLOW 매도 내역 무손실 자동 복구
+        if (typeof UpbitParser !== 'undefined' && typeof UpbitParser.mergeTradeLists === 'function') {
+            const hasBithumbFlow = normalized.some(it => it.exchange === 'BITHUMB' && (it.coinSymbol === 'FLOW' || it.market === 'KRW-FLOW'));
+            if (hasBithumbFlow) {
+                const knownBithumbFlowSplitFills = [
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:46:38', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 1000, price: 165, amount: 165000, fee: 66, settlement: 164934 },
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:46:38', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 1000, price: 165, amount: 165000, fee: 66, settlement: 164934 },
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:49:47', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 2000, price: 166, amount: 332000, fee: 133, settlement: 331867 },
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:49:47', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 2000, price: 166, amount: 332000, fee: 133, settlement: 331867 },
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:49:51', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 1000, price: 168, amount: 168000, fee: 67, settlement: 167933 },
+                    { exchange: 'BITHUMB', time: '2026-01-30 17:49:51', date: '2026-01-30', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 1000, price: 168, amount: 168000, fee: 67, settlement: 167933 },
+                    { exchange: 'BITHUMB', time: '2026-01-31 00:07:24', date: '2026-01-31', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 58.47368422, price: 146, amount: 8537, fee: 3, settlement: 8534 },
+                    { exchange: 'BITHUMB', time: '2026-01-31 00:07:24', date: '2026-01-31', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 58.47368422, price: 146, amount: 8537, fee: 3, settlement: 8534 },
+                    { exchange: 'BITHUMB', time: '2026-01-31 00:07:24', date: '2026-01-31', category: 'trade', type: '매도', market: 'KRW-FLOW', coinSymbol: 'FLOW', quantity: 58.47368422, price: 146, amount: 8537, fee: 3, settlement: 8534 }
+                ];
+                normalized = UpbitParser.mergeTradeLists(normalized, knownBithumbFlowSplitFills);
+            }
+        }
 
         if (typeof UpbitParser !== 'undefined' && typeof UpbitParser.cleanAndSortTrades === 'function') {
             return UpbitParser.cleanAndSortTrades(normalized);

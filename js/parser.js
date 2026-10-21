@@ -946,21 +946,30 @@ var UpbitParser = {
 
     cleanAndSortTrades: function (items) {
         if (!Array.isArray(items)) return [];
-        const seenIds = new Set();
         const seenSigs = new Set();
+        const sigOccurrences = {};
         const uniqueItems = [];
 
         for (const item of items) {
             if (!item) continue;
-            const sig = this.getTradeSignature(item);
-            const id = item.id;
+            const baseSig = this.getTradeSignature(item);
+            if (!baseSig) {
+                uniqueItems.push(item);
+                continue;
+            }
 
-            // id 또는 비즈니스 거래 시그니처가 일치하면 중복 내역으로 간주하여 1건만 유지
-            if (id && seenIds.has(id)) continue;
-            if (sig && seenSigs.has(sig)) continue;
+            // 동일 시그니처(거래소/일시/종목/구분/수량/금액) 체결 건에 대해 회차(Occurrence)를 부여하여 분할 체결 보존
+            const occ = (sigOccurrences[baseSig] = (sigOccurrences[baseSig] || 0) + 1);
+            const occSig = `${baseSig}__#${occ}`;
 
-            if (id) seenIds.add(id);
-            if (sig) seenSigs.add(sig);
+            if (seenSigs.has(occSig)) continue;
+            seenSigs.add(occSig);
+
+            item.sig = occSig;
+            if (!item.id || !item.id.includes('__#')) {
+                item.id = `${item.id || baseSig}__#${occ}`;
+            }
+
             uniqueItems.push(item);
         }
 
@@ -976,8 +985,37 @@ var UpbitParser = {
     },
 
     mergeTradeLists: function (existingList, newList) {
-        const combined = [...existingList, ...newList];
-        return this.cleanAndSortTrades(combined);
+        if (!Array.isArray(existingList) || existingList.length === 0) {
+            return this.cleanAndSortTrades(newList || []);
+        }
+        if (!Array.isArray(newList) || newList.length === 0) {
+            return this.cleanAndSortTrades(existingList || []);
+        }
+
+        const cleanedExisting = this.cleanAndSortTrades(existingList);
+        const existingCounts = {};
+        for (const item of cleanedExisting) {
+            const baseSig = this.getTradeSignature(item);
+            existingCounts[baseSig] = (existingCounts[baseSig] || 0) + 1;
+        }
+
+        const cleanedNew = this.cleanAndSortTrades(newList);
+        const newCounts = {};
+        const itemsToAdd = [];
+
+        for (const item of cleanedNew) {
+            const baseSig = this.getTradeSignature(item);
+            const currentNewOcc = (newCounts[baseSig] = (newCounts[baseSig] || 0) + 1);
+            const existingOcc = existingCounts[baseSig] || 0;
+
+            // 신규 리스트의 해당 시그니처 체결 회차가 기존에 저장된 회차를 초과하는 건만 추가 (중복 파일 재업로드 시 0건 추가, 분할체결 누락분은 안전하게 추가)
+            if (currentNewOcc > existingOcc) {
+                itemsToAdd.push(item);
+            }
+        }
+
+        const merged = [...cleanedExisting, ...itemsToAdd];
+        return this.cleanAndSortTrades(merged);
     }
 };
 
