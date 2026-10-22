@@ -5999,7 +5999,8 @@ ${chartHtml}
                 if (titleInput) titleInput.focus();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
-        },
+        }
+    },
 
         // ========================================================
         // 12. 이자·배당 금융소득세 & 건강보험료(피부양자/직장/지역) 정밀 계산기
@@ -6390,7 +6391,6 @@ ${chartHtml}
 
             tableBody.innerHTML = html;
         }
-    }
 };
 
 if (typeof window !== 'undefined') {
