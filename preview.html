@@ -5898,18 +5898,18 @@
               <div class="grid grid-cols-2 gap-2.5">
                 <div>
                   <label class="block font-semibold text-slate-300 mb-1">1주당 현재 주가</label>
-                  <input type="text" id="dividendPrice" value="28.5" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2.5 py-1.5 text-white font-mono font-bold focus:border-cyan-500 outline-none text-xs">
+                  <input type="text" id="dividendPrice" value="28.5" oninput="CoinCalculators.formatInputWithCommas(this, true); CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2.5 py-1.5 text-white font-mono font-bold focus:border-cyan-500 outline-none text-xs" placeholder="예: 28.5 또는 50,000">
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-300 mb-1">보유 주식 수 (주)</label>
-                  <input type="text" id="dividendShares" value="500" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold focus:border-cyan-500 outline-none text-xs">
+                  <input type="text" id="dividendShares" value="500" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2.5 py-1.5 text-cyan-300 font-mono font-bold focus:border-cyan-500 outline-none text-xs" placeholder="예: 500">
                 </div>
               </div>
 
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="block text-[11px] text-slate-300 mb-1">시가 배당률 (%)</label>
-                  <input type="number" id="dividendYieldRate" value="3.55" step="0.05" oninput="CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2 py-1 text-emerald-400 font-mono font-bold text-xs">
+                  <input type="number" id="dividendYieldRate" value="3.55" step="0.05" oninput="CoinCalculators.calcStockDividend();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-2 py-1 text-emerald-400 font-mono font-bold text-xs" placeholder="예: 3.55">
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-300 mb-1">배당 주기</label>
@@ -9347,7 +9347,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20261022_17"></script>
+  <script src="js/tools-calculators.js?v=20261022_18"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20261021_01"></script>
 

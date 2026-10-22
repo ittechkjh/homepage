@@ -4586,12 +4586,16 @@ ${sellTiersHtml}
         const priceEl = document.getElementById('dividendPrice');
         const rateEl = document.getElementById('dividendYieldRate');
         const freqEl = document.getElementById('dividendFrequency');
+        const sharesEl = document.getElementById('dividendShares');
 
         if (nameEl) nameEl.value = p.name;
         if (marketEl) marketEl.value = p.market;
         if (priceEl) priceEl.value = this.formatNumber(p.price);
         if (rateEl) rateEl.value = p.rate;
         if (freqEl) freqEl.value = p.freq;
+        if (sharesEl && (!sharesEl.value || this.parseNum(sharesEl.value, 0) === 0)) {
+            sharesEl.value = '100';
+        }
 
         this.calcStockDividend();
     },
@@ -4601,32 +4605,33 @@ ${sellTiersHtml}
         const isUs = (market === 'us');
         const exchangeRate = this.parseNum(document.getElementById('dividendExchangeRate')?.value, 1380);
 
-        const priceInput = this.parseNum(document.getElementById('dividendPrice')?.value, 28.5);
-        const shares = this.parseNum(document.getElementById('dividendShares')?.value, 500);
-        const yieldRate = this.parseNum(document.getElementById('dividendYieldRate')?.value, 3.55) / 100;
+        // 입력값이 비어있거나 삭제된 경우 기본값 0으로 처리 (불필요한 잔여 기본값 연산 방지)
+        const priceInput = this.parseNum(document.getElementById('dividendPrice')?.value, 0);
+        const shares = this.parseNum(document.getElementById('dividendShares')?.value, 0);
+        const yieldRate = this.parseNum(document.getElementById('dividendYieldRate')?.value, 0) / 100;
         const freq = Math.max(1, parseInt(document.getElementById('dividendFrequency')?.value || '4', 10));
 
         // 은행 예·적금 이자 소득
         const intInput = document.getElementById('financeInterestAmount');
         const annualInterestKrw = this.parseNum(intInput?.value, 0);
 
-        if (priceInput < 0 || shares < 0) return;
+        if (priceInput < 0 || shares < 0 || annualInterestKrw < 0) return;
 
-        // 원화 환산 1주당 가격 및 총 투자 평가금액
+        // 원화 환산 1주당 가격 및 총 투자 평가금액 (주가나 수량이 0이면 평가액 0원)
         const priceKrw = isUs ? (priceInput * exchangeRate) : priceInput;
-        const totalInvestedKrw = priceKrw * shares;
+        const totalInvestedKrw = (priceInput > 0 && shares > 0) ? (priceKrw * shares) : 0;
 
         // 연간 세전 주식 배당금
-        const annualGrossDividendKrw = Math.round(totalInvestedKrw * yieldRate);
-        const annualGrossDividendUsd = (isUs && exchangeRate > 0) ? (annualGrossDividendKrw / exchangeRate) : 0;
+        const annualGrossDividendKrw = (totalInvestedKrw > 0 && yieldRate > 0) ? Math.round(totalInvestedKrw * yieldRate) : 0;
+        const annualGrossDividendUsd = (isUs && exchangeRate > 0 && annualGrossDividendKrw > 0) ? (annualGrossDividendKrw / exchangeRate) : 0;
 
         // 총 금융소득 = 세전 주식 배당금 + 은행 예·적금 이자
         const totalFinanceKrw = annualGrossDividendKrw + annualInterestKrw;
 
         // 배당소득세율: 국내 15.4%, 미국 15.0%
         const divTaxRate = isUs ? 0.150 : 0.154;
-        const divWithholdingTax = Math.round(annualGrossDividendKrw * divTaxRate);
-        const intWithholdingTax = Math.round(annualInterestKrw * 0.154);
+        const divWithholdingTax = annualGrossDividendKrw > 0 ? Math.round(annualGrossDividendKrw * divTaxRate) : 0;
+        const intWithholdingTax = annualInterestKrw > 0 ? Math.round(annualInterestKrw * 0.154) : 0;
         const totalWithholdingTax = divWithholdingTax + intWithholdingTax;
 
         // 금융소득종합과세 2,000만원 기준 진단 및 비교과세
@@ -4665,7 +4670,13 @@ ${sellTiersHtml}
         let healthAlertDesc = '';
         let alertType = 'safe';
 
-        if (healthType === 'dependent') {
+        if (totalFinanceKrw === 0) {
+            alertType = 'idle';
+            annualHealthFee = 0;
+            monthlyHealthFee = 0;
+            healthAlertTitle = 'ℹ️ 금융소득(배당 또는 이자)을 입력해주세요';
+            healthAlertDesc = '주식 평가액 및 배당률, 또는 연간 은행 예·적금 이자를 입력하시면 원천세 및 건강보험료 영향이 실시간으로 자동 분석됩니다.';
+        } else if (healthType === 'dependent') {
             if (isOver20M) {
                 alertType = 'danger';
                 annualHealthFee = Math.round(totalFinanceKrw * TOTAL_HEALTH_FACTOR);
@@ -4718,15 +4729,16 @@ ${sellTiersHtml}
         const monthlyNetIncomeKrw = Math.round(annualNetIncomeKrw / 12);
         const effectiveRate = totalFinanceKrw > 0 ? ((totalDeductionKrw / totalFinanceKrw) * 100) : 0;
 
-        // 주기별 1회 배당 실수령액
-        const netPerPayoutKrw = freq > 0 ? Math.round((annualGrossDividendKrw - divWithholdingTax) / freq) : 0;
-
         // UI 갱신: 1. 총 투자 평가액
         const totalInvestedEl = document.getElementById('dividendResultTotalInvested');
         if (totalInvestedEl) {
-            totalInvestedEl.innerText = isUs
-                ? `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원 ($${Math.round(shares * priceInput).toLocaleString('ko-KR')})`
-                : `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원`;
+            if (totalInvestedKrw > 0) {
+                totalInvestedEl.innerText = isUs
+                    ? `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원 ($${Math.round(shares * priceInput).toLocaleString('ko-KR')})`
+                    : `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원`;
+            } else {
+                totalInvestedEl.innerText = '0원';
+            }
         }
 
         // UI 갱신: 2. 총 금융소득 (배당 + 이자)
@@ -4742,7 +4754,7 @@ ${sellTiersHtml}
         // UI 갱신: 3. 총 공제액 (세금 + 건보료)
         const taxEl = document.getElementById('dividendResultTax');
         if (taxEl) {
-            taxEl.innerText = `-${this.formatNumber(totalDeductionKrw)}원`;
+            taxEl.innerText = totalDeductionKrw > 0 ? `-${this.formatNumber(totalDeductionKrw)}원` : '0원';
         }
         const breakdownDeductEl = document.getElementById('financeDeductionBreakdown');
         if (breakdownDeductEl) {
@@ -4767,10 +4779,17 @@ ${sellTiersHtml}
             netMonthlyEl.innerText = `월평균 약 ${this.formatNumber(monthlyNetIncomeKrw)}원`;
         }
 
-        // UI 갱신: 6. 주기별 실수령액
+        // UI 갱신: 6. 주기별 배당 실수령액
         const netPayoutEl = document.getElementById('dividendResultPerPayout');
         if (netPayoutEl) {
-            netPayoutEl.innerText = `약 ${this.formatNumber(netPerPayoutKrw)}원 (연 ${freq}회 지급)`;
+            if (annualGrossDividendKrw > 0 && freq > 0) {
+                const netPerPayoutKrw = Math.round((annualGrossDividendKrw - divWithholdingTax) / freq);
+                netPayoutEl.innerText = `약 ${this.formatNumber(netPerPayoutKrw)}원 (연 ${freq}회 지급)`;
+            } else if (annualInterestKrw > 0) {
+                netPayoutEl.innerText = '0원 (주식 배당 없음 · 은행 이자만 계산)';
+            } else {
+                netPayoutEl.innerText = '0원';
+            }
         }
 
         // UI 갱신: 7. 진단 알림 카드
@@ -4794,6 +4813,15 @@ ${sellTiersHtml}
                   </div>
                   <p class="text-xs text-slate-300 leading-relaxed">${healthAlertDesc}</p>
                 `;
+            } else if (alertType === 'idle') {
+                alertCard.className = 'p-4 rounded-2xl bg-navy-950 border border-navy-800 space-y-1.5';
+                alertCard.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">${healthAlertTitle}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-navy-800 text-slate-400">입력 대기</span>
+                  </div>
+                  <p class="text-xs text-slate-400 leading-relaxed">${healthAlertDesc}</p>
+                `;
             } else {
                 alertCard.className = 'p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5';
                 alertCard.innerHTML = `
@@ -4810,27 +4838,33 @@ ${sellTiersHtml}
         const drip5YrBody = document.getElementById('dividendDrip5Yr');
         const drip10YrBody = document.getElementById('dividendDrip10Yr');
 
-        let simShares5 = shares;
-        let simDiv5 = annualGrossDividendKrw * (1 - divTaxRate);
-        for (let y = 1; y <= 5; y++) {
-            const addedShares = simDiv5 / (priceKrw * Math.pow(1.03, y));
-            simShares5 += addedShares;
-            simDiv5 = simShares5 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
-        }
+        if (drip5YrBody && drip10YrBody) {
+            if (priceKrw > 0 && shares > 0 && annualGrossDividendKrw > 0) {
+                let simShares5 = shares;
+                let simDiv5 = annualGrossDividendKrw * (1 - divTaxRate);
+                for (let y = 1; y <= 5; y++) {
+                    const addedShares = simDiv5 / (priceKrw * Math.pow(1.03, y));
+                    simShares5 += addedShares;
+                    simDiv5 = simShares5 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
+                }
 
-        let simShares10 = shares;
-        let simDiv10 = annualGrossDividendKrw * (1 - divTaxRate);
-        for (let y = 1; y <= 10; y++) {
-            const addedShares = simDiv10 / (priceKrw * Math.pow(1.03, y));
-            simShares10 += addedShares;
-            simDiv10 = simShares10 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
-        }
+                let simShares10 = shares;
+                let simDiv10 = annualGrossDividendKrw * (1 - divTaxRate);
+                for (let y = 1; y <= 10; y++) {
+                    const addedShares = simDiv10 / (priceKrw * Math.pow(1.03, y));
+                    simShares10 += addedShares;
+                    simDiv10 = simShares10 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
+                }
 
-        if (drip5YrBody) {
-            drip5YrBody.innerText = `주식 수: ${Math.round(simShares5).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv5 / 12).toLocaleString('ko-KR')}원`;
-        }
-        if (drip10YrBody) {
-            drip10YrBody.innerText = `주식 수: ${Math.round(simShares10).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv10 / 12).toLocaleString('ko-KR')}원`;
+                drip5YrBody.innerText = `주식 수: ${Math.round(simShares5).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv5 / 12).toLocaleString('ko-KR')}원`;
+                drip10YrBody.innerText = `주식 수: ${Math.round(simShares10).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv10 / 12).toLocaleString('ko-KR')}원`;
+            } else if (annualInterestKrw > 0) {
+                drip5YrBody.innerText = '주식 배당 없음 (은행 이자 소득만 계산 중)';
+                drip10YrBody.innerText = '주식 배당 없음 (은행 이자 소득만 계산 중)';
+            } else {
+                drip5YrBody.innerText = '주식 수: 0주 / 세후 월 배당금: 0원';
+                drip10YrBody.innerText = '주식 수: 0주 / 세후 월 배당금: 0원';
+            }
         }
 
         // 금액대별 시뮬레이션 표 동적 갱신
