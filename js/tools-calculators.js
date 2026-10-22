@@ -6240,7 +6240,6 @@ ${chartHtml}
                 { amount: 5000000, label: '500만 원' },
                 { amount: 10000000, label: '1,000만 원' },
                 { amount: 15000000, label: '1,500만 원' },
-                { amount: 19900000, label: '1,990만 원' },
                 { amount: 20000000, label: '2,000만 원' },
                 { amount: 25000000, label: '2,500만 원' },
                 { amount: 30000000, label: '3,000만 원' },
@@ -6254,10 +6253,23 @@ ${chartHtml}
             const threshold10M = 10000000;
             const TOTAL_HEALTH_FACTOR = 0.0709 * (1 + 0.1295);
 
+            // 현재 금융소득과 가장 가까운 단 하나의 티어만 선택 (중복 선택 방지)
+            let closestAmt = null;
+            let minDiff = Infinity;
+            if (currentTotal > 0) {
+                tiers.forEach(t => {
+                    const diff = Math.abs(currentTotal - t.amount);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestAmt = t.amount;
+                    }
+                });
+            }
+
             let html = '';
             tiers.forEach(t => {
                 const amt = t.amount;
-                const isClosest = Math.abs(currentTotal - amt) < 2500000;
+                const isClosest = (currentTotal > 0 && amt === closestAmt && minDiff <= 3000000);
 
                 // 세금 계산
                 const withholdingTax = Math.round(amt * 0.154);
