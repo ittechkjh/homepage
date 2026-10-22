@@ -4007,6 +4007,10 @@
           <button type="button" onclick="CoinCalculators.switchSubTab('dividend')" data-calctab="dividend" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 cursor-pointer">
             <span>💵 주식 배당금</span>
           </button>
+          <button type="button" onclick="CoinCalculators.switchSubTab('financetax')" data-calctab="financetax" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-cyan-300 hover:text-white bg-cyan-500/10 border border-cyan-500/30 cursor-pointer">
+            <span>🏦 배당·이자 &amp; 건보료</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-cyan-400 text-navy-950">NEW</span>
+          </button>
           <button type="button" onclick="CoinCalculators.switchSubTab('staking')" data-calctab="staking" class="calc-subtab-btn px-3 py-2 rounded-xl transition flex items-center gap-1 text-slate-400 hover:text-white cursor-pointer">
             <span>🪙 스테이킹</span>
           </button>
@@ -5975,6 +5979,199 @@
                   <span class="text-emerald-400 block text-[11px] font-bold">10년 배당 재투자 후:</span>
                   <span id="dividendDrip10Yr" class="font-bold text-emerald-300 font-mono">주식 수 계산 중...</span>
                 </div>
+              </div>
+            </div>
+
+            <!-- Link to Finance & Health Insurance Calculator -->
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/50 via-navy-950 to-navy-950 border border-cyan-500/40 flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">🏦</span>
+                <div>
+                  <span class="text-xs font-bold text-white block">배당금 + 은행이자 합산 세금 &amp; 건보료 정밀 계산기</span>
+                  <p class="text-[11px] text-slate-400">2,000만 원 초과 종합과세 비교세액 및 건강보험료(피부양자 박탈/직장인 추가) 실시간 분석</p>
+                </div>
+              </div>
+              <button type="button" onclick="CoinCalculators.switchSubTab('financetax')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition shrink-0 flex items-center gap-1">
+                <span>이자·배당 &amp; 건보료 계산기</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL 12: 배당·이자 금융소득 종합과세 & 건강보험료(피부양자/직장/지역) 정밀 계산기 -->
+      <div id="calc-tab-financetax" class="calc-subtab-content hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Input Form (5 cols) -->
+          <div id="financeInputCard" class="lg:col-span-5 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800">
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <span>🏦</span> 이자·배당 소득 &amp; 건보료 설정
+              </h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">2025/2026 개정세법</span>
+            </div>
+
+            <!-- Quick Presets -->
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-1.5 font-bold">빠른 금액 시뮬레이션 프리셋:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(3000000, 7000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500/40 text-xs font-bold text-slate-300 hover:text-cyan-300">1,000만 원</button>
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(4900000, 15000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-emerald-500/40 text-xs font-bold text-emerald-300 hover:bg-emerald-500/10" title="피부양자 안전 유지 마지노선">🛡️ 1,990만 (안전)</button>
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(5000000, 15000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-amber-500/40 text-xs font-bold text-amber-300 hover:bg-amber-500/10" title="종합과세 & 피부양자 박탈 경계선">⚠️ 2,000만 (경계)</button>
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(8000000, 22000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500/40 text-xs font-bold text-slate-300 hover:text-cyan-300">3,000만 원</button>
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(15000000, 35000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500/40 text-xs font-bold text-slate-300 hover:text-cyan-300">5,000만 원</button>
+                <button type="button" onclick="CoinCalculators.applyFinanceTaxPreset(30000000, 70000000)" class="px-2.5 py-1 rounded-xl bg-navy-950 border border-navy-800 hover:border-cyan-500/40 text-xs font-bold text-slate-300 hover:text-cyan-300">1억 원</button>
+              </div>
+            </div>
+
+            <!-- Health Insurance Status Choice -->
+            <div class="space-y-1.5">
+              <label class="block font-semibold text-slate-300 text-xs">건강보험 가입 자격 구분</label>
+              <div class="flex gap-1.5 p-1 bg-navy-950 rounded-2xl border border-navy-800">
+                <button type="button" id="financeTypeBtn_dependent" onclick="CoinCalculators.setFinanceHealthType('dependent')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm">
+                  🛡️ 피부양자
+                </button>
+                <button type="button" id="financeTypeBtn_employee" onclick="CoinCalculators.setFinanceHealthType('employee')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-navy-950 text-slate-400 hover:text-slate-200 border border-navy-800 hover:border-slate-700">
+                  🏢 직장가입자
+                </button>
+                <button type="button" id="financeTypeBtn_local" onclick="CoinCalculators.setFinanceHealthType('local')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-navy-950 text-slate-400 hover:text-slate-200 border border-navy-800 hover:border-slate-700">
+                  🏠 지역가입자
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 pt-0.5">
+                * <strong>피부양자</strong>: 연 2,000만 초과 시 박탈 | <strong>직장인</strong>: 2,000만 초과분 월액보험료 | <strong>지역</strong>: 1,000만 초과 시 전액 소득산입
+              </p>
+            </div>
+
+            <!-- Financial Income Inputs -->
+            <div class="space-y-3.5 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">연간 은행 이자 소득 (원)</label>
+                  <input type="text" id="financeInterestAmount" value="5,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcFinanceTax();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-cyan-500 outline-none" placeholder="예: 5,000,000">
+                  <span class="text-[10px] text-slate-400 mt-0.5 block">정기예금·적금·CMA·채권이자</span>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">연간 주식 배당 소득 (원)</label>
+                  <input type="text" id="financeDividendAmount" value="15,000,000" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcFinanceTax();" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-3 py-2 text-cyan-300 font-mono font-bold focus:border-cyan-500 outline-none" placeholder="예: 15,000,000">
+                  <span class="text-[10px] text-slate-400 mt-0.5 block">국내·미국주식 및 배당 ETF</span>
+                </div>
+              </div>
+
+              <!-- Other General Income (for 20M+ Progressive Tax) -->
+              <div class="p-3 rounded-2xl bg-navy-950 border border-navy-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="block font-semibold text-slate-300 text-xs">다른 종합소득 과세표준 (근로·사업 등)</label>
+                  <span class="text-[10px] text-amber-400">2,000만원 초과 시 합산</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="CoinCalculators.setFinanceOtherIncome(0)" class="px-2 py-0.5 rounded-lg bg-navy-900 border border-navy-700 text-[11px] text-slate-300 hover:text-white">없음 (0원)</button>
+                  <button type="button" onclick="CoinCalculators.setFinanceOtherIncome(35000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 border border-navy-700 text-[11px] text-slate-300 hover:text-white">3,500만 (15%)</button>
+                  <button type="button" onclick="CoinCalculators.setFinanceOtherIncome(60000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 border border-navy-700 text-[11px] text-slate-300 hover:text-white">6,000만 (24%)</button>
+                  <button type="button" onclick="CoinCalculators.setFinanceOtherIncome(90000000)" class="px-2 py-0.5 rounded-lg bg-navy-900 border border-navy-700 text-[11px] text-slate-300 hover:text-white">9,000만 (35%)</button>
+                </div>
+                <input type="text" id="financeOtherIncomeInput" value="0" oninput="CoinCalculators.formatInputWithCommas(this); CoinCalculators.calcFinanceTax();" class="w-full bg-navy-900 border border-navy-800 rounded-xl px-3 py-1.5 text-slate-200 font-mono text-xs focus:border-cyan-500 outline-none" placeholder="기타 과세표준 직접 입력 (원)">
+              </div>
+            </div>
+
+            <!-- Strategy Tips -->
+            <div class="p-3.5 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5 text-xs">
+              <span class="font-bold text-cyan-300 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i> 합산 2,000만원 절벽 방어 팁
+              </span>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                이자+배당 합산액이 <strong>2,000만 원 이하</strong>이면 15.4% 원천징수로 종결되며 건강보험료 추가 부담이나 피부양자 박탈이 전혀 없습니다. 초과가 예상될 때는 ISA 계좌나 배우자 분산 증여를 적극 활용하세요.
+              </p>
+            </div>
+          </div>
+
+          <!-- Result Display & Tier Table (7 cols) -->
+          <div class="lg:col-span-7 bg-navy-900 border border-navy-800 rounded-3xl p-6 shadow-xl space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-navy-800 flex-wrap gap-2">
+              <div>
+                <h4 class="font-bold text-base text-white">금융소득 실수령액 &amp; 세금·건보료 분석</h4>
+                <p class="text-xs text-slate-400">원천징수세, 5월 종합소득세 비교과세 및 건강보험료 영향 정밀 산출</p>
+              </div>
+              <span id="financeResultNetMonthly" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">월평균 약 1,410,000원</span>
+            </div>
+
+            <!-- Top 4 Summary Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5">
+                <span class="text-[11px] text-slate-400 block mb-1">총 금융소득 (이자+배당)</span>
+                <span id="financeResultTotalIncome" class="text-sm font-bold text-white font-mono">20,000,000원</span>
+              </div>
+              <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5">
+                <span class="text-[11px] text-slate-400 block mb-1">총 세금 (원천+종합)</span>
+                <span id="financeResultTotalTax" class="text-sm font-bold text-rose-400 font-mono">3,080,000원</span>
+                <span id="financeResultTaxDetail" class="text-[10px] text-slate-400 block mt-0.5 truncate">원천징수 15.4% 종결</span>
+              </div>
+              <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5">
+                <span class="text-[11px] text-slate-400 block mb-1">건강보험료 부담</span>
+                <span id="financeResultHealthFee" class="text-sm font-bold text-rose-400 font-mono">0원</span>
+                <span id="financeResultHealthFeeMonthly" class="text-[10px] text-slate-400 block mt-0.5">(추가 없음)</span>
+              </div>
+              <div class="bg-navy-950 border border-emerald-500/30 rounded-2xl p-3.5 bg-emerald-950/10">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] text-emerald-400 font-bold">최종 세후 실수령</span>
+                  <span id="financeResultEffectiveRate" class="text-[10px] font-mono text-slate-400">15.4%</span>
+                </div>
+                <span id="financeResultNetIncome" class="text-sm font-black text-emerald-300 font-mono block mt-1">16,920,000원</span>
+              </div>
+            </div>
+
+            <!-- Diagnostic Status Alert Card -->
+            <div id="financeStatusAlertCard">
+              <!-- Injected dynamically via JS -->
+            </div>
+
+            <!-- Tier Table: Amounts Simulation -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i> 금융소득 금액대별 세금 및 건강보험료 시뮬레이션
+                </span>
+                <span class="text-[10px] text-cyan-400 font-bold">* 행을 클릭하면 계산기에 자동 반영됩니다</span>
+              </div>
+
+              <div class="overflow-x-auto rounded-2xl border border-navy-800 bg-navy-950">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-navy-900/80 text-slate-400 text-[11px] border-b border-navy-800">
+                    <tr>
+                      <th class="py-2.5 px-3 font-semibold">금융소득</th>
+                      <th class="py-2.5 px-3 font-semibold">소득세</th>
+                      <th class="py-2.5 px-3 font-semibold">건보료(연/월)</th>
+                      <th class="py-2.5 px-3 font-semibold">총 공제액</th>
+                      <th class="py-2.5 px-3 font-semibold">최종 실수령</th>
+                      <th class="py-2.5 px-3 font-semibold">실효부담률</th>
+                      <th class="py-2.5 px-3 font-semibold">진단 상태</th>
+                    </tr>
+                  </thead>
+                  <tbody id="financeTierTableBody" class="divide-y divide-navy-800/60">
+                    <!-- Injected dynamically via CoinCalculators.renderFinanceTaxTierTable() -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tax Saving Guide Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
+              <div class="p-3 rounded-2xl bg-navy-950 border border-navy-800 space-y-1">
+                <span class="font-bold text-cyan-300 flex items-center gap-1 text-[11px]">
+                  <span>💡</span> 1. ISA 계좌 적극 활용 (만능통장)
+                </span>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  일반형 200만/서민형 400만원까지 비과세, 초과분도 9.9% 분리과세되어 <strong>금융소득종합과세(2,000만원) 및 건보료 산정에서 완전 제외</strong>됩니다.
+                </p>
+              </div>
+              <div class="p-3 rounded-2xl bg-navy-950 border border-navy-800 space-y-1">
+                <span class="font-bold text-emerald-300 flex items-center gap-1 text-[11px]">
+                  <span>💡</span> 2. 배우자 증여를 통한 소득 분산
+                </span>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  배우자 간 증여는 <strong>10년간 6억 원까지 증여세 비과세</strong>입니다. 예금이나 배당주를 분산하면 부부 각각 2,000만원(합산 4,000만원)까지 비과세 방어가 가능합니다.
+                </p>
               </div>
             </div>
           </div>
@@ -9224,7 +9421,7 @@
   <script src="js/charts.js?v=20260904_06"></script>
   <script src="js/exporter.js?v=20260904_06"></script>
   <script src="js/sample-data.js?v=20260904_06"></script>
-  <script src="js/tools-calculators.js?v=20261012_14"></script>
+  <script src="js/tools-calculators.js?v=20261022_15"></script>
   <script src="js/yearend-tax.js?v=20260912_03"></script>
   <script src="js/analyzer-app.js?v=20261021_01"></script>
 
