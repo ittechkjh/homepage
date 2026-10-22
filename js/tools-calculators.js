@@ -1411,10 +1411,9 @@ const CoinCalculators = {
             this.renderRollingSellTiers();
             this.renderRollingBuyTiers();
             this.calcCoinRolling();
-        } else if (tabId === 'dividend') {
+        } else if (tabId === 'dividend' || tabId === 'financetax') {
+            tabId = 'dividend';
             this.calcStockDividend();
-        } else if (tabId === 'financetax') {
-            this.calcFinanceTax();
         }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -4607,35 +4606,122 @@ ${sellTiersHtml}
         const yieldRate = this.parseNum(document.getElementById('dividendYieldRate')?.value, 3.55) / 100;
         const freq = Math.max(1, parseInt(document.getElementById('dividendFrequency')?.value || '4', 10));
 
-        if (priceInput <= 0 || shares <= 0) return;
+        // 은행 예·적금 이자 소득
+        const intInput = document.getElementById('financeInterestAmount');
+        const annualInterestKrw = this.parseNum(intInput?.value, 0);
 
-        // 원화 환산 1주당 가격
+        if (priceInput < 0 || shares < 0) return;
+
+        // 원화 환산 1주당 가격 및 총 투자 평가금액
         const priceKrw = isUs ? (priceInput * exchangeRate) : priceInput;
-        // 총 투자 평가금액
         const totalInvestedKrw = priceKrw * shares;
 
-        // 연간 세전 총 배당금
-        const annualGrossDividendKrw = totalInvestedKrw * yieldRate;
+        // 연간 세전 주식 배당금
+        const annualGrossDividendKrw = Math.round(totalInvestedKrw * yieldRate);
         const annualGrossDividendUsd = (isUs && exchangeRate > 0) ? (annualGrossDividendKrw / exchangeRate) : 0;
 
+        // 총 금융소득 = 세전 주식 배당금 + 은행 예·적금 이자
+        const totalFinanceKrw = annualGrossDividendKrw + annualInterestKrw;
+
         // 배당소득세율: 국내 15.4%, 미국 15.0%
-        const taxRate = isUs ? 0.150 : 0.154;
-        const annualTaxKrw = annualGrossDividendKrw * taxRate;
-        // 세후 연간 실수령 배당금
-        const annualNetDividendKrw = annualGrossDividendKrw - annualTaxKrw;
-        const annualNetDividendUsd = (isUs && exchangeRate > 0) ? (annualNetDividendKrw / exchangeRate) : 0;
+        const divTaxRate = isUs ? 0.150 : 0.154;
+        const divWithholdingTax = Math.round(annualGrossDividendKrw * divTaxRate);
+        const intWithholdingTax = Math.round(annualInterestKrw * 0.154);
+        const totalWithholdingTax = divWithholdingTax + intWithholdingTax;
 
-        // 주기별 실수령액
-        const monthlyNetKrw = annualNetDividendKrw / 12;
-        const quarterlyNetKrw = annualNetDividendKrw / 4;
-        const perPayoutNetKrw = annualNetDividendKrw / freq;
+        // 금융소득종합과세 2,000만원 기준 진단 및 비교과세
+        const threshold20M = 20000000;
+        const threshold10M = 10000000;
+        const isOver20M = (totalFinanceKrw > threshold20M);
+        const remainingSafetyKrw = Math.max(0, threshold20M - totalFinanceKrw);
 
-        // 금융소득종합과세 2,000만원 기준 진단
-        const financeTaxThresholdKrw = 20000000;
-        const isOverFinanceTax = (annualGrossDividendKrw >= financeTaxThresholdKrw);
-        const remainingSafetyKrw = Math.max(0, financeTaxThresholdKrw - annualGrossDividendKrw);
+        const otherInput = document.getElementById('financeOtherIncomeInput');
+        const otherTaxBase = this.parseNum(otherInput?.value, this.financeOtherIncome || 0);
 
-        // UI 갱신
+        let additionalTaxKrw = 0;
+        let totalTaxKrw = totalWithholdingTax;
+
+        if (isOver20M) {
+            const excessFinance = totalFinanceKrw - threshold20M;
+            const taxOn20M = threshold20M * 0.14;
+            const taxOnExcess = this.calcGeneralIncomeTax(otherTaxBase + excessFinance) - this.calcGeneralIncomeTax(otherTaxBase);
+            const methodAIncomeTax = taxOn20M + taxOnExcess;
+            const methodBIncomeTax = (totalFinanceKrw * 0.14);
+
+            const finalIncomeTax = Math.max(methodAIncomeTax, methodBIncomeTax);
+            const finalTotalTax = Math.round(finalIncomeTax * 1.1); // 지방소득세 10% 포함
+
+            additionalTaxKrw = Math.max(0, finalTotalTax - totalWithholdingTax);
+            totalTaxKrw = totalWithholdingTax + additionalTaxKrw;
+        }
+
+        // 건강보험료 계산 (2025/2026: 건강보험료율 7.09%, 장기요양 12.95% -> 실질 8.008155%)
+        const TOTAL_HEALTH_FACTOR = 0.0709 * (1 + 0.1295);
+        const healthType = this.financeHealthType || 'dependent';
+
+        let annualHealthFee = 0;
+        let monthlyHealthFee = 0;
+        let healthAlertTitle = '';
+        let healthAlertDesc = '';
+        let alertType = 'safe';
+
+        if (healthType === 'dependent') {
+            if (isOver20M) {
+                alertType = 'danger';
+                annualHealthFee = Math.round(totalFinanceKrw * TOTAL_HEALTH_FACTOR);
+                monthlyHealthFee = Math.round(annualHealthFee / 12);
+                healthAlertTitle = '🚨 피부양자 자격 박탈 경보 (위험 구간)';
+                healthAlertDesc = `연간 금융소득(배당+이자: <strong>${this.formatNumber(totalFinanceKrw)}원</strong>)이 2,000만 원을 초과하여 <strong>피부양자 자격이 즉시 상실</strong>됩니다. 지역가입자로 강제 전환되어 재산·자동차 및 금융소득에 대해 연간 <strong>약 ${this.formatNumber(annualHealthFee)}원</strong>(월 ${this.formatNumber(monthlyHealthFee)}원) 이상의 지역건보료가 부과됩니다!`;
+            } else {
+                alertType = 'safe';
+                annualHealthFee = 0;
+                monthlyHealthFee = 0;
+                healthAlertTitle = '🛡️ 피부양자 유지 & 금융소득 분리과세 안전 구간';
+                healthAlertDesc = `연간 금융소득(배당+이자)이 2,000만원 이하로 <strong>피부양자 자격이 안전하게 유지</strong>됩니다. 한도까지 <strong class="text-emerald-400">+${this.formatNumber(remainingSafetyKrw)}원</strong>의 안전마진이 있으며, 원천징수로 세무 신고가 깔끔히 종결됩니다.`;
+            }
+        } else if (healthType === 'employee') {
+            if (isOver20M) {
+                alertType = 'warning';
+                const excessFinance = totalFinanceKrw - threshold20M;
+                annualHealthFee = Math.round(excessFinance * TOTAL_HEALTH_FACTOR);
+                monthlyHealthFee = Math.round(annualHealthFee / 12);
+                healthAlertTitle = '⚠️ 보수 외 소득월액 건강보험료 부과 (2,000만 원 초과)';
+                healthAlertDesc = `직장 월급 외 금융소득이 2,000만 원을 초과하여 초과분에 대해 매월 <strong>+${this.formatNumber(monthlyHealthFee)}원</strong>(연 ${this.formatNumber(annualHealthFee)}원)의 건강보험료가 추가 청구됩니다. 5월 종합과세 추가 세액은 <strong>약 ${this.formatNumber(additionalTaxKrw)}원</strong>입니다.`;
+            } else {
+                alertType = 'safe';
+                annualHealthFee = 0;
+                monthlyHealthFee = 0;
+                healthAlertTitle = '🛡️ 직장 추가 건보료 0원 & 분리과세 안전 구간';
+                healthAlertDesc = `금융소득이 2,000만원 이하로 <strong>직장 추가 건강보험료가 전혀 발생하지 않습니다</strong>. 2,000만원 한도까지 <strong class="text-emerald-400">+${this.formatNumber(remainingSafetyKrw)}원</strong> 여유가 있습니다.`;
+            }
+        } else if (healthType === 'local') {
+            if (totalFinanceKrw > threshold10M) {
+                alertType = 'warning';
+                annualHealthFee = Math.round(totalFinanceKrw * TOTAL_HEALTH_FACTOR);
+                monthlyHealthFee = Math.round(annualHealthFee / 12);
+                healthAlertTitle = '⚠️ 지역건보료 소득점수 전액 반영 (1,000만 원 초과 절벽)';
+                healthAlertDesc = `지역가입자는 금융소득이 1,000만 원을 초과하면 초과분이 아닌 <strong>금융소득 전액(${this.formatNumber(totalFinanceKrw)}원)</strong>이 소득점수에 100% 산입되어 연간 <strong>약 ${this.formatNumber(annualHealthFee)}원</strong>(월 ${this.formatNumber(monthlyHealthFee)}원)의 건강보험료가 부과됩니다.`;
+            } else {
+                alertType = 'safe';
+                annualHealthFee = 0;
+                monthlyHealthFee = 0;
+                const safeMargin10M = threshold10M - totalFinanceKrw;
+                healthAlertTitle = '🛡️ 금융소득 건보료 미반영 (비부과 안전 구간)';
+                healthAlertDesc = `지역가입자는 금융소득 1,000만원 이하 시 <strong>건강보험료 산정에서 완전 제외</strong>됩니다. (한도까지 <strong class="text-emerald-400">+${this.formatNumber(safeMargin10M)}원</strong> 여유)`;
+            }
+        }
+
+        // 총 공제 부담액 (총 세금 + 건보료)
+        const totalDeductionKrw = totalTaxKrw + annualHealthFee;
+        // 최종 연간 세후 실수령액
+        const annualNetIncomeKrw = Math.max(0, totalFinanceKrw - totalDeductionKrw);
+        const monthlyNetIncomeKrw = Math.round(annualNetIncomeKrw / 12);
+        const effectiveRate = totalFinanceKrw > 0 ? ((totalDeductionKrw / totalFinanceKrw) * 100) : 0;
+
+        // 주기별 1회 배당 실수령액
+        const netPerPayoutKrw = freq > 0 ? Math.round((annualGrossDividendKrw - divWithholdingTax) / freq) : 0;
+
+        // UI 갱신: 1. 총 투자 평가액
         const totalInvestedEl = document.getElementById('dividendResultTotalInvested');
         if (totalInvestedEl) {
             totalInvestedEl.innerText = isUs
@@ -4643,53 +4729,79 @@ ${sellTiersHtml}
                 : `${Math.round(totalInvestedKrw).toLocaleString('ko-KR')}원`;
         }
 
+        // UI 갱신: 2. 총 금융소득 (배당 + 이자)
         const grossDivEl = document.getElementById('dividendResultGrossAnnual');
-        if (grossDivEl) grossDivEl.innerText = `${Math.round(annualGrossDividendKrw).toLocaleString('ko-KR')}원 (${(yieldRate * 100).toFixed(2)}%)`;
-
-        const taxEl = document.getElementById('dividendResultTax');
-        if (taxEl) taxEl.innerText = `-${Math.round(annualTaxKrw).toLocaleString('ko-KR')}원 (${(taxRate * 100).toFixed(1)}%)`;
-
-        const netAnnualEl = document.getElementById('dividendResultNetAnnual');
-        if (netAnnualEl) {
-            netAnnualEl.innerText = isUs
-                ? `${Math.round(annualNetDividendKrw).toLocaleString('ko-KR')}원 (약 $${annualNetDividendUsd.toFixed(1)})`
-                : `${Math.round(annualNetDividendKrw).toLocaleString('ko-KR')}원`;
+        if (grossDivEl) {
+            grossDivEl.innerText = `${this.formatNumber(totalFinanceKrw)}원`;
+        }
+        const breakdownIncomeEl = document.getElementById('financeIncomeBreakdown');
+        if (breakdownIncomeEl) {
+            breakdownIncomeEl.innerText = `배당 ${this.formatNumber(annualGrossDividendKrw)}원 + 이자 ${this.formatNumber(annualInterestKrw)}원`;
         }
 
+        // UI 갱신: 3. 총 공제액 (세금 + 건보료)
+        const taxEl = document.getElementById('dividendResultTax');
+        if (taxEl) {
+            taxEl.innerText = `-${this.formatNumber(totalDeductionKrw)}원`;
+        }
+        const breakdownDeductEl = document.getElementById('financeDeductionBreakdown');
+        if (breakdownDeductEl) {
+            const taxTxt = additionalTaxKrw > 0 ? `세금 ${this.formatNumber(totalTaxKrw)}원(종합+${this.formatNumber(additionalTaxKrw)})` : `원천세 ${this.formatNumber(totalTaxKrw)}원`;
+            const healthTxt = annualHealthFee > 0 ? `건보 ${this.formatNumber(annualHealthFee)}원` : '건보 0원';
+            breakdownDeductEl.innerText = `${taxTxt} + ${healthTxt}`;
+        }
+
+        // UI 갱신: 4. 연간 세후 실수령액
+        const netAnnualEl = document.getElementById('dividendResultNetAnnual');
+        if (netAnnualEl) {
+            netAnnualEl.innerText = `${this.formatNumber(annualNetIncomeKrw)}원`;
+        }
+        const effRateEl = document.getElementById('financeResultEffectiveRate');
+        if (effRateEl) {
+            effRateEl.innerText = `실효공제 ${effectiveRate.toFixed(1)}%`;
+        }
+
+        // UI 갱신: 5. 월평균 실수령액
         const netMonthlyEl = document.getElementById('dividendResultNetMonthly');
-        if (netMonthlyEl) netMonthlyEl.innerText = `월평균 약 ${Math.round(monthlyNetKrw).toLocaleString('ko-KR')}원`;
+        if (netMonthlyEl) {
+            netMonthlyEl.innerText = `월평균 약 ${this.formatNumber(monthlyNetIncomeKrw)}원`;
+        }
 
+        // UI 갱신: 6. 주기별 실수령액
         const netPayoutEl = document.getElementById('dividendResultPerPayout');
-        if (netPayoutEl) netPayoutEl.innerText = `1회 지급 시 약 ${Math.round(perPayoutNetKrw).toLocaleString('ko-KR')}원 (연 ${freq}회)`;
+        if (netPayoutEl) {
+            netPayoutEl.innerText = `약 ${this.formatNumber(netPerPayoutKrw)}원 (연 ${freq}회 지급)`;
+        }
 
-        // 금융소득 종합과세 경보 뱃지
-        const taxAlertCard = document.getElementById('dividendTaxAlertCard');
-        if (taxAlertCard) {
-            if (isOverFinanceTax) {
-                taxAlertCard.className = 'p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 space-y-1.5';
-                taxAlertCard.innerHTML = `
+        // UI 갱신: 7. 진단 알림 카드
+        const alertCard = document.getElementById('dividendTaxAlertCard');
+        if (alertCard) {
+            if (alertType === 'danger') {
+                alertCard.className = 'p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 space-y-1.5';
+                alertCard.innerHTML = `
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                      🚨 금융소득 종합과세 대상 (2,000만 원 초과)
-                    </span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">종합소득 합산</span>
+                    <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">${healthAlertTitle}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">지역가입자 강제 전환</span>
                   </div>
-                  <p class="text-xs text-slate-300">
-                    연간 세전 배당금(${Math.round(annualGrossDividendKrw).toLocaleString()}원)이 2,000만 원을 초과하여 근로소득 등 다른 소득과 합산 과세되며, <strong>건강보험료 피부양자 자격이 박탈되어 지역가입자로 전환</strong>될 수 있습니다!
-                  </p>
+                  <p class="text-xs text-slate-300 leading-relaxed">${healthAlertDesc}</p>
+                `;
+            } else if (alertType === 'warning') {
+                alertCard.className = 'p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 space-y-1.5';
+                alertCard.innerHTML = `
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">${healthAlertTitle}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">추가 부과</span>
+                  </div>
+                  <p class="text-xs text-slate-300 leading-relaxed">${healthAlertDesc}</p>
                 `;
             } else {
-                taxAlertCard.className = 'p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5';
-                taxAlertCard.innerHTML = `
+                alertCard.className = 'p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5';
+                alertCard.innerHTML = `
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                      🛡️ 금융소득 종합과세 안전 구간 (2,000만 원 이하)
-                    </span>
+                    <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">${healthAlertTitle}</span>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">분리과세 종결</span>
                   </div>
-                  <p class="text-xs text-slate-300">
-                    종합과세 한도(2,000만원)까지 <strong class="text-emerald-400">+${Math.round(remainingSafetyKrw).toLocaleString()}원</strong>의 안전마진이 남아 있어, 15.4%(미국 15%) 원천징수 분리과세로 세무 신고가 깔끔하게 종결됩니다.
-                  </p>
+                  <p class="text-xs text-slate-300 leading-relaxed">${healthAlertDesc}</p>
                 `;
             }
         }
@@ -4698,21 +4810,20 @@ ${sellTiersHtml}
         const drip5YrBody = document.getElementById('dividendDrip5Yr');
         const drip10YrBody = document.getElementById('dividendDrip10Yr');
 
-        // 매년 배당금으로 주식을 재매수할 경우 (주가 상승률 3%, 배당성장률 5% 보수적 가정)
         let simShares5 = shares;
-        let simDiv5 = annualNetDividendKrw;
+        let simDiv5 = annualGrossDividendKrw * (1 - divTaxRate);
         for (let y = 1; y <= 5; y++) {
             const addedShares = simDiv5 / (priceKrw * Math.pow(1.03, y));
             simShares5 += addedShares;
-            simDiv5 = simShares5 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - taxRate);
+            simDiv5 = simShares5 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
         }
 
         let simShares10 = shares;
-        let simDiv10 = annualNetDividendKrw;
+        let simDiv10 = annualGrossDividendKrw * (1 - divTaxRate);
         for (let y = 1; y <= 10; y++) {
             const addedShares = simDiv10 / (priceKrw * Math.pow(1.03, y));
             simShares10 += addedShares;
-            simDiv10 = simShares10 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - taxRate);
+            simDiv10 = simShares10 * (priceKrw * Math.pow(1.03, y)) * (yieldRate * Math.pow(1.05, y)) * (1 - divTaxRate);
         }
 
         if (drip5YrBody) {
@@ -4721,6 +4832,9 @@ ${sellTiersHtml}
         if (drip10YrBody) {
             drip10YrBody.innerText = `주식 수: ${Math.round(simShares10).toLocaleString()}주 / 세후 월 배당금: 약 ${Math.round(simDiv10 / 12).toLocaleString('ko-KR')}원`;
         }
+
+        // 금액대별 시뮬레이션 표 동적 갱신
+        this.renderFinanceTaxTierTable(totalFinanceKrw, otherTaxBase, healthType);
     },
 
     // ========================================================
@@ -6035,23 +6149,27 @@ ${chartHtml}
 
         applyFinanceTaxPreset: function (interest, dividend) {
             const intEl = document.getElementById('financeInterestAmount');
-            const divEl = document.getElementById('financeDividendAmount');
             if (intEl) intEl.value = this.formatNumber(interest);
-            if (divEl) divEl.value = this.formatNumber(dividend);
-            this.calcFinanceTax();
+
+            const priceEl = document.getElementById('dividendPrice');
+            const sharesEl = document.getElementById('dividendShares');
+            const yieldEl = document.getElementById('dividendYieldRate');
+            const marketEl = document.getElementById('dividendMarket');
+            if (marketEl) marketEl.value = 'kr';
+            if (priceEl) priceEl.value = '50,000';
+            if (yieldEl) yieldEl.value = '4.0';
+            const neededShares = Math.max(1, Math.round(dividend / 2000));
+            if (sharesEl) sharesEl.value = this.formatNumber(neededShares);
+
+            this.calcStockDividend();
         },
 
         selectFinanceTierAmount: function (total) {
-            // 이자 30%, 배당 70% 비율로 입력창에 분할 세팅
             const interest = Math.round(total * 0.3);
             const dividend = total - interest;
-            const intEl = document.getElementById('financeInterestAmount');
-            const divEl = document.getElementById('financeDividendAmount');
-            if (intEl) intEl.value = this.formatNumber(interest);
-            if (divEl) divEl.value = this.formatNumber(dividend);
-            this.calcFinanceTax();
-            const formEl = document.getElementById('financeInputCard');
-            if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            this.applyFinanceTaxPreset(interest, dividend);
+            const cardEl = document.getElementById('calc-tab-dividend');
+            if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
 
         // 소득세법 기본 누진세율표 (2025/2026 대한민국 최신)
@@ -6077,202 +6195,7 @@ ${chartHtml}
         },
 
         calcFinanceTax: function () {
-            const intInput = document.getElementById('financeInterestAmount');
-            const divInput = document.getElementById('financeDividendAmount');
-            const otherInput = document.getElementById('financeOtherIncomeInput');
-
-            const interest = this.parseNum(intInput?.value, 5000000);
-            const dividend = this.parseNum(divInput?.value, 15000000);
-            const otherTaxBase = this.parseNum(otherInput?.value, this.financeOtherIncome || 0);
-            const healthType = this.financeHealthType || 'dependent';
-
-            const totalFinance = Math.max(0, interest + dividend);
-            const threshold20M = 20000000;
-            const threshold10M = 10000000;
-
-            // 1. 소득세 (원천징수 vs 종합과세 비교과세)
-            const withholdingTaxRate = 0.154; // 14% 소득세 + 1.4% 지방세
-            const withholdingTax = Math.round(totalFinance * withholdingTaxRate);
-
-            let isOver20M = (totalFinance > threshold20M);
-            let additionalTax = 0; // 5월 종합소득세 신고 시 추가 납부세액
-            let totalTax = withholdingTax;
-
-            if (isOver20M) {
-                const excessFinance = totalFinance - threshold20M;
-                // 방법 A (종합과세 방식):
-                // 2천만원은 14% 분리세율 적용 + 2천만원 초과분은 타 종합소득 위에 가산되어 기본누진세율 적용
-                const taxOn20M = threshold20M * 0.14;
-                const taxOnExcess = this.calcGeneralIncomeTax(otherTaxBase + excessFinance) - this.calcGeneralIncomeTax(otherTaxBase);
-                const methodAIncomeTax = taxOn20M + taxOnExcess;
-
-                // 방법 B (원천징수 비교과세 방식):
-                // 전액 14% + 타 소득 기본세율
-                const methodBIncomeTax = (totalFinance * 0.14);
-
-                // 소득세법 제62조 비교과세: MAX(방법 A, 방법 B)
-                const finalIncomeTax = Math.max(methodAIncomeTax, methodBIncomeTax);
-                const finalLocalTax = finalIncomeTax * 0.10;
-                const finalTotalTax = Math.round(finalIncomeTax + finalLocalTax);
-
-                // 원천징수로 이미 낸 세액을 차감한 추가 납부세액
-                additionalTax = Math.max(0, finalTotalTax - withholdingTax);
-                totalTax = withholdingTax + additionalTax;
-            }
-
-            // 2. 건강보험료 계산 (2025/2026 기준: 건강보험료율 7.09%, 장기요양 12.95% -> 실질 8.008155%)
-            const HEALTH_RATE = 0.0709;
-            const CARE_RATE = 0.1295;
-            const TOTAL_HEALTH_FACTOR = HEALTH_RATE * (1 + CARE_RATE); // 0.08008155
-
-            let annualHealthFee = 0;
-            let monthlyHealthFee = 0;
-            let healthStatusText = '';
-            let isDependentLoss = false;
-
-            if (healthType === 'dependent') {
-                if (isOver20M) {
-                    isDependentLoss = true;
-                    // 피부양자 박탈 -> 지역가입자로 전환되어 금융소득 전액에 건보료 부과
-                    annualHealthFee = Math.round(totalFinance * TOTAL_HEALTH_FACTOR);
-                    monthlyHealthFee = Math.round(annualHealthFee / 12);
-                    healthStatusText = '🚨 <strong>피부양자 자격 즉시 박탈</strong> (연 2,000만 원 초과) → 지역가입자로 강제 전환되어 재산·소득 건보료 전액 청구';
-                } else {
-                    annualHealthFee = 0;
-                    monthlyHealthFee = 0;
-                    const safeMargin = threshold20M - totalFinance;
-                    healthStatusText = `🛡️ <strong>피부양자 자격 완벽 유지</strong> (연 2,000만원 한도까지 <span class="text-emerald-400 font-bold">+${this.formatNumber(safeMargin)}원</span> 여유)`;
-                }
-            } else if (healthType === 'employee') {
-                if (isOver20M) {
-                    // 보수 외 소득월액보험료: 2,000만원 초과분에 대해 약 8.01% 부과
-                    const excessFinance = totalFinance - threshold20M;
-                    annualHealthFee = Math.round(excessFinance * TOTAL_HEALTH_FACTOR);
-                    monthlyHealthFee = Math.round(annualHealthFee / 12);
-                    healthStatusText = `⚠️ <strong>보수 외 소득월액 건보료 부과</strong> (2,000만 원 초과분에 대해 월 <strong>+${this.formatNumber(monthlyHealthFee)}원</strong> 추가 청구)`;
-                } else {
-                    annualHealthFee = 0;
-                    monthlyHealthFee = 0;
-                    const safeMargin = threshold20M - totalFinance;
-                    healthStatusText = `🛡️ <strong>직장 추가 건보료 0원</strong> (연 2,000만원 한도까지 <span class="text-emerald-400 font-bold">+${this.formatNumber(safeMargin)}원</span> 안전 여유)`;
-                }
-            } else if (healthType === 'local') {
-                if (totalFinance > threshold10M) {
-                    // 지역가입자는 1,000만원 초과 시 초과분이 아니라 금융소득 '전액(100%)'이 소득점수에 산입!
-                    annualHealthFee = Math.round(totalFinance * TOTAL_HEALTH_FACTOR);
-                    monthlyHealthFee = Math.round(annualHealthFee / 12);
-                    healthStatusText = `⚠️ <strong>지역건보료 소득점수 전액 반영</strong> (1,000만 원 초과로 금융소득 전액 건보료 산입: 월 <strong>+${this.formatNumber(monthlyHealthFee)}원</strong>)`;
-                } else {
-                    annualHealthFee = 0;
-                    monthlyHealthFee = 0;
-                    const safeMargin = threshold10M - totalFinance;
-                    healthStatusText = `🛡️ <strong>금융소득 건보료 미반영 (비부과)</strong> (1,000만원 한도까지 <span class="text-emerald-400 font-bold">+${this.formatNumber(safeMargin)}원</span> 여유)`;
-                }
-            }
-
-            // 3. 총 공제 및 실수령액
-            const totalDeduction = totalTax + annualHealthFee;
-            const netIncome = Math.max(0, totalFinance - totalDeduction);
-            const effectiveRate = totalFinance > 0 ? ((totalDeduction / totalFinance) * 100) : 0;
-            const monthlyNetIncome = Math.round(netIncome / 12);
-
-            // 4. UI 갱신
-            const totalFinanceEl = document.getElementById('financeResultTotalIncome');
-            if (totalFinanceEl) totalFinanceEl.innerText = `${this.formatNumber(totalFinance)}원`;
-
-            const totalTaxEl = document.getElementById('financeResultTotalTax');
-            if (totalTaxEl) {
-                totalTaxEl.innerText = `${this.formatNumber(totalTax)}원`;
-            }
-
-            const taxDetailEl = document.getElementById('financeResultTaxDetail');
-            if (taxDetailEl) {
-                if (additionalTax > 0) {
-                    taxDetailEl.innerHTML = `원천징수 ${this.formatNumber(withholdingTax)}원 + <span class="text-amber-400 font-bold">5월 종합과세 추가 ${this.formatNumber(additionalTax)}원</span>`;
-                } else {
-                    taxDetailEl.innerText = `원천징수 15.4% 분리과세 종결 (종합과세 추가 0원)`;
-                }
-            }
-
-            const healthFeeEl = document.getElementById('financeResultHealthFee');
-            if (healthFeeEl) {
-                healthFeeEl.innerText = annualHealthFee > 0 ? `${this.formatNumber(annualHealthFee)}원` : '0원';
-            }
-
-            const healthFeeMonthlyEl = document.getElementById('financeResultHealthFeeMonthly');
-            if (healthFeeMonthlyEl) {
-                healthFeeMonthlyEl.innerText = annualHealthFee > 0 ? `(월 약 ${this.formatNumber(monthlyHealthFee)}원 추가)` : '(건보료 추가 없음)';
-            }
-
-            const netIncomeEl = document.getElementById('financeResultNetIncome');
-            if (netIncomeEl) netIncomeEl.innerText = `${this.formatNumber(netIncome)}원`;
-
-            const netMonthlyEl = document.getElementById('financeResultNetMonthly');
-            if (netMonthlyEl) netMonthlyEl.innerText = `월평균 약 ${this.formatNumber(monthlyNetIncome)}원`;
-
-            const effectiveRateEl = document.getElementById('financeResultEffectiveRate');
-            if (effectiveRateEl) effectiveRateEl.innerText = `${effectiveRate.toFixed(1)}%`;
-
-            // 진단 알림 카드
-            const alertCard = document.getElementById('financeStatusAlertCard');
-            if (alertCard) {
-                if (isDependentLoss) {
-                    alertCard.className = 'p-4 rounded-2xl bg-rose-950/40 border border-rose-500/50 space-y-2';
-                    alertCard.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                                🚨 피부양자 자격 박탈 경보 (위험 구간)
-                            </span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">지역가입자 강제 전환</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            연간 이자·배당 금융소득(${this.formatNumber(totalFinance)}원)이 <strong>2,000만 원을 초과</strong>하여 건강보험 피부양자 자격이 자동 박탈됩니다. 본인 소유의 주택/부동산, 자동차 및 금융소득에 대해 연간 <strong>약 ${this.formatNumber(annualHealthFee)}원</strong>(월 ${this.formatNumber(monthlyHealthFee)}원) 이상의 지역건보료가 청구됩니다.
-                        </p>
-                    `;
-                } else if (isOver20M) {
-                    alertCard.className = 'p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 space-y-2';
-                    alertCard.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                                ⚠️ 금융소득종합과세 대상 (2,000만 원 초과)
-                            </span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">5월 합산 신고</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            연간 금융소득이 2,000만 원을 초과하여 타 소득(근로/사업소득)과 합산 과세됩니다. 5월 종합소득세 신고 시 <strong>약 ${this.formatNumber(additionalTax)}원의 추가 세액</strong>이 발생하며, 직장가입자의 경우 매월 <strong>약 ${this.formatNumber(monthlyHealthFee)}원</strong>의 보수 외 소득월액 건보료가 추가 청구됩니다.
-                        </p>
-                    `;
-                } else if (healthType === 'local' && totalFinance > threshold10M) {
-                    alertCard.className = 'p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 space-y-2';
-                    alertCard.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                                ⚠️ 지역가입자 건보료 소득 산입 (1,000만 원 초과)
-                            </span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">절벽 구간</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            지역가입자는 금융소득이 1,000만 원을 초과하면 초과분이 아닌 <strong>금융소득 전액(${this.formatNumber(totalFinance)}원)</strong>이 소득점수에 100% 반영되어 연간 <strong>약 ${this.formatNumber(annualHealthFee)}원</strong>의 건강보험료가 추가 청구됩니다.
-                        </p>
-                    `;
-                } else {
-                    alertCard.className = 'p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 space-y-2';
-                    alertCard.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                                🛡️ 금융소득 종합과세 &amp; 건보료 안전 마진 구간
-                            </span>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">분리과세 종결</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            ${healthStatusText}. 15.4% 원천징수로 세무 신고가 깔끔하게 종결되며, 추가 건강보험료나 종합과세 부담이 전혀 발생하지 않는 최적의 절세 구간입니다.
-                        </p>
-                    `;
-                }
-            }
-
-            // 5. 금액별 세금 & 건강보험료 시뮬레이션 표 갱신
-            this.renderFinanceTaxTierTable(totalFinance, otherTaxBase, healthType);
+            this.calcStockDividend();
         },
 
         renderFinanceTaxTierTable: function (currentTotal, otherTaxBase, healthType) {
