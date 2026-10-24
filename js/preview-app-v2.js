@@ -7257,7 +7257,7 @@ function renderCalendarEvents() {
     if (activeCalendarMonthTab === 'current') emptyMsg = '이번 달에 등록된 일정이 없습니다.';
     else if (activeCalendarMonthTab === 'prev') emptyMsg = '지난달에 등록된 일정이 없습니다.';
     else if (activeCalendarMonthTab === 'next') emptyMsg = '다음 달에 예정된 일정이 아직 등록되지 않았습니다.';
-    container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">${emptyMsg}</div>`;
+    container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">${emptyMsg}</div>`;
     return;
   }
 
@@ -7267,25 +7267,25 @@ function renderCalendarEvents() {
     const isPast = dday === '종료';
 
     return `
-    <div class="crypto-card ${isToday ? 'calendar-today-card border-cyan-400 ring-2 ring-cyan-400/40 shadow-xl' : 'bg-navy-900 border-navy-800'} rounded-3xl p-5 sm:p-6 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-4 group">
-      <div class="flex items-start gap-4 flex-1">
+    <div class="crypto-card ${isToday ? 'calendar-today-card border-cyan-400 ring-2 ring-cyan-400/40 shadow-xl' : 'bg-navy-900 border-navy-800'} rounded-3xl p-4 sm:p-5 shadow-lg hover:border-cyan-500/40 transition flex items-start justify-between gap-3.5 group">
+      <div class="flex items-start gap-3.5 flex-1 min-w-0">
         <!-- Date Badge -->
-        <div class="w-16 h-16 rounded-2xl ${isToday ? 'calendar-today-badge ring-2 ring-cyan-400/50' : (isPast ? 'bg-navy-950 border-navy-800/60 opacity-60' : 'bg-navy-950 border-navy-800')} border flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
+        <div class="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl ${isToday ? 'calendar-today-badge ring-2 ring-cyan-400/50' : (isPast ? 'bg-navy-950 border-navy-800/60 opacity-60' : 'bg-navy-950 border-navy-800')} border flex flex-col items-center justify-center shrink-0 group-hover:border-cyan-500/40 transition">
           ${isToday ? `<span class="text-[10px] font-black text-white bg-rose-500 px-1.5 py-0.5 rounded-full shadow-sm animate-pulse tracking-tight font-mono">D-Day</span>` : `<span class="text-[11px] font-black ${isPast ? 'text-slate-500' : 'text-cyan-400'} font-mono">${dday}</span>`}
           <span class="text-xs font-black ${isToday ? 'text-white' : 'text-slate-200'} mt-0.5 font-mono">${ev.date.slice(5)}</span>
         </div>
 
         <!-- Info -->
-        <div class="space-y-1.5 flex-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            ${isToday ? `<span class="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-rose-500/25"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>오늘 진행 (TODAY)</span>` : ''}
-            <span class="px-2.5 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-bold font-mono">${ev.coin}</span>
-            <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold">${ev.categoryName}</span>
-            <span class="text-xs text-slate-500 font-mono">${ev.time}</span>
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto sm:ml-0">${ev.impact}</span>
+        <div class="space-y-1 flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            ${isToday ? `<span class="px-2 py-0.5 rounded-lg bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[11px] font-black flex items-center gap-1 shadow-md shadow-rose-500/25"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>오늘 진행</span>` : ''}
+            <span class="px-2 py-0.5 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 text-xs font-bold font-mono">${ev.coin}</span>
+            <span class="px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[11px] font-semibold">${ev.categoryName}</span>
+            <span class="text-[11px] text-slate-500 font-mono">${ev.time}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto">${ev.impact}</span>
           </div>
-          <h3 class="text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug">${escapeHtml(ev.title)}</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(ev.desc)}</p>
+          <h3 class="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug line-clamp-2">${escapeHtml(ev.title)}</h3>
+          <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${escapeHtml(ev.desc)}</p>
         </div>
       </div>
     </div>
