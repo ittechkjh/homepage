@@ -7025,8 +7025,8 @@ function renderFocusDaysRadar() {
                   <span class="text-[10px] text-slate-500 font-mono">${ev.time}</span>
                   <span class="text-[9px] px-1.5 py-0.2 rounded font-bold border ${ev.impactColor} ml-auto">${ev.impact}</span>
                 </div>
-                <h4 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(ev.title)}">${escapeHtml(ev.title)}</h4>
-                <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${escapeHtml(ev.desc)}</p>
+                <h4 class="text-xs font-bold text-slate-100 leading-snug break-keep-all mt-0.5" title="${escapeHtml(ev.title)}">${escapeHtml(ev.title)}</h4>
+                <p class="text-[11px] text-slate-400 leading-relaxed break-keep-all mt-0.5">${escapeHtml(ev.desc)}</p>
               </div>
             </div>
           `).join('')}
@@ -7284,8 +7284,8 @@ function renderCalendarEvents() {
             <span class="text-[11px] text-slate-500 font-mono">${ev.time}</span>
             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${ev.impactColor} ml-auto">${ev.impact}</span>
           </div>
-          <h3 class="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug line-clamp-2">${escapeHtml(ev.title)}</h3>
-          <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${escapeHtml(ev.desc)}</p>
+          <h3 class="text-sm sm:text-base font-extrabold text-white group-hover:text-cyan-400 transition leading-snug break-keep-all">${escapeHtml(ev.title)}</h3>
+          <p class="text-xs text-slate-300 sm:text-slate-400 leading-relaxed break-keep-all pt-0.5">${escapeHtml(ev.desc)}</p>
         </div>
       </div>
     </div>
