@@ -2671,13 +2671,25 @@
           <p class="text-xs text-slate-400 mt-1">주요 블록체인 미디어 및 금융 속보를 30초 주기로 자동 수집·업데이트합니다.</p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="text-xs text-slate-400 font-mono hidden sm:flex items-center gap-1.5 bg-navy-950 px-3 py-1.5 rounded-xl border border-navy-800">
-            <span>다음 자동 갱신:</span>
-            <span id="news-countdown" class="text-cyan-400 font-bold">30s</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Recent Update & Countdown Stat Box -->
+          <div class="flex items-center gap-2.5 bg-navy-950/80 px-3 py-2 rounded-2xl border border-navy-800 shrink-0">
+            <div class="px-2.5 py-0.5 text-center border-r border-navy-800 hidden sm:block">
+              <span class="block text-[10px] text-slate-400 font-semibold">자동 갱신</span>
+              <span id="news-countdown" class="text-xs sm:text-sm font-bold text-cyan-400 font-mono">30s</span>
+            </div>
+            <div class="px-2.5 py-0.5 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="block text-[10px] text-slate-400 font-semibold">최근 업데이트</span>
+                <button type="button" onclick="fetchLatestNews(true)" class="text-slate-400 hover:text-cyan-400 transition" title="속보 즉시 새로고침">
+                  <i data-lucide="refresh-cw" class="w-2.5 h-2.5" id="news-refresh-icon"></i>
+                </button>
+              </div>
+              <span id="news-last-updated" class="text-xs sm:text-sm font-bold text-emerald-300 font-mono">확인 중...</span>
+            </div>
           </div>
           <button onclick="fetchLatestNews(true)" class="p-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-cyan-400 border border-navy-700 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
-            <i data-lucide="refresh-cw" class="w-4 h-4" id="news-refresh-icon"></i> 속보 즉시 갱신
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 속보 즉시 갱신
           </button>
         </div>
       </div>
@@ -2709,17 +2721,40 @@
     <section id="tab-calendar" class="tab-content hidden w-full space-y-6">
       <!-- Top Banner -->
       <div class="bg-gradient-to-r from-cyan-950/80 via-navy-900 to-indigo-950/80 border border-cyan-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xl">
-        <div class="max-w-3xl space-y-2 relative z-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-            <span>2026 하반기 가상자산 주요 경제 & 토큰 일정</span>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+          <div class="max-w-2xl space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold" id="calendar-live-badge">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span>2026 하반기 가상자산 주요 경제 & 토큰 일정</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              놓치면 안 될 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">코인 주요 일정 & D-Day</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              미국 연준(FOMC) 금리 결정, 주요 알트코인 대규모 락업 해제, 하드포크 및 글로벌 컨퍼런스 일정을 실시간 D-Day 카운트다운으로 한눈에 파악하세요.
+            </p>
           </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            놓치면 안 될 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">코인 주요 일정 & D-Day</span>
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            미국 연준(FOMC) 금리 결정, 주요 알트코인 대규모 락업 해제, 하드포크 및 글로벌 컨퍼런스 일정을 실시간 D-Day 카운트다운으로 한눈에 파악하세요.
-          </p>
+
+          <!-- Quick Stat Counters & Last Updated -->
+          <div class="flex items-center gap-3 bg-navy-950/80 p-3 rounded-2xl border border-navy-800 shrink-0">
+            <div class="px-3 py-1 text-center border-r border-navy-800">
+              <span class="block text-[10px] text-slate-400 font-semibold">등록 일정</span>
+              <span id="calendar-event-count" class="text-xl font-black text-cyan-400 font-mono">119</span>
+            </div>
+            <div class="px-3 py-1 text-center border-r border-navy-800">
+              <span class="block text-[10px] text-slate-400 font-semibold">최근 동기화</span>
+              <span class="text-xl font-black text-emerald-400 font-mono">자동</span>
+            </div>
+            <div class="px-3 py-1 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="block text-[10px] text-slate-400 font-semibold">최근 업데이트</span>
+                <button type="button" onclick="if(window.fetchCryptoEvents) fetchCryptoEvents(true)" class="text-slate-400 hover:text-cyan-400 transition" title="일정 데이터 새로고침">
+                  <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+              <span id="calendar-last-updated" class="text-xs sm:text-sm font-bold text-cyan-300 font-mono">확인 중...</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -7330,8 +7365,8 @@
             </p>
           </div>
 
-          <!-- Quick Actions & Coin Selector -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-navy-950/80 p-3 rounded-2xl border border-navy-800 shrink-0">
+          <!-- Quick Actions, Coin Selector & Last Updated -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-navy-950/80 p-3 rounded-2xl border border-navy-800 shrink-0">
             <div class="flex flex-wrap items-center gap-1.5" id="onchain-coin-selectors">
               <button onclick="OnChainEngine.selectCoin('BTC')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-cyan-500 text-navy-950 shadow-md" data-coin="BTC">BTC</button>
               <button onclick="OnChainEngine.selectCoin('ETH')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="ETH">ETH</button>
@@ -7342,10 +7377,17 @@
               <button onclick="OnChainEngine.selectCoin('AVAX')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="AVAX">AVAX</button>
               <button onclick="OnChainEngine.selectCoin('LINK')" class="onchain-coin-btn px-3 py-1.5 rounded-xl text-xs font-bold transition text-slate-400 hover:text-white" data-coin="LINK">LINK</button>
             </div>
-            <button onclick="OnChainEngine.refresh()" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="온체인 지표 수동 새로고침">
-              <i data-lucide="refresh-cw" id="onchain-refresh-btn" class="w-3.5 h-3.5"></i>
-              <span class="hidden sm:inline">동기화</span>
-            </button>
+
+            <!-- Recent Update Timestamp Box -->
+            <div class="px-3 py-1 text-center border-t sm:border-t-0 sm:border-l border-navy-800 flex sm:flex-col items-center justify-between sm:justify-center gap-1">
+              <div class="flex items-center justify-center gap-1">
+                <span class="block text-[10px] text-slate-400 font-semibold">최근 업데이트</span>
+                <button type="button" onclick="OnChainEngine.refresh()" class="text-slate-400 hover:text-cyan-400 transition" title="온체인 지표 수동 새로고침">
+                  <i data-lucide="refresh-cw" id="onchain-refresh-btn" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+              <span id="onchain-last-updated" class="text-xs sm:text-sm font-bold text-cyan-300 font-mono">확인 중...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -9353,7 +9395,7 @@
   <script src="js/admin.js?v=20261003_06"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260923_04"></script>
-  <script src="js/preview-app-v2.js?v=20261012_05"></script>
+  <script src="js/preview-app-v2.js?v=20261024_01"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">

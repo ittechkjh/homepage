@@ -5565,6 +5565,16 @@ async function fetchLatestNews(isManual = false) {
   newsCountdownSeconds = 30;
   const el = document.getElementById('news-countdown');
   if (el) el.innerText = '30s';
+
+  const updatedEl = document.getElementById('news-last-updated');
+  if (updatedEl) {
+    const d = new Date();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    updatedEl.innerText = `${hours}:${minutes}:${seconds}`;
+  }
+
   renderNews();
   if (isManual) alert('⚡ 최신 속보 피드가 정상 갱신되었습니다!');
 }
@@ -7019,8 +7029,8 @@ function getEventDDay(dateStr) {
 }
 
 let _isCryptoEventsLoaded = false;
-async function fetchCryptoEvents() {
-  if (_isCryptoEventsLoaded) return;
+async function fetchCryptoEvents(force = false) {
+  if (_isCryptoEventsLoaded && !force) return;
   try {
     const res = await fetch('data/crypto-events.json?v=' + Date.now());
     if (res.ok) {
@@ -7030,6 +7040,25 @@ async function fetchCryptoEvents() {
         _isCryptoEventsLoaded = true;
         renderCalendarEvents();
         renderMonthCalendar();
+
+        const countEl = document.getElementById('calendar-event-count');
+        if (countEl) countEl.innerText = String(data.count || data.events.length);
+
+        if (data.lastUpdated) {
+          try {
+            const d = new Date(data.lastUpdated);
+            if (!isNaN(d.getTime())) {
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              const hours = String(d.getHours()).padStart(2, '0');
+              const minutes = String(d.getMinutes()).padStart(2, '0');
+              const formatted = `${year}.${month}.${day} ${hours}:${minutes}`;
+              const updatedEl = document.getElementById('calendar-last-updated');
+              if (updatedEl) updatedEl.innerText = formatted;
+            }
+          } catch (e) {}
+        }
       }
     }
   } catch (err) {
@@ -9384,6 +9413,17 @@ const OnChainEngine = {
     }
 
     this.renderTicker();
+
+    const updatedEl = document.getElementById('onchain-last-updated');
+    if (updatedEl) {
+      const d = this.realMetrics && this.realMetrics.lastFetched ? new Date(this.realMetrics.lastFetched) : new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      updatedEl.innerText = `${year}.${month}.${day} ${hours}:${minutes}`;
+    }
 
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
       lucide.createIcons();
