@@ -6931,10 +6931,138 @@ let CRYPTO_EVENTS = [
 ];
 
 let activeCalendarFilter = 'all';
+let activeCalendarMonthTab = 'current'; // 'prev', 'current', 'next', 'all'
 let currentCalendarView = 'list';
-let currentCalendarYear = 2026;
-let currentCalendarMonth = 9; // 1-12
+let currentCalendarYear = new Date().getFullYear();
+let currentCalendarMonth = new Date().getMonth() + 1; // 1-12
 let calendarSearchQuery = '';
+
+function setCalendarMonthTab(tabKey) {
+  activeCalendarMonthTab = tabKey;
+  const tabs = document.querySelectorAll('.cal-month-tab');
+  tabs.forEach(btn => {
+    if (btn.dataset.monthTab === tabKey) {
+      btn.className = 'cal-month-tab active px-4 py-2 rounded-xl text-xs font-bold transition bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-300 border border-cyan-400/50 shadow-md shrink-0 flex items-center gap-1.5 ring-1 ring-cyan-400/30';
+    } else {
+      btn.className = 'cal-month-tab px-4 py-2 rounded-xl text-xs font-bold transition bg-navy-950 text-slate-400 hover:text-white border border-navy-800 shrink-0 flex items-center gap-1.5';
+    }
+  });
+
+  // If in month view, synchronize the displayed month
+  const today = new Date();
+  if (tabKey === 'prev') {
+    const prevDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    currentCalendarYear = prevDate.getFullYear();
+    currentCalendarMonth = prevDate.getMonth() + 1;
+  } else if (tabKey === 'current') {
+    currentCalendarYear = today.getFullYear();
+    currentCalendarMonth = today.getMonth() + 1;
+  } else if (tabKey === 'next') {
+    const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    currentCalendarYear = nextDate.getFullYear();
+    currentCalendarMonth = nextDate.getMonth() + 1;
+  }
+
+  updateCalendarMonthHeader();
+  renderCalendarEvents();
+  renderMonthCalendar();
+}
+window.setCalendarMonthTab = setCalendarMonthTab;
+
+function updateCalendarMonthTabLabels() {
+  const today = new Date();
+  const prevDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+  const prevEl = document.getElementById('tab-label-prev');
+  const curEl = document.getElementById('tab-label-current');
+  const nextEl = document.getElementById('tab-label-next');
+  const badgeEl = document.getElementById('calendar-today-date-badge');
+
+  if (prevEl) prevEl.innerText = `지난달 (${prevDate.getMonth() + 1}월)`;
+  if (curEl) curEl.innerText = `이번 달 (${today.getMonth() + 1}월)`;
+  if (nextEl) nextEl.innerText = `다음 달 (${nextDate.getMonth() + 1}월)`;
+  if (badgeEl) {
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    badgeEl.innerText = `기준일: ${m}월 ${d}일`;
+  }
+}
+
+function renderFocusDaysRadar() {
+  const container = document.getElementById('calendar-focus-radar-grid');
+  if (!container) return;
+
+  const today = new Date();
+  const fmt = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+
+  const yesterdayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const tomorrowDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+  const yesterdayStr = fmt(yesterdayDate);
+  const todayStr = fmt(today);
+  const tomorrowStr = fmt(tomorrowDate);
+
+  const allEvents = Array.isArray(CRYPTO_EVENTS) ? CRYPTO_EVENTS : [];
+
+  const yesterdayEvents = allEvents.filter(e => e.date === yesterdayStr);
+  const todayEvents = allEvents.filter(e => e.date === todayStr);
+  const tomorrowEvents = allEvents.filter(e => e.date === tomorrowStr);
+
+  const renderSection = (title, sub, badgeText, badgeClass, cardBorder, events, icon) => {
+    let contentHtml = '';
+    if (!events || events.length === 0) {
+      contentHtml = `<div class="p-3 text-center text-slate-500 text-xs bg-navy-950/60 rounded-xl border border-navy-800/60">예정된 중요 일정이 없습니다.</div>`;
+    } else {
+      contentHtml = `
+        <div class="space-y-2">
+          ${events.map(ev => `
+            <div class="p-2.5 rounded-xl bg-navy-950/90 border border-navy-800 hover:border-cyan-500/40 transition flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-md bg-navy-900 border border-navy-700 text-white font-mono font-bold text-xs shrink-0">${ev.coin}</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] text-cyan-400 font-semibold">${ev.categoryName}</span>
+                  <span class="text-[10px] text-slate-500 font-mono">${ev.time}</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded font-bold border ${ev.impactColor} ml-auto">${ev.impact}</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(ev.title)}">${escapeHtml(ev.title)}</h4>
+                <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${escapeHtml(ev.desc)}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="bg-navy-900/90 border ${cardBorder} rounded-2xl p-4 shadow-md flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-navy-800">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">${icon}</span>
+              <div>
+                <span class="text-xs font-extrabold text-white">${title}</span>
+                <span class="text-[10px] text-slate-400 font-mono ml-1">(${sub})</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${badgeClass} font-mono">${badgeText}</span>
+          </div>
+          ${contentHtml}
+        </div>
+      </div>
+    `;
+  };
+
+  const yDateStr = `${yesterdayDate.getMonth() + 1}.${yesterdayDate.getDate()}`;
+  const tDateStr = `${today.getMonth() + 1}.${today.getDate()}`;
+  const tmDateStr = `${tomorrowDate.getMonth() + 1}.${tomorrowDate.getDate()}`;
+
+  container.innerHTML = `
+    ${renderSection('어제 일정', yDateStr, `${yesterdayEvents.length}건 종료`, 'bg-navy-950 text-slate-400 border border-navy-800', 'border-navy-800', yesterdayEvents, '🕒')}
+    ${renderSection('오늘 집중 일정', tDateStr, todayEvents.length > 0 ? `${todayEvents.length}건 D-Day` : 'D-Day', 'bg-rose-500 text-white animate-pulse', 'border-cyan-400/60 ring-1 ring-cyan-400/40 bg-gradient-to-b from-cyan-950/20 to-navy-900', todayEvents, '🚨')}
+    ${renderSection('내일 일정', tmDateStr, `${tomorrowEvents.length}건 대기`, 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30', 'border-navy-800', tomorrowEvents, '⏳')}
+  `;
+}
 
 function onCalendarSearch(val) {
   calendarSearchQuery = (val || '').trim().toLowerCase();
@@ -7075,11 +7203,45 @@ function renderCalendarEvents() {
     fetchCryptoEvents();
   }
 
+  updateCalendarMonthTabLabels();
+  renderFocusDaysRadar();
+
   let events = CRYPTO_EVENTS;
+
+  // 1. Month Tab Filtering ('prev', 'current', 'next', 'all')
+  const today = new Date();
+  const curY = today.getFullYear();
+  const curM = today.getMonth(); // 0-indexed
+
+  if (activeCalendarMonthTab === 'current') {
+    events = events.filter(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === curY && d.getMonth() === curM;
+    });
+  } else if (activeCalendarMonthTab === 'prev') {
+    const prevDate = new Date(curY, curM - 1, 1);
+    const pY = prevDate.getFullYear();
+    const pM = prevDate.getMonth();
+    events = events.filter(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === pY && d.getMonth() === pM;
+    });
+  } else if (activeCalendarMonthTab === 'next') {
+    const nextDate = new Date(curY, curM + 1, 1);
+    const nY = nextDate.getFullYear();
+    const nM = nextDate.getMonth();
+    events = events.filter(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === nY && d.getMonth() === nM;
+    });
+  }
+
+  // 2. Category Filter
   if (activeCalendarFilter !== 'all') {
     events = events.filter(e => e.category === activeCalendarFilter);
   }
 
+  // 3. Search Query
   if (calendarSearchQuery) {
     events = events.filter(e => {
       const title = (e.title || '').toLowerCase();
@@ -7091,7 +7253,11 @@ function renderCalendarEvents() {
   }
 
   if (events.length === 0) {
-    container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">일치하거나 예정된 일정이 없습니다.</div>';
+    let emptyMsg = '일치하거나 예정된 일정이 없습니다.';
+    if (activeCalendarMonthTab === 'current') emptyMsg = '이번 달에 등록된 일정이 없습니다.';
+    else if (activeCalendarMonthTab === 'prev') emptyMsg = '지난달에 등록된 일정이 없습니다.';
+    else if (activeCalendarMonthTab === 'next') emptyMsg = '다음 달에 예정된 일정이 아직 등록되지 않았습니다.';
+    container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs bg-navy-900 rounded-3xl border border-navy-800">${emptyMsg}</div>`;
     return;
   }
 
