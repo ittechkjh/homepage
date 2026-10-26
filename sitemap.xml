@@ -139,6 +139,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://crytopnl.com/posts/finance-20261026-1734.html</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://crytopnl.com/posts/finance-20261026-1629.html</loc>
     <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>
@@ -429,12 +435,6 @@
   <url>
     <loc>https://crytopnl.com/posts/perspective-20261001-2316.html</loc>
     <lastmod>2026-10-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://crytopnl.com/posts/perspective-20260929-0705.html</loc>
-    <lastmod>2026-09-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
