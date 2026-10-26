@@ -55,5 +55,6 @@ jobs:
             echo "No market report changes to commit."
           else
             git commit -m "chore(report): auto-publish daily crypto market report & static pages"
+            git pull --rebase origin main
             git push origin main
           fi

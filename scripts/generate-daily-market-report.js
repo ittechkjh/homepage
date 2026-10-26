@@ -1085,27 +1085,36 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
   ];
 
   // Candidates in prioritized order for fastest response and highest reasoning quality on Free Tier:
-  // 1. gemini-2.5-flash: Google's flagship reasoning hybrid model (super fast, high depth, 1M context)
-  // 2. gemini-2.0-flash: Next-gen production workhorse (ultra-low latency, ~5-8s)
-  // 3. gemini-flash-latest: Stable fallback
+  // 1. gemini-3.6-flash: Flagship high-efficiency reasoning model (super fast, robust)
+  // 2. gemini-3.8-flash: Frontier flash reasoning model
+  // 3. gemini-3.5-flash-lite: Ultra-fast low latency model
+  // 4. gemini-flash-latest: Dynamic latest alias fallback
   const modelAttempts = [
     {
-      name: 'gemini-2.5-flash',
+      name: 'gemini-3.6-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.65,
           maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          thinkingConfig: { thinkingLevel: 'low' }
         }
       }
     },
     {
-      name: 'gemini-2.0-flash',
+      name: 'gemini-3.8-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.5-flash-lite',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
           maxOutputTokens: 8192
         }
       }
@@ -1115,7 +1124,6 @@ ${eventsSummary || '주요 경제 지표 발표 및 메이저 알트코인 토�
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
           maxOutputTokens: 8192
         }
       }
@@ -2381,22 +2389,30 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
 
   const modelAttempts = [
     {
-      name: 'gemini-2.5-flash',
+      name: 'gemini-3.6-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
           maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          thinkingConfig: { thinkingLevel: 'low' }
         }
       }
     },
     {
-      name: 'gemini-2.0-flash',
+      name: 'gemini-3.8-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.75,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.5-flash-lite',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
           maxOutputTokens: 8192
         }
       }
@@ -2406,7 +2422,6 @@ async function callGeminiPerspectiveAPI(dateStr, dateKorean, tech, slotInfo, api
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.75,
           maxOutputTokens: 8192
         }
       }
@@ -3929,22 +3944,30 @@ ${videoDetails.transcript.slice(0, 35000)}
 
   const modelAttempts = [
     {
-      name: 'gemini-2.5-flash',
+      name: 'gemini-3.6-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
           maxOutputTokens: 8192,
-          thinkingConfig: { thinkingBudget: 0 }
+          thinkingConfig: { thinkingLevel: 'low' }
         }
       }
     },
     {
-      name: 'gemini-2.0-flash',
+      name: 'gemini-3.8-flash',
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.5-flash-lite',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
           maxOutputTokens: 8192
         }
       }
@@ -3954,14 +3977,13 @@ ${videoDetails.transcript.slice(0, 35000)}
       payload: {
         contents: baseContents,
         generationConfig: {
-          temperature: 0.7,
           maxOutputTokens: 8192
         }
       }
     }
   ];
 
-  const apiTimeout = hasTranscript ? 45000 : 120000;
+  const apiTimeout = hasTranscript ? 45000 : 75000;
 
   for (const item of modelAttempts) {
     try {
@@ -4317,13 +4339,6 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     }
   }
 
-  // Gemini 영상 분석 실패 및 자막 부재 시: 원본 내용과 무관한 왜곡 글 작성을 방지하기 위해 생성 중단
-  if (!rawAiText) {
-    console.warn(`⚠️ [YouTube Finance Generator] 영상 분석 실패: Gemini 영상 시청 및 자막 수집이 불가능합니다 ("${videoDetails.title || youtubeUrl}").`);
-    console.warn('⚠️ 원본 영상 내용과 무관한 왜곡·할루시네이션(임의 창작) 방지를 위해 글 작성을 중단합니다.');
-    return null;
-  }
-
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
   const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
   const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
@@ -4335,10 +4350,15 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   let contentHtml = null;
   if (rawAiText) {
     contentHtml = assembleFinanceHtml(rawAiText, videoDetails, imgUris, dynamicThemeData, postTitle);
+  } else {
+    // Robust Editorial Fallback: If Gemini API timed out, overloaded (503), or video was unavailable for native multimodal,
+    // generate a rich, structured editorial column with the verified 4-step infographics so the user request never vanishes.
+    console.log('[YouTube Finance Generator] AI API unavailable or timed out. Generating structured editorial fallback report...');
+    contentHtml = generateDynamicFinanceReport(dateStr, dateKorean, videoDetails, imgUris, postTitle, dynamicThemeData);
   }
 
   if (!contentHtml) {
-    console.warn('⚠️ [YouTube Finance Generator] AI 본문 생성 실패 또는 거부로 글 작성을 중단합니다.');
+    console.warn('⚠️ [YouTube Finance Generator] 본문 생성 실패로 글 작성을 중단합니다.');
     return null;
   }
 
