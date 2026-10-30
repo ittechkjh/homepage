@@ -2807,6 +2807,8 @@ function toggleManualReportInputs() {
     if (r.checked) {
       if (r.value === 'finance') {
         parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-amber-950/30 border-2 border-amber-500 cursor-pointer transition shadow-lg shadow-amber-500/10';
+      } else if (r.value === 'forecast') {
+        parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-sky-950/30 border-2 border-sky-500 cursor-pointer transition shadow-lg shadow-sky-500/10';
       } else {
         parentLabel.className = 'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-purple-950/30 border-2 border-purple-500 cursor-pointer transition shadow-lg shadow-purple-500/10';
       }
@@ -2816,10 +2818,37 @@ function toggleManualReportInputs() {
   });
 
   const ytContainer = document.getElementById('manual-report-youtube-container');
+  const ytTitle = document.getElementById('manual-report-youtube-title');
+  const ytLabel = document.getElementById('manual-report-youtube-label');
+  const ytDesc = document.getElementById('manual-report-youtube-desc');
+  const ytInput = document.getElementById('manual-report-youtube-url');
+
   if (ytContainer) {
-    if (selectedType === 'finance') {
+    if (selectedType === 'finance' || selectedType === 'forecast') {
       ytContainer.classList.remove('hidden');
-      const ytInput = document.getElementById('manual-report-youtube-url');
+      if (selectedType === 'forecast') {
+        ytContainer.className = 'space-y-2 bg-navy-950 border border-sky-500/40 rounded-2xl p-3.5 sm:p-4 text-xs transition-all';
+        if (ytLabel) ytLabel.className = 'font-bold text-sky-400 flex items-center gap-1.5';
+        if (ytTitle) ytTitle.textContent = '분석할 코인 전망 유튜브 영상 URL 입력';
+        if (ytInput) {
+          ytInput.placeholder = 'https://www.youtube.com/watch?v=... (비트코인/알트코인 시황 분석 영상)';
+          ytInput.className = 'w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-navy-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono transition';
+        }
+        if (ytDesc) {
+          ytDesc.textContent = '크립토 마켓 애널리스트 AI가 코인 분석 영상 내용과 지지·저항선, 목표가, 시나리오를 정밀 분석하여 코인 전망 리포트를 자동 발행합니다.';
+        }
+      } else {
+        ytContainer.className = 'space-y-2 bg-navy-950 border border-amber-500/40 rounded-2xl p-3.5 sm:p-4 text-xs transition-all';
+        if (ytLabel) ytLabel.className = 'font-bold text-amber-300 flex items-center gap-1.5';
+        if (ytTitle) ytTitle.textContent = '분석할 재테크 유튜브 영상 URL 입력';
+        if (ytInput) {
+          ytInput.placeholder = 'https://www.youtube.com/watch?v=... 또는 https://youtu.be/...';
+          ytInput.className = 'w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-navy-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono transition';
+        }
+        if (ytDesc) {
+          ytDesc.textContent = '10년 경력 재테크 전문 블로거 페르소나의 AI가 영상 내용과 핵심 수치를 정밀 분석하여 소제목별 요약, 실전 팁 및 인포그래픽 카드가 포함된 재테크 팁 글을 자동 발행합니다.';
+        }
+      }
       if (ytInput) ytInput.focus();
     } else {
       ytContainer.classList.add('hidden');
@@ -2959,8 +2988,8 @@ async function executeManualReportTrigger() {
     if (res.status === 204) {
       // Successfully triggered!
       const triggerTime = Date.now();
-      const isYoutubeFinance = selectedType === 'finance' && Boolean(youtubeUrl);
-      const totalSeconds = isYoutubeFinance ? 180 : 80;
+      const isYoutubeVideo = (selectedType === 'finance' || selectedType === 'forecast') && Boolean(youtubeUrl);
+      const totalSeconds = isYoutubeVideo ? 180 : 80;
       let secondsLeft = totalSeconds;
       let isCompleted = false;
       const typeDesc = selectedType === 'perspective' 
@@ -2969,7 +2998,9 @@ async function executeManualReportTrigger() {
             ? '거시지표 및 온체인 시황 데이터를 분석' 
             : (selectedType === 'finance' 
                 ? (youtubeUrl ? '유튜브 재테크 영상 내용과 핵심 수치를 분석' : '10년차 재테크 에디터 맞춤 재테크 칼럼을 작성') 
-                : '4H 차트 관점 및 시장 분위기를 종합 분석'));
+                : (selectedType === 'forecast'
+                    ? (youtubeUrl ? '유튜브 코인 전망 영상의 핵심 타깃 및 시나리오를 정밀 분석' : '글로벌 코인 온체인 & 기술적 전망을 종합 분석')
+                    : '4H 차트 관점 및 시장 분위기를 종합 분석')));
       if (statusTitle) {
         statusTitle.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> <span class="text-emerald-300">GitHub Actions 실행 시작!</span>';
       }
@@ -3004,6 +3035,8 @@ async function executeManualReportTrigger() {
             filterForum('altcoin');
           } else if (selectedType === 'finance') {
             filterForum('finance');
+          } else if (selectedType === 'forecast') {
+            filterForum('forecast');
           } else {
             filterForum('all');
           }
@@ -3017,7 +3050,9 @@ async function executeManualReportTrigger() {
                 ? 'AI 시장 분위기 리포트' 
                 : (selectedType === 'finance' 
                     ? 'AI 재테크 팁 리포트' 
-                    : 'AI 시장 리포트 & 차트 관점'));
+                    : (selectedType === 'forecast'
+                        ? 'AI 코인 전망 리포트'
+                        : 'AI 시장 리포트 & 차트 관점')));
           alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
         }, 1200);
       };
@@ -3044,6 +3079,7 @@ async function executeManualReportTrigger() {
                 if (selectedType === 'perspective') return r.category === 'perspective';
                 if (selectedType === 'market') return r.category === 'market' || r.category === 'altcoin';
                 if (selectedType === 'finance') return r.category === 'finance';
+                if (selectedType === 'forecast') return r.category === 'forecast';
                 return true;
               });
               if (matched) return true;
@@ -3068,7 +3104,7 @@ async function executeManualReportTrigger() {
         }
 
         // Start polling after 25s elapsed for YouTube or 40s for others, every ~4 seconds
-        const pollStartSec = isYoutubeFinance ? 25 : 40;
+        const pollStartSec = isYoutubeVideo ? 25 : 40;
         if (elapsed >= pollStartSec && !pollRunning) {
           pollRunning = true;
           const found = await checkNewReportExists();

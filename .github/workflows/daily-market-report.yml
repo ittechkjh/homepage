@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # 수동 생성 버튼(UI 및 GitHub Actions)으로만 실행되도록 스케줄 트리거 해제
     inputs:
       report_type:
-        description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만, finance: 재테크 팁 유튜브 분석)'
+        description: '생성할 리포트 유형 (all: 둘 다, perspective: 차트관점만, market: 시장분위기만, finance: 재테크 팁 유튜브 분석, forecast: 코인 전망 유튜브 분석)'
         required: false
         default: 'all'
         type: choice
@@ -13,8 +13,9 @@ on:
           - perspective
           - market
           - finance
+          - forecast
       youtube_url:
-        description: '재테크 팁 생성용 유튜브 영상 URL (선택 사항)'
+        description: '재테크 팁 또는 코인 전망 생성용 유튜브 영상 URL (선택 사항)'
         required: false
         default: ''
         type: string

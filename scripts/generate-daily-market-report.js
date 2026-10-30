@@ -4380,6 +4380,880 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   };
 }
 
+// ==============================================================================
+// 7. YouTube Coin Forecast Report Generator (🔭 코인 전망 분석기)
+// ==============================================================================
+
+function synthesizeCatchyForecastTitle(videoDetails) {
+  if (!videoDetails || !videoDetails.title) {
+    return '🔭 [코인 전망] 비트코인 주요 변곡점 및 핵심 알트코인 시세 전망 종합 분석';
+  }
+  let raw = videoDetails.title
+    .replace(/^\[.*?\]\s*/g, '')
+    .replace(/^【.*?】\s*/g, '')
+    .replace(/\(.*?\)/g, '')
+    .replace(/!+/g, '')
+    .replace(/\?+/g, '')
+    .trim();
+
+  if (!raw || raw.length < 5) {
+    raw = '비트코인 핵심 변곡점 및 주요 알트코인 시세 전망';
+  } else if (raw.length > 40) {
+    raw = raw.slice(0, 38) + '...';
+  }
+  return `🔭 [코인 전망] ${raw}`;
+}
+
+function extractForecastThemeData(videoDetails, customTitle = null) {
+  const text = `${customTitle || ''} ${videoDetails?.title || ''} ${videoDetails?.description || ''} ${videoDetails?.transcript || ''}`.toLowerCase();
+
+  let coinTag = 'BTC & 주요 알트';
+  if (text.includes('이더') || text.includes('eth') || text.includes('ethereum')) coinTag = 'ETH & 알트코인';
+  else if (text.includes('솔라나') || text.includes('sol')) coinTag = 'SOL 생태계';
+  else if (text.includes('리플') || text.includes('xrp')) coinTag = 'XRP & 결제섹터';
+  else if (text.includes('비트') || text.includes('btc') || text.includes('bitcoin')) coinTag = '비트코인(BTC)';
+
+  return {
+    badge: `🔭 ${coinTag} 퀀트 전망`,
+    heroSub: '온체인 수급 및 기술적 지지·저항 분석',
+    matrixTitle: '주요 가격 레벨 및 시나리오',
+    target: '크립토 투자자 및 실전 트레이더',
+    benefit: '명확한 손익비 & 목표가',
+    benefitSub: '추세 추종 및 리스크 관리 전략',
+    caution: '핵심 지지선 이탈 시 무조건 손절',
+    bullets: [
+      '① 주요 변곡점 및 핵심 지지·저항 라인 점검',
+      '② 단기/중기 상승 및 조정 시나리오별 손익비 분석',
+      '③ 거시 유동성 및 온체인 수급 흐름 진단'
+    ],
+    roadmapTitle: '3단계 실전 코인 매매 대응 로드맵',
+    steps: [
+      {
+        title: '1단계 진입/매집',
+        sub: '지지선 확인 및 분할 매수',
+        items: ['✓ 핵심 지지선 확인', '• 1차 분할 매수(20~30%)', '✓ 거래량 반등 시그널 확인', '• 휩소(속임수) 주의', '✓ 스탑로스 사전 설정', '• 잃지 않는 매매 최우선']
+      },
+      {
+        title: '2단계 추세 추종',
+        sub: '목표가 분할 익절 전략',
+        items: ['✓ 1차 저항선 분할 익절(50%)', '• 본절 스탑 설정', '✓ 추세선 지지 여부 추적', '• 추가 불타기 자제', '✓ 2차 목표가 도달 시 정리', '• 탐욕 경계 및 수익 확정']
+      },
+      {
+        title: '3단계 리스크 관리',
+        sub: '관점 무효화 및 손절 원칙',
+        items: ['✓ 지지선 하향 이탈 시 손절', '• 미련 없는 기계적 대응', '✓ 물타기 절대 금지', '• 계좌 잔고 보존', '✓ 다음 변곡점까지 관망', '• 감정 매매 원천 차단']
+      }
+    ],
+    matrixCards: [
+      { tag: '핵심 지지선', sub: '1차 방어 구간', main: '강한 매수세 유입', bullets: ['• 주요 피보나치 되돌림 구간', '• 직전 매물대 지지 테스트', '✓ 지지 확인 후 분할 매수'] },
+      { tag: '1차 저항선', sub: '단기 목표가', main: '1차 분할 익절 라인', bullets: ['• 단기 매도 압력 집중 구간', '• 거래량 실린 돌파 여부 확인', '✓ 30~50% 비중 축소 권장'] },
+      { tag: '2차 확장가', sub: '중기 추세 목표', main: '상승 랠리 가속', bullets: ['• 주봉/일봉 저항선 상단', '• 과매수 구간 진입 주의', '✓ 트레일링 스탑으로 수익 극대화'] },
+      { tag: '관점 무효화', sub: '손절 기준선', main: '추세 이탈 경고', bullets: ['• 핵심 지지선 하향 이탈', '• 추가 급락 가능성 확대', '✓ 무조건 비중 축소 및 손절'] }
+    ],
+    riskBadge: 'RISK MANAGEMENT',
+    riskTitle: '코인 트레이딩 4대 필수 리스크 관리 원칙',
+    risks: [
+      { code: '01', title: '고배율 레버리지 금지', sub: '청산 리스크 차단', desc: '급변동성에 계좌가 한 번에 청산될 수 있습니다.', tag: '✓ 현물 위주 또는 저배율' },
+      { code: '02', title: '스탑로스(손절선) 필수', sub: '원금 보존 절대 원칙', desc: '손실을 인정하지 않는 물타기는 파산의 지름길입니다.', tag: '✓ 진입 전 손절가 확정' },
+      { code: '03', title: '분할 매수·매도 실천', sub: '평단가 및 심리 안정', desc: '한 번에 몰빵 진입하면 시장 흔들기에 버틸 수 없습니다.', tag: '✓ 3~4회 분할 집행' },
+      { code: '04', title: 'FOMO 뇌동매매 차단', sub: '급등 추격 매수 금지', desc: '이미 급등한 코인을 추격 매수하면 상투를 잡게 됩니다.', tag: '✓ 눌림목 지지 시 진입' }
+    ],
+    summaryQuote: '성공적인 코인 투자는 방향성을 맞추는 것이 아니라, 틀렸을 때 손실을 제한하고 맞았을 때 수익을 극대화하는 리스크 관리에 있습니다.',
+    summaryBullets: [
+      '원칙 없는 몰빵 매수를 지양하고 분할 매매를 생활화하세요.',
+      '주요 지지선 이탈 시 미련 없이 현금 비중을 확대하세요.'
+    ]
+  };
+}
+
+// SVG 1: 메인 썸네일 & 퀀트 전망 브리핑 카드 (16:9 800x450)
+function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractForecastThemeData(videoDetails, customTitle);
+  const safeTitle = (customTitle || videoDetails?.title || '비트코인 핵심 변곡점 및 주요 알트코인 시세 전망').replace(/[<>&"]/g, '');
+  const cleanTitle = safeTitle.replace(/^🔭\s*\[코인\s*전망\]\s*/, '').trim();
+  const displayTitle1 = clampSvgText(cleanTitle, 22);
+
+  const b1 = clampSvgText(tData.bullets?.[0] || '① 주요 변곡점 및 핵심 지지·저항선 점검', 33);
+  const b2 = clampSvgText(tData.bullets?.[1] || '② 단기/중기 상승 및 조정 시나리오별 손익비', 33);
+  const b3 = clampSvgText(tData.bullets?.[2] || '③ 거시 유동성 및 온체인 수급 흐름 진단', 33);
+
+  const safeBadge = clampSvgText(tData.badge || '🔭 퀀트 코인 전망', 16);
+  const safeHeroSub = clampSvgText(tData.heroSub || '온체인 수급 및 기술적 분석', 17);
+  const safeBenefit = clampSvgText(tData.benefit || '명확한 손익비 & 목표가', 13);
+  const safeCaution = clampSvgText(tData.caution || '지지선 이탈 시 손절', 14);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="fc1_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/><stop offset="50%" stop-color="#082f49"/><stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+    <radialGradient id="fc1_glow1" cx="20%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35"/><stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fc1_glow2" cx="80%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="fc1_grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#0369a1" stroke-width="0.5" stroke-opacity="0.15"/>
+    </pattern>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#fc1_bg)"/>
+  <rect width="800" height="450" fill="url(#fc1_grid)"/>
+  <rect width="800" height="450" fill="url(#fc1_glow1)"/>
+  <rect width="800" height="450" fill="url(#fc1_glow2)"/>
+
+  <!-- Top Badge -->
+  <g transform="translate(35, 30)">
+    <rect width="180" height="28" rx="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.2"/>
+    <text x="90" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${safeBadge}</text>
+  </g>
+  <text x="765" y="48" fill="#94a3b8" font-size="11" font-weight="600" font-family="monospace" text-anchor="end">DATE: ${dateStr}</text>
+
+  <!-- Title Section -->
+  <g transform="translate(35, 95)">
+    <text x="0" y="0" fill="#38bdf8" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">CRYPTO QUANT FORECAST REPORT</text>
+    <text x="0" y="32" fill="#ffffff" font-size="23" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${displayTitle1}</text>
+    <text x="0" y="58" fill="#94a3b8" font-size="13" font-weight="500" font-family="'Pretendard', sans-serif">${safeHeroSub}</text>
+  </g>
+
+  <!-- 3 Bullets Card -->
+  <g transform="translate(35, 185)">
+    <rect width="730" height="150" rx="16" fill="#0f172a" fill-opacity="0.75" stroke="#0284c7" stroke-width="1.2"/>
+    
+    <g transform="translate(25, 32)">
+      <circle cx="8" cy="-4" r="5" fill="#38bdf8"/>
+      <text x="24" y="0" fill="#f8fafc" font-size="14" font-weight="700" font-family="'Pretendard', sans-serif">${b1}</text>
+    </g>
+    <g transform="translate(25, 74)">
+      <circle cx="8" cy="-4" r="5" fill="#38bdf8"/>
+      <text x="24" y="0" fill="#f8fafc" font-size="14" font-weight="700" font-family="'Pretendard', sans-serif">${b2}</text>
+    </g>
+    <g transform="translate(25, 116)">
+      <circle cx="8" cy="-4" r="5" fill="#38bdf8"/>
+      <text x="24" y="0" fill="#f8fafc" font-size="14" font-weight="700" font-family="'Pretendard', sans-serif">${b3}</text>
+    </g>
+  </g>
+
+  <!-- Quick Metrics -->
+  <g transform="translate(35, 355)">
+    <rect width="355" height="48" rx="12" fill="#082f49" fill-opacity="0.6" stroke="#0369a1" stroke-width="1"/>
+    <text x="18" y="22" fill="#7dd3fc" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">🎯 핵심 목표</text>
+    <text x="18" y="38" fill="#ffffff" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">${safeBenefit}</text>
+
+    <rect x="375" width="355" height="48" rx="12" fill="#450a0a" fill-opacity="0.4" stroke="#dc2626" stroke-width="1"/>
+    <text x="393" y="22" fill="#fca5a5" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">⚠️ 핵심 주의사항</text>
+    <text x="393" y="38" fill="#ffffff" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">${safeCaution}</text>
+  </g>
+
+  <!-- Footer Banner -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
+    <line x1="0" y1="0" x2="420" y2="0" stroke="#0ea5e9" stroke-width="3"/>
+    <circle cx="420" cy="0" r="4" fill="#0ea5e9"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 실시간 온체인 및 기술적 분석 • 퀀트 전략 리포트</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+}
+
+// SVG 2: 3단계 실천 매매 대응 로드맵 (16:9 800x450)
+function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractForecastThemeData(videoDetails, customTitle);
+  const s1 = tData.steps?.[0] || { title: '1단계 진입/매집', sub: '지지선 확인', items: ['✓ 핵심 지지 구간 확인', '• 1차 분할 매수', '✓ 거래량 반등 확인', '• 스탑로스 설정'] };
+  const s2 = tData.steps?.[1] || { title: '2단계 추세 추종', sub: '분할 익절', items: ['✓ 1차 저항선 분할 익절', '• 본절 스탑 이동', '✓ 추세선 지지 추적', '• 추가 불타기 자제'] };
+  const s3 = tData.steps?.[2] || { title: '3단계 리스크 관리', sub: '무효화 기준', items: ['✓ 지지선 이탈 시 손절', '• 물타기 절대 금지', '✓ 계좌 잔고 보존', '• 감정 매매 차단'] };
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="fc2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/><stop offset="50%" stop-color="#0c1e33"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="fc2_card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f2847" stop-opacity="0.9"/><stop offset="100%" stop-color="#071526" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#fc2_bg)"/>
+
+  <!-- Header -->
+  <g transform="translate(35, 38)">
+    <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">STRATEGY ROADMAP</text>
+    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.roadmapTitle || '3단계 실전 코인 매매 대응 로드맵', 24)}</text>
+  </g>
+
+  <!-- 3 Columns -->
+  <!-- Step 1 -->
+  <g transform="translate(35, 95)">
+    <rect width="230" height="300" rx="16" fill="url(#fc2_card)" stroke="#0284c7" stroke-width="1.2"/>
+    <rect x="0" y="0" width="230" height="45" rx="16" fill="#0369a1" fill-opacity="0.3"/>
+    <text x="20" y="28" fill="#38bdf8" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s1.title, 14)}</text>
+    <text x="20" y="65" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(s1.sub, 16)}</text>
+    <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
+    
+    <g transform="translate(20, 105)">
+      ${(s1.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+    </g>
+  </g>
+
+  <!-- Step 2 -->
+  <g transform="translate(285, 95)">
+    <rect width="230" height="300" rx="16" fill="url(#fc2_card)" stroke="#0ea5e9" stroke-width="1.4"/>
+    <rect x="0" y="0" width="230" height="45" rx="16" fill="#0284c7" fill-opacity="0.35"/>
+    <text x="20" y="28" fill="#7dd3fc" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s2.title, 14)}</text>
+    <text x="20" y="65" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(s2.sub, 16)}</text>
+    <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
+    
+    <g transform="translate(20, 105)">
+      ${(s2.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+    </g>
+  </g>
+
+  <!-- Step 3 -->
+  <g transform="translate(535, 95)">
+    <rect width="230" height="300" rx="16" fill="url(#fc2_card)" stroke="#e11d48" stroke-width="1.2"/>
+    <rect x="0" y="0" width="230" height="45" rx="16" fill="#9f1239" fill-opacity="0.25"/>
+    <text x="20" y="28" fill="#fda4af" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(s3.title, 14)}</text>
+    <text x="20" y="65" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(s3.sub, 16)}</text>
+    <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
+    
+    <g transform="translate(20, 105)">
+      ${(s3.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#fb7185' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+    </g>
+  </g>
+
+  <!-- Footer Banner -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 분할 매매 &amp; 손익비 극대화 매뉴얼</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+}
+
+// SVG 3: 주요 가격 레벨 및 시나리오 분석 매트릭스 (16:9 800x450)
+function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractForecastThemeData(videoDetails, customTitle);
+  const cards = tData.matrixCards || [
+    { tag: '핵심 지지선', sub: '1차 방어 구간', main: '강한 매수세 유입', bullets: ['• 주요 피보나치 되돌림 구간', '• 직전 매물대 지지 테스트', '✓ 지지 확인 후 분할 매수'] },
+    { tag: '1차 저항선', sub: '단기 목표가', main: '1차 분할 익절 라인', bullets: ['• 단기 매도 압력 집중 구간', '• 거래량 실린 돌파 여부 확인', '✓ 30~50% 비중 축소'] },
+    { tag: '2차 확장가', sub: '중기 추세 목표', main: '상승 랠리 가속', bullets: ['• 주봉/일봉 저항선 상단', '• 과매수 구간 진입 주의', '✓ 트레일링 스탑'] },
+    { tag: '관점 무효화', sub: '손절 기준선', main: '추세 이탈 경고', bullets: ['• 핵심 지지선 하향 이탈', '• 추가 급락 가능성 확대', '✓ 무조건 비중 축소'] }
+  ];
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="fc3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/><stop offset="50%" stop-color="#082f49"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#fc3_bg)"/>
+
+  <!-- Header -->
+  <g transform="translate(35, 38)">
+    <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">PRICE LEVELS &amp; MATRIX</text>
+    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.matrixTitle || '주요 가격 레벨 및 시나리오 분석', 24)}</text>
+  </g>
+
+  <!-- 4 Cards Grid (2x2) -->
+  ${cards.slice(0, 4).map((c, idx) => {
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    const x = 35 + col * 375;
+    const y = 90 + row * 155;
+    const isRisk = idx === 3;
+    const borderColor = isRisk ? '#f43f5e' : '#0284c7';
+    const tagColor = isRisk ? '#fca5a5' : '#7dd3fc';
+    const tagBg = isRisk ? '#881337' : '#0369a1';
+
+    return `<g transform="translate(${x}, ${y})">
+      <rect width="355" height="142" rx="14" fill="#0f172a" fill-opacity="0.8" stroke="${borderColor}" stroke-width="1.2"/>
+      <rect x="16" y="14" width="85" height="22" rx="6" fill="${tagBg}" fill-opacity="0.5"/>
+      <text x="58" y="29" fill="${tagColor}" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(c.tag, 10)}</text>
+      <text x="110" y="30" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(c.sub, 15)}</text>
+      <text x="16" y="60" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(c.main, 18)}</text>
+      <line x1="16" y1="72" x2="339" y2="72" stroke="#1e293b" stroke-width="1"/>
+      <g transform="translate(16, 92)">
+        ${(c.bullets || []).slice(0, 3).map((b, bIdx) => `<text x="0" y="${bIdx * 20}" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(b, 26)}</text>`).join('')}
+      </g>
+    </g>`;
+  }).join('')}
+
+  <!-- Footer Banner -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 피보나치·매물대·거래량 융합 지표</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+}
+
+// SVG 4: 리스크 관리 & 관점 무효화 수칙 (16:9 800x450)
+function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynamicThemeData = null) {
+  const tData = dynamicThemeData || extractForecastThemeData(videoDetails, customTitle);
+  const rList = tData.risks || [
+    { code: '01', title: '고배율 레버리지 금지', sub: '청산 리스크 차단', desc: '급변동성에 계좌가 한 번에 청산될 수 있습니다.', tag: '✓ 현물 위주 매매' },
+    { code: '02', title: '스탑로스(손절선) 필수', sub: '원금 보존 절대 원칙', desc: '손실을 인정하지 않는 물타기는 파산의 지름길입니다.', tag: '✓ 진입 전 손절가 확정' },
+    { code: '03', title: '분할 매수·매도 실천', sub: '평단가 및 심리 안정', desc: '한 번에 몰빵 진입하면 시장 흔들기에 버틸 수 없습니다.', tag: '✓ 3~4회 분할 집행' },
+    { code: '04', title: 'FOMO 뇌동매매 차단', sub: '급등 추격 매수 금지', desc: '이미 급등한 코인을 추격 매수하면 상투를 잡게 됩니다.', tag: '✓ 눌림목 지지 시 진입' }
+  ];
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="fc4_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/><stop offset="50%" stop-color="#1e1022"/><stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#fc4_bg)"/>
+
+  <!-- Header -->
+  <g transform="translate(35, 38)">
+    <rect width="140" height="24" rx="12" fill="#be123c" fill-opacity="0.3" stroke="#f43f5e" stroke-width="1"/>
+    <text x="70" y="16" fill="#f43f5e" font-size="10" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge || 'RISK MANAGEMENT', 15)}</text>
+    <text x="0" y="48" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle || '코인 트레이딩 4대 필수 리스크 관리 원칙', 26)}</text>
+  </g>
+
+  <!-- 4 Risk Cards Grid -->
+  ${rList.slice(0, 4).map((r, idx) => {
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    const x = 35 + col * 375;
+    const y = 110 + row * 145;
+
+    return `<g transform="translate(${x}, ${y})">
+      <rect width="355" height="130" rx="14" fill="#0f172a" fill-opacity="0.85" stroke="#334155" stroke-width="1.2"/>
+      <circle cx="32" cy="32" r="16" fill="#be123c" fill-opacity="0.3"/>
+      <text x="32" y="37" fill="#f43f5e" font-size="12" font-weight="900" font-family="monospace" text-anchor="middle">${r.code || '0' + (idx + 1)}</text>
+      <text x="60" y="28" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(r.title, 14)}</text>
+      <text x="60" y="44" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(r.sub, 18)}</text>
+      <line x1="20" y1="58" x2="335" y2="58" stroke="#1e293b" stroke-width="1"/>
+      <text x="20" y="80" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(r.desc, 27)}</text>
+      <rect x="20" y="94" width="160" height="22" rx="6" fill="#0284c7" fill-opacity="0.25"/>
+      <text x="28" y="109" fill="#38bdf8" font-size="10" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(r.tag, 16)}</text>
+    </g>`;
+  }).join('')}
+
+  <!-- Footer Banner -->
+  <g transform="translate(0, 422)">
+    <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
+    <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
+    <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 손익비(Risk/Reward) 중심 자산 보호 원칙</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+  </g>
+</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+}
+
+// Call Gemini API for YouTube Coin Forecast Analysis
+async function callGeminiYouTubeForecastAPI(dateStr, dateKorean, videoDetails, apiKey) {
+  const systemInstruction = `당신은 10년 경력의 크립토 퀀트 마켓 스트래티지스트이자 암호화폐 수석 애널리스트입니다.
+독자는 비트코인 및 주요 알트코인에 투자하는 트레이더와 중장기 투자자들로, 기술적 지표, 온체인 수급, 거시 매크로 변곡점 및 명확한 가격 레벨과 대응 시나리오를 원합니다.
+
+[글 작성 요구사항 - 엄격 준수]
+1. 분석 대상 콘텐츠 주제 밀착 (최우선 원칙):
+   - 전달받은 영상의 실제 코인 전망(비트코인 지지·저항, 알트코인 수급, 상승/하락 시나리오, 목표가, 도미넌스 등)을 정확하게 파악하고, 글 전체가 그 영상의 핵심 전망 논점과 가격 레벨을 충실하게 다루어야 합니다.
+2. 제목 작성 (필수):
+   - 최상단 첫 줄에 반드시 <TITLE>🔭 [코인 전망] 독창적이고 매력적인 제목</TITLE> 형태로 작성하세요.
+   - ⚠️ 절대 유튜브 영상의 원본 제목을 그대로 베끼지 마세요!
+   - 영상의 핵심 타깃 가격, 시장 국면, 변곡점 수치를 포함하여 전문 퀀트 애널리스트 리포트 스타일로 직접 창작하세요.
+3. 유튜브 및 출처 언급 일절 금지 (필수):
+   - 특정 유튜브 채널명이나 '영상에서', '유튜버는', '출연자가' 등의 유튜브 관련 언급을 제목, 소제목, 본문 어디에도 일절 적지 마세요.
+   - 순수하게 크립토 퀀트 분석팀이 독자에게 직접 전문 인사이트를 전달하는 신뢰도 높은 전망 리포트로 작성하세요.
+4. 글 구조 (반드시 준수):
+   - 최상단 첫 줄: <TITLE>🔭 [코인 전망] 직접 창작한 매력적인 제목</TITLE>
+   - 1. 도입부: 현재 암호화폐 시장 국면과 변곡점의 중요성을 짚어주세요.
+   - 2. 본문: 핵심 내용을 3~4개의 소제목(<h4> 태그)으로 구분하여 정리하세요.
+     각 소제목마다 핵심 지지·저항선, 상승/하락 시나리오, 온체인 수급 흐름을 명확한 수치와 함께 상세히 분석하세요.
+     소제목마다 아래의 4개 이미지 주석 플레이스홀더를 순서대로 하나씩 반드시 배치하세요:
+     <!-- FORECAST_IMAGE_1 -->
+     <!-- FORECAST_IMAGE_2 -->
+     <!-- FORECAST_IMAGE_3 -->
+     <!-- FORECAST_IMAGE_4 -->
+   - 3. 정리 및 시사점: 독자가 오늘부터 당장 적용할 수 있는 3단계 실천 매매 대응 전략(진입, 분할 익절, 손절선)을 명확하게 제시하세요.
+   - 4. 마무리 + 독자 행동 유도: 독자의 현재 포지션이나 시장 뷰를 묻는 질문과 따뜻한 당부로 마무리하세요.
+5. 분량: 1,800~2,500자 (가독성 높은 전문 분석 분량).
+6. 맞춤형 인포그래픽 데이터 JSON 출력 (필수):
+   - 글 본문 맨 끝에 반드시 본 글의 핵심 논점·수치와 100% 일치하는 4장 인포그래픽용 데이터를 아래 JSON 형식으로 완벽하게 감싸서 출력하세요.
+   <INFOGRAPHIC_DATA>
+   {
+     "badge": "🔭 코인 전망 핵심 배지 (15자 이내, 예: 🔭 BTC 변곡점 퀀트 전망)",
+     "heroSub": "주제 핵심 부제 (20자 이내)",
+     "matrixTitle": "가격 레벨 및 시나리오 제목 (15자 이내)",
+     "target": "타깃 투자자 (예: 비트코인·알트코인 홀더)",
+     "benefit": "핵심 목표가 또는 손익비 (15자 이내)",
+     "benefitSub": "추가 대응 전략 한 줄",
+     "caution": "핵심 주의점/손절선 한 줄",
+     "bullets": [
+       "① 본문 핵심 요약 1",
+       "② 본문 핵심 요약 2",
+       "③ 본문 핵심 요약 3"
+     ],
+     "roadmapTitle": "3단계 매매 대응 로드맵 제목",
+     "steps": [
+       { "title": "1단계 진입/매집", "sub": "지지선 확인", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
+       { "title": "2단계 추세 추종", "sub": "분할 익절", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
+       { "title": "3단계 리스크 관리", "sub": "무효화 기준", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] }
+     ],
+     "matrixCards": [
+       { "tag": "핵심 지지선", "sub": "1차 방어 구간", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "1차 저항선", "sub": "단기 목표가", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "2차 확장가", "sub": "중기 추세 목표", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
+       { "tag": "관점 무효화", "sub": "손절 기준선", "main": "이탈 기준 수치", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] }
+     ],
+     "riskBadge": "RISK MANAGEMENT",
+     "riskTitle": "코인 트레이딩 4대 필수 리스크 관리 원칙",
+     "risks": [
+       { "code": "01", "title": "수칙 1 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
+       { "code": "02", "title": "수칙 2 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
+       { "code": "03", "title": "수칙 3 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
+       { "code": "04", "title": "수칙 4 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" }
+     ],
+     "summaryQuote": "총평 한 줄 (45자 이내)",
+     "summaryBullets": [
+       "실천 수칙 1 (45자 이내)",
+       "실천 수칙 2 (45자 이내)"
+     ]
+   }
+   </INFOGRAPHIC_DATA>`;
+
+  const hasTranscript = Boolean(videoDetails.transcript && videoDetails.transcript.trim().length >= 50);
+
+  let userPrompt = '';
+  if (hasTranscript) {
+    userPrompt = `다음 암호화폐/코인 전망 콘텐츠의 영상 자막(Transcript)과 메타데이터를 면밀히 분석하고, 영상의 본래 전망 주제를 충실하게 살려 크립토 퀀트 수석 애널리스트 톤으로 전문 분석 리포트를 작성해주세요.
+(주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
+
+[분석 대상 코인 전망 콘텐츠 정보]
+- 원본 주제/제목: ${videoDetails.title}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1500) : '제공된 설명 없음'}
+- 영상 전체 자막 전문(Transcript):
+${videoDetails.transcript.slice(0, 35000)}
+
+위 원본 영상의 발언 내용(실제 차트 분석, 가격 타깃, 지지/저항, 거시 지표, 시장 전망 등)을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
+  } else {
+    userPrompt = `다음 코인 전망 콘텐츠(첨부된 유튜브 영상 및 메타데이터)를 면밀히 분석하고, 영상의 본래 전망 주제를 충실하게 살려 크립토 퀀트 수석 애널리스트 톤으로 전문 분석 리포트를 작성해주세요.
+(주의: 원본 영상 제목을 그대로 베끼지 말고 새로운 매력적인 제목을 창작할 것, 채널명이나 유튜브 관련 언급은 글 어디에도 일체 적지 말 것)
+
+[분석 대상 코인 전망 콘텐츠 정보]
+- 원본 주제/제목: ${videoDetails.title}
+- 핵심 설명: ${videoDetails.description ? videoDetails.description.slice(0, 1500) : '제공된 설명 없음'}
+- 자막: 제공되지 않음 (첨부된 영상을 직접 시청·청취하여 분석할 것)
+
+위 원본 영상 내용(실제 영상 발언, 차트 시각 자료 및 설명)에 실제로 언급된 핵심 요점만을 사실에 입각하여 충실하게 반영하여 4개 인포그래픽 카드 플레이스홀더와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
+  }
+
+  const userParts = [];
+  if (!hasTranscript && videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
+    userParts.push({
+      file_data: {
+        file_uri: videoDetails.url
+      }
+    });
+    console.log(`[Gemini Forecast AI] Attached YouTube video URL for native multimodal understanding: ${videoDetails.url}`);
+  }
+  userParts.push({
+    text: `${systemInstruction}\n\n${userPrompt}`
+  });
+
+  const baseContents = [
+    {
+      role: 'user',
+      parts: userParts
+    }
+  ];
+
+  const modelAttempts = [
+    {
+      name: 'gemini-3.6-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.8-flash',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          maxOutputTokens: 8192,
+          thinkingConfig: { thinkingLevel: 'low' }
+        }
+      }
+    },
+    {
+      name: 'gemini-3.5-flash-lite',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          maxOutputTokens: 8192
+        }
+      }
+    },
+    {
+      name: 'gemini-flash-latest',
+      payload: {
+        contents: baseContents,
+        generationConfig: {
+          maxOutputTokens: 8192
+        }
+      }
+    }
+  ];
+
+  const apiTimeout = hasTranscript ? 45000 : 75000;
+
+  for (const item of modelAttempts) {
+    try {
+      console.log(`[Gemini Forecast AI] Calling ${item.name} (hasTranscript=${hasTranscript}, timeout=${apiTimeout / 1000}s)...`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item.payload),
+        signal: AbortSignal.timeout(apiTimeout)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const candidate = data.candidates?.[0];
+        const parts = candidate?.content?.parts || [];
+        const text = parts.map(p => p.text || '').join('').trim();
+        if (text && text.length > 500) {
+          console.log(`[Gemini Forecast AI] Successfully generated forecast report with ${item.name} (${text.length} chars)`);
+          return text;
+        }
+      } else {
+        const errText = await res.text().catch(() => '');
+        console.warn(`[Gemini Forecast AI] ${item.name} failed with HTTP ${res.status}:`, errText.slice(0, 150));
+      }
+    } catch(e) {
+      console.warn(`[Gemini Forecast AI] Error with ${item.name}:`, e.message);
+    }
+  }
+
+  // Fallback text-only
+  if (!hasTranscript && userParts.length > 1) {
+    console.log('[Gemini Forecast AI] Multimodal call timed out or failed. Retrying with metadata text-only...');
+    const fallbackPrompt = `${systemInstruction}\n\n다음 코인 전망 콘텐츠(제목 및 핵심 설명)를 바탕으로 크립토 퀀트 수석 애널리스트 톤으로 전문 분석 리포트를 작성해주세요.\n\n[콘텐츠 정보]\n- 제목: ${videoDetails.title}\n- 설명: ${videoDetails.description ? videoDetails.description.slice(0, 2000) : '설명 없음'}\n\n위 내용을 충실하게 반영하여 4개 인포그래픽 카드와 최하단 <INFOGRAPHIC_DATA> JSON을 포함해 작성해주세요.`;
+    const fallbackParts = [{ text: fallbackPrompt }];
+
+    for (const item of modelAttempts) {
+      try {
+        const fallbackPayload = {
+          contents: [{ role: 'user', parts: fallbackParts }],
+          generationConfig: item.payload.generationConfig
+        };
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${item.name}:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fallbackPayload),
+          signal: AbortSignal.timeout(45000)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const candidate = data.candidates?.[0];
+          const parts = candidate?.content?.parts || [];
+          const text = parts.map(p => p.text || '').join('').trim();
+          if (text && text.length > 500) {
+            console.log(`[Gemini Forecast AI] Text-only fallback succeeded with ${item.name}`);
+            return text;
+          }
+        }
+      } catch(e) {}
+    }
+  }
+
+  return null;
+}
+
+// Assemble Forecast HTML
+function assembleForecastHtml(rawText, videoDetails, imgUris, themeData = null, postTitle = null) {
+  const tData = themeData || extractForecastThemeData(videoDetails, postTitle);
+  const safeBadge = tData?.badge || '🔭 코인 퀀트 전망 브리핑';
+  const safeRoadmap = tData?.roadmapTitle || '3단계 실전 매매 로드맵';
+  const safeMatrix = tData?.matrixTitle ? `${tData.matrixTitle} 심층 분석` : '주요 가격 레벨 및 시나리오 분석';
+  const safeRisk = tData?.riskTitle || '리스크 관리 및 무효화 수칙';
+
+  const imgTags = [
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="${safeBadge} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="${safeRoadmap} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="${safeMatrix} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`,
+    `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="${safeRisk} - crytopnl.com" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none; box-shadow: none;" /></div>`
+  ];
+
+  let clean = rawText
+    .replace(/<TITLE>.*?<\/TITLE>/is, '')
+    .replace(/<INFOGRAPHIC_DATA>[\s\S]*?<\/INFOGRAPHIC_DATA>/is, '')
+    .trim();
+
+  // Strip Markdown code blocks
+  clean = clean.replace(/^```html\s*/i, '').replace(/```\s*$/i, '').trim();
+
+  // Replace placeholders
+  let replacedCount = 0;
+  clean = clean.replace(/<!--\s*FORECAST_IMAGE_1\s*-->/i, () => { replacedCount++; return imgTags[0]; });
+  clean = clean.replace(/<!--\s*FORECAST_IMAGE_2\s*-->/i, () => { replacedCount++; return imgTags[1]; });
+  clean = clean.replace(/<!--\s*FORECAST_IMAGE_3\s*-->/i, () => { replacedCount++; return imgTags[2]; });
+  clean = clean.replace(/<!--\s*FORECAST_IMAGE_4\s*-->/i, () => { replacedCount++; return imgTags[3]; });
+
+  // If AI missed placeholders, inject them sequentially into <h4> or <p> tags
+  if (replacedCount < 4) {
+    const parts = clean.split(/(<\/h4>|<\/p>)/i);
+    let injected = '';
+    let curImg = 0;
+    for (let i = 0; i < parts.length; i++) {
+      injected += parts[i];
+      if ((parts[i].toLowerCase() === '</h4>' || parts[i].toLowerCase() === '</p>') && curImg < 4 && i > 3 && (i % 6 === 0 || i === parts.length - 2)) {
+        if (!clean.includes(imgTags[curImg])) {
+          injected += `\n${imgTags[curImg]}\n`;
+        }
+        curImg++;
+      }
+    }
+    clean = injected;
+  }
+
+  // Ensure all 4 images are present
+  for (let i = 0; i < 4; i++) {
+    if (!clean.includes(imgUris[i])) {
+      clean += `\n${imgTags[i]}\n`;
+    }
+  }
+
+  // Add YouTube video embed player if videoId exists
+  let videoEmbedHtml = '';
+  if (videoDetails?.videoId) {
+    videoEmbedHtml = `
+<div class="youtube-embed-wrapper" style="position: relative; width: 100%; max-width: 800px; margin: 20px auto 28px auto; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(14, 165, 233, 0.3);">
+  <iframe src="https://www.youtube.com/embed/${videoDetails.videoId}?rel=0" title="코인 전망 영상 분석" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>`;
+  }
+
+  // Add professional disclaimer card
+  const disclaimerHtml = `
+<div class="perspective-invalidation-card" style="background: #082f49; border: 1px solid #0284c7; border-radius: 10px; padding: 18px 20px; margin: 24px 0;">
+  <div style="color: #38bdf8; font-weight: 800; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    💡 [크립토 퀀트 전망팀 유의사항 안내]
+  </div>
+  <p style="font-size: 13px; line-height: 1.8; margin: 0; color: #bae6fd; font-weight: 500; word-break: keep-all;">
+    본 전망 리포트는 차트 기술적 분석 및 온체인 수급 데이터를 바탕으로 작성된 퀀트 참고 자료이며, 특정 가상자산의 매수·매도를 절대 권유하지 않습니다. 암호화폐는 변동성이 매우 높은 고위험 자산이므로 투자 전 반드시 본인의 리스크 허용 범위를 점검하시고 원칙에 기반한 손절선을 확정하시기 바랍니다.
+  </p>
+</div>`;
+
+  return `${videoEmbedHtml}\n${clean}\n${disclaimerHtml}`;
+}
+
+// Fallback Editorial Forecast Report
+function generateDynamicForecastReport(dateStr, dateKorean, videoDetails, imgUris, postTitle, themeData = null) {
+  const safeTitle = (postTitle || videoDetails?.title || '비트코인 핵심 변곡점 및 주요 알트코인 시세 전망').replace(/[<>&"]/g, '');
+  const cleanTitle = safeTitle.replace(/^🔭\s*\[코인\s*전망\]\s*/, '').trim();
+
+  const imgTag1 = `<div class="post-img-container text-center my-4"><img src="${imgUris[0]}" alt="코인 전망 브리핑" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
+  const imgTag2 = `<div class="post-img-container text-center my-4"><img src="${imgUris[1]}" alt="3단계 매매 로드맵" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
+  const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="가격 레벨 매트릭스" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
+  const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="리스크 관리 수칙" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
+
+  let videoEmbedHtml = '';
+  if (videoDetails?.videoId) {
+    videoEmbedHtml = `
+<div class="youtube-embed-wrapper" style="position: relative; width: 100%; max-width: 800px; margin: 20px auto 28px auto; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(14, 165, 233, 0.3);">
+  <iframe src="https://www.youtube.com/embed/${videoDetails.videoId}?rel=0" title="코인 전망 영상 분석" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>`;
+  }
+
+  return `${videoEmbedHtml}
+<h3 style="font-size: 19px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
+  🔭 [코인 전망] ${cleanTitle}
+</h3>
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 24px; margin-bottom: 10px;">
+  1. 시장 국면 점검: 주요 변곡점 도달과 유동성 흐름
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 18px; word-break: keep-all;">
+  암호화폐 시장이 중대한 가격 변곡점에 도달하고 있습니다. 글로벌 거시 매크로 환경(기준금리 전망 및 달러 인덱스)과 비트코인 현물 ETF 유입세가 맞물리면서 주요 매물대 부근에서 치열한 공방이 이어지고 있습니다.<br/>
+  현재 구간은 단순한 상승·하락 베팅보다는, 명확한 상·하방 가격 기준선과 손익비가 유리한 진입 타점을 선별하는 퀀트적 접근이 무엇보다 중요한 시점입니다.
+</p>
+
+${imgTag1}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  2. 기술적 지지·저항 분석과 상승/조정 시나리오
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  차트 파동 분석 상 핵심 지지선이 견고하게 유지될 경우, 직전 고점 돌파를 목표로 하는 1차 익절 라인(단기 저항선)까지의 반등 랠리를 기대할 수 있습니다. 반면, 지지 매물대가 하향 이탈할 경우 직전 저점까지의 2차 조정 가능성을 열어두어야 합니다.
+</p>
+<div style="margin: 14px 0 18px 0;">
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong>핵심 지지선:</strong> 피보나치 0.618 및 주요 수평 매물대가 중첩되는 강력한 매수 방어 구간</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong>1차 저항선:</strong> 단기 매도 차익실현 물량이 출회되는 구간으로, 30~50% 분할 익절이 유리한 영역</div>
+  </div>
+  <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; line-height: 1.75; color: #1e293b;">
+    <span style="color: #0284c7; font-weight: 800;">•</span>
+    <div><strong>관점 무효화 라인:</strong> 해당 가격대 하향 이탈 시 기존 상승 관점을 폐기하고 손절 대응해야 하는 절대 기준선</div>
+  </div>
+</div>
+
+${imgTag2}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  3. 온체인 데이터 및 매크로 유동성 지표 점검
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  거래소 내 스테이블코인 보유량(SSR 지표)과 장기 홀더들의 실현 가격(Realized Price)을 살펴보면, 시장 내 대기 매수 자금은 여전히 풍부한 상태를 유지하고 있습니다. 단기적인 레버리지 청산 빔 이후 건강한 거래량 회복이 동반되는지 확인하는 것이 실전 매매의 핵심 열쇠입니다.
+</p>
+
+${imgTag3}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  4. 실전 트레이딩 4대 필수 리스크 관리 원칙
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  가장 훌륭한 트레이더는 수익을 많이 내는 사람이 아니라 <strong>손실을 엄격하게 제한하는 사람</strong>입니다. 고배율 레버리지 사용을 지양하고, 진입 전 스탑로스(손절선)를 설정하며, 3~4회에 걸친 분할 매수·매도를 철저히 지키는 계좌 관리 습관이 장기적인 우상향 계좌를 만듭니다.
+</p>
+
+${imgTag4}
+
+<h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 28px; margin-bottom: 10px;">
+  5. 종합 결론 및 투자자 대응 가이드
+</h4>
+<p style="font-size: 15px; color: #1e293b; line-height: 1.85; margin-bottom: 16px; word-break: keep-all;">
+  현재 시장은 기회와 리스크가 공존하는 변곡점입니다. 지지 구간에서의 신중한 분할 진입과 저항선에서의 확실한 수익 확정 전략을 통해 안정적인 매매를 이어가시기 바랍니다. 여러분이 주목하고 계신 코인의 지지선이나 질문이 있으시면 댓글로 편하게 남겨주세요!
+</p>
+
+<div class="perspective-invalidation-card" style="background: #082f49; border: 1px solid #0284c7; border-radius: 10px; padding: 18px 20px; margin: 24px 0;">
+  <div style="color: #38bdf8; font-weight: 800; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    💡 [크립토 퀀트 전망팀 유의사항 안내]
+  </div>
+  <p style="font-size: 13px; line-height: 1.8; margin: 0; color: #bae6fd; font-weight: 500; word-break: keep-all;">
+    본 전망 리포트는 차트 기술적 분석 및 온체인 수급 데이터를 바탕으로 작성된 퀀트 참고 자료이며, 특정 가상자산의 매수·매도를 절대 권유하지 않습니다. 암호화폐는 변동성이 매우 높은 고위험 자산이므로 투자 전 반드시 본인의 리스크 허용 범위를 점검하시고 원칙에 기반한 손절선을 확정하시기 바랍니다.
+  </p>
+</div>`;
+}
+
+// Build YouTube Forecast Report
+async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
+  const kst = getKstDate(targetDate);
+  const dateStr = formatDateKst(kst);
+  const dateKorean = formatDateKorean(kst);
+  const hour = String(kst.getHours()).padStart(2, '0');
+  const min = String(kst.getMinutes()).padStart(2, '0');
+  const timeFormatted = `${hour}:${min}`;
+  const reportId = `forecast-${dateStr.replace(/-/g, '')}-${hour}${min}`;
+
+  console.log(`[YouTube Forecast Generator] Analyzing YouTube video for ${dateStr} ${timeFormatted}...`);
+
+  let videoDetails = null;
+  if (youtubeUrl) {
+    videoDetails = await fetchYouTubeVideoDetails(youtubeUrl);
+  }
+
+  if (!videoDetails) {
+    console.log('[YouTube Forecast Generator] 유튜브 URL이 제공되지 않았거나 추출 실패하여 실시간 퀀트 전망 모드로 전환합니다.');
+    videoDetails = {
+      title: '비트코인 핵심 변곡점 및 주요 알트코인 시세 전망',
+      description: '실시간 온체인 수급 및 주요 피보나치 지지·저항 라인 기반 코인 전망 분석',
+      transcript: ''
+    };
+  }
+
+  const cleanTranscript = (videoDetails.transcript || '').trim();
+  if (cleanTranscript && cleanTranscript.length >= 50) {
+    console.log(`[YouTube Forecast Generator] 자막(Transcript) 확보 성공 (${cleanTranscript.length}자).`);
+  } else {
+    console.log('[YouTube Forecast Generator] 영상 자막 부재로 영상 멀티모달 이해 또는 메타데이터 분석을 수행합니다.');
+  }
+
+  let postTitle = synthesizeCatchyForecastTitle(videoDetails);
+  let rawAiText = null;
+  let aiInfographicData = null;
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (apiKey) {
+    try {
+      console.log('[YouTube Forecast Generator] Requesting AI forecast analysis from Gemini...');
+      rawAiText = await callGeminiYouTubeForecastAPI(dateStr, dateKorean, videoDetails, apiKey);
+      if (rawAiText) {
+        const titleMatch = rawAiText.match(/<TITLE>(.*?)<\/TITLE>/i);
+        if (titleMatch && titleMatch[1].trim()) {
+          let extractedTitle = titleMatch[1].replace(/<\/?.*?>/g, '').trim();
+          if (!extractedTitle.startsWith('🔭 [코인 전망]')) {
+            extractedTitle = `🔭 [코인 전망] ${extractedTitle.replace(/^(🔭\s*)?\[.*?\]\s*/, '')}`;
+          }
+          postTitle = extractedTitle;
+          console.log(`[YouTube Forecast Generator] Extracted dynamic AI title: "${postTitle}"`);
+        }
+
+        const infoMatch = rawAiText.match(/<INFOGRAPHIC_DATA>([\s\S]*?)<\/INFOGRAPHIC_DATA>/i);
+        if (infoMatch && infoMatch[1]) {
+          try {
+            const parsedInfo = JSON.parse(infoMatch[1].trim());
+            if (parsedInfo && parsedInfo.steps && parsedInfo.matrixCards && parsedInfo.risks) {
+              aiInfographicData = parsedInfo;
+              console.log('[YouTube Forecast Generator] Successfully parsed AI-generated dynamic infographic data!');
+            }
+          } catch(jsonErr) {
+            console.warn('[YouTube Forecast Generator] Failed to parse <INFOGRAPHIC_DATA> JSON:', jsonErr.message);
+          }
+        }
+      }
+    } catch(e) {
+      console.warn('[YouTube Forecast Generator] Gemini API call failed:', e.message);
+    }
+  }
+
+  const dynamicThemeData = aiInfographicData || extractForecastThemeData(videoDetails, postTitle);
+  const img1 = generateForecastImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img2 = generateForecastImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img3 = generateForecastImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const img4 = generateForecastImage4(dateStr, videoDetails, postTitle, dynamicThemeData);
+  const imgUris = [img1, img2, img3, img4];
+
+  let contentHtml = null;
+  if (rawAiText) {
+    contentHtml = assembleForecastHtml(rawAiText, videoDetails, imgUris, dynamicThemeData, postTitle);
+  } else {
+    console.log('[YouTube Forecast Generator] Generating structured editorial fallback forecast report...');
+    contentHtml = generateDynamicForecastReport(dateStr, dateKorean, videoDetails, imgUris, postTitle, dynamicThemeData);
+  }
+
+  if (!contentHtml) {
+    console.warn('⚠️ [YouTube Forecast Generator] 본문 생성 실패로 글 작성을 중단합니다.');
+    return null;
+  }
+
+  return {
+    id: reportId,
+    category: 'forecast',
+    categoryName: '🔭 코인 전망',
+    title: postTitle,
+    author: '크립토 퀀트 전망팀',
+    authorRank: 'Market Strategist',
+    timestamp: targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000)),
+    time: `${dateStr} ${timeFormatted}`,
+    views: 0,
+    upvotes: 0,
+    isNotice: false,
+    image: true,
+    content: contentHtml,
+    comments: []
+  };
+}
+
 
 // Main execution
 async function main() {
@@ -4456,5 +5330,6 @@ module.exports = {
   buildDailyMarketReport,
   buildDailyPerspectiveReport,
   buildYouTubeFinanceReport,
+  buildYouTubeForecastReport,
   main
 };
