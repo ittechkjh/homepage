@@ -4405,63 +4405,129 @@ function synthesizeCatchyForecastTitle(videoDetails) {
 }
 
 function extractForecastThemeData(videoDetails, customTitle = null) {
-  const text = `${customTitle || ''} ${videoDetails?.title || ''} ${videoDetails?.description || ''} ${videoDetails?.transcript || ''}`.toLowerCase();
+  const title = (customTitle || videoDetails?.title || '').trim();
+  const desc = (videoDetails?.description || '').trim();
+  const transcript = (videoDetails?.transcript || '').trim();
+  const allText = `${title} ${desc} ${transcript.slice(0, 8000)}`.toLowerCase();
 
-  let coinTag = 'BTC & 주요 알트';
-  if (text.includes('이더') || text.includes('eth') || text.includes('ethereum')) coinTag = 'ETH & 알트코인';
-  else if (text.includes('솔라나') || text.includes('sol')) coinTag = 'SOL 생태계';
-  else if (text.includes('리플') || text.includes('xrp')) coinTag = 'XRP & 결제섹터';
-  else if (text.includes('비트') || text.includes('btc') || text.includes('bitcoin')) coinTag = '비트코인(BTC)';
+  // 1. 유튜브 영상에서 실제 다루고 있는 핵심 코인 정밀 판별
+  let coinTag = '비트코인(BTC)';
+  let coinShort = 'BTC';
+  if (allText.includes('솔라나') || allText.includes('sol') || allText.includes('solana')) {
+    coinTag = '솔라나(SOL)';
+    coinShort = 'SOL';
+  } else if (allText.includes('이더') || allText.includes('eth') || allText.includes('ethereum')) {
+    coinTag = '이더리움(ETH)';
+    coinShort = 'ETH';
+  } else if (allText.includes('리플') || allText.includes('xrp') || allText.includes('ripple')) {
+    coinTag = '리플(XRP)';
+    coinShort = 'XRP';
+  } else if (allText.includes('도지') || allText.includes('doge')) {
+    coinTag = '도지코인(DOGE)';
+    coinShort = 'DOGE';
+  } else if (allText.includes('수이') || allText.includes('sui')) {
+    coinTag = '수이(SUI)';
+    coinShort = 'SUI';
+  } else if (allText.includes('에이다') || allText.includes('ada') || allText.includes('cardano')) {
+    coinTag = '에이다(ADA)';
+    coinShort = 'ADA';
+  } else if (allText.includes('아발란체') || allText.includes('avax')) {
+    coinTag = '아발란체(AVAX)';
+    coinShort = 'AVAX';
+  } else if (allText.includes('비트') || allText.includes('btc') || allText.includes('bitcoin')) {
+    coinTag = '비트코인(BTC)';
+    coinShort = 'BTC';
+  } else {
+    coinTag = '크립토 마켓 & 알트';
+    coinShort = 'CRYPTO';
+  }
+
+  // 2. 유튜브 영상 제목 및 설명에서 실제 언급된 구체적 가격/수치 추출
+  const priceMatches = `${title} ${desc}`.match(/(?:\$\s*\d+[\d,\.]*\s*[kKmMbB]?|\d+[\d,\.]*\s*(?:달러|달러선|k|K|만원|만\s*원|억|천불|불))/g) || [];
+  const uniquePrices = [...new Set(priceMatches.map(p => p.trim()))].filter(p => p.length >= 2);
+  const p1 = uniquePrices[0] || '핵심 지지선';
+  const p2 = uniquePrices[1] || '1차 저항선';
+  const p3 = uniquePrices[2] || '2차 확장가';
+  const p4 = uniquePrices[3] || '손절 기준선';
+
+  // 3. 유튜브 영상 제목 기반 핵심 클린 타이틀
+  const cleanTitle = title.replace(/^\[.*?\]\s*/g, '').replace(/^(🔭\s*)?\[.*?\]\s*/g, '').trim();
+  const summaryTitle = cleanTitle.length > 22 ? cleanTitle.slice(0, 20) + '...' : (cleanTitle || `${coinTag} 시세 전망`);
+
+  // 4. 유튜브 자막 또는 설명에서 실제 언급된 핵심 문장 추출
+  const sentences = (transcript || desc)
+    .split(/[.\n?!]/)
+    .map(s => s.trim().replace(/^[^가-힣a-zA-Z0-9]+/, ''))
+    .filter(s => s.length >= 10 && s.length <= 40 && !s.includes('구독') && !s.includes('좋아요') && !s.includes('알림'));
+
+  const bullet1 = sentences[0] ? `① ${sentences[0]}` : `① ${coinTag} 핵심 변곡점 및 주요 지지 라인 점검`;
+  const bullet2 = sentences[1] ? `② ${sentences[1]}` : `② ${coinShort} 단기 저항 돌파 시 목표가 및 시나리오`;
+  const bullet3 = sentences[2] ? `③ ${sentences[2]}` : `③ 영상 분석 기준 온체인 수급 및 거시 변수 진단`;
 
   return {
-    badge: `🔭 ${coinTag} 퀀트 전망`,
-    heroSub: '온체인 수급 및 기술적 지지·저항 분석',
-    matrixTitle: '주요 가격 레벨 및 시나리오',
-    target: '크립토 투자자 및 실전 트레이더',
-    benefit: '명확한 손익비 & 목표가',
+    badge: `🔭 ${coinShort} 퀀트 전망`,
+    heroSub: `${summaryTitle} 정밀 퀀트 분석`,
+    matrixTitle: `${coinShort} 주요 가격 레벨 & 시나리오`,
+    target: `${coinTag} 투자자 & 실전 트레이더`,
+    benefit: `1차 목표: ${p2}`,
     benefitSub: '추세 추종 및 리스크 관리 전략',
-    caution: '핵심 지지선 이탈 시 무조건 손절',
+    caution: `무효화 기준: ${p1} 이탈 시 손절`,
     bullets: [
-      '① 주요 변곡점 및 핵심 지지·저항 라인 점검',
-      '② 단기/중기 상승 및 조정 시나리오별 손익비 분석',
-      '③ 거시 유동성 및 온체인 수급 흐름 진단'
+      bullet1,
+      bullet2,
+      bullet3
     ],
-    roadmapTitle: '3단계 실전 코인 매매 대응 로드맵',
+    roadmapTitle: `${coinShort} 3단계 실전 매매 대응 로드맵`,
     steps: [
       {
         title: '1단계 진입/매집',
-        sub: '지지선 확인 및 분할 매수',
-        items: ['✓ 핵심 지지선 확인', '• 1차 분할 매수(20~30%)', '✓ 거래량 반등 시그널 확인', '• 휩소(속임수) 주의', '✓ 스탑로스 사전 설정', '• 잃지 않는 매매 최우선']
+        sub: `지지 확인 (${p1})`,
+        items: [
+          `✓ ${p1} 지지 테스트 확인`,
+          '• 1차 분할 매수 (20~30%)',
+          `✓ ${coinShort} 반등 거래량 확인`,
+          '• 스탑로스 사전 설정 필수'
+        ]
       },
       {
         title: '2단계 추세 추종',
-        sub: '목표가 분할 익절 전략',
-        items: ['✓ 1차 저항선 분할 익절(50%)', '• 본절 스탑 설정', '✓ 추세선 지지 여부 추적', '• 추가 불타기 자제', '✓ 2차 목표가 도달 시 정리', '• 탐욕 경계 및 수익 확정']
+        sub: `목표 도달 (${p2})`,
+        items: [
+          `✓ 1차 저항선(${p2}) 분할 익절`,
+          '• 본절가로 스탑로스 상향',
+          `✓ 2차 목표(${p3}) 추세 추종`,
+          '• 과매수 시 추가 분할 정리'
+        ]
       },
       {
         title: '3단계 리스크 관리',
-        sub: '관점 무효화 및 손절 원칙',
-        items: ['✓ 지지선 하향 이탈 시 손절', '• 미련 없는 기계적 대응', '✓ 물타기 절대 금지', '• 계좌 잔고 보존', '✓ 다음 변곡점까지 관망', '• 감정 매매 원천 차단']
+        sub: `무효화 대응 (${p4})`,
+        items: [
+          `✓ ${p1} 이탈 시 기계적 손절`,
+          '• 하락 시 물타기 절대 금지',
+          '✓ 현금 비중 50% 이상 확보',
+          '• 감정 매매 및 뇌동매매 차단'
+        ]
       }
     ],
     matrixCards: [
-      { tag: '핵심 지지선', sub: '1차 방어 구간', main: '강한 매수세 유입', bullets: ['• 주요 피보나치 되돌림 구간', '• 직전 매물대 지지 테스트', '✓ 지지 확인 후 분할 매수'] },
-      { tag: '1차 저항선', sub: '단기 목표가', main: '1차 분할 익절 라인', bullets: ['• 단기 매도 압력 집중 구간', '• 거래량 실린 돌파 여부 확인', '✓ 30~50% 비중 축소 권장'] },
-      { tag: '2차 확장가', sub: '중기 추세 목표', main: '상승 랠리 가속', bullets: ['• 주봉/일봉 저항선 상단', '• 과매수 구간 진입 주의', '✓ 트레일링 스탑으로 수익 극대화'] },
-      { tag: '관점 무효화', sub: '손절 기준선', main: '추세 이탈 경고', bullets: ['• 핵심 지지선 하향 이탈', '• 추가 급락 가능성 확대', '✓ 무조건 비중 축소 및 손절'] }
+      { tag: '핵심 지지선', sub: '1차 방어 구간', main: p1, bullets: [`• ${coinShort} 주요 피보나치 지지대`, '• 직전 매물대 지지 테스트', '✓ 지지 확인 후 분할 진입'] },
+      { tag: '1차 저항선', sub: '단기 목표가', main: p2, bullets: [`• ${coinShort} 단기 매도 저항 매물`, '• 거래량 실린 돌파 여부 확인', '✓ 30~50% 비중 축소 권장'] },
+      { tag: '2차 확장가', sub: '중기 추세 목표', main: p3, bullets: [`• ${coinShort} 파동 확장 목표 구간`, '• 과매수 구간 진입 주의', '✓ 트레일링 스탑 수익 극대화'] },
+      { tag: '관점 무효화', sub: '손절 기준선', main: p4, bullets: [`• ${coinShort} 추세 이탈 경고 라인`, '• 추가 하락 파동 열리는 구간', '✓ 무조건 비중 축소 및 손절'] }
     ],
     riskBadge: 'RISK MANAGEMENT',
-    riskTitle: '코인 트레이딩 4대 필수 리스크 관리 원칙',
+    riskTitle: `${coinShort} 4대 필수 리스크 관리 원칙`,
     risks: [
-      { code: '01', title: '고배율 레버리지 금지', sub: '청산 리스크 차단', desc: '급변동성에 계좌가 한 번에 청산될 수 있습니다.', tag: '✓ 현물 위주 또는 저배율' },
-      { code: '02', title: '스탑로스(손절선) 필수', sub: '원금 보존 절대 원칙', desc: '손실을 인정하지 않는 물타기는 파산의 지름길입니다.', tag: '✓ 진입 전 손절가 확정' },
-      { code: '03', title: '분할 매수·매도 실천', sub: '평단가 및 심리 안정', desc: '한 번에 몰빵 진입하면 시장 흔들기에 버틸 수 없습니다.', tag: '✓ 3~4회 분할 집행' },
-      { code: '04', title: 'FOMO 뇌동매매 차단', sub: '급등 추격 매수 금지', desc: '이미 급등한 코인을 추격 매수하면 상투를 잡게 됩니다.', tag: '✓ 눌림목 지지 시 진입' }
+      { code: '01', title: '고배율 레버리지 금지', sub: '청산 리스크 차단', desc: `${coinShort} 급변동성에 계좌가 한 번에 청산될 수 있습니다.`, tag: '✓ 현물 위주 또는 저배율' },
+      { code: '02', title: '스탑로스(손절선) 필수', sub: '원금 보존 절대 원칙', desc: `${p1} 이탈 시 손실을 인정하고 즉시 잘라내야 합니다.`, tag: '✓ 진입 전 손절가 확정' },
+      { code: '03', title: '분할 매수·매도 실천', sub: '평단가 및 심리 안정', desc: '한 번에 몰빵 진입하면 흔들기에 멘탈이 무너집니다.', tag: '✓ 3~4회 분할 집행' },
+      { code: '04', title: 'FOMO 뇌동매매 차단', sub: '급등 추격 매수 금지', desc: '이미 급등한 구간에서 진입하면 상투를 잡게 됩니다.', tag: '✓ 눌림목 지지 시 진입' }
     ],
-    summaryQuote: '성공적인 코인 투자는 방향성을 맞추는 것이 아니라, 틀렸을 때 손실을 제한하고 맞았을 때 수익을 극대화하는 리스크 관리에 있습니다.',
+    summaryQuote: `${coinTag} 투자는 방향성을 맞추는 것보다, 틀렸을 때 손실을 제한하고 맞았을 때 수익을 극대화하는 리스크 관리에 있습니다.`,
     summaryBullets: [
-      '원칙 없는 몰빵 매수를 지양하고 분할 매매를 생활화하세요.',
-      '주요 지지선 이탈 시 미련 없이 현금 비중을 확대하세요.'
+      `${coinShort} 핵심 지지선(${p1}) 이탈 시 미련 없이 현금화하세요.`,
+      `1차 목표가(${p2}) 도달 시 반드시 분할 익절로 원금을 챙기세요.`
     ]
   };
 }
@@ -4780,46 +4846,111 @@ async function callGeminiYouTubeForecastAPI(dateStr, dateKorean, videoDetails, a
    - 3. 정리 및 시사점: 독자가 오늘부터 당장 적용할 수 있는 3단계 실천 매매 대응 전략(진입, 분할 익절, 손절선)을 명확하게 제시하세요.
    - 4. 마무리 + 독자 행동 유도: 독자의 현재 포지션이나 시장 뷰를 묻는 질문과 따뜻한 당부로 마무리하세요.
 5. 분량: 1,800~2,500자 (가독성 높은 전문 분석 분량).
-6. 맞춤형 인포그래픽 데이터 JSON 출력 (필수):
-   - 글 본문 맨 끝에 반드시 본 글의 핵심 논점·수치와 100% 일치하는 4장 인포그래픽용 데이터를 아래 JSON 형식으로 완벽하게 감싸서 출력하세요.
+6. 유튜브 영상 내용 100% 맞춤형 인포그래픽 데이터 JSON 출력 (최우선 필수 규칙):
+   - ⚠️ 절대 주의: 4장의 인포그래픽 카드에 들어갈 모든 데이터는 유튜브 영상 본문(자막 및 설명)에서 분석가가 직접 언급한 실제 코인명(비트코인, 솔라나, 이더리움, 리플 등), 실제 분석 가격 수치(예: $68.5K, $74,000, 1억 등), 영상의 실제 상승/하락 근거 및 구체적인 대응 시나리오만을 100% 반영해야 합니다.
+   - ⚠️ 절대 금지: "핵심 수칙 1", "설명 1", "가격 수치 또는 강도", "위험 상황" 같은 추상적이거나 일반론적인 템플릿 문구를 그대로 출력하는 것을 엄격히 금지합니다.
+   - 글 본문 맨 끝에 반드시 아래 JSON 형식으로 완벽하게 감싸서 출력하세요 (마크다운 코드블록이나 백틱 없이 순수 JSON을 <INFOGRAPHIC_DATA> 태그 안에 출력):
    <INFOGRAPHIC_DATA>
    {
-     "badge": "🔭 코인 전망 핵심 배지 (15자 이내, 예: 🔭 BTC 변곡점 퀀트 전망)",
-     "heroSub": "주제 핵심 부제 (20자 이내)",
-     "matrixTitle": "가격 레벨 및 시나리오 제목 (15자 이내)",
-     "target": "타깃 투자자 (예: 비트코인·알트코인 홀더)",
-     "benefit": "핵심 목표가 또는 손익비 (15자 이내)",
-     "benefitSub": "추가 대응 전략 한 줄",
-     "caution": "핵심 주의점/손절선 한 줄",
+     "badge": "🔭 [영상 속 핵심 코인명] 퀀트 전망 (15자 이내, 예: 🔭 BTC 74K 돌파 퀀트 전망)",
+     "heroSub": "[영상 분석가의 핵심 논거 요약] (20자 이내, 예: ETF 유입세 및 68.5K 지지 테스트)",
+     "matrixTitle": "[영상 속 코인명] 주요 가격 레벨 & 시나리오 (18자 이내)",
+     "target": "[해당 코인 타깃 투자자] (예: BTC·알트코인 스윙 트레이더)",
+     "benefit": "[영상에서 제시한 1차/최종 목표가] (15자 이내, 예: 1차 $74K • 2차 $80K)",
+     "benefitSub": "[영상의 핵심 전략 요약] (예: 눌림목 분할 매수 후 추세 추종)",
+     "caution": "[영상에서 경고한 핵심 손절/무효화 가격] (예: $66,800 이탈 시 전량 손절)",
      "bullets": [
-       "① 본문 핵심 요약 1",
-       "② 본문 핵심 요약 2",
-       "③ 본문 핵심 요약 3"
+       "① [영상에서 분석가가 강조한 핵심 논점 1: 코인명, 현재가 및 지지선 분석]",
+       "② [영상에서 분석가가 강조한 핵심 논점 2: 돌파 저항선 및 1차/2차 목표가]",
+       "③ [영상에서 분석가가 강조한 핵심 논점 3: 온체인/거시지표 및 변곡점 변수]"
      ],
-     "roadmapTitle": "3단계 매매 대응 로드맵 제목",
+     "roadmapTitle": "[영상 기반] 3단계 실전 매매 대응 로드맵",
      "steps": [
-       { "title": "1단계 진입/매집", "sub": "지지선 확인", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
-       { "title": "2단계 추세 추종", "sub": "분할 익절", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] },
-       { "title": "3단계 리스크 관리", "sub": "무효화 기준", "items": ["✓ 핵심 수칙 1", "• 설명", "✓ 핵심 수칙 2", "• 설명", "✓ 핵심 수칙 3", "• 설명"] }
+       {
+         "title": "1단계 진입/매집",
+         "sub": "[영상에서 제시한 지지 가격대]",
+         "items": [
+           "✓ [영상 추천 진입 구간]",
+           "• [영상 속 분할 매수 비중]",
+           "✓ [영상 속 확인 지표/시그널]",
+           "• [영상 속 진입 주의점]"
+         ]
+       },
+       {
+         "title": "2단계 추세 추종",
+         "sub": "[영상에서 제시한 목표 가격대]",
+         "items": [
+           "✓ [영상 속 1차 저항/익절선]",
+           "• [영상 속 익절 비중]",
+           "✓ [영상 속 2차 확장 목표가]",
+           "• [영상 속 추세 지속 조건]"
+         ]
+       },
+       {
+         "title": "3단계 리스크 관리",
+         "sub": "[영상에서 경고한 무효화 기준]",
+         "items": [
+           "✓ [영상 속 손절/이탈 가격]",
+           "• [영상 속 손절 원칙]",
+           "✓ [영상 속 추가 하락 지지선]",
+           "• [영상 속 뇌동매매 방어책]"
+         ]
+       }
      ],
      "matrixCards": [
-       { "tag": "핵심 지지선", "sub": "1차 방어 구간", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "1차 저항선", "sub": "단기 목표가", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "2차 확장가", "sub": "중기 추세 목표", "main": "가격 수치 또는 강도", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] },
-       { "tag": "관점 무효화", "sub": "손절 기준선", "main": "이탈 기준 수치", "bullets": ["• 설명 1", "• 설명 2", "✓ 실전 팁"] }
+       {
+         "tag": "핵심 지지선",
+         "sub": "[영상 속 지지 레벨 명칭]",
+         "main": "[영상 속 구체적 가격/수치]",
+         "bullets": [
+           "• [영상 속 지지 근거 1]",
+           "• [영상 속 지지 근거 2]",
+           "✓ [영상 속 실전 매수 팁]"
+         ]
+       },
+       {
+         "tag": "1차 저항선",
+         "sub": "[영상 속 단기 목표 명칭]",
+         "main": "[영상 속 구체적 가격/수치]",
+         "bullets": [
+           "• [영상 속 저항 매물대 근거]",
+           "• [영상 속 분할 익절 전략]",
+           "✓ [영상 속 실전 익절 팁]"
+         ]
+       },
+       {
+         "tag": "2차 확장가",
+         "sub": "[영상 속 중기 목표 명칭]",
+         "main": "[영상 속 구체적 가격/수치]",
+         "bullets": [
+           "• [영상 속 상승 파동 확장 근거]",
+           "• [영상 속 과매수 경고 구간]",
+           "✓ [영상 속 트레일링 스탑 팁]"
+         ]
+       },
+       {
+         "tag": "관점 무효화",
+         "sub": "[영상 속 손절 기준 명칭]",
+         "main": "[영상 속 구체적 손절 가격]",
+         "bullets": [
+           "• [영상 속 지지선 붕괴 시나리오]",
+           "• [영상 속 하방 열린 지점]",
+           "✓ [영상 속 즉시 대응 원칙]"
+         ]
+       }
      ],
      "riskBadge": "RISK MANAGEMENT",
-     "riskTitle": "코인 트레이딩 4대 필수 리스크 관리 원칙",
+     "riskTitle": "[영상 속 코인명] 4대 필수 리스크 관리 원칙",
      "risks": [
-       { "code": "01", "title": "수칙 1 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
-       { "code": "02", "title": "수칙 2 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
-       { "code": "03", "title": "수칙 3 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" },
-       { "code": "04", "title": "수칙 4 제목 (10자 이내)", "sub": "상황 (12자 이내)", "desc": "핵심 위험 내용 (24자 이내)", "tag": "✓ 대처법 (13자 이내)" }
+       { "code": "01", "title": "[영상 경고 1]", "sub": "[위험 상황]", "desc": "[영상에서 지적한 구체적 위험 내용]", "tag": "✓ [영상 속 대처법]" },
+       { "code": "02", "title": "[영상 경고 2]", "sub": "[위험 상황]", "desc": "[영상에서 지적한 구체적 위험 내용]", "tag": "✓ [영상 속 대처법]" },
+       { "code": "03", "title": "[영상 경고 3]", "sub": "[위험 상황]", "desc": "[영상에서 지적한 구체적 위험 내용]", "tag": "✓ [영상 속 대처법]" },
+       { "code": "04", "title": "[영상 경고 4]", "sub": "[위험 상황]", "desc": "[영상에서 지적한 구체적 위험 내용]", "tag": "✓ [영상 속 대처법]" }
      ],
-     "summaryQuote": "총평 한 줄 (45자 이내)",
+     "summaryQuote": "[영상 분석가의 핵심 메시지 및 당부 한 줄 (45자 이내)]",
      "summaryBullets": [
-       "실천 수칙 1 (45자 이내)",
-       "실천 수칙 2 (45자 이내)"
+       "[영상 속 실천 지침 1]",
+       "[영상 속 실천 지침 2]"
      ]
    }
    </INFOGRAPHIC_DATA>`;
@@ -5201,10 +5332,34 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
         const infoMatch = rawAiText.match(/<INFOGRAPHIC_DATA>([\s\S]*?)<\/INFOGRAPHIC_DATA>/i);
         if (infoMatch && infoMatch[1]) {
           try {
-            const parsedInfo = JSON.parse(infoMatch[1].trim());
-            if (parsedInfo && parsedInfo.steps && parsedInfo.matrixCards && parsedInfo.risks) {
-              aiInfographicData = parsedInfo;
-              console.log('[YouTube Forecast Generator] Successfully parsed AI-generated dynamic infographic data!');
+            let jsonClean = infoMatch[1].trim()
+              .replace(/^```(?:json)?\s*/i, '')
+              .replace(/```\s*$/i, '')
+              .trim();
+            // Trailing comma cleanup
+            jsonClean = jsonClean.replace(/,\s*([\]}])/g, '$1');
+            const parsedInfo = JSON.parse(jsonClean);
+            if (parsedInfo && typeof parsedInfo === 'object') {
+              const fallbackTheme = extractForecastThemeData(videoDetails, postTitle);
+              aiInfographicData = {
+                badge: parsedInfo.badge || fallbackTheme.badge,
+                heroSub: parsedInfo.heroSub || fallbackTheme.heroSub,
+                matrixTitle: parsedInfo.matrixTitle || fallbackTheme.matrixTitle,
+                target: parsedInfo.target || fallbackTheme.target,
+                benefit: parsedInfo.benefit || fallbackTheme.benefit,
+                benefitSub: parsedInfo.benefitSub || fallbackTheme.benefitSub,
+                caution: parsedInfo.caution || fallbackTheme.caution,
+                bullets: (Array.isArray(parsedInfo.bullets) && parsedInfo.bullets.length >= 2) ? parsedInfo.bullets : fallbackTheme.bullets,
+                roadmapTitle: parsedInfo.roadmapTitle || fallbackTheme.roadmapTitle,
+                steps: (Array.isArray(parsedInfo.steps) && parsedInfo.steps.length >= 2) ? parsedInfo.steps : fallbackTheme.steps,
+                matrixCards: (Array.isArray(parsedInfo.matrixCards) && parsedInfo.matrixCards.length >= 3) ? parsedInfo.matrixCards : fallbackTheme.matrixCards,
+                riskBadge: parsedInfo.riskBadge || fallbackTheme.riskBadge,
+                riskTitle: parsedInfo.riskTitle || fallbackTheme.riskTitle,
+                risks: (Array.isArray(parsedInfo.risks) && parsedInfo.risks.length >= 2) ? parsedInfo.risks : fallbackTheme.risks,
+                summaryQuote: parsedInfo.summaryQuote || fallbackTheme.summaryQuote,
+                summaryBullets: parsedInfo.summaryBullets || fallbackTheme.summaryBullets
+              };
+              console.log('[YouTube Forecast Generator] Successfully parsed and validated AI dynamic infographic data matching YouTube content!');
             }
           } catch(jsonErr) {
             console.warn('[YouTube Forecast Generator] Failed to parse <INFOGRAPHIC_DATA> JSON:', jsonErr.message);
