@@ -2430,7 +2430,7 @@ function ensureDailyMarketReportPost(posts) {
   if (Array.isArray(inMemoryForumPosts)) {
     inMemoryForumPosts.forEach(p => {
       if (p && p.id && !deletedIds.includes(String(p.id)) && !postMap.has(String(p.id))) {
-        const isReport = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        const isReport = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
         if (isReport) {
           postMap.set(String(p.id), p);
         }
@@ -2494,7 +2494,7 @@ function ensureDailyMarketReportPost(posts) {
         } else if (!localStorage.getItem('voted_post_' + p.id)) {
           p.upvotes = 0;
         }
-        const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
         if (isAuto) {
           if (viewsMap[p.id] !== undefined && viewsMap[p.id] >= 50) {
             delete viewsMap[p.id];
@@ -3266,6 +3266,20 @@ function ensureForumCategoriesInDOM() {
     }
   }
 
+  if (filters && !filters.querySelector('[data-cat="forecast"]')) {
+    const forecastBtn = document.createElement('button');
+    forecastBtn.onclick = () => filterForum('forecast');
+    forecastBtn.setAttribute('data-cat', 'forecast');
+    forecastBtn.className = 'category-btn px-3.5 py-1.5 rounded-xl bg-navy-950 text-slate-400 hover:text-white border border-navy-800 text-xs font-medium transition';
+    forecastBtn.textContent = '🔭 코인 전망';
+    const perspectiveBtn = filters.querySelector('[data-cat="perspective"]');
+    if (perspectiveBtn && perspectiveBtn.nextSibling) {
+      filters.insertBefore(forecastBtn, perspectiveBtn.nextSibling);
+    } else {
+      filters.appendChild(forecastBtn);
+    }
+  }
+
   if (filters && !filters.querySelector('[data-cat="trading"]')) {
     const tradingBtn = document.createElement('button');
     tradingBtn.onclick = () => filterForum('trading');
@@ -3286,6 +3300,17 @@ function ensureForumCategoriesInDOM() {
         select.insertBefore(opt, genOpt.nextSibling);
       } else {
         select.appendChild(opt);
+      }
+    }
+    if (select && !select.querySelector('option[value="forecast"]')) {
+      const optForecast = document.createElement('option');
+      optForecast.value = 'forecast';
+      optForecast.textContent = '🔭 코인 전망';
+      const perspOpt = select.querySelector('option[value="perspective"]');
+      if (perspOpt && perspOpt.nextSibling) {
+        select.insertBefore(optForecast, perspOpt.nextSibling);
+      } else {
+        select.appendChild(optForecast);
       }
     }
     if (select && !select.querySelector('option[value="trading"]')) {
@@ -3446,7 +3471,7 @@ function renderForumPosts() {
             ${post.isNotice 
               ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">📢 공지</span>' 
               : `<span class="forum-post-num text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-navy-950 text-cyan-400/90 border border-navy-800" title="게시글 번호">No. ${postNumber}</span>`}
-            ${post.category === 'perspective' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">🎯 차트 관점</span>' : post.category === 'finance' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">💰 재테크 팁</span>' : (post.category === 'trading' || post.categoryName === '📈 트레이딩자료' || post.categoryName === '📈 트레이딩') ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">📈 트레이딩</span>' : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '📊 시장 분위기' : post.categoryName)}</span>`}
+            ${post.category === 'perspective' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">🎯 차트 관점</span>' : post.category === 'forecast' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30">🔭 코인 전망</span>' : post.category === 'finance' ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">💰 재테크 팁</span>' : (post.category === 'trading' || post.categoryName === '📈 트레이딩자료' || post.categoryName === '📈 트레이딩') ? '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">📈 트레이딩</span>' : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">${escapeHtml((post.category === 'altcoin' || post.categoryName === '🚀 알트코인') ? '📊 시장 분위기' : post.categoryName)}</span>`}
             ${hasImage ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1"><i data-lucide="image" class="w-3 h-3"></i> 사진포함</span>' : ''}
             <span class="text-xs text-slate-400">• ${escapeHtml(formatDateTime(post.time || post.timestamp))}</span>
             <span class="text-xs font-semibold text-slate-300">• ${escapeHtml(post.author)}</span>
@@ -3755,6 +3780,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (catEl) {
     let catDisplayName = (post.category === 'altcoin' || post.categoryName === '🚀 알트코인' || post.categoryName === '알트코인') ? '📊 시장 분위기' : post.categoryName;
     if (post.category === 'perspective') catDisplayName = '🎯 차트 관점';
+    if (post.category === 'forecast') catDisplayName = '🔭 코인 전망';
     if (post.category === 'finance') catDisplayName = '💰 재테크 팁';
     if (post.isNotice) {
       catEl.innerHTML = `<span class="text-rose-400 font-bold mr-2">📢 공지</span>${catDisplayName}`;
@@ -4974,6 +5000,7 @@ function handleCafeSubmitPost(e) {
     profit: '💵 실현손익',
     altcoin: '📊 시장 분위기',
     perspective: '🎯 차트 관점',
+    forecast: '🔭 코인 전망',
     trading: '📈 트레이딩자료',
     feature: '💡 추가기능요청'
   };
