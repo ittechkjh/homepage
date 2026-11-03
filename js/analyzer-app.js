@@ -567,7 +567,7 @@ const GuestAnalyzerTracker = {
                 userAgent: navigator.userAgent.slice(0, 150)
             };
 
-            // 1. Firestore 클라우드 컬렉션 'guest_trades'에 저장
+            // 1. Firestore 클라우드 컬렉션 'guest_trades'에 100% 실측 기록
             let firestore = window.db || (typeof db !== 'undefined' ? db : null);
             if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
                 try { firestore = firebase.firestore(); } catch (e) {}
@@ -575,18 +575,8 @@ const GuestAnalyzerTracker = {
             if (firestore) {
                 firestore.collection('guest_trades').doc(docId).set(guestPayload)
                     .then(() => console.log('✅ [Guest Tracker] 비회원 손익분석 업로드 내역 Firestore 기록 완료:', docId))
-                    .catch(err => console.warn('⚠️ [Guest Tracker] Firestore 저장 실패, 로컬 캐시로 대체:', err));
+                    .catch(err => console.warn('⚠️ [Guest Tracker] Firestore 저장 실패:', err));
             }
-
-            // 2. 브라우저 localStorage 캐시에 보관 (최신 50건 유지)
-            try {
-                const cachedRaw = localStorage.getItem('crytopnl_guest_trades_cache');
-                let list = cachedRaw ? JSON.parse(cachedRaw) : [];
-                if (!Array.isArray(list)) list = [];
-                list.unshift(guestPayload);
-                if (list.length > 50) list = list.slice(0, 50);
-                localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(list));
-            } catch (e) {}
 
         } catch (e) {
             console.warn('[Guest Tracker] Error recording guest upload:', e);

@@ -71,96 +71,7 @@ const AdminAnalytics = {
         return `${diffDay}일 전`;
     },
 
-    // Cloudflare Web Analytics 공식 실측 데이터 베이스라인 (최근 30일: 1,830명 순방문자 / 7,670 PV)
-    CLOUDFLARE_BASELINE: {
-        totalVisitorsAllTime: 1830,
-        totalPageviewsAllTime: 7670,
-        dailyMap: {
-            '2026-09-19': { visitors: 18, pageviews: 76 },
-            '2026-09-20': { visitors: 34, pageviews: 142 },
-            '2026-09-21': { visitors: 62, pageviews: 258 },
-            '2026-09-22': { visitors: 36, pageviews: 149 },
-            '2026-09-23': { visitors: 33, pageviews: 138 },
-            '2026-09-24': { visitors: 21, pageviews: 88 },
-            '2026-09-25': { visitors: 19, pageviews: 80 },
-            '2026-09-26': { visitors: 28, pageviews: 117 },
-            '2026-09-27': { visitors: 42, pageviews: 175 },
-            '2026-09-28': { visitors: 39, pageviews: 163 },
-            '2026-09-29': { visitors: 41, pageviews: 171 },
-            '2026-09-30': { visitors: 22, pageviews: 92 },
-            '2026-10-01': { visitors: 26, pageviews: 109 },
-            '2026-10-02': { visitors: 28, pageviews: 118 }
-        },
-        cumDevices: { mobile: 1061, desktop: 769 },
-        cumBrowsers: { Chrome: 1135, Safari: 439, Samsung: 146, Edge: 73, Whale: 18, Firefox: 0, Other: 19 },
-        cumFeatures: {
-            analyzer: 2840,
-            market: 1520,
-            onchain: 890,
-            patterns: 760,
-            calculators: 680,
-            news: 380,
-            policy: 220,
-            community: 240,
-            calendar: 140
-        },
-        todayDevices: { mobile: 16, desktop: 12 },
-        todayBrowsers: { Chrome: 17, Safari: 7, Samsung: 2, Edge: 1, Whale: 1, Firefox: 0, Other: 0 },
-        todayFeatures: {
-            analyzer: 44,
-            market: 24,
-            onchain: 14,
-            patterns: 12,
-            calculators: 10,
-            news: 6,
-            policy: 3,
-            community: 3,
-            calendar: 2
-        }
-    },
-
-    // Dynamic rolling 14-day Cloudflare baseline up to current day
-    getCloudflareBaseline: function () {
-        const pattern = [
-            { offset: 13, visitors: 18, pageviews: 76 },
-            { offset: 12, visitors: 34, pageviews: 142 },
-            { offset: 11, visitors: 62, pageviews: 258 },
-            { offset: 10, visitors: 36, pageviews: 149 },
-            { offset: 9, visitors: 33, pageviews: 138 },
-            { offset: 8, visitors: 21, pageviews: 88 },
-            { offset: 7, visitors: 19, pageviews: 80 },
-            { offset: 6, visitors: 28, pageviews: 117 },
-            { offset: 5, visitors: 42, pageviews: 175 },
-            { offset: 4, visitors: 39, pageviews: 163 },
-            { offset: 3, visitors: 41, pageviews: 171 },
-            { offset: 2, visitors: 22, pageviews: 92 },
-            { offset: 1, visitors: 26, pageviews: 109 },
-            { offset: 0, visitors: 28, pageviews: 118 }
-        ];
-        const dailyMap = {};
-        const now = new Date();
-        pattern.forEach(p => {
-            const d = new Date(now);
-            d.setDate(d.getDate() - p.offset);
-            const k = this.getKstDateStr(d);
-            dailyMap[k] = { visitors: p.visitors, pageviews: p.pageviews };
-        });
-
-        return {
-            totalVisitorsAllTime: 1830,
-            totalPageviewsAllTime: 7670,
-            dailyMap: dailyMap,
-            todayVisitors: 28,
-            todayPageviews: 118,
-            cumDevices: { mobile: 1061, desktop: 769 },
-            cumBrowsers: { Chrome: 1135, Safari: 439, Samsung: 146, Edge: 73, Whale: 18, Firefox: 0, Other: 19 },
-            cumFeatures: { ...this.CLOUDFLARE_BASELINE.cumFeatures },
-            todayDevices: { mobile: 16, desktop: 12 },
-            todayBrowsers: { Chrome: 17, Safari: 7, Samsung: 2, Edge: 1, Whale: 1, Firefox: 0, Other: 0 },
-            todayFeatures: { ...this.CLOUDFLARE_BASELINE.todayFeatures }
-        };
-    },
-
+    // 100% 실측 통계 기반 (가상 베이스라인 및 하드코딩 완전 제거)
     getKstDateStr: function (d = new Date()) {
         try {
             return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(d);
@@ -240,9 +151,21 @@ const AdminAnalytics = {
 
     init: function () {
         try {
-            // Clean up legacy sticky admin flags that blocked normal visit counting
-            localStorage.removeItem('crytopnl_is_admin_client');
-            localStorage.removeItem('coinhub_is_admin_client');
+            // Clean up legacy mock and local persistent analytics caches
+            const staleKeys = [
+                'coinhub_admin_real_analytics',
+                'crytopnl_page_access_times',
+                'crytopnl_recent_visitor_logs',
+                'coinhub_admin_cloud_stats_cache',
+                'crytopnl_guest_trades_cache',
+                'coinhub_registered_users',
+                'crytopnl_registered_users',
+                'crytopnl_is_admin_client',
+                'coinhub_is_admin_client'
+            ];
+            staleKeys.forEach(k => {
+                try { localStorage.removeItem(k); } catch(e) {}
+            });
         } catch (e) {}
 
         if (this.isAdminSession()) return;
@@ -259,53 +182,35 @@ const AdminAnalytics = {
     },
 
     getAnalyticsData: function () {
-        try {
-            const raw = localStorage.getItem(this.STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && Array.isArray(parsed.history) && (parsed.totalVisitorsAllTime || 0) >= 1000) {
-                    return parsed;
-                }
-            }
-        } catch (e) {}
-
         return this.initRealAnalytics();
     },
 
     initRealAnalytics: function () {
         const todayStr = this.getKstDateStr();
-        const base = this.getCloudflareBaseline();
-        
-        // Build 14-day history from Cloudflare baseline
         const history14 = [];
         const now = new Date();
         for (let i = 13; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            const dStr = this.getKstDateStr(d);
-            const isToday = (i === 0);
-            const bEntry = base.dailyMap[dStr] || { visitors: (isToday ? 28 : 20), pageviews: (isToday ? 118 : 80) };
             history14.push({
-                date: dStr,
-                visitors: bEntry.visitors,
-                pageviews: bEntry.pageviews
+                date: this.getKstDateStr(d),
+                visitors: 0,
+                pageviews: 0
             });
         }
 
-        const data = {
-            totalVisitorsAllTime: base.totalVisitorsAllTime,
-            totalPageviewsAllTime: base.totalPageviewsAllTime,
+        return {
+            todayDate: todayStr,
+            totalVisitorsAllTime: 0,
+            totalPageviewsAllTime: 0,
             history: history14,
-            devices: { ...base.cumDevices },
-            browsers: { ...base.cumBrowsers },
-            features: { ...base.cumFeatures }
+            devices: { mobile: 0, desktop: 0 },
+            browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
+            features: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            todayDevices: { mobile: 0, desktop: 0 },
+            todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
+            todayFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
         };
-
-        try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-        } catch (e) {}
-
-        return data;
     },
 
     recordVisit: function (featureName = null, force = false) {
@@ -346,72 +251,14 @@ const AdminAnalytics = {
                 sessionStorage.setItem('crytopnl_visited_' + todayStr, '1');
             }
 
-            // Session-based unique device/browser check (prevents single user clicking 50 tabs from skewing ratios)
+            // Session-based unique device/browser check
             let isNewDeviceSession = false;
             if (!sessionStorage.getItem('crytopnl_dev_logged_' + todayStr)) {
                 isNewDeviceSession = true;
                 sessionStorage.setItem('crytopnl_dev_logged_' + todayStr, '1');
             }
 
-            // 2. Update LocalStorage cache synchronously for zero-delay UI
-            const data = this.getAnalyticsData();
-            if (!data.features) {
-                data.features = { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 };
-            }
-            if (!data.devices) {
-                data.devices = { mobile: 0, desktop: 0 };
-            }
-            if (!data.browsers) {
-                data.browsers = {};
-            }
-
-            if (data.todayDate !== todayStr) {
-                data.todayDate = todayStr;
-                data.todayDevices = { mobile: 0, desktop: 0 };
-                data.todayBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
-                data.todayFeatures = { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 };
-            }
-            if (!data.todayDevices) data.todayDevices = { mobile: 0, desktop: 0 };
-            if (!data.todayBrowsers) data.todayBrowsers = {};
-            if (!data.todayFeatures) data.todayFeatures = {};
-
-            let todayEntry = data.history.find(h => h.date === todayStr);
-
-            if (!todayEntry) {
-                todayEntry = { date: todayStr, visitors: 1, pageviews: 1 };
-                data.history.push(todayEntry);
-                if (data.history.length > 30) data.history.shift();
-                data.totalVisitorsAllTime = (data.totalVisitorsAllTime || 0) + 1;
-            } else {
-                if (isNewVisitor) {
-                    todayEntry.visitors += 1;
-                    data.totalVisitorsAllTime = (data.totalVisitorsAllTime || 0) + 1;
-                }
-                todayEntry.pageviews += 1;
-            }
-
-            data.totalPageviewsAllTime = (data.totalPageviewsAllTime || 0) + 1;
-            if (targetFeature) {
-                data.features[targetFeature] = (data.features[targetFeature] || 0) + 1;
-                data.todayFeatures[targetFeature] = (data.todayFeatures[targetFeature] || 0) + 1;
-            }
-
-            // Only increment device & browser counts on unique session or initial visit
-            if (isNewDeviceSession || (data.devices.mobile === 0 && data.devices.desktop === 0)) {
-                data.devices[devKey] = (data.devices[devKey] || 0) + 1;
-                data.browsers[browserName] = (data.browsers[browserName] || 0) + 1;
-                data.todayDevices[devKey] = (data.todayDevices[devKey] || 0) + 1;
-                data.todayBrowsers[browserName] = (data.todayBrowsers[browserName] || 0) + 1;
-            } else {
-                if (data.todayDevices.mobile === 0 && data.todayDevices.desktop === 0) {
-                    data.todayDevices[devKey] = 1;
-                    data.todayBrowsers[browserName] = (data.todayBrowsers[browserName] || 0) + 1;
-                }
-            }
-
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-
-            // 2-1. Record Individual Visitor Access Log & Page Access Timestamps
+            // 2. Prepare individual log entry
             const now = new Date();
             const nowKst = this.formatKstTime(now);
             const nowTs = now.getTime();
@@ -464,46 +311,11 @@ const AdminAnalytics = {
                 date: todayStr
             };
 
-            // LocalStorage: Page Access Timestamps map
-            try {
-                let pageMap = {};
-                const rawPageMap = localStorage.getItem(this.PAGE_ACCESS_STORAGE_KEY);
-                if (rawPageMap) {
-                    try { pageMap = JSON.parse(rawPageMap) || {}; } catch(e) {}
-                }
-                const prev = pageMap[pageKey] || {};
-                pageMap[pageKey] = {
-                    key: pageKey,
-                    name: pageInfo.name,
-                    path: pageInfo.path,
-                    lastAccessedAt: nowKst,
-                    lastTimestamp: nowTs,
-                    todayFirstAccess: (prev.todayDate === todayStr && prev.todayFirstAccess) ? prev.todayFirstAccess : nowKst,
-                    todayCount: (prev.todayDate === todayStr ? (prev.todayCount || 0) : 0) + 1,
-                    todayDate: todayStr,
-                    totalCount: (prev.totalCount || 0) + 1,
-                    lastUser: currentUserName,
-                    lastDevice: devKey,
-                    lastBrowser: browserName
-                };
-                localStorage.setItem(this.PAGE_ACCESS_STORAGE_KEY, JSON.stringify(pageMap));
-            } catch(e) {}
-
-            // LocalStorage: Recent Visitor Access Logs (keep last 200 entries)
-            try {
-                let logs = [];
-                const rawLogs = localStorage.getItem(this.VISITOR_LOGS_STORAGE_KEY);
-                if (rawLogs) {
-                    try { logs = JSON.parse(rawLogs) || []; } catch(e) {}
-                }
-                if (!Array.isArray(logs)) logs = [];
-                logs.unshift(logEntry);
-                if (logs.length > 200) logs = logs.slice(0, 200);
-                localStorage.setItem(this.VISITOR_LOGS_STORAGE_KEY, JSON.stringify(logs));
-            } catch(e) {}
-
-            // 3. Firestore Cloud Real-time Aggregation
-            const firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            // 3. Firestore Cloud Real-time Aggregation (100% 실측 저장, 가상/로컬스토리지 저장 배제)
+            let firestore = window.db || (typeof db !== 'undefined' ? db : null);
+            if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
+                try { firestore = firebase.firestore(); } catch(e) {}
+            }
             if (firestore && typeof firebase !== 'undefined' && firebase.firestore) {
                 const inc = firebase.firestore.FieldValue.increment(1);
                 const updateObj = {
@@ -533,7 +345,6 @@ const AdminAnalytics = {
                 const p1 = firestore.collection('site_analytics').doc(todayStr).set(updateObj, { merge: true })
                     .catch(e => console.warn('Firestore analytics sync note:', e));
 
-                // Totals accumulator doc
                 const totalsObj = {
                     totalPageviews: firebase.firestore.FieldValue.increment(1)
                 };
@@ -543,7 +354,6 @@ const AdminAnalytics = {
                 const p2 = firestore.collection('site_analytics').doc('totals').set(totalsObj, { merge: true })
                     .catch(e => console.warn('Firestore totals sync note:', e));
 
-                // Page access timestamps summary doc
                 const p3 = firestore.collection('site_analytics').doc('page_access_summary').set({
                     [`pages.${pageKey}.lastAccessedAt`]: nowKst,
                     [`pages.${pageKey}.lastTimestamp`]: nowTs,
@@ -552,12 +362,12 @@ const AdminAnalytics = {
                     [`pages.${pageKey}.lastBrowser`]: browserName,
                     [`pages.${pageKey}.name`]: pageInfo.name,
                     [`pages.${pageKey}.todayCount`]: inc,
+                    [`pages.${pageKey}.totalCount`]: inc,
                     lastGlobalAccessAt: nowKst,
                     lastGlobalTimestamp: nowTs,
                     updatedAt: new Date().toISOString()
                 }, { merge: true }).catch(e => console.warn('Firestore page_access_summary note:', e));
 
-                // Real-time visitor access logs collection
                 const p4 = firestore.collection('visitor_access_logs').add(logEntry)
                     .catch(e => console.warn('Firestore visitor_access_logs note:', e));
 
@@ -569,88 +379,30 @@ const AdminAnalytics = {
         return Promise.resolve();
     },
 
-    getInitialPageAccessBaseline: function () {
-        const todayStr = this.getKstDateStr();
-        const now = new Date();
+    getDefaultPageAccessData: function () {
         const base = {};
-        
-        // Staggered minutes for realistic initial dashboard presentation
-        const minuteOffsets = {
-            'analyzer': 2,
-            'market': 5,
-            'onchain': 12,
-            'patterns': 18,
-            'calculators': 25,
-            'news': 34,
-            'policy': 48,
-            'forum': 15,
-            'guides': 39,
-            'chat': 8,
-            'calendar': 55
-        };
-
-        const todayCounts = {
-            'analyzer': 44,
-            'market': 24,
-            'onchain': 14,
-            'patterns': 12,
-            'calculators': 10,
-            'news': 6,
-            'policy': 3,
-            'forum': 5,
-            'guides': 4,
-            'chat': 3,
-            'calendar': 2
-        };
-
-        const realUsers = (typeof AdminUserManager !== 'undefined' && typeof AdminUserManager.getUsers === 'function')
-            ? AdminUserManager.getUsers()
-            : [];
-        const registeredUsernames = realUsers.map(u => u.username).filter(Boolean);
-        const sampleMember = registeredUsernames.length > 0 ? registeredUsernames[0] : 'admin';
-
         this.PAGE_DEFINITIONS.forEach(p => {
-            const offsetMin = minuteOffsets[p.key] || 20;
-            const accessDate = new Date(now.getTime() - offsetMin * 60000);
-            const firstDate = new Date(now.getTime() - (offsetMin + 180) * 60000);
-            
             base[p.key] = {
                 key: p.key,
                 name: p.name,
                 path: p.path,
-                lastAccessedAt: this.formatKstTime(accessDate),
-                lastTimestamp: accessDate.getTime(),
-                todayFirstAccess: this.formatKstTime(firstDate),
-                todayCount: todayCounts[p.key] || 5,
-                todayDate: todayStr,
-                totalCount: (todayCounts[p.key] || 5) * 45,
-                lastUser: (p.key === 'analyzer' || p.key === 'forum') ? sampleMember : '비회원 (게스트)',
-                lastDevice: (p.key === 'market' || p.key === 'chat') ? 'mobile' : 'desktop',
-                lastBrowser: (p.key === 'market') ? 'Safari' : 'Chrome'
+                lastAccessedAt: '-',
+                lastTimestamp: 0,
+                todayFirstAccess: '-',
+                todayCount: 0,
+                totalCount: 0,
+                lastUser: '-',
+                lastDevice: '-',
+                lastBrowser: '-'
             };
         });
         return base;
     },
 
     fetchPageAccessData: async function () {
-        let result = this.getInitialPageAccessBaseline();
+        const result = this.getDefaultPageAccessData();
 
-        // 1. Merge LocalStorage cached page times
-        try {
-            const raw = localStorage.getItem(this.PAGE_ACCESS_STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === 'object') {
-                    Object.keys(parsed).forEach(k => {
-                        if (parsed[k]) {
-                            result[k] = { ...result[k], ...parsed[k] };
-                        }
-                    });
-                }
-            }
-        } catch(e) {}
-
-        // 2. Fetch from Firestore if available
+        // 100% Real-time Firestore fetch
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
             try { firestore = firebase.firestore(); } catch(e) {}
@@ -667,7 +419,8 @@ const AdminAnalytics = {
                                 result[k] = {
                                     ...(result[k] || this.getPageInfo(k)),
                                     ...pData,
-                                    todayCount: Math.max(Number(pData.todayCount || 0), result[k]?.todayCount || 0)
+                                    todayCount: Number(pData.todayCount || 0),
+                                    totalCount: Number(pData.totalCount || pData.todayCount || 0)
                                 };
                             }
                         });
@@ -684,18 +437,7 @@ const AdminAnalytics = {
     fetchVisitorLogs: async function () {
         let logs = [];
 
-        // 1. Read LocalStorage logs first (filter out any legacy fake mock names)
-        try {
-            const raw = localStorage.getItem(this.VISITOR_LOGS_STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    logs = parsed.filter(l => l && l.user !== 'crypto_trader' && l.user !== 'quant_pro' && l.user !== '익명_8392' && l.user !== '일반회원');
-                }
-            }
-        } catch(e) {}
-
-        // 2. Query Firestore visitor_access_logs up to 100 entries
+        // 100% Real-time Firestore query (가상/하드코딩 완전 배제, 실측 기록만 표시)
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (!firestore && typeof firebase !== 'undefined' && firebase.firestore) {
             try { firestore = firebase.firestore(); } catch(e) {}
@@ -707,116 +449,35 @@ const AdminAnalytics = {
                     .limit(100)
                     .get();
                 if (!qSnap.empty) {
-                    const cloudLogs = [];
                     qSnap.forEach(doc => {
                         const d = doc.data();
-                        if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && d.user !== '일반회원') {
-                            cloudLogs.push({ id: doc.id, ...d });
+                        if (d && !d.id) d.id = doc.id;
+                        // Clean any legacy mock logs if present
+                        if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && !String(d.sessionId || '').includes('init_100')) {
+                            logs.push(d);
                         }
                     });
-                    if (cloudLogs.length > 0) {
-                        const mergedMap = new Map();
-                        cloudLogs.forEach(l => mergedMap.set(l.sessionId + '_' + (l.timestamp || l.time), l));
-                        logs.forEach(l => {
-                            const key = l.sessionId + '_' + (l.timestamp || l.time);
-                            if (!mergedMap.has(key)) mergedMap.set(key, l);
-                        });
-                        logs = Array.from(mergedMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                    }
                 }
             } catch(e) {
                 try {
                     const fallbackSnap = await firestore.collection('visitor_access_logs').limit(100).get();
                     if (!fallbackSnap.empty) {
-                        const cloudLogs = [];
                         fallbackSnap.forEach(doc => {
                             const d = doc.data();
-                            if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && d.user !== '일반회원') {
-                                cloudLogs.push({ id: doc.id, ...d });
+                            if (d && !d.id) d.id = doc.id;
+                            if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && !String(d.sessionId || '').includes('init_100')) {
+                                logs.push(d);
                             }
                         });
-                        cloudLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                        if (cloudLogs.length > 0) logs = [...cloudLogs, ...logs].slice(0, 100);
+                        logs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                     }
-                } catch(err2) {}
-            }
-        }
-
-        // 3. Ensure full 100 recent activity logs using real registered members & distinct guest hashes
-        if (logs.length < 100) {
-            const needed = 100 - logs.length;
-            const now = Date.now();
-            const realUsers = (typeof AdminUserManager !== 'undefined' && typeof AdminUserManager.getUsers === 'function')
-                ? AdminUserManager.getUsers()
-                : [];
-            const registeredUsernames = realUsers.map(u => u.username).filter(Boolean);
-            const activeAdminName = registeredUsernames.length > 0 ? registeredUsernames[0] : 'admin';
-
-            const pages = this.PAGE_DEFINITIONS || [];
-            const browsers = ['Chrome', 'Chrome', 'Chrome', 'Safari', 'Safari', 'Samsung', 'Whale', 'Edge'];
-            const devices = ['mobile', 'mobile', 'desktop', 'desktop'];
-
-            // Distinct guest session hashes pool
-            const guestSessionPool = [];
-            for (let s = 0; s < 32; s++) {
-                const randHex = Math.floor(0x100000 + ((s * 1973) % 0xefffff)).toString(16);
-                guestSessionPool.push({
-                    sessionId: 'v_' + randHex,
-                    firstVisitOffsetMin: 35 + s * 14
-                });
-            }
-
-            const existingOldestTs = logs.length > 0 ? Math.min(...logs.map(l => l.timestamp || now)) : now;
-            let currentTs = existingOldestTs - (2 * 60 * 1000);
-
-            const generated = [];
-            for (let i = 0; i < needed; i++) {
-                currentTs -= Math.floor(120000 + (i % 6) * 95000);
-                const logDate = new Date(currentTs);
-                const logDateKst = this.formatKstTime(logDate);
-
-                const p = pages[i % pages.length] || { key: 'analyzer', name: '손익 분석기', path: '#/analyzer' };
-                const dev = devices[i % devices.length];
-                const browser = browsers[i % browsers.length];
-
-                let assignedUser = '비회원 (게스트)';
-                let sId = '';
-                let firstVisitTime = '';
-
-                // Only real registered accounts appear as members (e.g. admin)
-                if (i % 24 === 2 && registeredUsernames.length > 0) {
-                    assignedUser = activeAdminName;
-                    sId = 'usr_' + assignedUser.toLowerCase();
-                    firstVisitTime = this.formatKstTime(new Date(currentTs - 600000));
-                } else {
-                    const guestSession = guestSessionPool[i % guestSessionPool.length];
-                    sId = guestSession.sessionId;
-                    firstVisitTime = this.formatKstTime(new Date(currentTs - guestSession.firstVisitOffsetMin * 60000));
+                } catch(err2) {
+                    console.warn('Firestore visitor_access_logs fetch note:', err2);
                 }
-
-                generated.push({
-                    id: 'gen_' + currentTs + '_' + i,
-                    sessionId: sId,
-                    time: logDateKst,
-                    timestamp: currentTs,
-                    firstVisitTime: firstVisitTime,
-                    page: p.key,
-                    pageName: p.name,
-                    path: p.path,
-                    device: dev,
-                    browser: browser,
-                    user: assignedUser,
-                    date: this.getKstDateStr(logDate)
-                });
             }
-
-            logs = [...logs, ...generated].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 100);
-            try {
-                localStorage.setItem(this.VISITOR_LOGS_STORAGE_KEY, JSON.stringify(logs));
-            } catch(e) {}
         }
 
-        return logs.slice(0, 100);
+        return logs;
     },
 
     fetchCloudStats: async function () {
@@ -846,18 +507,6 @@ const AdminAnalytics = {
         }
         const todayStr = dateKeys[dateKeys.length - 1];
         const yesterdayStr = dateKeys[dateKeys.length - 2];
-
-        // Clean up outdated day-cache on day rollover (자정 날짜 전환 시 전날 캐시 즉시 만료)
-        try {
-            const rawCache = localStorage.getItem('coinhub_admin_cloud_stats_cache');
-            if (rawCache) {
-                const parsed = JSON.parse(rawCache);
-                if (parsed && parsed.cacheDate !== todayStr) {
-                    localStorage.removeItem('coinhub_admin_cloud_stats_cache');
-                    this.cloudStatsCache = null;
-                }
-            }
-        } catch(e) {}
 
         if (!firestore) {
             return this.getTodayStats();
@@ -898,13 +547,20 @@ const AdminAnalytics = {
                 calendar: 0
             };
 
+            let sumDailyVisitors = 0;
+            let sumDailyPageviews = 0;
+
             docsSnap.forEach(doc => {
+                if (doc.id === 'totals' || doc.id === 'page_access_summary') return;
                 const d = doc.data();
                 if (d) {
                     dayMap[doc.id] = d;
                     const isTodayDoc = (doc.id === todayStr);
 
-                    // 1. Devices: Read nested map, fallback to flat dot keys if not nested
+                    sumDailyVisitors += Number(d.visitors || 0);
+                    sumDailyPageviews += Number(d.pageviews || 0);
+
+                    // 1. Devices: Read nested map or flat dot keys
                     let mob = 0;
                     let dsk = 0;
                     if (d.devices && typeof d.devices === 'object' && (d.devices.mobile !== undefined || d.devices.desktop !== undefined)) {
@@ -921,7 +577,7 @@ const AdminAnalytics = {
                         todayDesktop += dsk;
                     }
 
-                    // 2. Browsers: Read nested map, fallback to flat dot keys without double-counting
+                    // 2. Browsers
                     const docBrowsers = {};
                     if (d.browsers && typeof d.browsers === 'object') {
                         Object.keys(d.browsers).forEach(b => {
@@ -940,7 +596,7 @@ const AdminAnalytics = {
                         if (isTodayDoc) todayBrowsers[b] = (todayBrowsers[b] || 0) + val;
                     });
 
-                    // 3. Features: Read nested map, fallback to flat dot keys without double-counting
+                    // 3. Features
                     const docFeatures = {};
                     if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
@@ -964,60 +620,7 @@ const AdminAnalytics = {
                 }
             });
 
-            // Merge LocalStorage & Cloudflare baseline for accurate aggregate metrics
-            const base = (typeof this.getCloudflareBaseline === 'function') ? this.getCloudflareBaseline() : this.CLOUDFLARE_BASELINE;
-
-            // 1. Devices baseline merge
-            aggMobile = Math.max(aggMobile, base.cumDevices.mobile);
-            aggDesktop = Math.max(aggDesktop, base.cumDevices.desktop);
-            todayMobile = Math.max(todayMobile, base.todayDevices.mobile);
-            todayDesktop = Math.max(todayDesktop, base.todayDevices.desktop);
-
-            // 2. Browsers baseline merge
-            Object.keys(base.cumBrowsers).forEach(b => {
-                aggBrowsers[b] = Math.max(aggBrowsers[b] || 0, base.cumBrowsers[b]);
-            });
-            Object.keys(base.todayBrowsers).forEach(b => {
-                todayBrowsers[b] = Math.max(todayBrowsers[b] || 0, base.todayBrowsers[b]);
-            });
-
-            // 3. Features baseline merge
-            Object.keys(base.cumFeatures).forEach(f => {
-                aggFeatures[f] = Math.max(aggFeatures[f] || 0, base.cumFeatures[f]);
-            });
-            Object.keys(base.todayFeatures).forEach(f => {
-                todayFeatures[f] = Math.max(todayFeatures[f] || 0, base.todayFeatures[f]);
-            });
-
-            try {
-                const localData = this.getAnalyticsData();
-                if (localData) {
-                    if (localData.devices) {
-                        aggMobile = Math.max(aggMobile, Number(localData.devices.mobile || 0));
-                        aggDesktop = Math.max(aggDesktop, Number(localData.devices.desktop || 0));
-                    }
-                    // Firestore 클라우드에 당일 문서가 존재하지 않는 경우에만 로컬 캐시를 fallback으로 활용
-                    const hasCloudToday = !!dayMap[todayStr];
-                    if (!hasCloudToday && localData.todayDate === todayStr) {
-                        if (localData.todayDevices) {
-                            todayMobile = Math.max(todayMobile, Number(localData.todayDevices.mobile || 0));
-                            todayDesktop = Math.max(todayDesktop, Number(localData.todayDevices.desktop || 0));
-                        }
-                        if (localData.todayBrowsers) {
-                            Object.keys(localData.todayBrowsers).forEach(b => {
-                                todayBrowsers[b] = Math.max(todayBrowsers[b] || 0, Number(localData.todayBrowsers[b] || 0));
-                            });
-                        }
-                        if (localData.todayFeatures) {
-                            Object.keys(localData.todayFeatures).forEach(f => {
-                                todayFeatures[f] = Math.max(todayFeatures[f] || 0, Number(localData.todayFeatures[f] || 0));
-                            });
-                        }
-                    }
-                }
-            } catch (e) {}
-
-            // Also check totals doc
+            // 4. Totals doc
             let cloudTotalVisitors = 0;
             let cloudTotalPV = 0;
             try {
@@ -1029,42 +632,21 @@ const AdminAnalytics = {
                 }
             } catch (e) {}
 
-            // Real progression for today: Firestore 우선 반영 (자정 이후 새로운 날짜는 0부터 실시간 집계)
+            cloudTotalVisitors = Math.max(cloudTotalVisitors, sumDailyVisitors);
+            cloudTotalPV = Math.max(cloudTotalPV, sumDailyPageviews);
+
+            // 5. Today counts
             const todayEntry = dayMap[todayStr] || { visitors: 0, pageviews: 0 };
-            const cfToday = base.dailyMap[todayStr] || { visitors: 28, pageviews: 118 };
-            let todayVisitors = Math.max(Number(todayEntry.visitors || 0), cfToday.visitors, 28);
-            let todayPageviews = Math.max(Number(todayEntry.pageviews || 0), cfToday.pageviews, 118);
+            const todayVisitors = Number(todayEntry.visitors || 0);
+            const todayPageviews = Number(todayEntry.pageviews || 0);
 
-            try {
-                const localData = this.getAnalyticsData();
-                const localToday = localData && localData.history ? localData.history.find(h => h.date === todayStr) : null;
-                const hasCloudToday = !!dayMap[todayStr];
-                if (!hasCloudToday && localToday) {
-                    todayVisitors = Math.max(todayVisitors, Number(localToday.visitors || 0));
-                    todayPageviews = Math.max(todayPageviews, Number(localToday.pageviews || 0));
-                }
-            } catch (e) {}
-
-            // 14-day history array: Merge Firestore live values with Cloudflare verified baseline
-            const history14 = dateKeys.map((k, idx) => {
+            // 6. 14-day history array: 100% Real-time Firestore records
+            const history14 = dateKeys.map(k => {
                 const entry = dayMap[k];
-                const isToday = (idx === dateKeys.length - 1);
-                const cfEntry = base.dailyMap[k] || null;
-                let v = entry ? Number(entry.visitors || 0) : 0;
-                let pv = entry ? Number(entry.pageviews || 0) : 0;
-
-                if (!isToday && cfEntry) {
-                    v = Math.max(v, cfEntry.visitors || 0);
-                    pv = Math.max(pv, cfEntry.pageviews || 0);
-                } else if (isToday) {
-                    v = todayVisitors;
-                    pv = todayPageviews;
-                }
-
                 return {
                     date: k,
-                    visitors: v,
-                    pageviews: pv
+                    visitors: entry ? Number(entry.visitors || 0) : 0,
+                    pageviews: entry ? Number(entry.pageviews || 0) : 0
                 };
             });
 
@@ -1080,21 +662,13 @@ const AdminAnalytics = {
             const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0);
             const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
 
-            // Today device breakdown
-            if (todayVisitors > 0 && todayMobile === 0 && todayDesktop === 0) {
-                const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
-                if (isMob) todayMobile = todayVisitors; else todayDesktop = todayVisitors;
-                const bName = this.getBrowserName();
-                todayBrowsers[bName] = (todayBrowsers[bName] || 0) + todayVisitors;
-            }
-            let todayDevTotal = todayMobile + todayDesktop;
+            const todayDevTotal = todayMobile + todayDesktop;
             const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMobile / todayDevTotal) * 100) : 0;
             const todayDesktopPct = todayDevTotal > 0 ? (100 - todayMobilePct) : 0;
 
-            // Cumulative device breakdown
-            let totalDev = aggMobile + aggDesktop;
-            const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 58;
-            const desktopPct = totalDev > 0 ? 100 - mobilePct : 42;
+            const totalDev = aggMobile + aggDesktop;
+            const mobilePct = totalDev > 0 ? Math.round((aggMobile / totalDev) * 100) : 0;
+            const desktopPct = totalDev > 0 ? (100 - mobilePct) : 0;
 
             let realLiveCount = 0;
             try {
@@ -1111,23 +685,7 @@ const AdminAnalytics = {
                 });
                 realLiveCount = pCount;
             } catch (e) {
-                const activeListEl = document.getElementById('chat-active-users-list');
-                if (activeListEl && activeListEl.children.length > 0) {
-                    let cCount = 0;
-                    for (let i = 0; i < activeListEl.children.length; i++) {
-                        const child = activeListEl.children[i];
-                        const text = (child.textContent || '').toLowerCase();
-                        if (!text.includes('admin')) cCount++;
-                    }
-                    realLiveCount = cCount;
-                } else {
-                    realLiveCount = 0;
-                }
-            }
-
-            if (realLiveCount === 0) {
-                const hasSession = !this.isAdminSession() && !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
-                if (hasSession) realLiveCount = 1;
+                realLiveCount = 0;
             }
 
             const stats = {
@@ -1139,10 +697,9 @@ const AdminAnalytics = {
                 weeklyVisitors,
                 monthlyVisitors,
                 liveUsers: realLiveCount,
-                totalVisitorsAllTime: Math.max(cloudTotalVisitors, base.totalVisitorsAllTime, monthlyVisitors),
-                totalPageviewsAllTime: Math.max(cloudTotalPV, base.totalPageviewsAllTime, todayPageviews),
+                totalVisitorsAllTime: cloudTotalVisitors,
+                totalPageviewsAllTime: cloudTotalPV,
                 history: history14,
-                // Cumulative
                 mobilePct,
                 desktopPct,
                 cumMobilePct: mobilePct,
@@ -1152,7 +709,6 @@ const AdminAnalytics = {
                 features: aggFeatures,
                 cumBrowsers: aggBrowsers,
                 cumFeatures: aggFeatures,
-                // Today
                 todayMobilePct,
                 todayDesktopPct,
                 todayDevices: { mobile: todayMobile, desktop: todayDesktop },
@@ -1161,17 +717,6 @@ const AdminAnalytics = {
             };
 
             this.cloudStatsCache = stats;
-            try {
-                localStorage.setItem('coinhub_admin_cloud_stats_cache', JSON.stringify(stats));
-                const localData = this.getAnalyticsData();
-                if (localData) {
-                    localData.todayDate = todayStr;
-                    localData.todayDevices = { mobile: todayMobile, desktop: todayDesktop };
-                    localData.todayBrowsers = { ...todayBrowsers };
-                    localData.todayFeatures = { ...todayFeatures };
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(localData));
-                }
-            } catch (e) {}
             return stats;
         } catch (err) {
             console.warn('fetchCloudStats error, fallback:', err);
@@ -1180,199 +725,49 @@ const AdminAnalytics = {
     },
 
     getTodayStats: function () {
-        const base = (typeof this.getCloudflareBaseline === 'function') ? this.getCloudflareBaseline() : this.CLOUDFLARE_BASELINE;
-        const data = this.getAnalyticsData();
         const todayStr = this.getKstDateStr();
-        const cfToday = base.dailyMap[todayStr] || { visitors: 28, pageviews: 118 };
-        const today = (data.history && data.history.find(h => h.date === todayStr)) || { visitors: 0, pageviews: 0 };
-        let todayVisitors = Math.max(Number(today.visitors || 0), cfToday.visitors, 28);
-        let todayPageviews = Math.max(Number(today.pageviews || 0), cfToday.pageviews, 118);
-
-        // Merge cached cloud stats if available and higher, validating cacheDate
-        let cached = this.cloudStatsCache;
-        if (!cached) {
-            try {
-                const stored = localStorage.getItem('coinhub_admin_cloud_stats_cache');
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (parsed && parsed.cacheDate === todayStr) {
-                        cached = parsed;
-                    } else {
-                        localStorage.removeItem('coinhub_admin_cloud_stats_cache');
-                    }
-                }
-            } catch (e) {}
-        } else if (cached.cacheDate !== todayStr) {
-            cached = null;
-            this.cloudStatsCache = null;
-        }
-
-        if (cached && typeof cached === 'object' && cached.cacheDate === todayStr) {
-            todayVisitors = Math.max(todayVisitors, Number(cached.todayVisitors || 0));
-            todayPageviews = Math.max(todayPageviews, Number(cached.todayPageviews || 0));
-        }
-        
-        // Build 14-day history array merged with Cloudflare baseline
         const history14 = [];
         const now = new Date();
         for (let i = 13; i >= 0; i--) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            const dStr = this.getKstDateStr(d);
-            const found = data.history ? data.history.find(h => h.date === dStr) : null;
-            const isToday = (i === 0);
-            const cfEntry = base.dailyMap[dStr] || null;
-            let v = found ? Number(found.visitors || 0) : 0;
-            let pv = found ? Number(found.pageviews || 0) : 0;
-
-            if (!isToday && cfEntry) {
-                v = Math.max(v, cfEntry.visitors || 0);
-                pv = Math.max(pv, cfEntry.pageviews || 0);
-            } else if (isToday) {
-                v = Math.max(v, todayVisitors);
-                pv = Math.max(pv, todayPageviews);
-            }
-
             history14.push({
-                date: dStr,
-                visitors: v,
-                pageviews: pv
+                date: this.getKstDateStr(d),
+                visitors: 0,
+                pageviews: 0
             });
         }
 
-        const yesterdayVisitors = history14[history14.length - 2].visitors;
-        let growthRate = '0.0%';
-        if (yesterdayVisitors > 0) {
-            const pct = (((todayVisitors - yesterdayVisitors) / yesterdayVisitors) * 100).toFixed(1);
-            growthRate = (pct >= 0 ? '+' : '') + pct + '%';
-        } else if (todayVisitors > 0) {
-            growthRate = '+100%';
+        if (this.cloudStatsCache && this.cloudStatsCache.cacheDate === todayStr) {
+            return this.cloudStatsCache;
         }
-
-        const weeklyVisitors = history14.slice(-7).reduce((sum, h) => sum + h.visitors, 0);
-        const monthlyVisitors = history14.reduce((sum, h) => sum + h.visitors, 0);
-
-        let mCount = Math.max(data.devices?.mobile || 0, base.cumDevices.mobile);
-        let dCount = Math.max(data.devices?.desktop || 0, base.cumDevices.desktop);
-        let totalDev = mCount + dCount;
-        const mobilePct = totalDev > 0 ? Math.round((mCount / totalDev) * 100) : 58;
-        const desktopPct = totalDev > 0 ? 100 - mobilePct : 42;
-
-        const aggB = { ...base.cumBrowsers };
-        if (data.browsers) {
-            Object.keys(data.browsers).forEach(b => {
-                aggB[b] = Math.max(aggB[b] || 0, Number(data.browsers[b] || 0));
-            });
-        }
-
-        const aggF = { ...base.cumFeatures };
-        if (data.features) {
-            Object.keys(data.features).forEach(fKey => {
-                if (fKey === 'admin') return;
-                const targetKey = (fKey === 'yearend-tax') ? 'calculators' : fKey;
-                aggF[targetKey] = Math.max(aggF[targetKey] || 0, Number(data.features[fKey] || 0));
-            });
-        }
-
-        let realLiveCount = 0;
-        const activeListEl = document.getElementById('chat-active-users-list');
-        if (activeListEl && activeListEl.children.length > 0) {
-            let cCount = 0;
-            for (let i = 0; i < activeListEl.children.length; i++) {
-                const child = activeListEl.children[i];
-                const text = (child.textContent || '').toLowerCase();
-                if (!text.includes('admin')) cCount++;
-            }
-            realLiveCount = cCount;
-        }
-        if (realLiveCount === 0) {
-            const hasSession = !!(sessionStorage.getItem('crytopnl_visited_' + todayStr) || localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user') || (typeof currentUser !== 'undefined' && currentUser));
-            if (hasSession) realLiveCount = 1;
-        }
-
-        let todayMob = 0;
-        let todayDesk = 0;
-        let todayB = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
-        let todayF = {
-            analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0
-        };
-
-        todayMob = base.todayDevices.mobile;
-        todayDesk = base.todayDevices.desktop;
-        todayB = { ...base.todayBrowsers };
-        todayF = { ...base.todayFeatures };
-
-        if (cached) {
-            if (cached.todayDevices) {
-                todayMob = Math.max(todayMob, Number(cached.todayDevices.mobile || 0));
-                todayDesk = Math.max(todayDesk, Number(cached.todayDevices.desktop || 0));
-            }
-            if (cached.todayBrowsers) {
-                Object.keys(cached.todayBrowsers).forEach(b => {
-                    todayB[b] = Math.max(todayB[b] || 0, Number(cached.todayBrowsers[b] || 0));
-                });
-            }
-            if (cached.todayFeatures) {
-                Object.keys(cached.todayFeatures).forEach(f => {
-                    todayF[f] = Math.max(todayF[f] || 0, Number(cached.todayFeatures[f] || 0));
-                });
-            }
-        }
-
-        if (!cached && data && data.todayDate === todayStr) {
-            if (data.todayDevices) {
-                todayMob = Math.max(todayMob, Number(data.todayDevices.mobile || 0));
-                todayDesk = Math.max(todayDesk, Number(data.todayDevices.desktop || 0));
-            }
-            if (data.todayBrowsers) {
-                Object.keys(data.todayBrowsers).forEach(b => {
-                    todayB[b] = Math.max(todayB[b] || 0, Number(data.todayBrowsers[b] || 0));
-                });
-            }
-            if (data.todayFeatures) {
-                Object.keys(data.todayFeatures).forEach(f => {
-                    todayF[f] = Math.max(todayF[f] || 0, Number(data.todayFeatures[f] || 0));
-                });
-            }
-        }
-
-        if (todayVisitors > 0 && todayMob === 0 && todayDesk === 0) {
-            const isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
-            if (isMob) todayMob = todayVisitors; else todayDesk = todayVisitors;
-            const bName = this.getBrowserName();
-            todayB[bName] = (todayB[bName] || 0) + todayVisitors;
-        }
-
-        const todayDevTotal = todayMob + todayDesk;
-        const todayMobilePct = todayDevTotal > 0 ? Math.round((todayMob / todayDevTotal) * 100) : 0;
-        const todayDesktopPct = todayDevTotal > 0 ? (100 - todayMobilePct) : 0;
 
         return {
             cacheDate: todayStr,
-            todayVisitors: todayVisitors,
-            todayPageviews: todayPageviews,
-            yesterdayVisitors,
-            growthRate: growthRate,
-            weeklyVisitors,
-            monthlyVisitors,
-            liveUsers: realLiveCount,
-            totalVisitorsAllTime: Math.max(data.totalVisitorsAllTime || 0, base.totalVisitorsAllTime, monthlyVisitors),
-            totalPageviewsAllTime: Math.max(data.totalPageviewsAllTime || 0, base.totalPageviewsAllTime, todayPageviews),
+            todayVisitors: 0,
+            todayPageviews: 0,
+            yesterdayVisitors: 0,
+            growthRate: '0.0%',
+            weeklyVisitors: 0,
+            monthlyVisitors: 0,
+            liveUsers: 0,
+            totalVisitorsAllTime: 0,
+            totalPageviewsAllTime: 0,
             history: history14,
-            mobilePct,
-            desktopPct,
-            cumMobilePct: mobilePct,
-            cumDesktopPct: desktopPct,
-            cumDevices: { mobile: mCount, desktop: dCount },
-            browsers: aggB,
-            features: aggF,
-            cumBrowsers: aggB,
-            cumFeatures: aggF,
-            todayMobilePct,
-            todayDesktopPct,
-            todayDevices: { mobile: todayMob, desktop: todayDesk },
-            todayBrowsers: todayB,
-            todayFeatures: todayF
+            mobilePct: 0,
+            desktopPct: 0,
+            cumMobilePct: 0,
+            cumDesktopPct: 0,
+            cumDevices: { mobile: 0, desktop: 0 },
+            browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
+            features: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            cumBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
+            cumFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            todayMobilePct: 0,
+            todayDesktopPct: 0,
+            todayDevices: { mobile: 0, desktop: 0 },
+            todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
+            todayFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
         };
     }
 };
@@ -1473,7 +868,7 @@ const AdminUserManager = {
                             list.push({
                                 id: data.id || ('usr_' + data.username.toLowerCase()),
                                 username: data.username,
-                                email: data.email || (data.username + '@crytopnl.com'),
+                                email: data.email || (data.username + '@cryptopnl.com'),
                                 role: data.role || 'USER',
                                 status: data.status || 'ACTIVE',
                                 joinedDate: data.joinedDate || (data.lastLoginAt ? String(data.lastLoginAt).slice(0, 10) : '2026.09.03'),
@@ -1481,17 +876,13 @@ const AdminUserManager = {
                                 lastLoginAt: data.lastLoginAt || data.lastLogin || data.joinedDate || '기록 없음',
                                 reputation: data.reputation || (data.role === 'ADMIN' ? 9999 : 100),
                                 tradesCount: this.getUserTradesCount(data.username),
-                                memo: data.role === 'ADMIN' ? '최고 관리자' : '클라우드 회원'
+                                memo: data.role === 'ADMIN' ? '최고 관리자' : '실제 가입 회원'
                             });
                         }
                     });
-                    if (list.length > 0) {
-                        this.cloudUsers = list;
-                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(list));
-                        localStorage.setItem('crytopnl_registered_users', JSON.stringify(list));
-                        if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderUsers === 'function') {
-                            AdminApp.renderUsers();
-                        }
+                    this.cloudUsers = list;
+                    if (typeof AdminApp !== 'undefined' && typeof AdminApp.renderUsers === 'function') {
+                        AdminApp.renderUsers();
                     }
                 }, err => console.warn('Firestore users sync note:', err));
             } catch (e) {
@@ -1507,108 +898,26 @@ const AdminUserManager = {
         const realDefaults = this.initRealUsers();
         realDefaults.forEach(u => userMap.set(u.username.toLowerCase(), u));
 
-        // 2. Load from localStorage registered users cache
-        try {
-            const raw = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('crytopnl_registered_users');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(p => {
-                        if (p && p.username) userMap.set(p.username.toLowerCase(), p);
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 3. Auto-recover registered accounts from localStorage credential keys
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && (k.startsWith('crytopnl_user_pw_') || k.startsWith('coinhub_user_pw_'))) {
-                    const uName = k.replace('crytopnl_user_pw_', '').replace('coinhub_user_pw_', '');
-                    if (uName && !userMap.has(uName.toLowerCase())) {
-                        userMap.set(uName.toLowerCase(), {
-                            id: 'usr_' + uName.toLowerCase(),
-                            username: uName,
-                            email: `${uName}@cryptopnl.com`,
-                            role: (uName.toLowerCase() === 'admin' ? 'ADMIN' : 'USER'),
-                            status: 'ACTIVE',
-                            joinedDate: this.getNowFormatted().slice(0, 10),
-                            lastLogin: '최근 활동',
-                            lastLoginAt: this.getNowFormatted(),
-                            reputation: (uName.toLowerCase() === 'admin' ? 9999 : 100),
-                            tradesCount: this.getUserTradesCount(uName),
-                            memo: '가입 회원'
-                        });
-                    }
-                }
-            }
-        } catch (e) {}
-
-        // 4. Load / overwrite with Firestore cloud users (Most authoritative)
+        // 2. Load Firestore cloud users (100% authoritative)
         if (Array.isArray(this.cloudUsers) && this.cloudUsers.length > 0) {
-            const cloudNames = new Set(this.cloudUsers.map(c => (c.username || '').toLowerCase()));
-            cloudNames.add('admin');
-            // Clean up any ghost/orphan local accounts that don't exist in Firestore
-            for (const [key] of userMap.entries()) {
-                if (!cloudNames.has(key)) {
-                    userMap.delete(key);
-                    try {
-                        localStorage.removeItem('crytopnl_user_pw_' + key);
-                        localStorage.removeItem('coinhub_user_pw_' + key);
-                    } catch (e) {}
-                }
-            }
             this.cloudUsers.forEach(c => {
                 if (c && c.username) userMap.set(c.username.toLowerCase(), c);
             });
         }
 
-        // 5. Update current logged-in user activity if present
+        // 3. Current active user session update
         try {
-            const currentRaw = localStorage.getItem('crytopnl_user') || localStorage.getItem('coinhub_user');
-            if (currentRaw) {
-                const u = JSON.parse(currentRaw);
-                if (u && u.username) {
-                    const uKey = u.username.toLowerCase();
-                    const existing = userMap.get(uKey);
-                    const nowFmt = this.getNowFormatted();
-                    if (existing) {
-                        existing.lastLogin = u.lastLoginAt || u.lastLogin || nowFmt;
-                        existing.lastLoginAt = u.lastLoginAt || u.lastLogin || nowFmt;
-                        if (u.role) existing.role = u.role;
-                    } else {
-                        userMap.set(uKey, {
-                            id: u.id || ('usr_' + uKey),
-                            username: u.username,
-                            email: u.email || `${u.username}@cryptopnl.com`,
-                            role: u.role || 'USER',
-                            status: u.status || 'ACTIVE',
-                            joinedDate: u.joinedDate || AdminUserManager.getNowFormatted().slice(0, 10),
-                            lastLogin: u.lastLoginAt || u.lastLogin || nowFmt,
-                            lastLoginAt: u.lastLoginAt || u.lastLogin || nowFmt,
-                            reputation: u.reputation || 100,
-                            tradesCount: this.getUserTradesCount(u.username),
-                            memo: '현재 접속 회원'
-                        });
-                    }
+            if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) {
+                const uKey = currentUser.username.toLowerCase();
+                const existing = userMap.get(uKey);
+                if (existing) {
+                    existing.lastLogin = currentUser.lastLoginAt || currentUser.lastLogin || this.getNowFormatted();
+                    existing.lastLoginAt = currentUser.lastLoginAt || currentUser.lastLogin || this.getNowFormatted();
                 }
             }
         } catch(e) {}
 
-        // 6. If session admin is authenticated, ensure admin has valid activity time
-        if (sessionStorage.getItem('crytopnl_admin_authenticated') === '1' || sessionStorage.getItem('coinhub_admin_authenticated') === '1') {
-            const adminEntry = userMap.get('admin');
-            if (adminEntry && !adminEntry.lastLoginAt) {
-                const nowFmt = this.getNowFormatted();
-                adminEntry.lastLogin = nowFmt;
-                adminEntry.lastLoginAt = nowFmt;
-            }
-        }
-
-        const finalUsers = Array.from(userMap.values());
-        this.saveUsers(finalUsers);
-        return finalUsers;
+        return Array.from(userMap.values());
     },
 
     initRealUsers: function () {
@@ -1669,10 +978,7 @@ const AdminUserManager = {
     },
 
     saveUsers: function (users) {
-        try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
-            localStorage.setItem('crytopnl_registered_users', JSON.stringify(users));
-        } catch (e) {}
+        // 클라우드 실시간 동기화 (로컬스토리지 영구 캐싱 배제)
     },
 
     updateUserRole: function (username, newRole) {
@@ -1899,20 +1205,7 @@ const AdminGuestTradeManager = {
 
         const map = new Map();
 
-        // 1. Load from localStorage cache
-        try {
-            const raw = localStorage.getItem('crytopnl_guest_trades_cache');
-            if (raw) {
-                const arr = JSON.parse(raw);
-                if (Array.isArray(arr)) {
-                    arr.forEach(item => {
-                        if (item && item.id) map.set(item.id, item);
-                    });
-                }
-            }
-        } catch (e) {}
-
-        // 2. Fetch live from Firestore collection 'guest_trades'
+        // 100% Real-time Firestore fetch (로컬스토리지 캐시 배제)
         if (firestore) {
             try {
                 const snap = await firestore.collection('guest_trades')
@@ -1951,19 +1244,12 @@ const AdminGuestTradeManager = {
         });
 
         this.cachedList = list;
-        try {
-            localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(list.slice(0, 50)));
-        } catch (e) {}
-
         return list;
     },
 
     deleteGuestTrade: async function (id) {
         if (!id) return;
         this.cachedList = this.cachedList.filter(item => item.id !== id);
-        try {
-            localStorage.setItem('crytopnl_guest_trades_cache', JSON.stringify(this.cachedList));
-        } catch (e) {}
 
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
         if (firestore) {
@@ -2469,7 +1755,7 @@ const AdminApp = {
             // 4. Update Device Share (Today vs Cumulative - percentage & visitor counts)
             const isDevToday = (this.deviceScope === 'today');
             const todayDev = stats.todayDevices || { mobile: 0, desktop: 0 };
-            const cumDev = stats.cumDevices || { mobile: 1061, desktop: 769 };
+            const cumDev = stats.cumDevices || { mobile: 0, desktop: 0 };
             const activeDev = isDevToday ? todayDev : cumDev;
             const altDev = isDevToday ? cumDev : todayDev;
 
@@ -2500,7 +1786,7 @@ const AdminApp = {
             if (devDescEl) {
                 devDescEl.textContent = isDevToday 
                     ? `오늘 하루 실측치 기준 (총 ${activeDevTotal.toLocaleString()}명 방문)` 
-                    : `Cloudflare & 시스템 누적 실측치 기준 (총 ${activeDevTotal.toLocaleString()}명 방문)`;
+                    : `시스템 전체 누적 실측치 기준 (총 ${activeDevTotal.toLocaleString()}명 방문)`;
             }
 
             const setDev = (id, textVal) => {
@@ -2705,8 +1991,8 @@ const AdminApp = {
                 const shortSession = (log.sessionId || '').replace('v_', '').substring(0, 8);
                 const isRealMember = log.user && log.user !== '비회원 (게스트)' && (registeredUsernames.size === 0 || registeredUsernames.has(log.user.toLowerCase()));
                 const userBadge = isRealMember
-                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${log.user}</span>`
-                    : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">게스트 #${shortSession || (1000 + idx)}</span>`;
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${escapeHtml(log.user)}</span>`
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">게스트 #${escapeHtml(shortSession || 'visit')}</span>`;
 
                 return `
                   <tr class="hover:bg-navy-800/40 transition">
