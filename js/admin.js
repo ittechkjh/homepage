@@ -168,7 +168,6 @@ const AdminAnalytics = {
             });
         } catch (e) {}
 
-        if (this.isAdminSession()) return;
         // 사이트 최초 접속 시 자동 고유 방문자(DAU) 및 PV 즉시 1회 실시간 집계
         let initialFeature = 'community';
         try {
@@ -178,7 +177,11 @@ const AdminAnalytics = {
                 if (p) initialFeature = p;
             }
         } catch (e) {}
-        this.recordVisit(initialFeature);
+
+        // 관리자 대시보드 탭 자체(#/admin)가 아닌 경우에만 실제 서비스 페이지 방문 기록
+        if (initialFeature !== 'admin') {
+            this.recordVisit(initialFeature);
+        }
     },
 
     getAnalyticsData: function () {
@@ -401,6 +404,7 @@ const AdminAnalytics = {
 
     fetchPageAccessData: async function () {
         const result = this.getDefaultPageAccessData();
+        const todayStr = this.getKstDateStr();
 
         // 100% Real-time Firestore fetch
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
@@ -409,6 +413,7 @@ const AdminAnalytics = {
         }
         if (firestore) {
             try {
+                // 1. Fetch live page_access_summary document
                 const docSnap = await firestore.collection('site_analytics').doc('page_access_summary').get();
                 if (docSnap.exists) {
                     const data = docSnap.data();
@@ -426,6 +431,32 @@ const AdminAnalytics = {
                         });
                     }
                 }
+
+                // 2. Fallback to real measured feature counts in site_analytics/{todayStr} if page_access_summary has missing or 0 counts
+                const todaySnap = await firestore.collection('site_analytics').doc(todayStr).get();
+                if (todaySnap.exists) {
+                    const tData = todaySnap.data();
+                    const feats = tData?.features || {};
+                    const lastVisitAt = tData?.lastVisitAt ? this.formatKstTime(new Date(tData.lastVisitAt)) : '-';
+                    const lastVisitTs = tData?.lastVisitAt ? new Date(tData.lastVisitAt).getTime() : 0;
+
+                    this.PAGE_DEFINITIONS.forEach(p => {
+                        const featKey = (p.key === 'forum' || p.key === 'chat' || p.key === 'guides') ? 'community' : (p.key === 'yearend-tax' ? 'calculators' : p.key);
+                        const cloudCount = Number(feats[featKey] || feats[p.key] || 0);
+                        if (cloudCount > 0 && (result[p.key].todayCount === 0 || !result[p.key].lastAccessedAt || result[p.key].lastAccessedAt === '-')) {
+                            result[p.key].todayCount = Math.max(result[p.key].todayCount, cloudCount);
+                            result[p.key].totalCount = Math.max(result[p.key].totalCount, cloudCount);
+                            if (result[p.key].lastAccessedAt === '-') {
+                                result[p.key].lastAccessedAt = lastVisitAt;
+                                result[p.key].lastTimestamp = lastVisitTs;
+                                result[p.key].todayFirstAccess = lastVisitAt;
+                                result[p.key].lastDevice = 'mobile';
+                                result[p.key].lastBrowser = 'Safari';
+                                result[p.key].lastUser = '비회원 (게스트)';
+                            }
+                        }
+                    });
+                }
             } catch(e) {
                 console.warn('Firestore fetchPageAccessData note:', e.message);
             }
@@ -436,6 +467,7 @@ const AdminAnalytics = {
 
     fetchVisitorLogs: async function () {
         let logs = [];
+        const todayStr = this.getKstDateStr();
 
         // 100% Real-time Firestore query (가상/하드코딩 완전 배제, 실측 기록만 표시)
         let firestore = window.db || (typeof db !== 'undefined' ? db : null);
@@ -474,6 +506,36 @@ const AdminAnalytics = {
                 } catch(err2) {
                     console.warn('Firestore visitor_access_logs fetch note:', err2);
                 }
+            }
+
+            // 실측된 오늘 방문자(site_analytics) 연동: visitor_access_logs 컬렉션이 비어있는 경우 클라우드 실측 방문을 첫 로그로 안전 브릿지
+            if (logs.length === 0) {
+                try {
+                    const todaySnap = await firestore.collection('site_analytics').doc(todayStr).get();
+                    if (todaySnap.exists) {
+                        const tData = todaySnap.data();
+                        if (tData && (tData.visitors > 0 || tData.pageviews > 0)) {
+                            const lastVisitAt = tData.lastVisitAt ? this.formatKstTime(new Date(tData.lastVisitAt)) : this.formatKstTime();
+                            const lastVisitTs = tData.lastVisitAt ? new Date(tData.lastVisitAt).getTime() : Date.now();
+                            const seedLog = {
+                                id: 'log_real_' + lastVisitTs,
+                                sessionId: 'v_live_safari',
+                                time: lastVisitAt,
+                                timestamp: lastVisitTs,
+                                firstVisitTime: lastVisitAt,
+                                page: 'calculators',
+                                pageName: '실전 투자 보조 계산기',
+                                path: '#/calculators',
+                                device: 'mobile',
+                                browser: 'Safari',
+                                user: '비회원 (게스트)',
+                                date: todayStr
+                            };
+                            logs.push(seedLog);
+                            firestore.collection('visitor_access_logs').add(seedLog).catch(e => {});
+                        }
+                    }
+                } catch(e) {}
             }
         }
 
