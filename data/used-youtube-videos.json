@@ -1,0 +1,94 @@
+{
+  "lastUpdated": "2026-11-03T13:21:00.000Z",
+  "description": "Registry of YouTube video URLs used to generate financial tips and coin forecast AI reports",
+  "videos": [
+    {
+      "videoId": "qcVDHN_BgP4",
+      "url": "https://www.youtube.com/watch?v=qcVDHN_BgP4",
+      "usedAt": "2026-11-03 13:04",
+      "reportId": "finance-20261103-1304",
+      "category": "finance",
+      "title": "[재테크 팁] \"정부 규제 완화만 믿다간 낭패\" 재건축·재개발 정비사업 실전 투자 리스크 & 세무 총정리"
+    },
+    {
+      "videoId": "aFjmj3DyNQo",
+      "url": "https://www.youtube.com/watch?v=aFjmj3DyNQo",
+      "usedAt": "2026-11-03 11:32",
+      "reportId": "finance-20261103-1132",
+      "category": "finance",
+      "title": "2026 실전 재테크 가이드"
+    },
+    {
+      "videoId": "-4C0jbblqhM",
+      "url": "https://www.youtube.com/watch?v=-4C0jbblqhM",
+      "usedAt": "2026-11-03 11:22",
+      "reportId": "finance-20261103-1122",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "LMfPDbFdpOQ",
+      "url": "https://www.youtube.com/watch?v=LMfPDbFdpOQ",
+      "usedAt": "2026-11-03 11:15",
+      "reportId": "finance-20261103-1115",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "4iOT7LDyUuA",
+      "url": "https://www.youtube.com/watch?v=4iOT7LDyUuA",
+      "usedAt": "2026-11-03 10:58",
+      "reportId": "finance-20261103-1058",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "Bmp-_pk4V4o",
+      "url": "https://www.youtube.com/watch?v=Bmp-_pk4V4o",
+      "usedAt": "2026-11-03 10:58",
+      "reportId": "forecast-20261103-1058",
+      "category": "forecast",
+      "title": "2026 실전 코인 전망 분석"
+    },
+    {
+      "videoId": "uMTtLwk3LFg",
+      "url": "https://www.youtube.com/watch?v=uMTtLwk3LFg",
+      "usedAt": "2026-11-02 23:06",
+      "reportId": "finance-20261102-2306",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "7AOtKeJM63c",
+      "url": "https://www.youtube.com/watch?v=7AOtKeJM63c",
+      "usedAt": "2026-10-30 17:50",
+      "reportId": "finance-20261030-1750",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "bqIJhZjDZ7k",
+      "url": "https://www.youtube.com/watch?v=bqIJhZjDZ7k",
+      "usedAt": "2026-10-30 14:07",
+      "reportId": "finance-20261030-1407",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "KAq3LoK1MhA",
+      "url": "https://www.youtube.com/watch?v=KAq3LoK1MhA",
+      "usedAt": "2026-10-30 13:48",
+      "reportId": "finance-20261030-1348",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    },
+    {
+      "videoId": "baODAh0stnw",
+      "url": "https://www.youtube.com/watch?v=baODAh0stnw",
+      "usedAt": "2026-10-30 13:31",
+      "reportId": "finance-20261030-1331",
+      "category": "finance",
+      "title": "2026 실전 재테크 분석"
+    }
+  ]
+}

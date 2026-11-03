@@ -5499,6 +5499,47 @@ async function main() {
 
   fs.writeFileSync(reportOutputFile, JSON.stringify(payload, null, 2), 'utf8');
   console.log(`[Daily Report Generator] Successfully saved ${updatedReports.length} reports to ${reportOutputFile}`);
+
+  // Automatically sync newly used YouTube videos to data/used-youtube-videos.json
+  try {
+    const usedVideosFile = path.join(dataDir, 'used-youtube-videos.json');
+    let usedRegistry = { lastUpdated: new Date().toISOString(), description: 'Registry of YouTube video URLs used to generate AI reports', videos: [] };
+    if (fs.existsSync(usedVideosFile)) {
+      try {
+        const uRaw = fs.readFileSync(usedVideosFile, 'utf8').replace(/^\uFEFF/, '').trim();
+        const parsedU = JSON.parse(uRaw);
+        if (parsedU && Array.isArray(parsedU.videos)) usedRegistry = parsedU;
+      } catch(e) {}
+    }
+    let addedCount = 0;
+    toAdd.forEach(entry => {
+      if (entry && entry.youtubeVideoId) {
+        const vid = String(entry.youtubeVideoId).trim();
+        const existingIdx = usedRegistry.videos.findIndex(v => v && v.videoId === vid);
+        const record = {
+          videoId: vid,
+          url: entry.youtubeUrl || `https://www.youtube.com/watch?v=${vid}`,
+          usedAt: entry.time || new Date().toISOString(),
+          reportId: entry.id,
+          category: entry.category,
+          title: entry.title
+        };
+        if (existingIdx >= 0) {
+          usedRegistry.videos[existingIdx] = record;
+        } else {
+          usedRegistry.videos.unshift(record);
+          addedCount++;
+        }
+      }
+    });
+    if (addedCount > 0 || !fs.existsSync(usedVideosFile)) {
+      usedRegistry.lastUpdated = new Date().toISOString();
+      fs.writeFileSync(usedVideosFile, JSON.stringify(usedRegistry, null, 2), 'utf8');
+      console.log(`[YouTube Registry] Recorded ${addedCount} newly used video(s) to ${usedVideosFile}`);
+    }
+  } catch(uErr) {
+    console.warn('[YouTube Registry] Non-blocking warning syncing used-youtube-videos.json:', uErr.message);
+  }
 }
 
 if (require.main === module) {

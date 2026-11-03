@@ -2821,11 +2821,64 @@ function extractYouTubeVideoId(url) {
 }
 window.extractYouTubeVideoId = extractYouTubeVideoId;
 
+// YouTube Video Metadata Fetcher via CORS-friendly oEmbed
+async function fetchYouTubeVideoInfo(videoId) {
+  if (!videoId) return null;
+  const vid = String(videoId).trim();
+  if (!vid) return null;
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`;
+    const res = await fetch(oembedUrl);
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        videoId: vid,
+        title: data.title || '',
+        author: data.author_name || '',
+        thumbnailUrl: data.thumbnail_url || `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`
+      };
+    }
+  } catch(e) {}
+  return null;
+}
+window.fetchYouTubeVideoInfo = fetchYouTubeVideoInfo;
+
 async function findReportByYouTubeVideoId(videoId) {
   if (!videoId) return null;
   const targetId = String(videoId).trim();
   if (!targetId) return null;
 
+  // 1. Check local storage history of used YouTube videos
+  try {
+    const localUsed = JSON.parse(localStorage.getItem('crytopnl_used_youtube_videos') || '[]');
+    if (Array.isArray(localUsed)) {
+      const found = localUsed.find(item => item && (item.videoId === targetId || (item.url && item.url.includes(targetId))));
+      if (found) return found;
+    }
+  } catch(e) {}
+
+  // 2. Check dedicated data/used-youtube-videos.json registry
+  try {
+    if (!window._usedYouTubeVideosCache) {
+      let uRes = null;
+      try {
+        uRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/used-youtube-videos.json?v=' + Date.now());
+      } catch(e) {}
+      if (!uRes || !uRes.ok) {
+        uRes = await fetch('data/used-youtube-videos.json?v=' + Date.now());
+      }
+      if (uRes && uRes.ok) {
+        const uJson = await uRes.json();
+        window._usedYouTubeVideosCache = Array.isArray(uJson) ? uJson : (uJson.videos || []);
+      }
+    }
+    if (Array.isArray(window._usedYouTubeVideosCache)) {
+      const regFound = window._usedYouTubeVideosCache.find(v => v && (v.videoId === targetId || (v.url && v.url.includes(targetId))));
+      if (regFound) return regFound;
+    }
+  } catch(e) {}
+
+  // 3. Check reports cache or localStorage
   let list = [];
   if (Array.isArray(window._dailyMarketReportsCache) && window._dailyMarketReportsCache.length > 0) {
     list = [...window._dailyMarketReportsCache];
@@ -2868,7 +2921,7 @@ async function findReportByYouTubeVideoId(videoId) {
     } catch(e) {}
   }
 
-  // Search through all reports for this videoId
+  // Search through all reports for this videoId (in youtubeVideoId, youtubeUrl, or content HTML)
   for (const r of list) {
     if (!r) continue;
     if (r.youtubeVideoId && String(r.youtubeVideoId) === targetId) return r;
@@ -2912,12 +2965,17 @@ async function checkManualReportYoutubeUrl(url) {
   }
 
   if (badge) {
-    badge.textContent = '기존 발행 확인 중...';
+    badge.textContent = '영상 및 중복 검증 중...';
     badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30';
   }
 
   _youtubeCheckDebounce = setTimeout(async () => {
-    const matched = await findReportByYouTubeVideoId(videoId);
+    // 1. Check duplicate match from registry, caches & reports
+    const [matched, ytInfo] = await Promise.all([
+      findReportByYouTubeVideoId(videoId),
+      fetchYouTubeVideoInfo(videoId)
+    ]);
+
     if (matched) {
       _isYoutubeUrlDuplicate = true;
       if (badge) {
@@ -2925,8 +2983,9 @@ async function checkManualReportYoutubeUrl(url) {
         badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/25 text-rose-300 border border-rose-500/50 animate-pulse';
       }
       if (statusBox) {
-        const postDate = matched.time || (matched.timestamp ? new Date(matched.timestamp).toLocaleString('ko-KR') : '이전 발행');
+        const postDate = matched.time || matched.usedAt || (matched.timestamp ? new Date(matched.timestamp).toLocaleString('ko-KR') : '이전 발행');
         const postCategory = matched.categoryName || (matched.category === 'finance' ? '💰 재테크 팁' : '🔭 코인 전망');
+        const originalTitle = ytInfo ? `<div>• 원본 영상: <span class="text-slate-300">${ytInfo.title || videoId}</span></div>` : '';
         statusBox.innerHTML = `
           <div class="space-y-1.5">
             <div class="font-bold text-rose-400 flex items-center gap-1.5">
@@ -2934,7 +2993,8 @@ async function checkManualReportYoutubeUrl(url) {
               <span>이미 이전에 리포트로 발행된 영상입니다! (중복 발행 불가)</span>
             </div>
             <div class="text-[11px] text-slate-300 pl-5.5 space-y-0.5 bg-navy-900/60 p-2 rounded-lg border border-navy-800">
-              <div>• 기존 글: <span class="font-bold text-white">${matched.title || '제목 없음'}</span></div>
+              ${originalTitle}
+              <div>• 기존 글: <span class="font-bold text-white">${matched.title || '재테크/코인전망 리포트'}</span></div>
               <div>• 발행 일시: <span class="text-amber-300">${postDate}</span> (${postCategory})</div>
             </div>
             <div class="text-[10px] text-rose-300 font-semibold pl-1">
@@ -2952,13 +3012,19 @@ async function checkManualReportYoutubeUrl(url) {
         badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
       }
       if (statusBox) {
+        const videoTitleHtml = (ytInfo && ytInfo.title) 
+          ? `<div class="text-[11px] text-slate-300 mt-1 pl-6">🎬 영상: <span class="text-white font-medium">"${ytInfo.title}"</span> <span class="text-slate-400 text-[10px]">(${ytInfo.author || 'YouTube'})</span></div>`
+          : '';
         statusBox.innerHTML = `
-          <div class="flex items-center gap-2 text-emerald-300">
-            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-            <div>
-              <span class="font-bold text-emerald-300">사용 가능한 신규 영상입니다!</span>
-              <span class="text-slate-400 ml-1.5">이전에 발행된 적 없는 영상이므로 리포트 실행이 가능합니다.</span>
+          <div>
+            <div class="flex items-center gap-2 text-emerald-300">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+              <div>
+                <span class="font-bold text-emerald-300">사용 가능한 신규 영상입니다!</span>
+                <span class="text-slate-400 ml-1.5">이전에 발행된 적 없는 영상이므로 리포트 생성이 가능합니다.</span>
+              </div>
             </div>
+            ${videoTitleHtml}
           </div>
         `;
         statusBox.className = 'rounded-xl p-2.5 text-[11px] bg-emerald-950/30 border border-emerald-500/40 text-emerald-300';
@@ -3191,6 +3257,27 @@ async function executeManualReportTrigger() {
       // Successfully triggered!
       const triggerTime = Date.now();
       const isYoutubeVideo = (selectedType === 'finance' || selectedType === 'forecast') && Boolean(youtubeUrl);
+      
+      // Permanently record into local used-youtube list so it is immediately blocked even before page refresh
+      if (isYoutubeVideo && youtubeUrl) {
+        const vid = extractYouTubeVideoId(youtubeUrl);
+        if (vid) {
+          try {
+            const localUsed = JSON.parse(localStorage.getItem('crytopnl_used_youtube_videos') || '[]');
+            if (!localUsed.some(u => u && u.videoId === vid)) {
+              localUsed.unshift({
+                videoId: vid,
+                url: youtubeUrl,
+                usedAt: new Date().toLocaleString('ko-KR'),
+                category: selectedType,
+                title: `${selectedType === 'finance' ? '재테크 팁' : '코인 전망'} 리포트 실행 영상`
+              });
+              localStorage.setItem('crytopnl_used_youtube_videos', JSON.stringify(localUsed.slice(0, 100)));
+            }
+          } catch(e) {}
+        }
+      }
+
       const totalSeconds = isYoutubeVideo ? 180 : 80;
       let secondsLeft = totalSeconds;
       let isCompleted = false;
