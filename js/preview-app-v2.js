@@ -2792,9 +2792,182 @@ async function openManualReportModal() {
 
   toggleManualReportInputs();
 
+  // Reset & trigger initial youtube check if url is already present
+  const ytInitInput = document.getElementById('manual-report-youtube-url');
+  if (ytInitInput && ytInitInput.value) {
+    checkManualReportYoutubeUrl(ytInitInput.value);
+  } else {
+    const statusBox = document.getElementById('manual-report-youtube-check-status');
+    const badge = document.getElementById('manual-report-youtube-check-badge');
+    if (statusBox) statusBox.className = 'hidden';
+    if (badge) badge.className = 'hidden';
+  }
+
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 window.openManualReportModal = openManualReportModal;
+
+// ==========================================
+// YouTube Duplicate Video Pre-check Engine
+// ==========================================
+function extractYouTubeVideoId(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  const regExp = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/;
+  const match = trimmed.match(regExp);
+  if (match && match[1]) return match[1];
+  if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+  return null;
+}
+window.extractYouTubeVideoId = extractYouTubeVideoId;
+
+async function findReportByYouTubeVideoId(videoId) {
+  if (!videoId) return null;
+  const targetId = String(videoId).trim();
+  if (!targetId) return null;
+
+  let list = [];
+  if (Array.isArray(window._dailyMarketReportsCache) && window._dailyMarketReportsCache.length > 0) {
+    list = [...window._dailyMarketReportsCache];
+  } else {
+    try {
+      const cached = localStorage.getItem('crytopnl_daily_market_reports_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) list = [...parsed];
+      }
+    } catch(e) {}
+  }
+
+  // Also include in-memory forum posts or stored posts
+  try {
+    const forumPosts = typeof inMemoryForumPosts !== 'undefined' && Array.isArray(inMemoryForumPosts) 
+      ? inMemoryForumPosts 
+      : (typeof getStoredPosts === 'function' ? getStoredPosts() : []);
+    if (Array.isArray(forumPosts)) {
+      list = [...list, ...forumPosts];
+    }
+  } catch(e) {}
+
+  // If list is still empty, fetch fresh from GitHub raw or local
+  if (!list || list.length === 0) {
+    try {
+      let res = null;
+      try {
+        const rawRes = await fetch('https://raw.githubusercontent.com/ittechkjh/homepage/main/data/daily-market-reports.json?v=' + Date.now());
+        if (rawRes && rawRes.ok) res = rawRes;
+      } catch(e) {}
+      if (!res || !res.ok) {
+        res = await fetch('data/daily-market-reports.json?v=' + Date.now());
+      }
+      if (res && res.ok) {
+        const data = await res.json();
+        list = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
+        window._dailyMarketReportsCache = list;
+      }
+    } catch(e) {}
+  }
+
+  // Search through all reports for this videoId
+  for (const r of list) {
+    if (!r) continue;
+    if (r.youtubeVideoId && String(r.youtubeVideoId) === targetId) return r;
+    if (typeof r.youtubeUrl === 'string' && r.youtubeUrl.includes(targetId)) return r;
+    if (typeof r.content === 'string' && r.content.includes(targetId)) {
+      return r;
+    }
+  }
+  return null;
+}
+window.findReportByYouTubeVideoId = findReportByYouTubeVideoId;
+
+let _youtubeCheckDebounce = null;
+let _isYoutubeUrlDuplicate = false;
+
+async function checkManualReportYoutubeUrl(url) {
+  clearTimeout(_youtubeCheckDebounce);
+  const statusBox = document.getElementById('manual-report-youtube-check-status');
+  const badge = document.getElementById('manual-report-youtube-check-badge');
+
+  const trimmed = (url || '').trim();
+  if (!trimmed) {
+    _isYoutubeUrlDuplicate = false;
+    if (statusBox) statusBox.className = 'hidden';
+    if (badge) badge.className = 'hidden';
+    return;
+  }
+
+  const videoId = extractYouTubeVideoId(trimmed);
+  if (!videoId) {
+    _isYoutubeUrlDuplicate = false;
+    if (badge) {
+      badge.textContent = 'URL 형식 확인';
+      badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30';
+    }
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-amber-400 font-semibold">⚠️ 올바른 유튜브 영상 URL(youtube.com 또는 youtu.be)을 입력해 주세요.</span>';
+      statusBox.className = 'rounded-xl p-2.5 text-[11px] bg-amber-950/30 border border-amber-500/40 text-amber-300';
+    }
+    return;
+  }
+
+  if (badge) {
+    badge.textContent = '기존 발행 확인 중...';
+    badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30';
+  }
+
+  _youtubeCheckDebounce = setTimeout(async () => {
+    const matched = await findReportByYouTubeVideoId(videoId);
+    if (matched) {
+      _isYoutubeUrlDuplicate = true;
+      if (badge) {
+        badge.textContent = '중복 영상 (발행 불가)';
+        badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/25 text-rose-300 border border-rose-500/50 animate-pulse';
+      }
+      if (statusBox) {
+        const postDate = matched.time || (matched.timestamp ? new Date(matched.timestamp).toLocaleString('ko-KR') : '이전 발행');
+        const postCategory = matched.categoryName || (matched.category === 'finance' ? '💰 재테크 팁' : '🔭 코인 전망');
+        statusBox.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="font-bold text-rose-400 flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0"></i>
+              <span>이미 이전에 리포트로 발행된 영상입니다! (중복 발행 불가)</span>
+            </div>
+            <div class="text-[11px] text-slate-300 pl-5.5 space-y-0.5 bg-navy-900/60 p-2 rounded-lg border border-navy-800">
+              <div>• 기존 글: <span class="font-bold text-white">${matched.title || '제목 없음'}</span></div>
+              <div>• 발행 일시: <span class="text-amber-300">${postDate}</span> (${postCategory})</div>
+            </div>
+            <div class="text-[10px] text-rose-300 font-semibold pl-1">
+              ※ 동일한 영상으로 중복 생성할 수 없습니다. 다른 새로운 영상 URL을 입력해 주세요.
+            </div>
+          </div>
+        `;
+        statusBox.className = 'rounded-xl p-3 text-[11px] bg-rose-950/40 border border-rose-500/50 text-rose-200';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    } else {
+      _isYoutubeUrlDuplicate = false;
+      if (badge) {
+        badge.textContent = '사용 가능 (신규)';
+        badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+      }
+      if (statusBox) {
+        statusBox.innerHTML = `
+          <div class="flex items-center gap-2 text-emerald-300">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+            <div>
+              <span class="font-bold text-emerald-300">사용 가능한 신규 영상입니다!</span>
+              <span class="text-slate-400 ml-1.5">이전에 발행된 적 없는 영상이므로 리포트 실행이 가능합니다.</span>
+            </div>
+          </div>
+        `;
+        statusBox.className = 'rounded-xl p-2.5 text-[11px] bg-emerald-950/30 border border-emerald-500/40 text-emerald-300';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }
+  }, 200);
+}
+window.checkManualReportYoutubeUrl = checkManualReportYoutubeUrl;
 
 function toggleManualReportInputs() {
   const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
@@ -2849,9 +3022,18 @@ function toggleManualReportInputs() {
           ytDesc.textContent = '10년 경력 재테크 전문 블로거 페르소나의 AI가 영상 내용과 핵심 수치를 정밀 분석하여 소제목별 요약, 실전 팁 및 인포그래픽 카드가 포함된 재테크 팁 글을 자동 발행합니다.';
         }
       }
-      if (ytInput) ytInput.focus();
+      if (ytInput) {
+        if (ytInput.value.trim()) {
+          checkManualReportYoutubeUrl(ytInput.value);
+        }
+        ytInput.focus();
+      }
     } else {
       ytContainer.classList.add('hidden');
+      const statusBox = document.getElementById('manual-report-youtube-check-status');
+      const badge = document.getElementById('manual-report-youtube-check-badge');
+      if (statusBox) statusBox.className = 'hidden';
+      if (badge) badge.className = 'hidden';
     }
   }
 }
@@ -2950,6 +3132,26 @@ async function executeManualReportTrigger() {
   const selectedType = typeRadio ? typeRadio.value : 'all';
   const ytInput = document.getElementById('manual-report-youtube-url');
   const youtubeUrl = ytInput ? ytInput.value.trim() : '';
+
+  // YouTube duplicate check for finance & forecast types
+  if (selectedType === 'finance' || selectedType === 'forecast') {
+    if (youtubeUrl) {
+      const videoId = extractYouTubeVideoId(youtubeUrl);
+      if (!videoId) {
+        alert('올바른 유튜브 영상 URL(youtube.com 또는 youtu.be)을 입력해 주세요.');
+        if (ytInput) ytInput.focus();
+        return;
+      }
+      const matched = await findReportByYouTubeVideoId(videoId);
+      if (matched) {
+        const postDate = matched.time || (matched.timestamp ? new Date(matched.timestamp).toLocaleString('ko-KR') : '');
+        const postCat = matched.categoryName || (matched.category === 'finance' ? '💰 재테크 팁' : '🔭 코인 전망');
+        alert(`⚠️ [이미 생성된 영상입니다 - 중복 생성 차단]\n\n입력하신 유튜브 영상은 이전에 이미 리포트로 발행되었습니다.\n\n• 기존 게시글: ${matched.title || '제목 없음'}\n• 발행 일시: ${postDate} (${postCat})\n\n동일한 영상으로 중복 생성할 수 없습니다. 사용 안 했던 새로운 영상 URL을 입력해 주세요.`);
+        if (ytInput) ytInput.focus();
+        return;
+      }
+    }
+  }
 
   // UI state: Running
   if (runBtn) {

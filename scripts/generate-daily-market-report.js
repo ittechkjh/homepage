@@ -4375,6 +4375,8 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     upvotes: 0,
     isNotice: false,
     image: true,
+    youtubeVideoId: videoDetails?.videoId || null,
+    youtubeUrl: videoDetails?.url || null,
     content: contentHtml,
     comments: []
   };
@@ -5404,6 +5406,8 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
     upvotes: 0,
     isNotice: false,
     image: true,
+    youtubeVideoId: videoDetails?.videoId || null,
+    youtubeUrl: videoDetails?.url || null,
     content: contentHtml,
     comments: []
   };
@@ -5440,13 +5444,36 @@ async function main() {
   }
 
   // Generate YouTube finance report if requested
-  if (reportType === 'finance' || process.env.YOUTUBE_URL) {
+  if (reportType === 'finance' || (reportType === 'all' && process.env.YOUTUBE_URL)) {
     const ytUrl = process.env.YOUTUBE_URL || process.argv[3] || '';
-    const financeReport = await buildYouTubeFinanceReport(ytUrl);
-    if (financeReport) {
-      toAdd.push(financeReport);
+    const videoId = extractYouTubeVideoId(ytUrl);
+    const isDup = videoId && existingReports.some(r => (r.youtubeVideoId && r.youtubeVideoId === videoId) || (typeof r.content === 'string' && r.content.includes(videoId)));
+    if (isDup) {
+      console.warn(`⚠️ [Daily Report Generator] 유튜브 영상(${videoId})은 이미 기존 리포트로 발행되었으므로 재테크 팁 생성을 건너뜁니다.`);
     } else {
-      console.warn('⚠️ [Daily Report Generator] 유튜브 자막 부재 또는 분석 취소로 인해 재테크 팁 리포트 작성이 건너뛰어졌습니다.');
+      const financeReport = await buildYouTubeFinanceReport(ytUrl);
+      if (financeReport) {
+        toAdd.push(financeReport);
+      } else {
+        console.warn('⚠️ [Daily Report Generator] 유튜브 자막 부재 또는 분석 취소로 인해 재테크 팁 리포트 작성이 건너뛰어졌습니다.');
+      }
+    }
+  }
+
+  // Generate YouTube coin forecast report if requested
+  if (reportType === 'forecast') {
+    const ytUrl = process.env.YOUTUBE_URL || process.argv[3] || '';
+    const videoId = extractYouTubeVideoId(ytUrl);
+    const isDup = videoId && existingReports.some(r => (r.youtubeVideoId && r.youtubeVideoId === videoId) || (typeof r.content === 'string' && r.content.includes(videoId)));
+    if (isDup) {
+      console.warn(`⚠️ [Daily Report Generator] 유튜브 영상(${videoId})은 이미 기존 리포트로 발행되었으므로 코인 전망 생성을 건너뜁니다.`);
+    } else {
+      const forecastReport = await buildYouTubeForecastReport(ytUrl);
+      if (forecastReport) {
+        toAdd.push(forecastReport);
+      } else {
+        console.warn('⚠️ [Daily Report Generator] 코인 전망 리포트 작성이 건너뛰어졌습니다.');
+      }
     }
   }
 

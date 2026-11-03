@@ -9446,7 +9446,7 @@
   <script src="js/admin.js?v=20261003_06"></script>
   <script src="js/preview-policy.js?v=20260906_01"></script>
   <script src="js/pattern-scanner.js?v=20260923_04"></script>
-  <script src="js/preview-app-v2.js?v=20261030_03"></script>
+  <script src="js/preview-app-v2.js?v=20261103_01"></script>
 
     <!-- PnL Verification Modal -->
   <div id="modal-pnl-verification" class="fixed inset-0 z-[100] hidden items-center justify-center">
@@ -9836,11 +9836,15 @@
 
         <!-- YouTube URL Input (Appears when finance or forecast is selected) -->
         <div id="manual-report-youtube-container" class="space-y-2 hidden bg-navy-950 border border-amber-500/30 rounded-2xl p-3.5 sm:p-4 text-xs transition-all">
-          <label for="manual-report-youtube-url" id="manual-report-youtube-label" class="font-bold text-amber-300 flex items-center gap-1.5">
-            <i data-lucide="youtube" class="w-4 h-4 text-red-400"></i>
-            <span id="manual-report-youtube-title">분석할 유튜브 영상 URL 입력</span>
-          </label>
-          <input type="url" id="manual-report-youtube-url" placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." class="w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-navy-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono transition" />
+          <div class="flex items-center justify-between gap-2">
+            <label for="manual-report-youtube-url" id="manual-report-youtube-label" class="font-bold text-amber-300 flex items-center gap-1.5">
+              <i data-lucide="youtube" class="w-4 h-4 text-red-400"></i>
+              <span id="manual-report-youtube-title">분석할 유튜브 영상 URL 입력</span>
+            </label>
+            <span id="manual-report-youtube-check-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-md transition-all"></span>
+          </div>
+          <input type="url" id="manual-report-youtube-url" oninput="checkManualReportYoutubeUrl(this.value)" placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..." class="w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-navy-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono transition" />
+          <div id="manual-report-youtube-check-status" class="hidden rounded-xl p-2.5 text-[11px] leading-relaxed transition-all"></div>
           <p id="manual-report-youtube-desc" class="text-[11px] text-slate-400 leading-relaxed">
             유튜브 영상 내용과 핵심 수치를 정밀 분석하여 소제목별 요약, 실전 전략 및 인포그래픽 카드가 포함된 리포트를 자동 발행합니다.
           </p>
