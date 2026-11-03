@@ -8314,11 +8314,8 @@ function switchTab(tabId, updateHash = true) {
   window.currentActiveTabId = tabId;
 
   if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
-    let fName = tabId;
-    if (tabId === 'forum' || tabId === 'chat' || tabId === 'guides') fName = 'community';
-    if (tabId === 'yearend-tax') fName = 'calculators';
     if (tabId !== 'admin') {
-      AdminAnalytics.recordVisit(fName);
+      AdminAnalytics.recordVisit(tabId);
     }
   }
 

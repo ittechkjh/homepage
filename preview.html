@@ -8756,6 +8756,81 @@
           </div>
         </div>
 
+        <!-- Section: Page-by-Page Access Timestamps & Stats -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl overflow-hidden shadow-sm space-y-3 p-5">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-navy-800/80">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i> 각 페이지별 최근 접속 시간 &amp; 방문 현황
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">사용자 및 방문자가 사이트 내 각 서비스 페이지(메뉴)에 접속한 시각과 오늘 이용 횟수입니다.</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="px-2.5 py-1 rounded-lg bg-navy-950 border border-navy-800 text-slate-300 font-mono text-[11px] flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                실시간 페이지 트래킹
+              </span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto -mx-5 px-5">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-navy-950/70 text-slate-400 text-[11px] font-bold border-b border-navy-800 uppercase tracking-wider">
+                  <th class="py-3 px-4">페이지 (서비스 메뉴)</th>
+                  <th class="py-3 px-4">최근 접속 시간 (Last Access)</th>
+                  <th class="py-3 px-4">오늘 최초 접속</th>
+                  <th class="py-3 px-4 text-right">오늘 접속 횟수</th>
+                  <th class="py-3 px-4">최근 접속 기기 / 유저</th>
+                  <th class="py-3 px-4 text-center">활동 상태</th>
+                </tr>
+              </thead>
+              <tbody id="admin-page-access-table-body" class="divide-y divide-navy-800/60 font-medium">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section: Live Visitor Access Logs & Timeline -->
+        <div class="bg-navy-900 border border-navy-800 rounded-2xl overflow-hidden shadow-sm space-y-3 p-5">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-navy-800/80">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="history" class="w-4 h-4 text-purple-400"></i> 실시간 방문자 접속 시간 및 활동 로그
+                </h3>
+                <span id="admin-visitor-logs-count" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">최근 30건</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">외부 방문자가 사이트에 접속한 상세 타임스탬프와 접속 경로, 활동 현황을 실시간으로 기록합니다.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="admin-visitor-logs-refresh-btn" onclick="AdminApp.refreshVisitorLogs()" class="px-3 py-1.5 rounded-xl bg-navy-800 hover:bg-navy-700 border border-navy-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>실시간 새로고침</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto -mx-5 px-5">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-navy-950/70 text-slate-400 text-[11px] font-bold border-b border-navy-800 uppercase tracking-wider">
+                  <th class="py-3 px-4">접속 시간 (KST)</th>
+                  <th class="py-3 px-4">방문자 구분</th>
+                  <th class="py-3 px-4">접속한 페이지</th>
+                  <th class="py-3 px-4">접속 환경 (기기/브라우저)</th>
+                  <th class="py-3 px-4">사이트 최초 진입 시각</th>
+                  <th class="py-3 px-4 text-center">세션 상태</th>
+                </tr>
+              </thead>
+              <tbody id="admin-visitor-logs-table-body" class="divide-y divide-navy-800/60 font-medium">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- ============================================== -->
