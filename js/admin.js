@@ -168,6 +168,9 @@ const AdminAnalytics = {
             });
         } catch (e) {}
 
+        // 관리자 접속 시 모든 방문자/PV/활동 통계 수치 반영 완전 배제
+        if (this.isAdminSession()) return;
+
         // 사이트 최초 접속 시 자동 고유 방문자(DAU) 및 PV 즉시 1회 실시간 집계
         let initialFeature = 'community';
         try {
@@ -178,7 +181,7 @@ const AdminAnalytics = {
             }
         } catch (e) {}
 
-        // 관리자 대시보드 탭 자체(#/admin)가 아닌 경우에만 실제 서비스 페이지 방문 기록
+        // 관리자 대시보드 탭 자체(#/admin)가 아닌 경우에만 실제 외부 방문자 페이지 방문 기록
         if (initialFeature !== 'admin') {
             this.recordVisit(initialFeature);
         }
@@ -239,12 +242,9 @@ const AdminAnalytics = {
                 }
             }
 
-            // Do not record when actively on the admin dashboard tab unless forced
+            // 관리자 접속은 모든 통계 수치 및 활동 로그에 절대 반영하지 않음
             if (!force && this.isAdminSession()) {
-                const currentHash = (typeof window !== 'undefined' && window.location.hash) ? window.location.hash.toLowerCase() : '';
-                if (currentHash.includes('admin') || targetFeature === 'admin') {
-                    return Promise.resolve();
-                }
+                return Promise.resolve();
             }
 
             // 1. Session-based unique visitor check
@@ -486,6 +486,9 @@ const AdminAnalytics = {
                         if (d && !d.id) d.id = doc.id;
                         // Clean any legacy mock logs if present
                         if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && !String(d.sessionId || '').includes('init_100')) {
+                            // 관리자 접속 로그는 통계 및 테이블에서 완벽히 배제
+                            const u = String(d.user || '').toLowerCase();
+                            if (u === 'admin' || u.includes('관리자')) return;
                             logs.push(d);
                         }
                     });
@@ -498,6 +501,8 @@ const AdminAnalytics = {
                             const d = doc.data();
                             if (d && !d.id) d.id = doc.id;
                             if (d && d.user !== 'crypto_trader' && d.user !== 'quant_pro' && d.user !== '익명_8392' && !String(d.sessionId || '').includes('init_100')) {
+                                const u = String(d.user || '').toLowerCase();
+                                if (u === 'admin' || u.includes('관리자')) return;
                                 logs.push(d);
                             }
                         });
