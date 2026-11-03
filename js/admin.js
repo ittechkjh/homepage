@@ -2541,7 +2541,7 @@ const AdminApp = {
                           <span>${info.lastAccessedAt || '-'}</span>
                         </div>
                         <div class="text-[10px]">
-                          <span class="px-1.5 py-0.5 rounded font-semibold ${isRecent ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${relTime}</span>
+                          <span class="px-1.5 py-0.5 rounded font-semibold ${isRecent ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'}">${relTime}</span>
                         </div>
                       </div>
                     </td>
@@ -2570,7 +2570,7 @@ const AdminApp = {
                     <td class="py-3 px-4 text-center">
                       ${isRecent 
                         ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>최근 활성</span>' 
-                        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800/80 text-slate-400 border border-navy-700">대기 중</span>'}
+                        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-navy-700">대기 중</span>'}
                     </td>
                   </tr>
                 `;
@@ -2611,7 +2611,7 @@ const AdminApp = {
                 const shortSession = (log.sessionId || '').replace('v_', '').substring(0, 8);
                 const userBadge = (log.user && log.user !== '비회원 (게스트)')
                     ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${log.user}</span>`
-                    : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300">게스트 #${shortSession || (1000 + idx)}</span>`;
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">게스트 #${shortSession || (1000 + idx)}</span>`;
 
                 return `
                   <tr class="hover:bg-navy-800/40 transition">
@@ -2647,7 +2647,7 @@ const AdminApp = {
                     <td class="py-2.5 px-4 text-center">
                       ${isVeryRecent 
                         ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>활동 중</span>' 
-                        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800/80 text-slate-400 border border-navy-700">종료</span>'}
+                        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-navy-700">종료</span>'}
                     </td>
                   </tr>
                 `;

@@ -490,6 +490,30 @@ html.theme-light table tbody td {
   font-weight: 500 !important;
 }
 
+/* 9-1. Admin Visitor Analytics Badges & Status in Light Mode */
+html.theme-light #admin-page-access-table-body .bg-slate-800,
+html.theme-light #admin-page-access-table-body .bg-slate-800\/80,
+html.theme-light #admin-visitor-logs-table-body .bg-slate-800,
+html.theme-light #admin-visitor-logs-table-body .bg-slate-800\/80 {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+html.theme-light #admin-page-access-table-body .bg-emerald-500\/20,
+html.theme-light #admin-visitor-logs-table-body .bg-emerald-500\/20 {
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+html.theme-light #admin-page-access-table-body .bg-purple-500\/20,
+html.theme-light #admin-visitor-logs-table-body .bg-purple-500\/20 {
+  background-color: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border: 1px solid #ddd6fe !important;
+}
+
 /* 10. Buttons & Navigation */
 html.theme-light .category-btn:not(.active),
 html.theme-light .nav-tab:not(.active),
