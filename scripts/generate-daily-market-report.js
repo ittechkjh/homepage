@@ -3460,13 +3460,13 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
   const b2 = clampSvgText(tData.bullets[1] || '② 절세 계좌 활용 혜택 극대화', 33);
   const b3 = clampSvgText(tData.bullets[2] || '③ 장기 복리 성장 시스템 구축', 33);
 
-  const safeBadge = clampSvgText(tData.badge, 16);
-  const safeHeroSub = clampSvgText(tData.heroSub, 17);
-  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 15);
-  const safeTarget = clampSvgText(tData.target, 13);
-  const safeBenefit = clampSvgText(tData.benefit, 13);
-  const safeBenefitSub = clampSvgText(tData.benefitSub, 16);
-  const safeCaution = clampSvgText(tData.caution, 14);
+  const safeBadge = clampSvgText(tData.badge, 20);
+  const safeHeroSub = clampSvgText(tData.heroSub, 32);
+  const safeMatrixTitle = clampSvgText(tData.matrixTitle, 20);
+  const safeTarget = clampSvgText(tData.target, 18);
+  const safeBenefit = clampSvgText(tData.benefit, 18);
+  const safeBenefitSub = clampSvgText(tData.benefitSub, 22);
+  const safeCaution = clampSvgText(tData.caution, 18);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -4611,16 +4611,20 @@ function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynam
   const tData = dynamicThemeData || extractForecastThemeData(videoDetails, customTitle);
   const safeTitle = (customTitle || videoDetails?.title || '비트코인 핵심 변곡점 및 주요 알트코인 시세 전망').replace(/[<>&"]/g, '');
   const cleanTitle = safeTitle.replace(/^🔭\s*\[코인\s*전망\]\s*/, '').trim();
-  const displayTitle1 = clampSvgText(cleanTitle, 22);
 
-  const b1 = clampSvgText(tData.bullets?.[0] || '① 주요 변곡점 및 핵심 지지·저항선 점검', 33);
-  const b2 = clampSvgText(tData.bullets?.[1] || '② 단기/중기 상승 및 조정 시나리오별 손익비', 33);
-  const b3 = clampSvgText(tData.bullets?.[2] || '③ 거시 유동성 및 온체인 수급 흐름 진단', 33);
+  // Multi-line support: wrap up to 30 visual width per line (up to 2 lines) so title never gets truncated!
+  const titleLines = wrapSvgText(cleanTitle, 30, 2);
+  const displayTitle1 = titleLines[0] || cleanTitle;
+  const displayTitle2 = titleLines.length > 1 ? titleLines[1] : null;
 
-  const safeBadge = clampSvgText(tData.badge || '🔭 퀀트 코인 전망', 16);
-  const safeHeroSub = clampSvgText(tData.heroSub || '온체인 수급 및 기술적 분석', 17);
-  const safeBenefit = clampSvgText(tData.benefit || '명확한 손익비 & 목표가', 13);
-  const safeCaution = clampSvgText(tData.caution || '지지선 이탈 시 손절', 14);
+  const b1 = clampSvgText(tData.bullets?.[0] || '① 주요 변곡점 및 핵심 지지·저항선 점검', 48);
+  const b2 = clampSvgText(tData.bullets?.[1] || '② 단기/중기 상승 및 조정 시나리오별 손익비', 48);
+  const b3 = clampSvgText(tData.bullets?.[2] || '③ 거시 유동성 및 온체인 수급 흐름 진단', 48);
+
+  const safeBadge = clampSvgText(tData.badge || '🔭 퀀트 코인 전망', 20);
+  const safeHeroSub = clampSvgText(tData.heroSub || '온체인 수급 및 기술적 분석', 46);
+  const safeBenefit = clampSvgText(tData.benefit || '명확한 손익비 & 목표가', 26);
+  const safeCaution = clampSvgText(tData.caution || '지지선 이탈 시 손절', 26);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
   <defs>
@@ -4657,10 +4661,11 @@ function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynam
   </g>
 
   <!-- Title Section -->
-  <g transform="translate(35, 95)">
-    <text x="0" y="0" fill="#38bdf8" font-size="13" font-weight="700" font-family="'Pretendard', sans-serif">CRYPTO QUANT FORECAST REPORT</text>
-    <text x="0" y="32" fill="#ffffff" font-size="23" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${displayTitle1}</text>
-    <text x="0" y="58" fill="#94a3b8" font-size="13" font-weight="500" font-family="'Pretendard', sans-serif">${safeHeroSub}</text>
+  <g transform="translate(35, ${displayTitle2 ? 86 : 95})">
+    <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="700" font-family="'Pretendard', sans-serif" letter-spacing="0.5">CRYPTO QUANT FORECAST REPORT</text>
+    <text x="0" y="${displayTitle2 ? 28 : 32}" fill="#ffffff" font-size="${displayTitle2 ? 21 : 23}" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${displayTitle1}</text>
+    ${displayTitle2 ? `<text x="0" y="53" fill="#ffffff" font-size="21" font-weight="900" font-family="'Pretendard', sans-serif" letter-spacing="-0.5">${displayTitle2}</text>` : ''}
+    <text x="0" y="${displayTitle2 ? 76 : 58}" fill="#94a3b8" font-size="13" font-weight="500" font-family="'Pretendard', sans-serif">${safeHeroSub}</text>
   </g>
 
   <!-- 3 Bullets Card -->
@@ -4727,7 +4732,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
   <!-- Header -->
   <g transform="translate(35, 30)">
     <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">STRATEGY ROADMAP</text>
-    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.roadmapTitle || '3단계 실전 코인 매매 대응 로드맵', 24)}</text>
+    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.roadmapTitle || '3단계 실전 코인 매매 대응 로드맵', 34)}</text>
   </g>
   <!-- Brand Badge: crytopnl.com -->
   <g transform="translate(615, 26)">
@@ -4747,7 +4752,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
     <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
     
     <g transform="translate(20, 105)">
-      ${(s1.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+      ${(s1.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 18)}</text>`).join('')}
     </g>
   </g>
 
@@ -4760,7 +4765,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
     <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
     
     <g transform="translate(20, 105)">
-      ${(s2.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+      ${(s2.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#38bdf8' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 18)}</text>`).join('')}
     </g>
   </g>
 
@@ -4773,7 +4778,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
     <line x1="20" y1="80" x2="210" y2="80" stroke="#1e3a5f" stroke-width="1"/>
     
     <g transform="translate(20, 105)">
-      ${(s3.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#fb7185' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 16)}</text>`).join('')}
+      ${(s3.items || []).slice(0, 5).map((it, idx) => `<text x="0" y="${idx * 34}" fill="${it.startsWith('✓') ? '#fb7185' : '#cbd5e1'}" font-size="11" font-weight="${it.startsWith('✓') ? '700' : '500'}" font-family="'Pretendard', sans-serif">${clampSvgText(it, 18)}</text>`).join('')}
     </g>
   </g>
 
@@ -4810,7 +4815,7 @@ function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynam
   <!-- Header -->
   <g transform="translate(35, 30)">
     <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">PRICE LEVELS &amp; MATRIX</text>
-    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.matrixTitle || '주요 가격 레벨 및 시나리오 분석', 24)}</text>
+    <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.matrixTitle || '주요 가격 레벨 및 시나리오 분석', 34)}</text>
   </g>
   <!-- Brand Badge: crytopnl.com -->
   <g transform="translate(615, 26)">
@@ -4836,10 +4841,10 @@ function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynam
       <rect x="16" y="14" width="85" height="22" rx="6" fill="${tagBg}" fill-opacity="0.5"/>
       <text x="58" y="29" fill="${tagColor}" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(c.tag, 10)}</text>
       <text x="110" y="30" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(c.sub, 15)}</text>
-      <text x="16" y="60" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(c.main, 18)}</text>
+      <text x="16" y="60" fill="#ffffff" font-size="15" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(c.main, 22)}</text>
       <line x1="16" y1="72" x2="339" y2="72" stroke="#1e293b" stroke-width="1"/>
       <g transform="translate(16, 92)">
-        ${(c.bullets || []).slice(0, 3).map((b, bIdx) => `<text x="0" y="${bIdx * 20}" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(b, 26)}</text>`).join('')}
+        ${(c.bullets || []).slice(0, 3).map((b, bIdx) => `<text x="0" y="${bIdx * 20}" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(b, 29)}</text>`).join('')}
       </g>
     </g>`;
   }).join('')}
@@ -4878,7 +4883,7 @@ function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynam
   <g transform="translate(35, 30)">
     <rect width="140" height="24" rx="12" fill="#be123c" fill-opacity="0.3" stroke="#f43f5e" stroke-width="1"/>
     <text x="70" y="16" fill="#f43f5e" font-size="10" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge || 'RISK MANAGEMENT', 15)}</text>
-    <text x="0" y="48" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle || '코인 트레이딩 4대 필수 리스크 관리 원칙', 26)}</text>
+    <text x="0" y="48" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle || '코인 트레이딩 4대 필수 리스크 관리 원칙', 34)}</text>
   </g>
   <!-- Brand Badge: crytopnl.com -->
   <g transform="translate(615, 26)">
@@ -4902,7 +4907,7 @@ function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynam
       <text x="60" y="28" fill="#ffffff" font-size="14" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(r.title, 14)}</text>
       <text x="60" y="44" fill="#94a3b8" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">${clampSvgText(r.sub, 18)}</text>
       <line x1="20" y1="58" x2="335" y2="58" stroke="#1e293b" stroke-width="1"/>
-      <text x="20" y="80" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(r.desc, 27)}</text>
+      <text x="20" y="80" fill="#cbd5e1" font-size="11" font-weight="500" font-family="'Pretendard', sans-serif">${clampSvgText(r.desc, 32)}</text>
       <rect x="20" y="94" width="160" height="22" rx="6" fill="#0284c7" fill-opacity="0.25"/>
       <text x="28" y="109" fill="#38bdf8" font-size="10" font-weight="800" font-family="'Pretendard', sans-serif">${clampSvgText(r.tag, 16)}</text>
     </g>`;
