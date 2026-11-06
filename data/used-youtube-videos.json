@@ -1,7 +1,15 @@
 {
-  "lastUpdated": "2026-11-03T13:21:00.000Z",
+  "lastUpdated": "2026-11-06T01:42:39.580Z",
   "description": "Registry of YouTube video URLs used to generate financial tips and coin forecast AI reports",
   "videos": [
+    {
+      "videoId": "zhm5N4r7Nac",
+      "url": "https://www.youtube.com/watch?v=zhm5N4r7Nac",
+      "usedAt": "2026-11-06 10:39",
+      "reportId": "forecast-20261106-1039",
+      "category": "forecast",
+      "title": "🔭 [코인 전망] 달러 투자자에서 비트코인 100만 달러 퀀트 베팅으로 돌아선 이유와 전략"
+    },
     {
       "videoId": "qcVDHN_BgP4",
       "url": "https://www.youtube.com/watch?v=qcVDHN_BgP4",
