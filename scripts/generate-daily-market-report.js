@@ -3925,8 +3925,9 @@ ${videoDetails.transcript.slice(0, 35000)}
   // When transcript is present, pure text inference is 10x faster and 100% immune to video processing timeouts!
   if (!hasTranscript && videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
     userParts.push({
-      file_data: {
-        file_uri: videoDetails.url
+      fileData: {
+        fileUri: videoDetails.url,
+        mimeType: 'video/mp4'
       }
     });
     console.log(`[Gemini Finance AI] Attached YouTube video URL for native multimodal understanding: ${videoDetails.url}`);
@@ -4986,8 +4987,9 @@ ${videoDetails.transcript.slice(0, 35000)}
   const userParts = [];
   if (!hasTranscript && videoDetails.url && (videoDetails.url.includes('youtube.com/') || videoDetails.url.includes('youtu.be/'))) {
     userParts.push({
-      file_data: {
-        file_uri: videoDetails.url
+      fileData: {
+        fileUri: videoDetails.url,
+        mimeType: 'video/mp4'
       }
     });
     console.log(`[Gemini Forecast AI] Attached YouTube video URL for native multimodal understanding: ${videoDetails.url}`);
@@ -5280,8 +5282,8 @@ ${imgTag4}
 
 // Build YouTube Forecast Report
 async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
-  const kst = getKstDate(targetDate);
-  const dateStr = formatDateKst(kst);
+  const kst = targetDate ? new Date(targetDate) : getKSTDate();
+  const dateStr = formatDateString(kst);
   const dateKorean = formatDateKorean(kst);
   const hour = String(kst.getHours()).padStart(2, '0');
   const min = String(kst.getMinutes()).padStart(2, '0');

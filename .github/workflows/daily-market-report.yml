@@ -51,11 +51,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/daily-market-reports.json posts/ calculators/ guides/ sitemap.xml
+          git add -A
           if git diff --staged --quiet; then
             echo "No market report changes to commit."
           else
             git commit -m "chore(report): auto-publish daily crypto market report & static pages"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push origin main
           fi
