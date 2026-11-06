@@ -3338,6 +3338,79 @@ function sanitizeSvgXml(svg) {
   return svg.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
 }
 
+// Safely encodes SVG into a clean data URI, stripping XML comments to avoid browser rendering artifacts
+function encodeSvgDataUri(svg) {
+  if (!svg) return '';
+  // 1. Strip all XML comments entirely to prevent comments from being mangled or rendered as text
+  const noComments = svg.replace(/<!--[\s\S]*?-->/g, '');
+  // 2. Sanitize unescaped ampersands
+  const cleanXml = sanitizeSvgXml(noComments).replace(/\s+/g, ' ').trim();
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(cleanXml);
+}
+
+// Strip YouTuber, channel, and creator names from infographic text
+function stripCreatorAndYouTubeNames(text, videoDetails = null) {
+  if (!text || typeof text !== 'string') return text;
+  let res = text;
+  if (videoDetails?.channelTitle) {
+    const ch = videoDetails.channelTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    res = res.replace(new RegExp(ch, 'gi'), '');
+  }
+  res = res.replace(/박성현\s*(?:대표|작가|전문가)?(?:\s*스타일)?/g, '비트코인');
+  res = res.replace(/박작가(?:\s*연구소)?(?:\s*스타일)?/g, '비트코인');
+  res = res.replace(/(?:[가-힣a-zA-Z0-9_]{2,8}\s*(?:대표|작가|전문가|애널리스트|유튜버|채널|TV|티비)\s*스타일)/g, '크립토 퀀트');
+  res = res.replace(/유튜브|유튜버|채널\s*(?:영상)?/g, '');
+  return res.replace(/\s+/g, ' ').trim();
+}
+
+function sanitizeInfographicThemeData(tData, videoDetails = null) {
+  if (!tData || typeof tData !== 'object') return tData;
+  const clean = { ...tData };
+  const cleanStr = (s) => stripCreatorAndYouTubeNames(s, videoDetails);
+
+  if (clean.badge) clean.badge = cleanStr(clean.badge);
+  if (clean.heroSub) clean.heroSub = cleanStr(clean.heroSub);
+  if (clean.matrixTitle) clean.matrixTitle = cleanStr(clean.matrixTitle);
+  if (clean.target) clean.target = cleanStr(clean.target);
+  if (clean.benefit) clean.benefit = cleanStr(clean.benefit);
+  if (clean.benefitSub) clean.benefitSub = cleanStr(clean.benefitSub);
+  if (clean.caution) clean.caution = cleanStr(clean.caution);
+  if (clean.roadmapTitle) clean.roadmapTitle = cleanStr(clean.roadmapTitle);
+  if (clean.riskBadge) clean.riskBadge = cleanStr(clean.riskBadge);
+  if (clean.riskTitle) clean.riskTitle = cleanStr(clean.riskTitle);
+
+  if (Array.isArray(clean.bullets)) {
+    clean.bullets = clean.bullets.map(cleanStr);
+  }
+  if (Array.isArray(clean.steps)) {
+    clean.steps = clean.steps.map(s => ({
+      ...s,
+      title: cleanStr(s.title),
+      sub: cleanStr(s.sub),
+      items: Array.isArray(s.items) ? s.items.map(cleanStr) : s.items
+    }));
+  }
+  if (Array.isArray(clean.matrixCards)) {
+    clean.matrixCards = clean.matrixCards.map(c => ({
+      ...c,
+      tag: cleanStr(c.tag),
+      sub: cleanStr(c.sub),
+      main: cleanStr(c.main),
+      bullets: Array.isArray(c.bullets) ? c.bullets.map(cleanStr) : c.bullets
+    }));
+  }
+  if (Array.isArray(clean.risks)) {
+    clean.risks = clean.risks.map(r => ({
+      ...r,
+      title: cleanStr(r.title),
+      sub: cleanStr(r.sub),
+      desc: cleanStr(r.desc),
+      tag: cleanStr(r.tag)
+    }));
+  }
+  return clean;
+}
+
 // Visual character width calculator for Hangul/CJK vs Latin
 function getVisualCharWidth(char) {
   const code = char.charCodeAt(0);
@@ -3584,7 +3657,7 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
     <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 실전 재테크 백서</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 2: 2040 직장인을 위한 3단계 실천 로드맵 (16:9 800x450)
@@ -3689,7 +3762,7 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
 
   <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">2040 맞춤형 단계별 자산 배분 전략 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 3: 핵심 비교 분석 & 수익/공제율 매트릭스 (16:9 800x450)
@@ -3788,7 +3861,7 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
 
   <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건·세제 혜택 심층 비교 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 4: 필수 주의사항 & 리스크 방어 4대 수칙 (16:9 800x450)
@@ -3885,7 +3958,7 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
   <!-- Footer Disclaimer & Brand -->
   <text x="400" y="420" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">원칙과 데이터 중심의 자산 보호 매뉴얼 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // Gemini AI Call for Finance Tips
@@ -4414,7 +4487,7 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
   }
 
   // Generate theme data & SVG infographics (Prioritize AI dynamic infographic data, fallback to keyword rules)
-  const dynamicThemeData = aiInfographicData || extractFinanceThemeData(videoDetails, postTitle);
+  const dynamicThemeData = sanitizeInfographicThemeData(aiInfographicData || extractFinanceThemeData(videoDetails, postTitle), videoDetails);
   const img1 = generateFinanceImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img2 = generateFinanceImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img3 = generateFinanceImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
@@ -4707,7 +4780,7 @@ function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynam
     <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 2: 3단계 실천 매매 대응 로드맵 (16:9 800x450)
@@ -4790,7 +4863,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
     <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 3: 주요 가격 레벨 및 시나리오 분석 매트릭스 (16:9 800x450)
@@ -4857,7 +4930,7 @@ function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynam
     <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // SVG 4: 리스크 관리 & 관점 무효화 수칙 (16:9 800x450)
@@ -4921,7 +4994,7 @@ function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynam
     <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
+  return encodeSvgDataUri(svg);
 }
 
 // Call Gemini API for YouTube Coin Forecast Analysis
@@ -4970,7 +5043,7 @@ async function callGeminiYouTubeForecastAPI(dateStr, dateKorean, videoDetails, a
        "② [영상에서 분석가가 강조한 핵심 논점 2: 돌파 저항선 및 1차/2차 목표가]",
        "③ [영상에서 분석가가 강조한 핵심 논점 3: 온체인/거시지표 및 변곡점 변수]"
      ],
-     "roadmapTitle": "[영상 기반] 3단계 실전 매매 대응 로드맵",
+     "roadmapTitle": "[해당 코인명] 3단계 실전 매매 대응 로드맵 (⚠️ 절대 유튜버/출연자/채널명 포함 금지, 예: BTC 3단계 실전 매매 대응 로드맵)",
      "steps": [
        {
          "title": "1단계 진입/매집",
@@ -5461,7 +5534,7 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
     }
   }
 
-  const dynamicThemeData = aiInfographicData || extractForecastThemeData(videoDetails, postTitle);
+  const dynamicThemeData = sanitizeInfographicThemeData(aiInfographicData || extractForecastThemeData(videoDetails, postTitle), videoDetails);
   const img1 = generateForecastImage1(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img2 = generateForecastImage2(dateStr, videoDetails, postTitle, dynamicThemeData);
   const img3 = generateForecastImage3(dateStr, videoDetails, postTitle, dynamicThemeData);
