@@ -420,8 +420,13 @@ function generateReportImage1(dStr, m, aiInfo = null) {
     <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
     <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 전문가 뷰</text>
 
-    <rect x="635" y="0" width="135" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(615, 0)">
+      <rect width="150" height="30" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="15" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="15" r="2" fill="#38bdf8"/>
+      <text x="86" y="20" fill="#38bdf8" font-size="13.5" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
 
   <!-- Left Main Headline -->
@@ -497,7 +502,7 @@ function generateReportImage1(dStr, m, aiInfo = null) {
     <line x1="0" y1="0" x2="420" y2="0" stroke="#f43f5e" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#f43f5e"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: ${dStr} • 실시간 온체인 및 심리 다이버전스 분석</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Market Intel</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 실시간 퀀트 분석</text>
   </g>
 </svg>`;
   return createSvgDataUri(svg);
@@ -534,8 +539,13 @@ function generateReportImage2(dStr, m, aiInfo = null) {
     <rect width="135" height="28" rx="7" fill="#0284c7" filter="url(#m_drop)"/>
     <text x="67" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CRITICAL METRICS</text>
     <text x="150" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">2026 Q3 <tspan fill="#38bdf8">크립토 심리 계측기</tspan> &amp; 시장 감정 다이얼</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -609,7 +619,7 @@ function generateReportImage2(dStr, m, aiInfo = null) {
   </g>
 
   <!-- Footer note -->
-  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: 실시간 온체인 및 파생상품 매트릭스 • CrytoPnL 퀀트랩</text>
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실시간 온체인 &amp; 파생상품 퀀트 분석 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return createSvgDataUri(svg);
 }
@@ -645,8 +655,13 @@ function generateReportImage3(dStr, m, aiInfo = null) {
     <rect width="120" height="28" rx="7" fill="#059669" filter="url(#f_shadow)"/>
     <text x="60" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CORE DRIVERS</text>
     <text x="135" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">현재 시장 분위기를 주도하는 <tspan fill="#34d399">3대 핵심 동인</tspan></text>
-    <rect x="635" y="0" width="130" height="28" rx="7" fill="#1e293b" stroke="#334155"/>
-    <text x="700" y="19" fill="#34d399" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#34d399" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#059669"/>
+      <circle cx="18" cy="14" r="2" fill="#34d399"/>
+      <text x="86" y="19" fill="#34d399" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="62" x2="775" y2="62" stroke="#334155" stroke-width="1.2" stroke-opacity="0.8"/>
 
@@ -729,7 +744,7 @@ function generateReportImage3(dStr, m, aiInfo = null) {
   </g>
 
   <!-- Bottom Caption -->
-  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">출처: Glassnode, Farside ETF Flows, FRED Macro Data • 분석: CrytoPnL 퀀트랩</text>
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">Glassnode · Farside ETF Flows · FRED 매크로 퀀트 분석 • <tspan fill="#34d399" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return createSvgDataUri(svg);
 }
@@ -752,8 +767,13 @@ function generateReportImage4(dStr, m, aiInfo = null) {
     <rect width="135" height="28" rx="7" fill="#d97706" filter="url(#div_drop)"/>
     <text x="67" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">MARKET SPLIT</text>
     <text x="150" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">주요 자산군별 <tspan fill="#fbbf24">체감 온도차</tspan> &amp; 수급 다이버전스</text>
-    <rect x="645" y="0" width="130" height="28" rx="7" fill="#1e293b"/>
-    <text x="710" y="19" fill="#fbbf24" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#fbbf24" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#d97706"/>
+      <circle cx="18" cy="14" r="2" fill="#fbbf24"/>
+      <text x="86" y="19" fill="#fbbf24" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -845,7 +865,7 @@ function generateReportImage4(dStr, m, aiInfo = null) {
   <g transform="translate(30, 390)">
     <rect width="740" height="42" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
     <text x="370" y="26" fill="#e2e8f0" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">
-      💡 분석 결론: 비트코인이 길을 열고 도미넌스가 꺾일 때 알트코인 대시세 분출 사이클이 시작됩니다!
+      💡 분석 결론: BTC 독주 후 알트 순환매 시작 • 실시간 퀀트 차트: <tspan fill="#fbbf24" font-weight="900">crytopnl.com</tspan>
     </text>
   </g>
 </svg>`;
@@ -877,8 +897,13 @@ function generateReportImage5(dStr, m, aiInfo = null) {
     <rect width="130" height="28" rx="7" fill="#7c3aed" filter="url(#c_drop)"/>
     <text x="65" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">CYCLE ROADMAP</text>
     <text x="145" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">투자자 심리 사이클 상의 <tspan fill="#a78bfa">현재 위치</tspan>와 실전 행동 수칙</text>
-    <rect x="645" y="0" width="130" height="28" rx="7" fill="#1e293b"/>
-    <text x="710" y="19" fill="#a78bfa" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#a78bfa" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#7c3aed"/>
+      <circle cx="18" cy="14" r="2" fill="#a78bfa"/>
+      <text x="86" y="19" fill="#a78bfa" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -959,7 +984,7 @@ function generateReportImage5(dStr, m, aiInfo = null) {
   </g>
 
   <!-- Bottom Disclaimer -->
-  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">본 인포그래픽은 시장 심리 분석용이며, 개별 코인 매수·매도를 추천하지 않습니다.</text>
+  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">시장 심리 &amp; 실전 매매 수칙 • 크립토 퀀트 분석기 <tspan fill="#a78bfa" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return createSvgDataUri(svg);
 }
@@ -1748,8 +1773,13 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null, aiPerspective
     <rect x="220" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#0ea5e9" stroke-width="1.2"/>
     <text x="287" y="20" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 기술 분석가 뷰</text>
 
-    <rect x="635" y="0" width="135" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(615, 0)">
+      <rect width="150" height="30" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="15" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="15" r="2" fill="#38bdf8"/>
+      <text x="86" y="20" fill="#38bdf8" font-size="13.5" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
 
   <g transform="translate(35, 90)">
@@ -1817,7 +1847,7 @@ function generatePerspectiveImage1(dateStr, tech, slotInfo = null, aiPerspective
     <line x1="0" y1="0" x2="420" y2="0" stroke="#0284c7" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#0284c7"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: ${slotTimestampStr} KST • BTC/USDT 4H 프레임워크 기술적 분석</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Chart Intelligence</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 차트 퀀트 스캐너</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
@@ -1860,8 +1890,13 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null, aiPerspective
     <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p2_drop)"/>
     <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">MACRO STRUCTURE</text>
     <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">주봉/일봉 <tspan fill="#38bdf8">전체 추세 구조</tspan> &amp; 50/200 이평선 정배열</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -1924,7 +1959,7 @@ function generatePerspectiveImage2(dateStr, tech, slotInfo = null, aiPerspective
     </g>
   </g>
 
-  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">기준: 주봉 및 일봉 추세 프레임워크 • 바이낸스 현물 BTC/USDT • CrytoPnL 퀀트랩</text>
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">바이낸스 실시간 시세 &amp; 이평선 구조 분석 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
@@ -1949,8 +1984,13 @@ function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
     <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p3_drop)"/>
     <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">4H CANDLE &amp; MOMENTUM</text>
     <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">단기 차트 상세 분석: <tspan fill="#38bdf8">캔들 패턴</tspan> &amp; 4대 보조지표</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -2067,7 +2107,7 @@ function generatePerspectiveImage3(dateStr, tech, slotInfo = null) {
     </g>
   </g>
 
-  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">차트 패턴: 대칭 삼각수렴(Symmetrical Triangle) 상단 돌파 테스트 • CrytoPnL 퀀트랩</text>
+  <text x="400" y="426" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">4대 핵심 모멘텀 지표 퀀트 스캔 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
@@ -2104,8 +2144,13 @@ function generatePerspectiveImage4(dateStr, tech, slotInfo = null, aiPerspective
     <rect width="145" height="28" rx="7" fill="#9333ea" filter="url(#p4_drop)"/>
     <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ELLIOTT WAVE MAP</text>
     <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">엘리엇 파동 <tspan fill="#c084fc">카운팅 해석</tspan> &amp; 피보나치 로드맵</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#c084fc" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#c084fc" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#9333ea"/>
+      <circle cx="18" cy="14" r="2" fill="#c084fc"/>
+      <text x="86" y="19" fill="#c084fc" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -2205,8 +2250,13 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null, aiPerspective
     <rect width="145" height="28" rx="7" fill="#0284c7" filter="url(#p5_drop)"/>
     <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">SCENARIO MATRIX</text>
     <text x="160" y="21" fill="#ffffff" font-size="18" font-weight="900" font-family="'Pretendard', sans-serif">핵심 지지·저항 레벨 &amp; <tspan fill="#34d399">트레이더 실전 행동 수칙</tspan></text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -2282,7 +2332,7 @@ function generatePerspectiveImage5(dateStr, tech, slotInfo = null, aiPerspective
     </g>
   </g>
 
-  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">본 인포그래픽은 기술적 차트 분석용이며, 투자를 권유하지 않습니다. 조건부 대응이 핵심입니다.</text>
+  <text x="400" y="405" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실시간 캔들 &amp; 가격 레벨 퀀트 분석기 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.replace(/\s+/g, ' ').trim());
 }
@@ -3461,8 +3511,13 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
     <rect x="235" y="0" width="135" height="30" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2"/>
     <text x="302" y="20" fill="#fbbf24" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">10년 차 블로거 뷰</text>
 
-    <rect x="625" y="0" width="145" height="30" rx="8" fill="#0369a1" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="702" y="20" fill="#38bdf8" font-size="13" font-weight="900" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(615, 0)">
+      <rect width="150" height="30" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="15" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="15" r="2" fill="#38bdf8"/>
+      <text x="86" y="20" fill="#38bdf8" font-size="13.5" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
 
   <!-- Main Hero Title -->
@@ -3526,7 +3581,7 @@ function generateFinanceImage1(dateStr, videoDetails, customTitle = null, dynami
     <line x1="0" y1="0" x2="420" y2="0" stroke="#f59e0b" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#f59e0b"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 2026 실전 재테크 가이드 • 팩트 기반 맞춤형 전략</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Finance Lab</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 실전 재테크 백서</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
@@ -3562,8 +3617,13 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
     <rect width="150" height="28" rx="7" fill="#d97706" filter="url(#f2_drop)"/>
     <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ACTION ROADMAP</text>
     <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeRoadmapTitle}</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -3627,7 +3687,7 @@ function generateFinanceImage2(dateStr, videoDetails, customTitle = null, dynami
     </g>
   </g>
 
-  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">실행이 곧 자산입니다 • 맞춤 단계별 전략을 미리 세우고 대응하는 것이 성공의 열쇠입니다</text>
+  <text x="400" y="428" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">2040 맞춤형 단계별 자산 배분 전략 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
@@ -3665,8 +3725,13 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
     <rect width="150" height="28" rx="7" fill="#0284c7" filter="url(#f3_drop)"/>
     <text x="75" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">ANALYSIS MATRIX</text>
     <text x="165" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${safeMatrixTitle} <tspan fill="#38bdf8">심층 비교 분석</tspan></text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -3721,7 +3786,7 @@ function generateFinanceImage3(dateStr, videoDetails, customTitle = null, dynami
     </g>
   </g>
 
-  <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건과 혜택을 사전에 숙지할 때 불필요한 세금 유출과 리스크를 원천 차단할 수 있습니다</text>
+  <text x="400" y="415" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">제도별 조건·세제 혜택 심층 비교 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
@@ -3793,8 +3858,13 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
     <rect width="145" height="28" rx="7" fill="#e11d48" filter="url(#f4_drop)"/>
     <text x="72" y="19" fill="#ffffff" font-size="12" font-weight="900" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge, 14)}</text>
     <text x="160" y="21" fill="#ffffff" font-size="17.5" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle, 30)}</text>
-    <rect x="640" y="0" width="135" height="28" rx="7" fill="#1e293b"/>
-    <text x="707" y="19" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="middle">crytopnl.com</text>
+    <!-- Brand Badge: crytopnl.com -->
+    <g transform="translate(620, 0)">
+      <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+      <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+      <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+      <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+    </g>
   </g>
   <line x1="25" y1="60" x2="775" y2="60" stroke="#334155" stroke-width="1.2" stroke-opacity="0.7"/>
 
@@ -3811,6 +3881,9 @@ function generateFinanceImage4(dateStr, videoDetails, customTitle = null, dynami
     <text x="24" y="86" fill="#cbd5e1" font-size="11.5" font-weight="500">• ${safeBullet0}</text>
     <text x="24" y="110" fill="#a7f3d0" font-size="11.5" font-weight="700">• ${safeBullet1}</text>
   </g>
+
+  <!-- Footer Disclaimer & Brand -->
+  <text x="400" y="420" fill="#64748b" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif" text-anchor="middle">원칙과 데이터 중심의 자산 보호 매뉴얼 • <tspan fill="#38bdf8" font-weight="800">🌐 crytopnl.com</tspan></text>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
 }
@@ -4570,12 +4643,18 @@ function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynam
   <rect width="800" height="450" fill="url(#fc1_glow1)"/>
   <rect width="800" height="450" fill="url(#fc1_glow2)"/>
 
-  <!-- Top Badge -->
-  <g transform="translate(35, 30)">
+  <!-- Top Badge & Brand -->
+  <g transform="translate(35, 26)">
     <rect width="180" height="28" rx="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.2"/>
     <text x="90" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${safeBadge}</text>
   </g>
-  <text x="765" y="48" fill="#94a3b8" font-size="11" font-weight="600" font-family="monospace" text-anchor="end">DATE: ${dateStr}</text>
+  <!-- Brand Badge: crytopnl.com -->
+  <g transform="translate(615, 26)">
+    <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+    <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+    <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+    <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
+  </g>
 
   <!-- Title Section -->
   <g transform="translate(35, 95)">
@@ -4620,7 +4699,7 @@ function generateForecastImage1(dateStr, videoDetails, customTitle = null, dynam
     <line x1="0" y1="0" x2="420" y2="0" stroke="#0ea5e9" stroke-width="3"/>
     <circle cx="420" cy="0" r="4" fill="#0ea5e9"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 실시간 온체인 및 기술적 분석 • 퀀트 전략 리포트</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
@@ -4646,9 +4725,16 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
   <rect width="800" height="450" fill="url(#fc2_bg)"/>
 
   <!-- Header -->
-  <g transform="translate(35, 38)">
+  <g transform="translate(35, 30)">
     <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">STRATEGY ROADMAP</text>
     <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.roadmapTitle || '3단계 실전 코인 매매 대응 로드맵', 24)}</text>
+  </g>
+  <!-- Brand Badge: crytopnl.com -->
+  <g transform="translate(615, 26)">
+    <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+    <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+    <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+    <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
   </g>
 
   <!-- 3 Columns -->
@@ -4696,7 +4782,7 @@ function generateForecastImage2(dateStr, videoDetails, customTitle = null, dynam
     <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
     <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 분할 매매 &amp; 손익비 극대화 매뉴얼</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
@@ -4722,9 +4808,16 @@ function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynam
   <rect width="800" height="450" fill="url(#fc3_bg)"/>
 
   <!-- Header -->
-  <g transform="translate(35, 38)">
+  <g transform="translate(35, 30)">
     <text x="0" y="0" fill="#38bdf8" font-size="12" font-weight="800" font-family="'Pretendard', sans-serif">PRICE LEVELS &amp; MATRIX</text>
     <text x="0" y="28" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.matrixTitle || '주요 가격 레벨 및 시나리오 분석', 24)}</text>
+  </g>
+  <!-- Brand Badge: crytopnl.com -->
+  <g transform="translate(615, 26)">
+    <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#38bdf8" stroke-width="1.4"/>
+    <circle cx="18" cy="14" r="4.5" fill="#0284c7"/>
+    <circle cx="18" cy="14" r="2" fill="#38bdf8"/>
+    <text x="86" y="19" fill="#38bdf8" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
   </g>
 
   <!-- 4 Cards Grid (2x2) -->
@@ -4756,7 +4849,7 @@ function generateForecastImage3(dateStr, videoDetails, customTitle = null, dynam
     <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
     <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 피보나치·매물대·거래량 융합 지표</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
@@ -4782,10 +4875,17 @@ function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynam
   <rect width="800" height="450" fill="url(#fc4_bg)"/>
 
   <!-- Header -->
-  <g transform="translate(35, 38)">
+  <g transform="translate(35, 30)">
     <rect width="140" height="24" rx="12" fill="#be123c" fill-opacity="0.3" stroke="#f43f5e" stroke-width="1"/>
     <text x="70" y="16" fill="#f43f5e" font-size="10" font-weight="800" font-family="'Pretendard', sans-serif" text-anchor="middle">${clampSvgText(tData.riskBadge || 'RISK MANAGEMENT', 15)}</text>
     <text x="0" y="48" fill="#ffffff" font-size="20" font-weight="900" font-family="'Pretendard', sans-serif">${clampSvgText(tData.riskTitle || '코인 트레이딩 4대 필수 리스크 관리 원칙', 26)}</text>
+  </g>
+  <!-- Brand Badge: crytopnl.com -->
+  <g transform="translate(615, 26)">
+    <rect width="150" height="28" rx="8" fill="#0b1322" fill-opacity="0.95" stroke="#f43f5e" stroke-width="1.4"/>
+    <circle cx="18" cy="14" r="4.5" fill="#be123c"/>
+    <circle cx="18" cy="14" r="2" fill="#f43f5e"/>
+    <text x="86" y="19" fill="#fda4af" font-size="13" font-weight="900" font-family="'Pretendard', -apple-system, monospace, sans-serif" letter-spacing="0.4" text-anchor="middle">crytopnl.com</text>
   </g>
 
   <!-- 4 Risk Cards Grid -->
@@ -4813,7 +4913,7 @@ function generateForecastImage4(dateStr, videoDetails, customTitle = null, dynam
     <rect width="800" height="28" fill="#020617" fill-opacity="0.95"/>
     <line x1="0" y1="0" x2="800" y2="0" stroke="#0f172a" stroke-width="1"/>
     <text x="30" y="18" fill="#64748b" font-size="11" font-weight="700" font-family="'Pretendard', sans-serif">▶ 기준: 손익비(Risk/Reward) 중심 자산 보호 원칙</text>
-    <text x="770" y="18" fill="#38bdf8" font-size="11" font-weight="800" font-family="monospace" text-anchor="end">CrytoPnL Forecast Lab</text>
+    <text x="770" y="18" fill="#38bdf8" font-size="12" font-weight="900" font-family="'Pretendard', monospace, sans-serif" text-anchor="end">🌐 crytopnl.com | 코인 시세 전망</text>
   </g>
 </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(sanitizeSvgXml(svg).replace(/\s+/g, ' ').trim());
