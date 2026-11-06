@@ -3986,6 +3986,10 @@ function formatPostContent(content) {
   if (!content) return '';
   let str = String(content).trim();
 
+  // Strip any YouTube embed iframe, wrapper, or player
+  str = str.replace(/<div\s+class="youtube-embed-wrapper"[\s\S]*?<\/div>/gi, '');
+  str = str.replace(/<iframe[^>]*youtube\.com[^>]*><\/iframe>/gi, '');
+
   // If already full HTML without raw markdown headers (### or ---)
   const hasMarkdown = /^(#{1,6}\s+|---|\*\*\*|\*\s+\*\*)/m.test(str) || str.includes('### ') || str.includes('---');
   if (!hasMarkdown) {

@@ -4376,8 +4376,6 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     upvotes: 0,
     isNotice: false,
     image: true,
-    youtubeVideoId: videoDetails?.videoId || null,
-    youtubeUrl: videoDetails?.url || null,
     content: contentHtml,
     comments: []
   };
@@ -5166,15 +5164,6 @@ function assembleForecastHtml(rawText, videoDetails, imgUris, themeData = null, 
     }
   }
 
-  // Add YouTube video embed player if videoId exists
-  let videoEmbedHtml = '';
-  if (videoDetails?.videoId) {
-    videoEmbedHtml = `
-<div class="youtube-embed-wrapper" style="position: relative; width: 100%; max-width: 800px; margin: 20px auto 28px auto; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(14, 165, 233, 0.3);">
-  <iframe src="https://www.youtube.com/embed/${videoDetails.videoId}?rel=0" title="코인 전망 영상 분석" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>`;
-  }
-
   // Add professional disclaimer card
   const disclaimerHtml = `
 <div class="perspective-invalidation-card" style="background: #082f49; border: 1px solid #0284c7; border-radius: 10px; padding: 18px 20px; margin: 24px 0;">
@@ -5186,7 +5175,7 @@ function assembleForecastHtml(rawText, videoDetails, imgUris, themeData = null, 
   </p>
 </div>`;
 
-  return `${videoEmbedHtml}\n${clean}\n${disclaimerHtml}`;
+  return `${clean}\n${disclaimerHtml}`;
 }
 
 // Fallback Editorial Forecast Report
@@ -5199,15 +5188,7 @@ function generateDynamicForecastReport(dateStr, dateKorean, videoDetails, imgUri
   const imgTag3 = `<div class="post-img-container text-center my-4"><img src="${imgUris[2]}" alt="가격 레벨 매트릭스" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
   const imgTag4 = `<div class="post-img-container text-center my-4"><img src="${imgUris[3]}" alt="리스크 관리 수칙" style="width:100%; max-width: 800px; display:block; margin: 14px auto; border-radius: 12px; border: none;" /></div>`;
 
-  let videoEmbedHtml = '';
-  if (videoDetails?.videoId) {
-    videoEmbedHtml = `
-<div class="youtube-embed-wrapper" style="position: relative; width: 100%; max-width: 800px; margin: 20px auto 28px auto; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(14, 165, 233, 0.3);">
-  <iframe src="https://www.youtube.com/embed/${videoDetails.videoId}?rel=0" title="코인 전망 영상 분석" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>`;
-  }
-
-  return `${videoEmbedHtml}
+  return `
 <h3 style="font-size: 19px; font-weight: 800; color: #0284c7; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.4;">
   🔭 [코인 전망] ${cleanTitle}
 </h3>
@@ -5408,8 +5389,6 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
     upvotes: 0,
     isNotice: false,
     image: true,
-    youtubeVideoId: videoDetails?.videoId || null,
-    youtubeUrl: videoDetails?.url || null,
     content: contentHtml,
     comments: []
   };
