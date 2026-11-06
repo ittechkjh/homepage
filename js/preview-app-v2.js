@@ -3526,7 +3526,7 @@ function filterForum(category) {
       btn.classList.add('bg-navy-950', 'text-slate-400');
     }
   });
-  if ((category === 'altcoin' || category === 'perspective' || category === 'finance' || category === 'all') && typeof loadDailyMarketReports === 'function') {
+  if ((category === 'altcoin' || category === 'perspective' || category === 'finance' || category === 'forecast' || category === 'all') && typeof loadDailyMarketReports === 'function') {
     loadDailyMarketReports(true);
   }
   renderForumPosts();
@@ -3706,6 +3706,7 @@ function renderForumPosts() {
   if (activeCategory !== 'all') {
     posts = posts.filter(p => {
       if (p.category === activeCategory) return true;
+      if (activeCategory === 'forecast' && (p.category === 'forecast' || p.category === 'coin' || (p.categoryName && p.categoryName.includes('코인 전망')))) return true;
       if (activeCategory === 'altcoin' && p.category === 'market') return true;
       if (activeCategory === 'market' && p.category === 'altcoin') return true;
       if (activeCategory === 'trading' && (p.category === 'market' || p.category === 'trading')) return true;
