@@ -8441,7 +8441,7 @@ function updateCommunitySubNav(activeSubTab) {
 window.updateCommunitySubNav = updateCommunitySubNav;
 
 function switchTab(tabId, updateHash = true) {
-  const tabs = ['analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
+  const tabs = ['chart-forecast', 'analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
   window.currentActiveTabId = tabId;
 
@@ -8452,6 +8452,32 @@ function switchTab(tabId, updateHash = true) {
   }
 
   const isCommunityTab = (tabId === 'forum' || tabId === 'chat' || tabId === 'guides');
+
+  // Highlight parent category button based on active subtab
+  const chartTabs = ['chart-forecast', 'market', 'patterns', 'onchain'];
+  const communityTabs = ['forum', 'chat', 'news', 'calendar', 'guides'];
+  const toolTabs = ['analyzer', 'calculators'];
+  const policyTabs = ['policy', 'yearend-tax'];
+
+  const mainCategories = [
+    { id: 'main-nav-chart', isMatch: chartTabs.includes(tabId), activeClasses: ['bg-cyan-500/15', 'border-cyan-400/50', 'text-cyan-300', 'shadow-sm'] },
+    { id: 'main-nav-community', isMatch: communityTabs.includes(tabId), activeClasses: ['bg-cyan-500/15', 'border-cyan-400/50', 'text-cyan-300', 'shadow-sm'] },
+    { id: 'main-nav-tools', isMatch: toolTabs.includes(tabId), activeClasses: ['bg-cyan-500/15', 'border-cyan-400/50', 'text-cyan-300', 'shadow-sm'] },
+    { id: 'main-nav-policy', isMatch: policyTabs.includes(tabId), activeClasses: ['bg-emerald-500/15', 'border-emerald-400/50', 'text-emerald-300', 'shadow-sm'] }
+  ];
+
+  mainCategories.forEach(cat => {
+    const btn = document.getElementById(cat.id);
+    if (btn) {
+      if (cat.isMatch) {
+        btn.classList.add(...cat.activeClasses);
+        btn.classList.remove('border-transparent', 'text-slate-300');
+      } else {
+        btn.classList.remove('bg-cyan-500/15', 'border-cyan-400/50', 'text-cyan-300', 'shadow-sm', 'bg-emerald-500/15', 'border-emerald-400/50', 'text-emerald-300');
+        btn.classList.add('border-transparent', 'text-slate-300');
+      }
+    }
+  });
 
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -8466,7 +8492,9 @@ function switchTab(tabId, updateHash = true) {
       }
       if (navBtn) {
         navBtn.classList.add('active');
-        if (t === 'analyzer') {
+        if (t === 'chart-forecast') {
+          navBtn.classList.add('bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
+        } else if (t === 'analyzer') {
           navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400');
         } else if (t === 'forum') {
           navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-300');
@@ -8484,6 +8512,10 @@ function switchTab(tabId, updateHash = true) {
           navBtn.classList.add('bg-cyan-500/20', 'border-cyan-400/50', 'text-cyan-300');
         } else if (t === 'patterns') {
           navBtn.classList.add('bg-emerald-500/20', 'border-emerald-400/50', 'text-emerald-300');
+        } else if (t === 'market') {
+          navBtn.classList.add('bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-300');
+        } else if (t === 'news') {
+          navBtn.classList.add('bg-blue-500/10', 'border-blue-500/30', 'text-blue-300');
         }
       }
       if (mNavBtn) {
@@ -8501,7 +8533,7 @@ function switchTab(tabId, updateHash = true) {
         el.style.setProperty('display', 'none', 'important');
       }
       if (navBtn) {
-        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'text-cyan-300', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-teal-500/10', 'border-teal-500/30', 'text-teal-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'bg-emerald-500/20', 'border-emerald-400/50');
+        navBtn.classList.remove('active', 'bg-cyan-500/10', 'border-cyan-500/30', 'text-cyan-400', 'text-cyan-300', 'bg-indigo-500/10', 'border-indigo-500/30', 'text-indigo-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300', 'bg-teal-500/10', 'border-teal-500/30', 'text-teal-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-purple-500/20', 'border-purple-500/40', 'text-purple-300', 'bg-cyan-500/20', 'border-cyan-400/50', 'bg-emerald-500/20', 'border-emerald-400/50', 'bg-blue-500/10', 'border-blue-500/30', 'text-blue-300');
       }
       if (mNavBtn) {
         mNavBtn.classList.remove('text-purple-400', 'text-emerald-400', 'text-cyan-400', 'text-teal-400', 'font-bold');
