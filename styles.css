@@ -1420,6 +1420,32 @@ html.theme-light #tab-chart-forecast #forecast-panel-theory .bg-\[\#1e222d\] {
   border: 1px solid #2a2e39 !important;
 }
 
+/* Checklist Panel in Light Mode - Guaranteed Dark Background & High-Contrast Text */
+html.theme-light #tab-chart-forecast #forecast-panel-checklist,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist > div,
+html.theme-light #tab-chart-forecast [class*="forecast-panel-checklist"] {
+  background-color: #181c27 !important;
+  background-image: none !important;
+  border: 1px solid rgba(41, 98, 255, 0.6) !important;
+  color: #ffffff !important;
+}
+
+html.theme-light #tab-chart-forecast #forecast-panel-checklist h4,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist h4 * {
+  color: #67e8f9 !important;
+}
+
+html.theme-light #tab-chart-forecast #forecast-panel-checklist ol,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist li,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist span {
+  color: #ffffff !important;
+}
+
+html.theme-light #tab-chart-forecast #forecast-panel-checklist b {
+  color: #fde047 !important;
+  font-weight: 800 !important;
+}
+
 /* Floating legend in canvas */
 html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
   background-color: rgba(19, 23, 34, 0.95) !important;
