@@ -1223,3 +1223,205 @@ html.theme-light .forum-page-btn[disabled] {
   border-color: #e2e8f0 !important;
   color: #94a3b8 !important;
 }
+
+/* ==========================================================================
+   17. Main Header Navbar & Dropdowns (Light Mode High-Contrast)
+   ========================================================================== */
+html.theme-light .main-cat-btn {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light .main-cat-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0284c7 !important;
+}
+
+/* Dropdown Container in Light Mode */
+html.theme-light nav .group > div > div {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dropdown Subcategory Items in Light Mode */
+html.theme-light nav .nav-tab:not(.active) {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html.theme-light #group-nav-chart .nav-tab:not(.active):hover {
+  background: #f0f9ff !important;
+  border-color: #38bdf8 !important;
+  color: #0284c7 !important;
+  transform: translateX(4px) !important;
+}
+html.theme-light #group-nav-community .nav-tab:not(.active):hover {
+  background: #f0fdfa !important;
+  border-color: #2dd4bf !important;
+  color: #0f766e !important;
+  transform: translateX(4px) !important;
+}
+html.theme-light #group-nav-tools .nav-tab:not(.active):hover {
+  background: #fffbeb !important;
+  border-color: #fbbf24 !important;
+  color: #b45309 !important;
+  transform: translateX(4px) !important;
+}
+html.theme-light #group-nav-policy .nav-tab:not(.active):hover {
+  background: #ecfdf5 !important;
+  border-color: #34d399 !important;
+  color: #047857 !important;
+  transform: translateX(4px) !important;
+}
+
+/* ==========================================================================
+   18. AI Chart Forecast & Trading Simulator - Terminal Isolation in Light Mode
+   Keeps the professional TradingView dark station high-contrast in ALL themes
+   ========================================================================== */
+html.theme-light #tab-chart-forecast,
+html.theme-light #chart-forecast-container {
+  background-color: #131722 !important;
+  border-color: #2a2e39 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Chart Header & Layer Toolbars */
+html.theme-light #tab-chart-forecast header,
+html.theme-light #tab-chart-forecast [class*="bg-\[\#181c27\]"] {
+  background-color: #181c27 !important;
+  border-color: #2a2e39 !important;
+  color: #f8fafc !important;
+}
+
+/* Aside / Right Sidebar */
+html.theme-light #tab-chart-forecast aside {
+  background-color: #1e222d !important;
+  border-color: #2a2e39 !important;
+  color: #f8fafc !important;
+}
+
+/* All Headings & Titles in Chart Forecast */
+html.theme-light #tab-chart-forecast h2,
+html.theme-light #tab-chart-forecast h3,
+html.theme-light #tab-chart-forecast h4,
+html.theme-light #tab-chart-forecast #guideMainTitle,
+html.theme-light #tab-chart-forecast strong,
+html.theme-light #tab-chart-forecast b,
+html.theme-light #tab-chart-forecast .font-bold {
+  color: #ffffff !important;
+}
+
+/* Paragraphs & Subtitles */
+html.theme-light #tab-chart-forecast p,
+html.theme-light #tab-chart-forecast #guideMainSubtitle,
+html.theme-light #tab-chart-forecast #selectedNodeBody,
+html.theme-light #tab-chart-forecast li {
+  color: #e2e8f0 !important;
+}
+
+/* High-Contrast Text Classes inside Chart Forecast */
+html.theme-light #tab-chart-forecast .text-white {
+  color: #ffffff !important;
+}
+html.theme-light #tab-chart-forecast .text-slate-100,
+html.theme-light #tab-chart-forecast .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast .text-slate-300,
+html.theme-light #tab-chart-forecast .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+
+/* Buttons inside Chart Forecast */
+html.theme-light #tab-chart-forecast .tv-btn:not(.active) {
+  background-color: #131722 !important;
+  border-color: #2a2e39 !important;
+  color: #cbd5e1 !important;
+}
+html.theme-light #tab-chart-forecast .tv-btn:not(.active):hover {
+  background-color: #2a2e39 !important;
+  color: #ffffff !important;
+}
+html.theme-light #tab-chart-forecast .tv-btn.active {
+  background-color: rgba(41, 98, 255, 0.25) !important;
+  border-color: #2962ff !important;
+  color: #ffffff !important;
+}
+
+/* Layer Pills */
+html.theme-light #tab-chart-forecast .layer-pill {
+  border-color: #2a2e39 !important;
+  background-color: #1e222d !important;
+  color: #e2e8f0 !important;
+}
+
+/* AI 3 Pathways Quick Forecast Cards (Prevent white-out in light mode) */
+html.theme-light #tab-chart-forecast .bg-emerald-950\/30,
+html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] {
+  background-color: rgba(6, 78, 59, 0.5) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+}
+html.theme-light #tab-chart-forecast .bg-amber-950\/30,
+html.theme-light #tab-chart-forecast [class*="bg-amber-950"] {
+  background-color: rgba(120, 53, 15, 0.5) !important;
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+}
+html.theme-light #tab-chart-forecast .bg-rose-950\/30,
+html.theme-light #tab-chart-forecast [class*="bg-rose-950"] {
+  background-color: rgba(136, 19, 55, 0.5) !important;
+  border: 1px solid rgba(244, 63, 94, 0.5) !important;
+}
+
+html.theme-light #tab-chart-forecast .bg-emerald-950\/30 *,
+html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] * {
+  color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast .bg-emerald-950\/30 .text-emerald-300,
+html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] .text-emerald-300 {
+  color: #6ee7b7 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-light #tab-chart-forecast .bg-amber-950\/30 *,
+html.theme-light #tab-chart-forecast [class*="bg-amber-950"] * {
+  color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast .bg-amber-950\/30 .text-amber-300,
+html.theme-light #tab-chart-forecast [class*="bg-amber-950"] .text-amber-300 {
+  color: #fde047 !important;
+  font-weight: 700 !important;
+}
+
+html.theme-light #tab-chart-forecast .bg-rose-950\/30 *,
+html.theme-light #tab-chart-forecast [class*="bg-rose-950"] * {
+  color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast .bg-rose-950\/30 .text-rose-300,
+html.theme-light #tab-chart-forecast [class*="bg-rose-950"] .text-rose-300 {
+  color: #fda4af !important;
+  font-weight: 700 !important;
+}
+
+/* Selected Marker Banner */
+html.theme-light #tab-chart-forecast .from-\[\#2962ff\]\/10 {
+  background: linear-gradient(to right, rgba(41, 98, 255, 0.2), transparent) !important;
+}
+
+/* 4 Core Theory Cards & Sub-boxes */
+html.theme-light #tab-chart-forecast #forecast-panel-theory > div {
+  background-color: #131722 !important;
+  border: 1px solid #2a2e39 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-panel-theory .bg-\[\#1e222d\] {
+  background-color: #1e222d !important;
+  border: 1px solid #2a2e39 !important;
+}
+
+/* Floating legend in canvas */
+html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
+  background-color: rgba(19, 23, 34, 0.95) !important;
+  border-color: #2a2e39 !important;
+}
