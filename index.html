@@ -1556,10 +1556,10 @@
 
             <!-- Right: Playback Controls (Mobile-Compact) & Update Time -->
             <div class="flex items-center space-x-1.5 shrink-0">
-              <div id="chartLastUpdatedBadge" class="hidden xs:flex items-center gap-1 px-2 py-1 rounded-lg bg-[#131722] border border-[#2a2e39] text-[10px] text-slate-300 font-mono" title="최근 차트 데이터 업데이트 시각">
-                <i class="fa-solid fa-clock text-cyan-400 text-[10px]"></i>
-                <span class="text-slate-400">업데이트:</span>
-                <span id="chartUpdatedTime" class="font-bold text-slate-200">-</span>
+              <div id="chartLastUpdatedBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#131722] border border-[#2a2e39] text-xs font-mono shadow-sm" title="최근 차트 데이터 업데이트 시각">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span class="text-[#787b86] text-[11px] font-sans font-medium hidden sm:inline">업데이트</span>
+                <span id="chartUpdatedTime" class="font-bold text-[#64b5f6] text-[11px] sm:text-xs">--:-- KST</span>
               </div>
               <button onclick="startStepReplay()" id="replayBtn" class="flex items-center space-x-1 bg-[#2962ff] hover:bg-[#1e53e5] text-white text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg shadow transition cursor-pointer">
                 <i class="fa-solid fa-play"></i>
@@ -1744,8 +1744,8 @@
               </div>
 
               <!-- AI 3 Pathways Quick Forecast Cards (Live / Prediction Summary) -->
-              <div class="p-3.5 border-b border-[#2a2e39] bg-[#131722] space-y-2">
-                <div class="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+              <div id="forecast-scenarios-section" class="forecast-scenarios-box p-3.5 border-b border-[#2a2e39] bg-[#131722] space-y-2">
+                <div class="forecast-scenarios-title text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
                   <i class="fa-solid fa-route text-cyan-400"></i> AI 기술적 분석 3대 향후 전망 시나리오
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-xs">

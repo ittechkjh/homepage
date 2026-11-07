@@ -1527,6 +1527,11 @@
             } catch (e) {}
         }
 
+        updateChartTimestamp();
+        if (!window._chartClockTimer) {
+            window._chartClockTimer = setInterval(updateChartTimestamp, 1000);
+        }
+
         selectScenario(currentScenarioKey);
         setTimeout(resizeCanvas, 50);
     }

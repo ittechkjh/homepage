@@ -1498,6 +1498,24 @@ html.theme-light #tab-chart-forecast #selectedNodeBody {
   color: #334155 !important;
 }
 
+/* AI 3 Pathways Container & Title in Light Mode */
+html.theme-light #tab-chart-forecast .forecast-scenarios-box,
+html.theme-light #tab-chart-forecast #forecast-scenarios-section,
+html.theme-light #tab-chart-forecast aside [class*="bg-\[\#131722\]"],
+html.theme-light #tab-chart-forecast aside .bg-\[\#131722\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-scenarios-title,
+html.theme-light #tab-chart-forecast .forecast-scenarios-box > div:first-child,
+html.theme-light #tab-chart-forecast .forecast-scenarios-box .text-cyan-300 {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-scenarios-box .fa-route {
+  color: #2563eb !important;
+}
+
 /* AI 3 Pathways Quick Forecast Cards in Light Mode */
 html.theme-light #tab-chart-forecast .bg-emerald-950\/30,
 html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] {
