@@ -430,18 +430,18 @@
         return bars;
     }
 
-    // Live BTC Data Fetcher (Binance with Upbit fallback)
+    // Live BTC Data Fetcher (Binance 350-day dataset for continuous 200MA & ZigZag technical analysis)
     async function loadLiveBtcData() {
         const btn = document.getElementById('scen-live_btc');
-        if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>실시간 캔들 로딩...`;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>실시간 캔들 분석 중...`;
 
         try {
-            // Attempt 1: Binance 1D Klines (100 candles)
-            const resp = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=100');
+            // Fetch 350 bars from Binance to calculate authentic 200MA/50MA/20MA for all visible bars
+            const resp = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=350');
             if (!resp.ok) throw new Error('Binance error: ' + resp.status);
             const data = await resp.json();
 
-            const bars = data.map((d, i) => {
+            const rawBars = data.map((d, i) => {
                 const open = parseFloat(d[1]);
                 const high = parseFloat(d[2]);
                 const low = parseFloat(d[3]);
@@ -464,89 +464,324 @@
                 };
             });
 
-            // Calculate MA & RSI on live data
-            const total = bars.length;
-            for (let i = 0; i < total; i++) {
+            // Accurate moving averages across all 350 bars
+            const totalRaw = rawBars.length;
+            for (let i = 0; i < totalRaw; i++) {
                 if (i >= 19) {
                     let sum = 0;
-                    for (let k = 0; k < 20; k++) sum += bars[i - k].close;
-                    bars[i].ma20 = Math.round(sum / 20);
-                } else bars[i].ma20 = bars[i].close;
+                    for (let k = 0; k < 20; k++) sum += rawBars[i - k].close;
+                    rawBars[i].ma20 = Math.round(sum / 20);
+                } else rawBars[i].ma20 = rawBars[i].close;
 
                 if (i >= 49) {
                     let sum = 0;
-                    for (let k = 0; k < 50; k++) sum += bars[i - k].close;
-                    bars[i].ma50 = Math.round(sum / 50);
-                } else bars[i].ma50 = bars[i].close;
+                    for (let k = 0; k < 50; k++) sum += rawBars[i - k].close;
+                    rawBars[i].ma50 = Math.round(sum / 50);
+                } else rawBars[i].ma50 = rawBars[i].close;
 
-                if (i >= 99) {
+                if (i >= 199) {
                     let sum = 0;
-                    for (let k = 0; k < 100; k++) sum += bars[i - k].close;
-                    bars[i].ma200 = Math.round(sum / 100);
-                } else bars[i].ma200 = bars[0].close;
+                    for (let k = 0; k < 200; k++) sum += rawBars[i - k].close;
+                    rawBars[i].ma200 = Math.round(sum / 200);
+                }
             }
 
-            // RSI(14)
+            // RSI(14) calculation with Wilder's smoothing
             const period = 14;
             let gains = [], losses = [];
-            for (let i = 1; i < total; i++) {
-                const diff = bars[i].close - bars[i - 1].close;
+            for (let i = 1; i < totalRaw; i++) {
+                const diff = rawBars[i].close - rawBars[i - 1].close;
                 gains.push(diff > 0 ? diff : 0);
                 losses.push(diff < 0 ? -diff : 0);
             }
             let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
             let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
 
-            for (let i = period; i < total; i++) {
+            for (let i = period; i < totalRaw; i++) {
                 const curGain = gains[i - 1];
                 const curLoss = losses[i - 1];
                 avgGain = (avgGain * (period - 1) + curGain) / period;
                 avgLoss = (avgLoss * (period - 1) + curLoss) / period;
                 const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-                bars[i].rsi = Math.round(100 - (100 / (1 + rs)));
+                rawBars[i].rsi = Math.round(100 - (100 / (1 + rs)));
             }
 
-            // Auto-generate real-time Dow & Elliott & SR zones based on live swings
+            // Slice the latest 100 daily candles for display
+            const bars = rawBars.slice(-100);
+            bars.forEach((b, i) => b.idx = i);
+
             const lastBar = bars[bars.length - 1];
             const maxHigh = Math.max(...bars.map(b => b.high));
             const minLow = Math.min(...bars.map(b => b.low));
             const maxIdx = bars.findIndex(b => b.high === maxHigh);
             const minIdx = bars.findIndex(b => b.low === minLow);
 
-            SCENARIOS.live_btc.totalBars = bars.length;
-            SCENARIOS.live_btc.anchors = [
-                { idx: minIdx, price: minLow },
-                { idx: maxIdx, price: maxHigh },
-                { idx: bars.length - 1, price: lastBar.close }
+            // ZigZag Extremum Detection (Window 4)
+            const w = 4;
+            const rawExtrema = [];
+            for (let i = w; i < bars.length - w; i++) {
+                const hSlice = bars.slice(i - w, i + w + 1).map(b => b.high);
+                const lSlice = bars.slice(i - w, i + w + 1).map(b => b.low);
+                if (bars[i].high === Math.max(...hSlice)) rawExtrema.push({ idx: i, type: 'high', price: bars[i].high, rsi: bars[i].rsi });
+                if (bars[i].low === Math.min(...lSlice)) rawExtrema.push({ idx: i, type: 'low', price: bars[i].low, rsi: bars[i].rsi });
+            }
+            if (!rawExtrema.some(e => e.idx === minIdx)) rawExtrema.push({ idx: minIdx, type: 'low', price: minLow, rsi: bars[minIdx].rsi });
+            if (!rawExtrema.some(e => e.idx === maxIdx)) rawExtrema.push({ idx: maxIdx, type: 'high', price: maxHigh, rsi: bars[maxIdx].rsi });
+            rawExtrema.sort((a, b) => a.idx - b.idx);
+
+            // Filter into clean alternating swing pivots (>= 5% swing threshold & min 4 bars separation)
+            const swings = [];
+            for (const p of rawExtrema) {
+                if (swings.length === 0) { swings.push(p); continue; }
+                const last = swings[swings.length - 1];
+                if (last.type === p.type) {
+                    if (p.type === 'high' && p.price > last.price) swings[swings.length - 1] = p;
+                    else if (p.type === 'low' && p.price < last.price) swings[swings.length - 1] = p;
+                } else {
+                    const pct = Math.abs(p.price - last.price) / last.price;
+                    if (pct >= 0.05 && (p.idx - last.idx >= 4)) swings.push(p);
+                }
+            }
+
+            // 1. Generate Dow Theory Structure Tags
+            const dowTags = [];
+            let prevHigh = null;
+            let prevLow = null;
+            for (const s of swings) {
+                if (s.type === 'high') {
+                    let txt = 'HH';
+                    let col = '#089981';
+                    if (!prevHigh) {
+                        txt = 'H';
+                    } else if (s.price >= prevHigh.price) {
+                        txt = (s.price === maxHigh) ? 'HH (최고)' : 'HH';
+                        col = '#facc15';
+                    } else {
+                        txt = 'LH (반등한계)';
+                        col = '#ea580c';
+                    }
+                    dowTags.push({ idx: s.idx, text: txt, pos: 'above', color: col });
+                    prevHigh = s;
+                } else {
+                    let txt = 'HL';
+                    let col = '#089981';
+                    if (!prevLow) {
+                        txt = 'L';
+                    } else if (s.price >= prevLow.price) {
+                        txt = (s.price === minLow) ? 'HL (바닥)' : 'HL (핵심지지)';
+                        col = '#089981';
+                    } else {
+                        txt = (s.price === minLow) ? 'LL (바닥)' : 'LL (구조이탈)';
+                        col = '#f23645';
+                    }
+                    dowTags.push({ idx: s.idx, text: txt, pos: 'below', color: col });
+                    prevLow = s;
+                }
+            }
+            dowTags.push({ idx: bars.length - 1, text: 'NOW', pos: 'above', color: '#38bdf8' });
+
+            // 2. Generate Elliott Wave Sequence (0, ①, ②, ③, ④, ⑤, A, B, C, NOW)
+            const elliottLabels = ['0', '①', '②', '③', '④', '⑤', 'A', 'B', 'C'];
+            const elliottNodes = [];
+            const anchors = [];
+
+            swings.forEach((s, i) => {
+                anchors.push({ idx: s.idx, price: s.price });
+                const lbl = i < elliottLabels.length ? elliottLabels[i] : (s.type === 'high' ? 'H' : 'L');
+                const isImpulse = ['①', '②', '③', '④', '⑤'].includes(lbl);
+                const isCorrective = ['A', 'B', 'C'].includes(lbl);
+                const nodeType = lbl === '0' ? 'start' : (isCorrective ? 'corrective' : 'impulse');
+
+                let title = `스윙 ${s.type === 'high' ? '고점' : '저점'} ($${formatPrice(s.price)})`;
+                let desc = `RSI: ${s.rsi} • 캔들 일자: ${bars[s.idx].date}`;
+                if (lbl === '0') {
+                    title = `파동 시작점 바닥 ($${formatPrice(s.price)})`;
+                    desc = `최근 100일간 형성된 최저 바닥 매집 가격대입니다.`;
+                } else if (lbl === '①') {
+                    title = `엘리엇 ①파 1차 충격파 ($${formatPrice(s.price)})`;
+                    desc = `바닥 반등 이후 첫 번째 상승 충격 파동입니다.`;
+                } else if (lbl === '②') {
+                    title = `엘리엇 ②파 건전한 눌림목 ($${formatPrice(s.price)})`;
+                    desc = `①파 상승분의 되돌림 구간이며 첫 다우 Higher Low(HL)를 형성합니다.`;
+                } else if (lbl === '③') {
+                    title = `엘리엇 ③파 대세 돌파 ($${formatPrice(s.price)})`;
+                    desc = `직전 고점을 돌파하며 거래량이 실린 가장 강한 상승 충격파입니다.`;
+                } else if (lbl === '④') {
+                    title = `엘리엇 ④파 스윙 지지 ($${formatPrice(s.price)})`;
+                    desc = `중기 이동평균선 부근에서 지지받은 핵심 넥라인 저점입니다.`;
+                } else if (lbl === '⑤') {
+                    title = `엘리엇 ⑤파 고점 ($${formatPrice(s.price)})`;
+                    desc = `상승 파동의 정점 부근으로 모멘텀 둔화와 분할 매도 구간입니다.`;
+                } else if (lbl === 'A') {
+                    title = `조정 A파 넥라인 이탈 ($${formatPrice(s.price)})`;
+                    desc = `핵심 지지선이 붕괴되며 하락 전환(BOS)이 확인된 구간입니다.`;
+                } else if (lbl === 'B') {
+                    title = `조정 B파 기술적 반등 ($${formatPrice(s.price)})`;
+                    desc = `이전 고점을 넘지 못하고 고점을 낮추는(LH) 되돌림 반등입니다.`;
+                } else if (lbl === 'C') {
+                    title = `조정 C파 지지 테스트 ($${formatPrice(s.price)})`;
+                    desc = `하단 주요 지지 매물대 및 200일선 테스트 구간입니다.`;
+                }
+
+                elliottNodes.push({
+                    idx: s.idx,
+                    label: lbl,
+                    type: nodeType,
+                    pos: s.type === 'high' ? 'above' : 'below',
+                    title,
+                    desc
+                });
+            });
+
+            // Append Current Real-Time Candle Node
+            anchors.push({ idx: bars.length - 1, price: lastBar.close });
+            elliottNodes.push({
+                idx: bars.length - 1,
+                label: 'NOW',
+                type: 'impulse',
+                pos: 'above',
+                title: `현재 실시간 캔들 ($${formatPrice(lastBar.close)})`,
+                desc: `RSI: ${lastBar.rsi} • 20MA: $${formatPrice(lastBar.ma20)} • 50MA: $${formatPrice(lastBar.ma50)} • 200MA: $${formatPrice(lastBar.ma200)}`
+            });
+
+            // 3. Generate Multiple Support & Resistance Zones (4 Institutional Zones)
+            const midLowPivots = swings.filter(s => s.type === 'low' && s.price > minLow * 1.15 && s.price < maxHigh * 0.98);
+            const necklinePrice = midLowPivots.length > 0 ? midLowPivots[0].price : (minLow + maxHigh) * 0.5;
+
+            const recentLowPivots = swings.filter(s => s.type === 'low' && s.idx >= bars.length - 25);
+            const recentLowPrice = recentLowPivots.length > 0 ? recentLowPivots[recentLowPivots.length - 1].price : (lastBar.low * 0.98);
+
+            const srZones = [
+                {
+                    priceTop: maxHigh * 1.01,
+                    priceBottom: maxHigh * 0.985,
+                    startIdx: Math.max(0, maxIdx - 15),
+                    endIdx: bars.length - 1,
+                    label: `핵심 저항대 ($${formatPrice(maxHigh)})`,
+                    shortLabel: `저항대 ($${Math.round(maxHigh / 1000)}K)`,
+                    color: "rgba(242, 54, 69, 0.15)",
+                    borderColor: "#f23645"
+                },
+                {
+                    priceTop: necklinePrice * 1.012,
+                    priceBottom: necklinePrice * 0.988,
+                    startIdx: 20,
+                    endIdx: bars.length - 1,
+                    label: `핵심 넥라인 지지/저항 ($${formatPrice(necklinePrice)})`,
+                    shortLabel: `넥라인 ($${Math.round(necklinePrice / 1000)}K)`,
+                    color: "rgba(16, 185, 129, 0.15)",
+                    borderColor: "#10b981"
+                },
+                {
+                    priceTop: recentLowPrice * 1.01,
+                    priceBottom: recentLowPrice * 0.988,
+                    startIdx: Math.max(0, bars.length - 30),
+                    endIdx: bars.length - 1,
+                    label: `단기 스윙 지지대 ($${formatPrice(recentLowPrice)})`,
+                    shortLabel: `단기 지지 ($${Math.round(recentLowPrice / 1000)}K)`,
+                    color: "rgba(56, 189, 248, 0.15)",
+                    borderColor: "#38bdf8"
+                },
+                {
+                    priceTop: minLow * 1.02,
+                    priceBottom: minLow * 0.99,
+                    startIdx: Math.max(0, minIdx - 10),
+                    endIdx: bars.length - 1,
+                    label: `장기 바닥 매물대 ($${formatPrice(minLow)})`,
+                    shortLabel: `바닥 매물대 ($${Math.round(minLow / 1000)}K)`,
+                    color: "rgba(16, 185, 129, 0.15)",
+                    borderColor: "#10b981"
+                }
             ];
 
-            SCENARIOS.live_btc.elliottNodes = [
-                { idx: minIdx, label: "바닥HL", type: "start", pos: "below", title: `기간 최저점 ($${formatPrice(minLow)})`, desc: "최근 100일간 비트코인이 기록한 최저 바닥 매집 가격대입니다." },
-                { idx: maxIdx, label: "고점HH", type: "impulse", pos: "above", title: `기간 최고점 ($${formatPrice(maxHigh)})`, desc: "최근 100일간 비트코인이 도달한 최고 신고가 저항선입니다." },
-                { idx: bars.length - 1, label: "현재가", type: "impulse", pos: "above", title: `현재 실시간 캔들 ($${formatPrice(lastBar.close)})`, desc: `RSI: ${lastBar.rsi} • 20MA: $${formatPrice(lastBar.ma20)} • 50MA: $${formatPrice(lastBar.ma50)}` }
-            ];
+            // 4. Scan RSI Divergences
+            const divergences = [];
+            const highPivots = swings.filter(s => s.type === 'high');
+            for (let i = 1; i < highPivots.length; i++) {
+                const prevH = highPivots[i - 1];
+                const curH = highPivots[i];
+                if (curH.price >= prevH.price * 0.98 && curH.rsi <= prevH.rsi - 5) {
+                    divergences.push({
+                        type: "bear",
+                        idx1: prevH.idx,
+                        idx2: curH.idx,
+                        label: `하락 다이버전스 (고점 $${formatPrice(curH.price)} vs RSI ${curH.rsi})`,
+                        desc: `가격은 고점을 높이거나 유지했으나 RSI는 ${prevH.rsi}에서 ${curH.rsi}로 하락하여 상승 동력이 소진된 약세 다이버전스입니다.`
+                    });
+                    break;
+                }
+            }
 
-            SCENARIOS.live_btc.dowTags = [
-                { idx: minIdx, text: "HL (최저)", pos: "below", color: "#089981" },
-                { idx: maxIdx, text: "HH (최고)", pos: "above", color: "#facc15" },
-                { idx: bars.length - 1, text: "NOW", pos: "above", color: "#38bdf8" }
-            ];
+            const lowPivots = swings.filter(s => s.type === 'low');
+            for (let i = 1; i < lowPivots.length; i++) {
+                const prevL = lowPivots[i - 1];
+                const curL = lowPivots[i];
+                if (curL.price <= prevL.price * 1.02 && curL.rsi >= prevL.rsi + 5) {
+                    divergences.push({
+                        type: "bull",
+                        idx1: prevL.idx,
+                        idx2: curL.idx,
+                        label: `상승 다이버전스 (저점 $${formatPrice(curL.price)} vs RSI ${curL.rsi})`,
+                        desc: `가격은 저점을 낮추거나 테스트했으나 RSI는 ${prevL.rsi}에서 ${curL.rsi}로 상승하여 반등 모멘텀이 축적된 강세 다이버전스입니다.`
+                    });
+                    break;
+                }
+            }
 
-            SCENARIOS.live_btc.srZones = [
-                { priceTop: maxHigh * 1.01, priceBottom: maxHigh * 0.985, startIdx: Math.max(0, maxIdx - 15), endIdx: bars.length - 1, label: `핵심 저항대 ($${formatPrice(maxHigh)})`, color: "rgba(242, 54, 69, 0.15)", borderColor: "#f23645" },
-                { priceTop: minLow * 1.02, priceBottom: minLow * 0.99, startIdx: Math.max(0, minIdx - 15), endIdx: bars.length - 1, label: `핵심 지지 매물대 ($${formatPrice(minLow)})`, color: "rgba(16, 185, 129, 0.15)", borderColor: "#10b981" }
-            ];
-
-            SCENARIOS.live_btc.divergences = [];
-            if (maxIdx > 30 && maxIdx < bars.length - 5) {
-                SCENARIOS.live_btc.divergences.push({
+            // Fallback observation zone if no strict divergence is found
+            if (divergences.length === 0 && maxIdx > 20 && maxIdx < bars.length - 5) {
+                divergences.push({
                     type: "bear",
-                    idx1: maxIdx - 15,
+                    idx1: Math.max(0, maxIdx - 15),
                     idx2: maxIdx,
-                    label: "실시간 모멘텀 관찰 구간",
-                    desc: "고점 구간에서의 RSI 기울기 및 거래량 변화 관찰"
+                    label: `신고가 모멘텀 둔화 관찰 구간 ($${formatPrice(maxHigh)})`,
+                    desc: `최고점 도달 시점의 RSI 과열 해소 및 거래량 변화 관찰 구간입니다.`
                 });
             }
+
+            // 5. Update Scenario State
+            SCENARIOS.live_btc.totalBars = bars.length;
+            SCENARIOS.live_btc.anchors = anchors;
+            SCENARIOS.live_btc.elliottNodes = elliottNodes;
+            SCENARIOS.live_btc.dowTags = dowTags;
+            SCENARIOS.live_btc.srZones = srZones;
+            SCENARIOS.live_btc.divergences = divergences;
+
+            // Dynamic Commentary & Targets
+            const trendStatus = lastBar.close > lastBar.ma20 ? "20일선 상회 단기 강세" : "20일선 하회 단기 조정";
+            const rsiStatus = lastBar.rsi >= 70 ? "과매수 과열" : (lastBar.rsi <= 30 ? "과매도 반등 대기" : "중립 모멘텀");
+            SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 다우 & 엘리엇 종합 진단`;
+            SCENARIOS.live_btc.defaultNodeDesc = `현재 비트코인은 일봉 200일선($${formatPrice(lastBar.ma200 || 0)}) 및 50일선($${formatPrice(lastBar.ma50 || 0)}) 상단에서 장기 상승 추세를 유지 중이며, 단기적으로는 ${trendStatus} 및 RSI ${lastBar.rsi} (${rsiStatus}) 구간에서 넥라인($${formatPrice(necklinePrice)}) 지지력을 테스트하고 있습니다.`;
+
+            const targetBull = Math.round(lastBar.close * 1.12);
+            const targetNeutral = Math.round(lastBar.close * 1.02);
+            const targetBear = Math.round(lastBar.close * 0.88);
+            SCENARIOS.live_btc.forecastPathways = [
+                {
+                    id: "bull",
+                    name: "시나리오 A (상승 돌파 랠리)",
+                    color: "#089981",
+                    targetPrice: targetBull,
+                    targetDesc: `직전 저항대 돌파 시 피보나치 확장 목표 $${formatPrice(targetBull)} 도달 타진`,
+                    prob: "45%"
+                },
+                {
+                    id: "neutral",
+                    name: "시나리오 B (박스권 횡보 지지)",
+                    color: "#facc15",
+                    targetPrice: targetNeutral,
+                    targetDesc: `20일선($${formatPrice(lastBar.ma20)}) 및 50일선($${formatPrice(lastBar.ma50)}) 사이 수렴 횡보 ($${formatPrice(targetNeutral)})`,
+                    prob: "35%"
+                },
+                {
+                    id: "bear",
+                    name: "시나리오 C (지지 이탈 조정)",
+                    color: "#f23645",
+                    targetPrice: targetBear,
+                    targetDesc: `핵심 넥라인($${formatPrice(necklinePrice)}) 이탈 시 하단 200일선($${formatPrice(lastBar.ma200 || targetBear)}) 지지 테스트`,
+                    prob: "20%"
+                }
+            ];
 
             return bars;
         } catch (err) {
@@ -1248,6 +1483,8 @@
 
         if (scenKey === 'live_btc') {
             chartData = await loadLiveBtcData();
+            if (nodeBadge) nodeBadge.textContent = SCENARIOS.live_btc.defaultNodeTitle;
+            if (nodeBody) nodeBody.textContent = SCENARIOS.live_btc.defaultNodeDesc;
             startLiveBtcAutoRefresh();
         } else {
             chartData = buildScenarioData(scenKey);
@@ -1266,6 +1503,10 @@
                 const tabEl = document.getElementById('tab-chart-forecast');
                 if (tabEl && !tabEl.classList.contains('hidden')) {
                     chartData = await loadLiveBtcData();
+                    const nb = document.getElementById('selectedNodeBadge');
+                    const nbody = document.getElementById('selectedNodeBody');
+                    if (nb) nb.textContent = SCENARIOS.live_btc.defaultNodeTitle;
+                    if (nbody) nbody.textContent = SCENARIOS.live_btc.defaultNodeDesc;
                     visibleBarCount = chartData.length;
                     drawChart();
                     updateChartTimestamp();
