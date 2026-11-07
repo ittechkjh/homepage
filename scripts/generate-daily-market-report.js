@@ -4419,8 +4419,34 @@ function assembleFinanceHtml(rawText, videoDetails, imgUris, themeData = null, p
   return formatMarkdownToCleanHtml(processed);
 }
 
+// Parse optional scheduled publishing time (PUBLISH_AT)
+function parsePublishAtInput(publishAtInput) {
+  if (!publishAtInput || typeof publishAtInput !== 'string') return null;
+  const trimmed = publishAtInput.trim();
+  if (!trimmed) return null;
+  let d = new Date(trimmed);
+  if (isNaN(d.getTime())) {
+    const normalized = trimmed.replace(' ', 'T');
+    d = new Date(normalized + (normalized.includes('+') || normalized.includes('Z') ? '' : '+09:00'));
+  }
+  if (isNaN(d.getTime())) return null;
+
+  const publishAtMs = d.getTime();
+  const kstDate = new Date(publishAtMs + (9 * 3600000));
+  const pad = n => String(n).padStart(2, '0');
+  const pDateStr = `${kstDate.getUTCFullYear()}-${pad(kstDate.getUTCMonth() + 1)}-${pad(kstDate.getUTCDate())}`;
+  const pTimeStr = `${pad(kstDate.getUTCHours())}:${pad(kstDate.getUTCMinutes())}`;
+  const publishAtFormatted = `${pDateStr} ${pTimeStr}`;
+
+  return {
+    publishAtMs,
+    publishAtFormatted,
+    isScheduled: publishAtMs > Date.now()
+  };
+}
+
 // Build Finance Report
-async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
+async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null, customPublishAt = null) {
   const kst = targetDate ? new Date(targetDate) : getKSTDate();
   const dateStr = formatDateString(kst);
   const dateKorean = formatDateKorean(kst);
@@ -4509,6 +4535,12 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     return null;
   }
 
+  const scheduleInfo = parsePublishAtInput(customPublishAt || process.env.PUBLISH_AT);
+  const isScheduled = Boolean(scheduleInfo && scheduleInfo.isScheduled);
+  if (isScheduled) {
+    console.log(`⏰ [YouTube Finance Generator] 예약 발행 등록: ${scheduleInfo.publishAtFormatted} (timestamp: ${scheduleInfo.publishAtMs})`);
+  }
+
   return {
     id: reportId,
     category: 'finance',
@@ -4516,8 +4548,13 @@ async function buildYouTubeFinanceReport(youtubeUrl, targetDate = null) {
     title: postTitle,
     author: '10년차 재테크 에디터',
     authorRank: 'Financial Editor',
-    timestamp: targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000)),
-    time: `${dateStr} ${timeFormatted}`,
+    timestamp: isScheduled ? scheduleInfo.publishAtMs : (targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000))),
+    time: isScheduled ? scheduleInfo.publishAtFormatted : `${dateStr} ${timeFormatted}`,
+    ...(isScheduled ? {
+      publishAt: scheduleInfo.publishAtMs,
+      publishAtFormatted: scheduleInfo.publishAtFormatted,
+      isScheduled: true
+    } : {}),
     views: 0,
     upvotes: 0,
     isNotice: false,
@@ -5440,7 +5477,7 @@ ${imgTag4}
 }
 
 // Build YouTube Forecast Report
-async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
+async function buildYouTubeForecastReport(youtubeUrl, targetDate = null, customPublishAt = null) {
   const kst = targetDate ? new Date(targetDate) : getKSTDate();
   const dateStr = formatDateString(kst);
   const dateKorean = formatDateKorean(kst);
@@ -5554,6 +5591,12 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
     return null;
   }
 
+  const scheduleInfo = parsePublishAtInput(customPublishAt || process.env.PUBLISH_AT);
+  const isScheduled = Boolean(scheduleInfo && scheduleInfo.isScheduled);
+  if (isScheduled) {
+    console.log(`⏰ [YouTube Forecast Generator] 예약 발행 등록: ${scheduleInfo.publishAtFormatted} (timestamp: ${scheduleInfo.publishAtMs})`);
+  }
+
   return {
     id: reportId,
     category: 'forecast',
@@ -5561,8 +5604,13 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
     title: postTitle,
     author: '크립토 퀀트 전망팀',
     authorRank: 'Market Strategist',
-    timestamp: targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000)),
-    time: `${dateStr} ${timeFormatted}`,
+    timestamp: isScheduled ? scheduleInfo.publishAtMs : (targetDate ? new Date(targetDate).getTime() : (kst.getTime() - (9 * 3600000))),
+    time: isScheduled ? scheduleInfo.publishAtFormatted : `${dateStr} ${timeFormatted}`,
+    ...(isScheduled ? {
+      publishAt: scheduleInfo.publishAtMs,
+      publishAtFormatted: scheduleInfo.publishAtFormatted,
+      isScheduled: true
+    } : {}),
     views: 0,
     upvotes: 0,
     isNotice: false,
@@ -5576,7 +5624,8 @@ async function buildYouTubeForecastReport(youtubeUrl, targetDate = null) {
 // Main execution
 async function main() {
   const reportType = (process.env.REPORT_TYPE || process.argv[2] || 'all').toLowerCase().trim();
-  console.log(`[Daily Report Generator] Starting build for report type: [${reportType}]...`);
+  const publishAtEnv = process.env.PUBLISH_AT || '';
+  console.log(`[Daily Report Generator] Starting build for report type: [${reportType}]...${publishAtEnv ? ` (Scheduled: ${publishAtEnv})` : ''}`);
   let existingReports = [];
   try {
     if (fs.existsSync(reportOutputFile)) {

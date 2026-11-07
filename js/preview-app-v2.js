@@ -2792,6 +2792,19 @@ async function openManualReportModal() {
 
   toggleManualReportInputs();
 
+  // Reset publish time option to immediate ('now') on open
+  const nowRadio = document.querySelector('input[name="manual-report-time-option"][value="now"]');
+  if (nowRadio) {
+    nowRadio.checked = true;
+  }
+  const dtInputReset = document.getElementById('manual-report-schedule-datetime');
+  if (dtInputReset) {
+    dtInputReset.value = '';
+  }
+  if (typeof toggleManualReportTimeOption === 'function') {
+    toggleManualReportTimeOption();
+  }
+
   // Reset & trigger initial youtube check if url is already present
   const ytInitInput = document.getElementById('manual-report-youtube-url');
   if (ytInitInput && ytInitInput.value) {
@@ -3105,6 +3118,57 @@ function toggleManualReportInputs() {
 }
 window.toggleManualReportInputs = toggleManualReportInputs;
 
+function toggleManualReportTimeOption() {
+  const timeRadio = document.querySelector('input[name="manual-report-time-option"]:checked');
+  const selectedOpt = timeRadio ? timeRadio.value : 'now';
+  const schedulePicker = document.getElementById('manual-report-schedule-picker-container');
+  const nowLabel = document.getElementById('manual-report-time-now-label');
+  const scheduleLabel = document.getElementById('manual-report-time-schedule-label');
+  const dtInput = document.getElementById('manual-report-schedule-datetime');
+  const runBtn = document.getElementById('manual-report-run-btn');
+  const runBtnSpan = runBtn ? runBtn.querySelector('span') : null;
+
+  if (selectedOpt === 'schedule') {
+    if (schedulePicker) schedulePicker.classList.remove('hidden');
+    if (scheduleLabel) {
+      scheduleLabel.className = 'flex items-center gap-2 p-2.5 rounded-xl bg-amber-950/30 border-2 border-amber-500 cursor-pointer transition shadow-lg shadow-amber-500/10';
+    }
+    if (nowLabel) {
+      nowLabel.className = 'flex items-center gap-2 p-2.5 rounded-xl bg-navy-900 border border-navy-800 cursor-pointer transition hover:border-slate-600';
+    }
+    if (runBtnSpan && !runBtn.disabled) {
+      runBtnSpan.textContent = '예약 리포트 생성 등록';
+    }
+    if (dtInput) {
+      const now = new Date();
+      const minDate = new Date(now.getTime() + 10 * 60000); // at least 10 minutes from now
+      const pad = n => String(n).padStart(2, '0');
+      const minStr = `${minDate.getFullYear()}-${pad(minDate.getMonth() + 1)}-${pad(minDate.getDate())}T${pad(minDate.getHours())}:${pad(minDate.getMinutes())}`;
+      dtInput.min = minStr;
+
+      if (!dtInput.value) {
+        // Default to next rounded hour + 1 hour (e.g. if 10:25, default to 12:00)
+        const defaultDate = new Date(now.getTime() + 2 * 3600000);
+        defaultDate.setMinutes(0, 0, 0);
+        dtInput.value = `${defaultDate.getFullYear()}-${pad(defaultDate.getMonth() + 1)}-${pad(defaultDate.getDate())}T${pad(defaultDate.getHours())}:${pad(defaultDate.getMinutes())}`;
+      }
+    }
+  } else {
+    if (schedulePicker) schedulePicker.classList.add('hidden');
+    if (nowLabel) {
+      nowLabel.className = 'flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/30 border-2 border-cyan-500 cursor-pointer transition shadow-lg shadow-cyan-500/10';
+    }
+    if (scheduleLabel) {
+      scheduleLabel.className = 'flex items-center gap-2 p-2.5 rounded-xl bg-navy-900 border border-navy-800 cursor-pointer transition hover:border-slate-600';
+    }
+    if (runBtnSpan && !runBtn.disabled) {
+      runBtnSpan.textContent = '지금 즉시 실행하기';
+    }
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.toggleManualReportTimeOption = toggleManualReportTimeOption;
+
 function closeManualReportModal() {
   const modal = document.getElementById('modal-manual-report');
   if (modal) modal.classList.add('hidden');
@@ -3193,6 +3257,26 @@ async function executeManualReportTrigger() {
     }, { merge: true }).catch(err => console.warn('Silent save githubPat error:', err));
   }
 
+  // Check publish time option (Immediate vs Scheduled)
+  let publishAtStr = '';
+  const timeOption = document.querySelector('input[name="manual-report-time-option"]:checked')?.value || 'now';
+  if (timeOption === 'schedule') {
+    const dtInput = document.getElementById('manual-report-schedule-datetime');
+    const dtVal = dtInput ? dtInput.value.trim() : '';
+    if (!dtVal) {
+      alert('예약 발행을 선택하셨습니다. 공개 희망 날짜와 시간을 선택해주세요.');
+      if (dtInput) dtInput.focus();
+      return;
+    }
+    const scheduleDate = new Date(dtVal);
+    if (isNaN(scheduleDate.getTime()) || scheduleDate.getTime() <= Date.now()) {
+      alert('예약 시간은 현재 시각보다 이후여야 합니다. 미래 시간을 선택해 주세요.');
+      if (dtInput) dtInput.focus();
+      return;
+    }
+    publishAtStr = dtVal;
+  }
+
   // Selected report type
   const typeRadio = document.querySelector('input[name="manual-report-type"]:checked');
   const selectedType = typeRadio ? typeRadio.value : 'all';
@@ -3248,7 +3332,8 @@ async function executeManualReportTrigger() {
         ref: 'main',
         inputs: {
           report_type: selectedType,
-          youtube_url: youtubeUrl
+          youtube_url: youtubeUrl,
+          publish_at: publishAtStr
         }
       })
     });
@@ -3342,7 +3427,12 @@ async function executeManualReportTrigger() {
                     : (selectedType === 'forecast'
                         ? 'AI 코인 전망 리포트'
                         : 'AI 시장 리포트 & 차트 관점')));
-          alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
+          if (publishAtStr) {
+            const formattedSchedule = publishAtStr.replace('T', ' ');
+            alert(`🎉 [${typeLabel} 예약 발행 완료!]\n\n리포트 및 4개 인포그래픽이 안전하게 생성되었습니다.\n\n• 공개 예정 시각: ${formattedSchedule} (KST)\n\n지정된 예약 시각 전까지는 일반 방문자에게 노출되지 않으며, 관리자 계정에서 [예약 대기] 태그와 함께 미리 검토하실 수 있습니다.`);
+          } else {
+            alert(`🎉 최신 ${typeLabel}가 성공적으로 발행되어 게시판에 등록되었습니다!`);
+          }
         }, 1200);
       };
 
@@ -3703,6 +3793,12 @@ function renderForumPosts() {
 
   let posts = getStoredPosts();
 
+  // Filter out scheduled posts for non-admin visitors
+  const isAdminUser = (typeof checkIsAdminAuthenticated === 'function') ? checkIsAdminAuthenticated() : (typeof isAdmin === 'function' && isAdmin());
+  if (!isAdminUser) {
+    posts = posts.filter(p => !p.publishAt || Number(p.publishAt) <= Date.now());
+  }
+
   if (activeCategory !== 'all') {
     posts = posts.filter(p => {
       if (p.category === activeCategory) return true;
@@ -3787,13 +3883,17 @@ function renderForumPosts() {
     const commentsCount = post.comments ? post.comments.length : 0;
     const plainText = (post.content || '').replace(/<[^>]+>/g, ' ').trim();
     const hasImage = (post.content && post.content.includes('<img')) || post.image;
+    const isScheduledPending = post.publishAt && Number(post.publishAt) > Date.now();
     // 전체 글 수 기준 역순 번호 (공지사항은 '공지' 라벨 부여)
     const postNumber = totalPosts - (startIndex + idx);
 
     return `
-      <div class="crypto-card bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal('${post.id}')">
+      <div class="crypto-card bg-navy-900 border ${isScheduledPending ? 'border-amber-500/50 bg-amber-950/10' : 'border-navy-800'} rounded-2xl p-5 shadow-sm hover:border-cyan-500/40 transition cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group" onclick="openPostDetailModal('${post.id}')">
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
+            ${isScheduledPending 
+              ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-400"></i> 예약 대기 (${escapeHtml(post.publishAtFormatted || formatDateTime(post.publishAt))} 공개)</span>` 
+              : ''}
             ${post.isNotice 
               ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">📢 공지</span>' 
               : `<span class="forum-post-num text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-navy-950 text-cyan-400/90 border border-navy-800" title="게시글 번호">No. ${postNumber}</span>`}
@@ -4059,6 +4159,15 @@ function openPostDetailModal(postId, updateHistory = true) {
   const posts = getStoredPosts();
   const post = posts.find(p => String(p.id) === String(postId));
   if (!post) return;
+
+  // Check if post is scheduled for future release
+  const isReserved = post.publishAt && Number(post.publishAt) > Date.now();
+  const isAdminUser = (typeof checkIsAdminAuthenticated === 'function') ? checkIsAdminAuthenticated() : (typeof isAdmin === 'function' && isAdmin());
+  if (isReserved && !isAdminUser) {
+    alert(`이 게시글은 예약 발행 대기 중입니다.\n\n• 공개 예정 일시: ${post.publishAtFormatted || formatDateTime(post.publishAt)}\n\n지정된 예약 시각이 되면 게시판에 자동으로 공개됩니다.`);
+    if (typeof showCafeList === 'function') showCafeList();
+    return;
+  }
   if (post && String(post.id).startsWith('report-')) {
     const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
     post.comments = (post.comments || []).filter(c => c && !mockAuthors.includes(c.author));
@@ -4125,7 +4234,25 @@ function openPostDetailModal(postId, updateHistory = true) {
   const modalViewsEl = document.getElementById('modal-post-views');
   if (modalViewsEl) modalViewsEl.innerText = post.views || 0;
   if (contentEl) {
-    contentEl.innerHTML = formatPostContent(post.content);
+    let postHtml = formatPostContent(post.content);
+    if (isReserved && isAdminUser) {
+      const adminBanner = `<div class="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 mb-6 text-xs text-amber-300 flex items-start sm:items-center gap-3 shadow-lg shadow-amber-950/20">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-amber-200 text-sm flex items-center gap-2">
+            <span>⏳ 예약 발행 대기 중 (관리자 미리보기 모드)</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/30 text-amber-100 font-extrabold">ADMIN ONLY</span>
+          </div>
+          <p class="text-[11px] text-amber-300/80 mt-0.5 leading-relaxed">
+            이 게시글은 예약 상태로, 일반 방문자에게는 <strong>${post.publishAtFormatted || formatDateTime(post.publishAt)}</strong>에 자동으로 공개됩니다.
+          </p>
+        </div>
+      </div>`;
+      postHtml = adminBanner + postHtml;
+    }
+    contentEl.innerHTML = postHtml;
     convertPostSvgImagesToPng(contentEl);
     adjustCalloutBoxesContrast(contentEl);
   }

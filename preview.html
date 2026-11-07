@@ -9925,6 +9925,47 @@
           </p>
         </div>
 
+        <!-- Publishing Time Option (Immediate vs Scheduled) -->
+        <div class="space-y-2 bg-navy-950 border border-navy-800 rounded-2xl p-3.5 sm:p-4 text-xs transition-all">
+          <div class="flex items-center justify-between gap-2">
+            <label class="font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
+              <span>발행 시점 선택</span>
+            </label>
+            <span class="text-[10px] text-slate-400 font-normal">지정 일시에 방문자 자동 공개</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs pt-0.5">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/30 border-2 border-cyan-500 cursor-pointer transition shadow-lg shadow-cyan-500/10" id="manual-report-time-now-label">
+              <input type="radio" name="manual-report-time-option" value="now" checked class="text-cyan-500 focus:ring-cyan-400" onchange="toggleManualReportTimeOption()">
+              <div>
+                <div class="font-bold text-white text-xs">⚡ 즉시 발행</div>
+                <div class="text-[10px] text-slate-400 font-normal">생성 즉시 게시판에 노출</div>
+              </div>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-navy-900 border border-navy-800 cursor-pointer transition hover:border-slate-600" id="manual-report-time-schedule-label">
+              <input type="radio" name="manual-report-time-option" value="schedule" class="text-amber-500 focus:ring-amber-400" onchange="toggleManualReportTimeOption()">
+              <div>
+                <div class="font-bold text-slate-300 text-xs">⏳ 예약 발행</div>
+                <div class="text-[10px] text-slate-400 font-normal">지정 일시에 자동 공개</div>
+              </div>
+            </label>
+          </div>
+          <!-- Schedule Datetime Input -->
+          <div id="manual-report-schedule-picker-container" class="hidden pt-2 space-y-1.5 border-t border-navy-800/80 mt-2">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-slate-300 font-bold flex items-center gap-1">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>공개 희망 일시 (한국 표준시 KST)</span>
+              </span>
+              <span class="text-[10.5px] text-amber-300 font-medium">관리자는 즉시 검토 가능</span>
+            </div>
+            <input type="datetime-local" id="manual-report-schedule-datetime" class="w-full px-3.5 py-2.5 rounded-xl bg-navy-900 border border-amber-500/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono transition" />
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              💡 리포트 및 인포그래픽 4장은 지금 즉시 안전하게 생성·저장되며, 예약 시간이 되기 전까지는 <strong>관리자에게만 [예약 대기]로 노출</strong>되고 일반 방문자에게는 숨겨집니다.
+            </p>
+          </div>
+        </div>
+
         <!-- Info Box with Detected Session Slot -->
         <div class="bg-navy-950 border border-navy-800 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 text-slate-300">
           <div class="flex items-center justify-between gap-2 flex-wrap">

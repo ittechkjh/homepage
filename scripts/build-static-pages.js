@@ -328,12 +328,16 @@ async function main() {
       }
     }
 
-    sitemapUrls.push({
-      loc: canonical,
-      lastmod: dateStr,
-      changefreq: 'weekly',
-      priority: '0.85'
-    });
+    // Only include in sitemap if already published (exclude future reserved posts)
+    const isFutureScheduled = rep.publishAt && Number(rep.publishAt) > Date.now();
+    if (!isFutureScheduled) {
+      sitemapUrls.push({
+        loc: canonical,
+        lastmod: dateStr,
+        changefreq: 'weekly',
+        priority: '0.85'
+      });
+    }
   });
   console.log(`Posts generated: ${mergedReports.length}`);
 
