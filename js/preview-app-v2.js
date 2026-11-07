@@ -8440,6 +8440,126 @@ function updateCommunitySubNav(activeSubTab) {
 }
 window.updateCommunitySubNav = updateCommunitySubNav;
 
+// Mobile Category & Drawer Navigation System
+function switchMobileCategory(cat) {
+  if (cat === 'chart') {
+    switchTab('chart-forecast');
+  } else if (cat === 'community') {
+    switchTab('forum');
+  } else if (cat === 'tools') {
+    switchTab('onchain');
+  } else if (cat === 'policy') {
+    switchTab('policy');
+  }
+}
+window.switchMobileCategory = switchMobileCategory;
+
+function toggleMobileMenuDrawer(open) {
+  const drawer = document.getElementById('mobile-all-menu-drawer');
+  if (!drawer) return;
+  if (open) {
+    drawer.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e) {}
+    }
+  } else {
+    drawer.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+window.toggleMobileMenuDrawer = toggleMobileMenuDrawer;
+
+function updateMobileSubNav(tabId) {
+  const bar = document.getElementById('mobile-subnav-bar');
+  const container = document.getElementById('mobile-subnav-chips');
+
+  const chartTabs = ['chart-forecast', 'market', 'patterns'];
+  const communityTabs = ['forum', 'calendar', 'news', 'chat', 'guides'];
+  const toolTabs = ['onchain', 'analyzer', 'calculators'];
+  const policyTabs = ['policy', 'yearend-tax'];
+
+  let activeCat = '';
+  let subTabs = [];
+
+  if (chartTabs.includes(tabId)) {
+    activeCat = 'chart';
+    subTabs = [
+      { id: 'chart-forecast', name: 'AI 작도예측', icon: 'candlestick-chart', badge: 'NEW' },
+      { id: 'market', name: '실시간 시세', icon: 'trending-up' },
+      { id: 'patterns', name: '패턴 스캐너', icon: 'scan' }
+    ];
+  } else if (communityTabs.includes(tabId)) {
+    activeCat = 'community';
+    subTabs = [
+      { id: 'forum', name: '포럼', icon: 'messages-square' },
+      { id: 'calendar', name: '캘린더', icon: 'calendar' },
+      { id: 'news', name: '경제 뉴스', icon: 'newspaper' }
+    ];
+  } else if (toolTabs.includes(tabId)) {
+    activeCat = 'tools';
+    subTabs = [
+      { id: 'onchain', name: '온체인 고래', icon: 'activity' },
+      { id: 'analyzer', name: '손익분석기', icon: 'calculator' },
+      { id: 'calculators', name: '투자 계산기', icon: 'coins' }
+    ];
+  } else if (policyTabs.includes(tabId)) {
+    activeCat = 'policy';
+    subTabs = [
+      { id: 'policy', name: '정부지원 정책', icon: 'landmark', badge: '2026' },
+      { id: 'yearend-tax', name: '연말정산 절세', icon: 'receipt' }
+    ];
+  }
+
+  // Highlight active bottom tab
+  const bottomTabs = ['chart', 'community', 'tools', 'policy'];
+  bottomTabs.forEach(c => {
+    const btn = document.getElementById(`m-tab-${c}`);
+    if (btn) {
+      if (c === activeCat) {
+        btn.classList.add('text-cyan-400', 'font-black');
+        btn.classList.remove('text-slate-400');
+        const iconEl = btn.querySelector('i, svg');
+        if (iconEl) iconEl.classList.add('scale-110');
+      } else {
+        btn.classList.remove('text-cyan-400', 'font-black');
+        btn.classList.add('text-slate-400');
+        const iconEl = btn.querySelector('i, svg');
+        if (iconEl) iconEl.classList.remove('scale-110');
+      }
+    }
+  });
+
+  // Render Subnav Chips if container exists
+  if (bar && container) {
+    if (subTabs.length > 0) {
+      bar.classList.remove('hidden');
+      let html = '';
+      subTabs.forEach(s => {
+        const isActive = (s.id === tabId);
+        const activeClass = isActive 
+          ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border-cyan-400/80 text-cyan-200 font-bold shadow-md shadow-cyan-500/20'
+          : 'bg-navy-950/80 border-navy-800 text-slate-300 hover:text-white hover:bg-navy-900 font-medium';
+        
+        html += `
+          <button onclick="switchTab('${s.id}')" class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 ${activeClass}">
+            <i data-lucide="${s.icon}" class="w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}"></i>
+            <span>${s.name}</span>
+            ${s.badge ? `<span class="px-1 py-0.2 text-[9px] font-black rounded bg-cyan-400 text-navy-950">${s.badge}</span>` : ''}
+          </button>
+        `;
+      });
+      container.innerHTML = html;
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        try { lucide.createIcons(); } catch(e) {}
+      }
+    } else {
+      bar.classList.add('hidden');
+    }
+  }
+}
+window.updateMobileSubNav = updateMobileSubNav;
+
 function switchTab(tabId, updateHash = true) {
   const tabs = ['chart-forecast', 'analyzer', 'market', 'forum', 'chat', 'news', 'calculators', 'yearend-tax', 'calendar', 'guides', 'admin', 'policy', 'onchain', 'patterns'];
   if (!tabs.includes(tabId)) tabId = 'analyzer';
@@ -8454,9 +8574,9 @@ function switchTab(tabId, updateHash = true) {
   const isCommunityTab = (tabId === 'forum' || tabId === 'chat' || tabId === 'guides');
 
   // Highlight parent category button based on active subtab
-  const chartTabs = ['chart-forecast', 'market', 'patterns', 'onchain'];
+  const chartTabs = ['chart-forecast', 'market', 'patterns'];
   const communityTabs = ['forum', 'chat', 'news', 'calendar', 'guides'];
-  const toolTabs = ['analyzer', 'calculators'];
+  const toolTabs = ['onchain', 'analyzer', 'calculators'];
   const policyTabs = ['policy', 'yearend-tax'];
 
   const mainCategories = [
@@ -8557,6 +8677,7 @@ function switchTab(tabId, updateHash = true) {
 
   // Update community subnav bar buttons
   updateCommunitySubNav(tabId);
+  updateMobileSubNav(tabId);
 
   if (updateHash && window.location.hash !== `#/${tabId}`) {
     history.pushState(null, '', `#/${tabId}`);

@@ -263,7 +263,7 @@
         margin-bottom: 8px !important;
       }
 
-      /* Fixed Mobile Bottom Nav */
+      /* Fixed Mobile Bottom Nav (5 Clean Primary Tabs, Touch-Friendly) */
       .mobile-bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
@@ -272,12 +272,12 @@
         width: 100vw !important;
         max-width: 100% !important;
         z-index: 9999 !important;
-        background: rgba(11, 15, 25, 0.96) !important;
+        background: rgba(11, 15, 25, 0.98) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
-        padding: 6px 2px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6) !important;
+        padding: 4px 6px !important;
         padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
         display: flex !important;
         justify-content: space-around !important;
@@ -286,20 +286,23 @@
       .mobile-bottom-nav button {
         flex: 1 !important;
         min-width: 0 !important;
-        padding: 2px 0 !important;
+        padding: 5px 2px !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        gap: 2px !important;
+        justify-content: center !important;
+        gap: 3px !important;
+        border-radius: 12px !important;
       }
       .mobile-bottom-nav button span {
-        font-size: 9px !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
         white-space: nowrap !important;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.02em;
       }
 
       body {
-        padding-bottom: 70px !important;
+        padding-bottom: 76px !important;
       }
     }
 
@@ -1476,61 +1479,34 @@
     </div>
   </header>
 
-  <!-- Mobile Bottom Navigation Bar -->
-  <div class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur-md border-t border-navy-800 z-[9999] flex items-center gap-1 overflow-x-auto no-scrollbar py-1 px-2 shadow-2xl">
-    <button onclick="switchTab('chart-forecast')" id="m-nav-chart-forecast" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[54px]">
-      <i data-lucide="candlestick-chart" class="w-4 h-4 text-cyan-400"></i>
-      <span class="flex items-center gap-0.5">작도예측<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span></span>
+  <!-- Mobile Bottom Navigation Bar (5 Primary Tabs: Balanced, Touch-Optimized, No Scroll) -->
+  <nav class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-navy-900/95 backdrop-blur-md border-t border-navy-800 z-[9999] flex items-center justify-around py-1.5 px-1 shadow-2xl safe-area-bottom">
+    <!-- 1. 차트·분석 -->
+    <button onclick="switchMobileCategory('chart')" id="m-tab-chart" class="flex flex-col items-center justify-center gap-0.5 py-1 text-cyan-400 font-bold transition active:scale-95 flex-1 min-w-0" title="차트·퀀트 분석">
+      <i data-lucide="candlestick-chart" class="w-5 h-5"></i>
+      <span class="text-[10px] tracking-tight">차트·분석</span>
     </button>
-    <button onclick="switchTab('market')" id="m-nav-market" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="trending-up" class="w-4 h-4"></i>
-      <span>시세</span>
+    <!-- 2. 커뮤니티 -->
+    <button onclick="switchMobileCategory('community')" id="m-tab-community" class="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-400 transition active:scale-95 flex-1 min-w-0" title="커뮤니티 & 실시간 정보">
+      <i data-lucide="messages-square" class="w-5 h-5"></i>
+      <span class="text-[10px] tracking-tight">커뮤니티</span>
     </button>
-    <button onclick="switchTab('onchain')" id="m-nav-onchain" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="activity" class="w-4 h-4"></i>
-      <span>온체인</span>
+    <!-- 3. 투자도구 -->
+    <button onclick="switchMobileCategory('tools')" id="m-tab-tools" class="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-400 transition active:scale-95 flex-1 min-w-0" title="투자 도구 & 퀀트 계산기">
+      <i data-lucide="calculator" class="w-5 h-5"></i>
+      <span class="text-[10px] tracking-tight">투자도구</span>
     </button>
-    <button onclick="switchTab('patterns')" id="m-nav-patterns" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="scan" class="w-4 h-4"></i>
-      <span>패턴</span>
+    <!-- 4. 정책·절세 -->
+    <button onclick="switchMobileCategory('policy')" id="m-tab-policy" class="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-400 transition active:scale-95 flex-1 min-w-0" title="정책 & 재테크 백서">
+      <i data-lucide="landmark" class="w-5 h-5"></i>
+      <span class="text-[10px] tracking-tight">정책·절세</span>
     </button>
-    <button onclick="switchTab('forum')" id="m-nav-forum" class="flex flex-col items-center gap-0.5 text-cyan-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="messages-square" class="w-4 h-4"></i>
-      <span>포럼·커뮤</span>
+    <!-- 5. 전체메뉴 (서랍 열기) -->
+    <button onclick="toggleMobileMenuDrawer(true)" id="m-tab-all" class="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-400 transition active:scale-95 flex-1 min-w-0" title="전체 서비스 서랍 열기">
+      <i data-lucide="layout-grid" class="w-5 h-5"></i>
+      <span class="text-[10px] tracking-tight">전체메뉴</span>
     </button>
-    <button onclick="switchTab('analyzer')" id="m-nav-analyzer" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="calculator" class="w-4 h-4"></i>
-      <span>분석기</span>
-    </button>
-    <button onclick="switchTab('calculators')" id="m-nav-calculators" class="flex flex-col items-center gap-0.5 text-amber-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="calculator" class="w-4 h-4"></i>
-      <span>계산기</span>
-    </button>
-    <button onclick="switchTab('yearend-tax')" id="m-nav-yearend-tax" class="flex flex-col items-center gap-0.5 text-teal-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="receipt" class="w-4 h-4"></i>
-      <span>연말정산</span>
-    </button>
-    <button onclick="switchTab('policy')" id="m-nav-policy" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="landmark" class="w-4 h-4"></i>
-      <span>정책</span>
-    </button>
-    <button onclick="switchTab('calendar')" id="m-nav-calendar" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="calendar" class="w-4 h-4"></i>
-      <span>일정</span>
-    </button>
-    <button onclick="switchTab('news')" id="m-nav-news" class="flex flex-col items-center gap-0.5 text-slate-400 text-[10px] font-medium transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="newspaper" class="w-4 h-4"></i>
-      <span>뉴스</span>
-    </button>
-    <button onclick="installPwaApp()" id="m-btn-pwa-install" class="hidden flex-col items-center gap-0.5 text-cyan-300 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]" title="홈 화면에 CrytoPnL 앱 설치">
-      <i data-lucide="download" class="w-4 h-4 text-cyan-400 animate-bounce"></i>
-      <span>앱설치</span>
-    </button>
-    <button onclick="switchTab('admin')" id="m-nav-admin" class="hidden flex-col items-center gap-0.5 text-purple-400 text-[10px] font-bold transition active:scale-95 shrink-0 min-w-[52px]">
-      <i data-lucide="shield-check" class="w-4 h-4"></i>
-      <span>관리자</span>
-    </button>
-  </div>
+  </nav>
 
   <!-- Real-time Whale Alert Live Marquee Ticker Bar (Option 1) -->
   <aside aria-label="고래 경보 티커" class="bg-gradient-to-r from-navy-950 via-cyan-950/40 to-navy-950 border-b border-cyan-500/20 py-2 px-4 shadow-md flex items-center gap-3 text-xs overflow-hidden cursor-pointer group select-none" onclick="switchTab('onchain')" title="클릭 시 온체인·고래 레이더 분석 센터로 이동">
@@ -1548,6 +1524,13 @@
       <i data-lucide="chevron-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
     </div>
   </aside>
+
+  <!-- Mobile Dynamic Category Sub-Nav Chips Bar (Sticky Top below Whale Radar) -->
+  <nav id="mobile-subnav-bar" class="md:hidden sticky top-[94px] z-25 bg-navy-900/95 backdrop-blur-md border-b border-navy-800 px-2.5 py-1.5 overflow-x-auto no-scrollbar shadow-sm">
+    <div id="mobile-subnav-chips" class="flex items-center gap-1.5 w-max min-w-full justify-start">
+      <!-- Chips populated dynamically by updateMobileSubNav(tabId) -->
+    </div>
+  </nav>
 
   <!-- Main Content Container -->
   <main class="flex-1 container mx-auto px-4 py-6 mb-16 md:mb-6">
@@ -9925,6 +9908,226 @@
       </div>
     </div>
   </footer>
+
+  <!-- Mobile All Menu Bottom Sheet Drawer (Native App Style) -->
+  <div id="mobile-all-menu-drawer" class="fixed inset-0 z-[10000] hidden">
+    <!-- Backdrop Overlay -->
+    <div onclick="toggleMobileMenuDrawer(false)" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+    
+    <!-- Bottom Sheet Content -->
+    <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-navy-950 border-t border-navy-800 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden transition-transform duration-300">
+      <!-- Drawer Header & Handle -->
+      <div class="px-5 pt-3 pb-3 border-b border-navy-800/80 flex items-center justify-between bg-navy-900/60 shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-md">
+            <i data-lucide="layout-grid" class="w-4 h-4 text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white">전체 서비스 메뉴</h3>
+            <p class="text-[10px] text-slate-400">CrytoPnL 원클릭 탐색</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleTheme()" class="p-2 rounded-xl bg-navy-800 text-slate-300 hover:text-white border border-navy-700 text-xs flex items-center gap-1" title="테마 전환">
+            <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
+          </button>
+          <button onclick="toggleMobileMenuDrawer(false)" class="p-2 rounded-xl bg-navy-800 text-slate-300 hover:text-white border border-navy-700 cursor-pointer" title="닫기">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Scrollable Body -->
+      <div class="p-4 space-y-4 overflow-y-auto max-h-[calc(85vh-70px)] pb-12">
+        <!-- 1. 차트 & 퀀트 분석 -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-black text-cyan-400 flex items-center gap-1.5 px-1 uppercase tracking-wider">
+            <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
+            <span>차트 & 퀀트 분석</span>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            <button onclick="switchTab('chart-forecast'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-cyan-500/30 hover:border-cyan-400 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                  <i data-lucide="candlestick-chart" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>AI 실전 작도 & 예측</span>
+                    <span class="px-1.5 py-0.2 text-[9px] font-black bg-cyan-400 text-navy-950 rounded">NEW</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">실시간 BTC 차트 + 엘리엇·다우·RSI 시나리오</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('market'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-cyan-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                  <i data-lucide="trending-up" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">실시간 시세 & 차트</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">비트코인·알트코인 실시간 차트 & 마켓 뎁스</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('patterns'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-emerald-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <i data-lucide="scan" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">AI 차트 패턴 스캐너</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">헤드앤숄더·삼각수렴 등 14종 기술적 패턴 탐지</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 커뮤니티 & 실시간 정보 -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-black text-blue-400 flex items-center gap-1.5 px-1 uppercase tracking-wider">
+            <i data-lucide="messages-square" class="w-3.5 h-3.5"></i>
+            <span>커뮤니티 & 실시간 정보</span>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            <button onclick="switchTab('forum'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-blue-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                  <i data-lucide="message-square" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">실시간 커뮤니티 포럼</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">자유토론, 코인 분석 공유, 실전 매매 전략</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('calendar'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-blue-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                  <i data-lucide="calendar" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">2026 크립토 캘린더</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">주요 코인 언락, FOMC, 경제 지표 발표 일정</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('news'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-blue-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+                  <i data-lucide="newspaper" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">글로벌 실시간 경제 뉴스</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">국내외 암호화폐 속보 및 거시경제 헤드라인</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. 투자 도구 & 퀀트 계산기 -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-black text-amber-400 flex items-center gap-1.5 px-1 uppercase tracking-wider">
+            <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+            <span>투자 도구 & 퀀트 계산기</span>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            <button onclick="switchTab('onchain'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-amber-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+                  <i data-lucide="activity" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">온체인 & 고래 지갑 분석</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">거래소 입출금 고래 트랜잭션 실시간 추적</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('analyzer'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-amber-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                  <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">엑셀 손익분석기</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">업비트·빗썸 엑셀 업로드 1초 FIFO 손익 분석</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('calculators'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-amber-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                  <i data-lucide="coins" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">실전 투자 계산기 6종</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">물타기, 목표수익, 레버리지 청산가 계산기</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. 정책 & 재테크 백서 -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-black text-emerald-400 flex items-center gap-1.5 px-1 uppercase tracking-wider">
+            <i data-lucide="landmark" class="w-3.5 h-3.5"></i>
+            <span>정책 & 재테크 백서</span>
+          </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            <button onclick="switchTab('policy'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-emerald-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <i data-lucide="landmark" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">2026 정부지원 정책</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">청년·소상공인·서민 금융 지원 가이드</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <button onclick="switchTab('yearend-tax'); toggleMobileMenuDrawer(false);" class="flex items-center justify-between p-3 rounded-2xl bg-navy-900/90 border border-navy-800 hover:border-emerald-500/30 text-left transition active:scale-[0.98]">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+                  <i data-lucide="receipt" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">연말정산 절세 팁</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">소득공제·세액공제 환급금 극대화 전략</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. 유틸리티 & 설정 -->
+        <div class="pt-2 border-t border-navy-800/80 flex items-center gap-2">
+          <button onclick="installPwaApp(); toggleMobileMenuDrawer(false);" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 text-xs font-bold text-cyan-300 flex items-center justify-center gap-1.5 cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i>
+            <span>홈 화면에 앱 설치</span>
+          </button>
+          <button onclick="switchTab('admin'); toggleMobileMenuDrawer(false);" id="m-drawer-admin" class="hidden py-2.5 px-3 rounded-xl bg-purple-950/60 border border-purple-500/50 text-xs font-bold text-purple-300 items-center justify-center gap-1.5 cursor-pointer">
+            <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i>
+            <span>관리자</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
   <!-- Global Loader Overlay -->

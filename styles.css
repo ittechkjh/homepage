@@ -1425,3 +1425,73 @@ html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
   background-color: rgba(19, 23, 34, 0.95) !important;
   border-color: #2a2e39 !important;
 }
+
+/* ==========================================================================
+   19. Mobile 5-Tab Navigation, Sticky Subnav Chips & Bottom Sheet Drawer
+   ========================================================================== */
+
+/* Active Bottom Tab Glow & Indicator */
+.mobile-bottom-nav button.active,
+.mobile-bottom-nav button.text-cyan-400 {
+  color: #22d3ee !important;
+}
+
+/* Light Mode Overrides for Mobile Navigation */
+html.theme-light .mobile-bottom-nav {
+  background: #ffffff !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.theme-light .mobile-bottom-nav button {
+  color: #64748b !important;
+}
+
+html.theme-light .mobile-bottom-nav button.text-cyan-400,
+html.theme-light .mobile-bottom-nav button:hover {
+  color: #0284c7 !important;
+}
+
+/* Mobile Sticky Subnav Chips Bar */
+html.theme-light #mobile-subnav-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html.theme-light #mobile-subnav-chips button {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.theme-light #mobile-subnav-chips button:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Mobile All Menu Drawer in Light Mode */
+html.theme-light #mobile-all-menu-drawer > div:last-child {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light #mobile-all-menu-drawer .bg-navy-900\/60,
+html.theme-light #mobile-all-menu-drawer .bg-navy-900\/90 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #mobile-all-menu-drawer .border-navy-800,
+html.theme-light #mobile-all-menu-drawer .border-navy-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light #mobile-all-menu-drawer h3,
+html.theme-light #mobile-all-menu-drawer .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light #mobile-all-menu-drawer .text-slate-400 {
+  color: #475569 !important;
+}
