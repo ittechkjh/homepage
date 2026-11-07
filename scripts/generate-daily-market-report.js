@@ -4424,11 +4424,13 @@ function parsePublishAtInput(publishAtInput) {
   if (!publishAtInput || typeof publishAtInput !== 'string') return null;
   const trimmed = publishAtInput.trim();
   if (!trimmed) return null;
-  let d = new Date(trimmed);
-  if (isNaN(d.getTime())) {
-    const normalized = trimmed.replace(' ', 'T');
-    d = new Date(normalized + (normalized.includes('+') || normalized.includes('Z') ? '' : '+09:00'));
+
+  // 한국 표준시(KST, UTC+9) 기본 보정: 명시적 타임존(+ 또는 Z)이 없으면 +09:00 추가
+  let normalized = trimmed.replace(' ', 'T');
+  if (!normalized.includes('+') && !normalized.includes('Z') && !normalized.endsWith('z')) {
+    normalized += '+09:00';
   }
+  const d = new Date(normalized);
   if (isNaN(d.getTime())) return null;
 
   const publishAtMs = d.getTime();

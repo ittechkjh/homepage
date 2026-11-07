@@ -2439,30 +2439,59 @@ function ensureDailyMarketReportPost(posts) {
   }
 
   // Next, merge cachedReports
+  let scheduleOverrides = {};
+  try {
+    scheduleOverrides = JSON.parse(localStorage.getItem('crytopnl_scheduled_overrides') || '{}');
+  } catch(e) {}
+
   if (Array.isArray(cachedReports) && cachedReports.length > 0) {
     cachedReports.forEach(rep => {
       if (rep && rep.id && !deletedIds.includes(String(rep.id))) {
         const existing = postMap.get(String(rep.id));
+        const override = scheduleOverrides[String(rep.id)];
+        const effectiveRep = override ? { ...rep, ...override } : rep;
+
         if (!existing) {
-          postMap.set(String(rep.id), rep);
+          postMap.set(String(effectiveRep.id), effectiveRep);
         } else {
           const mockAuthors = ['선물마스터', '크립토나우', '크립토고래', '비트홀더'];
           existing.comments = (existing.comments || []).filter(c => c && !mockAuthors.includes(c.author));
-          existing.content = rep.content;
-          existing.title = rep.title;
-          if (rep.category) existing.category = rep.category;
-          if (rep.categoryName) existing.categoryName = rep.categoryName;
-          if (rep.image !== undefined) existing.image = rep.image;
-          if (rep.views !== undefined) existing.views = rep.views;
-          if (rep.upvotes !== undefined) existing.upvotes = rep.upvotes;
-          if (rep.timestamp !== undefined) existing.timestamp = rep.timestamp;
-          if (rep.time !== undefined) existing.time = rep.time;
+          existing.content = effectiveRep.content;
+          existing.title = effectiveRep.title;
+          if (effectiveRep.category) existing.category = effectiveRep.category;
+          if (effectiveRep.categoryName) existing.categoryName = effectiveRep.categoryName;
+          if (effectiveRep.image !== undefined) existing.image = effectiveRep.image;
+          if (effectiveRep.views !== undefined) existing.views = effectiveRep.views;
+          if (effectiveRep.upvotes !== undefined) existing.upvotes = effectiveRep.upvotes;
+          if (override) {
+            existing.publishAt = override.publishAt;
+            existing.publishAtFormatted = override.publishAtFormatted;
+            existing.isScheduled = override.isScheduled;
+            if (override.timestamp !== undefined) existing.timestamp = override.timestamp;
+            if (override.time !== undefined) existing.time = override.time;
+          } else {
+            if (effectiveRep.timestamp !== undefined) existing.timestamp = effectiveRep.timestamp;
+            if (effectiveRep.time !== undefined) existing.time = effectiveRep.time;
+            if (effectiveRep.publishAt !== undefined) existing.publishAt = effectiveRep.publishAt;
+            if (effectiveRep.publishAtFormatted !== undefined) existing.publishAtFormatted = effectiveRep.publishAtFormatted;
+            if (effectiveRep.isScheduled !== undefined) existing.isScheduled = effectiveRep.isScheduled;
+          }
         }
       }
     });
   }
 
   let resultPosts = Array.from(postMap.values());
+  resultPosts.forEach(p => {
+    if (p && p.id && scheduleOverrides[String(p.id)]) {
+      const ov = scheduleOverrides[String(p.id)];
+      p.publishAt = ov.publishAt;
+      p.publishAtFormatted = ov.publishAtFormatted;
+      p.isScheduled = ov.isScheduled;
+      if (ov.timestamp !== undefined) p.timestamp = ov.timestamp;
+      if (ov.time !== undefined) p.time = ov.time;
+    }
+  });
 
   // Determine active report date (KST) - Ensure TODAY's report is ALWAYS present after 08:00 KST
   const now = new Date();
@@ -3274,7 +3303,7 @@ async function executeManualReportTrigger() {
       if (dtInput) dtInput.focus();
       return;
     }
-    publishAtStr = dtVal;
+    publishAtStr = dtVal.includes('+') || dtVal.includes('Z') ? dtVal : (dtVal + '+09:00');
   }
 
   // Selected report type
@@ -3575,6 +3604,231 @@ async function executeManualReportTrigger() {
   }
 }
 window.executeManualReportTrigger = executeManualReportTrigger;
+
+// ==========================================
+// Scheduled Post Time Modification (Admin Only)
+// ==========================================
+let _currentEditingSchedulePostId = null;
+
+function openEditScheduleModal(postId) {
+  const isAdminUser = (typeof checkIsAdminAuthenticated === 'function') ? checkIsAdminAuthenticated() : (typeof isAdmin === 'function' && isAdmin());
+  if (!isAdminUser) {
+    alert('❌ 관리자 계정으로 로그인한 상태에서만 예약 시간을 수정할 수 있습니다.');
+    return;
+  }
+
+  const posts = getStoredPosts();
+  const post = posts.find(p => String(p.id) === String(postId));
+  if (!post) {
+    alert('게시글을 찾을 수 없습니다.');
+    return;
+  }
+
+  _currentEditingSchedulePostId = post.id;
+  const modal = document.getElementById('modal-edit-schedule');
+  const titleEl = document.getElementById('edit-schedule-post-title');
+  const inputEl = document.getElementById('edit-schedule-datetime-input');
+  const currentBadge = document.getElementById('edit-schedule-current-badge');
+
+  if (titleEl) {
+    titleEl.textContent = post.title || '제목 없음';
+  }
+
+  // Pre-fill datetime-local in local timezone
+  if (inputEl) {
+    let targetDate = null;
+    if (post.publishAt && !isNaN(Number(post.publishAt))) {
+      targetDate = new Date(Number(post.publishAt));
+    } else if (post.time) {
+      targetDate = new Date(post.time.replace(' ', 'T') + '+09:00');
+    }
+    if (!targetDate || isNaN(targetDate.getTime())) {
+      targetDate = new Date(Date.now() + 3600000);
+    }
+    const pad = n => String(n).padStart(2, '0');
+    const localStr = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}T${pad(targetDate.getHours())}:${pad(targetDate.getMinutes())}`;
+    inputEl.value = localStr;
+    const minDate = new Date(Date.now() - 60000);
+    inputEl.min = `${minDate.getFullYear()}-${pad(minDate.getMonth() + 1)}-${pad(minDate.getDate())}T${pad(minDate.getHours())}:${pad(minDate.getMinutes())}`;
+  }
+
+  if (currentBadge) {
+    currentBadge.textContent = `현재 설정: ${post.publishAtFormatted || formatDateTime(post.publishAt) || '미설정'}`;
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+window.openEditScheduleModal = openEditScheduleModal;
+
+function closeEditScheduleModal() {
+  _currentEditingSchedulePostId = null;
+  const modal = document.getElementById('modal-edit-schedule');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeEditScheduleModal = closeEditScheduleModal;
+
+function setEditSchedulePreset(preset) {
+  const inputEl = document.getElementById('edit-schedule-datetime-input');
+  if (!inputEl) return;
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  let target = new Date();
+
+  if (preset === 'tomorrow_morning') {
+    target.setDate(target.getDate() + 1);
+    target.setHours(9, 0, 0, 0);
+  } else if (typeof preset === 'number') {
+    target = new Date(now.getTime() + preset * 60000);
+  }
+  const formatted = `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}`;
+  inputEl.value = formatted;
+}
+window.setEditSchedulePreset = setEditSchedulePreset;
+
+function saveEditedSchedule() {
+  if (!_currentEditingSchedulePostId) return;
+  const inputEl = document.getElementById('edit-schedule-datetime-input');
+  const val = inputEl ? inputEl.value.trim() : '';
+  if (!val) {
+    alert('새 예약 일시를 선택해주세요.');
+    return;
+  }
+
+  const d = new Date(val);
+  if (isNaN(d.getTime())) {
+    alert('올바른 날짜 형식이 아닙니다.');
+    return;
+  }
+
+  const newPublishAtMs = d.getTime();
+  const now = Date.now();
+  const isFuture = newPublishAtMs > now;
+
+  const pad = n => String(n).padStart(2, '0');
+  const formattedKst = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+  let posts = getStoredPosts();
+  const post = posts.find(p => String(p.id) === String(_currentEditingSchedulePostId));
+  if (!post) {
+    alert('게시글을 찾을 수 없습니다.');
+    closeEditScheduleModal();
+    return;
+  }
+
+  if (isFuture) {
+    post.publishAt = newPublishAtMs;
+    post.publishAtFormatted = formattedKst;
+    post.isScheduled = true;
+    post.time = formattedKst;
+    post.timestamp = newPublishAtMs;
+  } else {
+    post.publishAt = null;
+    post.publishAtFormatted = null;
+    post.isScheduled = false;
+    post.time = formattedKst;
+    post.timestamp = newPublishAtMs;
+  }
+
+  try {
+    const overrides = JSON.parse(localStorage.getItem('crytopnl_scheduled_overrides') || '{}');
+    overrides[String(post.id)] = {
+      publishAt: post.publishAt,
+      publishAtFormatted: post.publishAtFormatted,
+      isScheduled: post.isScheduled,
+      time: post.time,
+      timestamp: post.timestamp
+    };
+    localStorage.setItem('crytopnl_scheduled_overrides', JSON.stringify(overrides));
+  } catch(e) {}
+
+  saveStoredPosts(posts);
+
+  const fdb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (fdb && typeof fdb.collection === 'function') {
+    fdb.collection('forum_posts').doc(String(post.id)).set(post, { merge: true }).catch(err => {
+      console.warn('Firestore schedule save warning:', err);
+    });
+  }
+
+  const postId = _currentEditingSchedulePostId;
+  closeEditScheduleModal();
+
+  if (typeof renderForumPosts === 'function') renderForumPosts();
+  if (typeof currentViewingPostId !== 'undefined' && String(currentViewingPostId) === String(postId)) {
+    openPostDetailModal(postId);
+  }
+
+  if (isFuture) {
+    alert(`⏰ [예약 시간 변경 완료]\n\n• 게시글: ${post.title}\n• 새 공개 예정 시각: ${formattedKst} (KST)\n\n지정된 예약 시각 전까지는 관리자에게만 노출되며, 시간이 되면 자동으로 공개됩니다.`);
+  } else {
+    alert(`🎉 [즉시 공개 전환 완료]\n\n• 게시글: ${post.title}\n\n예약 대기가 해제되어 지금 즉시 모든 방문자에게 공개되었습니다!`);
+  }
+}
+window.saveEditedSchedule = saveEditedSchedule;
+
+function publishPostImmediately(postId) {
+  const isAdminUser = (typeof checkIsAdminAuthenticated === 'function') ? checkIsAdminAuthenticated() : (typeof isAdmin === 'function' && isAdmin());
+  if (!isAdminUser) {
+    alert('❌ 관리자만 즉시 공개로 전환할 수 있습니다.');
+    return;
+  }
+
+  let posts = getStoredPosts();
+  const post = posts.find(p => String(p.id) === String(postId));
+  if (!post) {
+    alert('게시글을 찾을 수 없습니다.');
+    return;
+  }
+
+  if (!confirm(`📢 [${post.title}]\n\n이 게시글의 예약 대기를 해제하고 지금 즉시 모든 방문자에게 공개하시겠습니까?`)) {
+    return;
+  }
+
+  const now = Date.now();
+  post.publishAt = null;
+  post.publishAtFormatted = null;
+  post.isScheduled = false;
+  post.time = formatDateTime(now);
+  post.timestamp = now;
+
+  try {
+    const overrides = JSON.parse(localStorage.getItem('crytopnl_scheduled_overrides') || '{}');
+    overrides[String(post.id)] = {
+      publishAt: null,
+      publishAtFormatted: null,
+      isScheduled: false,
+      time: post.time,
+      timestamp: post.timestamp
+    };
+    localStorage.setItem('crytopnl_scheduled_overrides', JSON.stringify(overrides));
+  } catch(e) {}
+
+  saveStoredPosts(posts);
+
+  const fdb = window.db || (typeof db !== 'undefined' ? db : null);
+  if (fdb && typeof fdb.collection === 'function') {
+    fdb.collection('forum_posts').doc(String(post.id)).set(post, { merge: true }).catch(() => {});
+  }
+
+  if (typeof renderForumPosts === 'function') renderForumPosts();
+  if (typeof currentViewingPostId !== 'undefined' && String(currentViewingPostId) === String(postId)) {
+    openPostDetailModal(postId);
+  }
+
+  alert(`🎉 [${post.title}]\n\n게시글이 성공적으로 전체 공개되었습니다!`);
+}
+window.publishPostImmediately = publishPostImmediately;
+
+function confirmImmediatePublishFromModal() {
+  if (!_currentEditingSchedulePostId) return;
+  const targetId = _currentEditingSchedulePostId;
+  closeEditScheduleModal();
+  publishPostImmediately(targetId);
+}
+window.confirmImmediatePublishFromModal = confirmImmediatePublishFromModal;
 
 function saveStoredPosts(posts) {
   const deletedIds = getDeletedPostIds();
@@ -3892,7 +4146,7 @@ function renderForumPosts() {
         <div class="flex-1 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
             ${isScheduledPending 
-              ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-amber-400"></i> 예약 대기 (${escapeHtml(post.publishAtFormatted || formatDateTime(post.publishAt))} 공개)</span>` 
+              ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 ${isAdminUser ? 'cursor-pointer hover:bg-amber-500/35 hover:border-amber-400 transition' : ''}" ${isAdminUser ? `onclick="event.stopPropagation(); openEditScheduleModal('${post.id}')" title="관리자: 클릭하여 예약 시간 수정"` : ''}><i data-lucide="clock" class="w-3 h-3 text-amber-400"></i> 예약 대기 (${escapeHtml(post.publishAtFormatted || formatDateTime(post.publishAt))} 공개)${isAdminUser ? ' <i data-lucide="edit-2" class="w-2.5 h-2.5 ml-0.5 text-amber-400/90"></i>' : ''}</span>` 
               : ''}
             ${post.isNotice 
               ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30">📢 공지</span>' 
@@ -3909,6 +4163,11 @@ function renderForumPosts() {
         </div>
 
         <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0 text-xs flex-wrap justify-end">
+          ${isScheduledPending && isAdminUser ? `
+            <button type="button" onclick="event.stopPropagation(); openEditScheduleModal('${post.id}')" class="px-2.5 py-1.5 rounded-xl bg-amber-950/50 hover:bg-amber-900/70 text-amber-300 hover:text-amber-200 border border-amber-500/50 text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="예약 공개 일시 변경">
+              <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-amber-400"></i> 예약 수정
+            </button>
+          ` : ''}
           <a href="/posts/${post.id}.html" target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1" title="새 창에서 정적 웹문서(SEO)로 열기">
             <i data-lucide="external-link" class="w-3.5 h-3.5 text-cyan-400"></i> 웹문서
           </a>
@@ -4236,18 +4495,28 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (contentEl) {
     let postHtml = formatPostContent(post.content);
     if (isReserved && isAdminUser) {
-      const adminBanner = `<div class="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 mb-6 text-xs text-amber-300 flex items-start sm:items-center gap-3 shadow-lg shadow-amber-950/20">
-        <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400">
-          <i data-lucide="clock" class="w-4 h-4"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="font-bold text-amber-200 text-sm flex items-center gap-2">
-            <span>⏳ 예약 발행 대기 중 (관리자 미리보기 모드)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/30 text-amber-100 font-extrabold">ADMIN ONLY</span>
+      const adminBanner = `<div class="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 mb-6 text-xs text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shadow-amber-950/20">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400">
+            <i data-lucide="clock" class="w-4 h-4"></i>
           </div>
-          <p class="text-[11px] text-amber-300/80 mt-0.5 leading-relaxed">
-            이 게시글은 예약 상태로, 일반 방문자에게는 <strong>${post.publishAtFormatted || formatDateTime(post.publishAt)}</strong>에 자동으로 공개됩니다.
-          </p>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-amber-200 text-sm flex items-center gap-2">
+              <span>⏳ 예약 발행 대기 중 (관리자 미리보기 모드)</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/30 text-amber-100 font-extrabold">ADMIN ONLY</span>
+            </div>
+            <p class="text-[11px] text-amber-300/80 mt-0.5 leading-relaxed">
+              이 게시글은 예약 상태로, 일반 방문자에게는 <strong>${post.publishAtFormatted || formatDateTime(post.publishAt)}</strong>에 자동으로 공개됩니다.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+          <button type="button" onclick="openEditScheduleModal('${post.id}')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs shadow transition flex items-center justify-center gap-1 cursor-pointer">
+            <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> 예약 시간 변경
+          </button>
+          <button type="button" onclick="publishPostImmediately('${post.id}')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center justify-center gap-1 cursor-pointer">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i> 즉시 공개
+          </button>
         </div>
       </div>`;
       postHtml = adminBanner + postHtml;
@@ -4279,6 +4548,11 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (controlsEl) {
     if (isAuthor) {
       controlsEl.innerHTML = `
+        ${isReserved ? `
+          <button onclick="openEditScheduleModal('${post.id}')" class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer" title="예약 시간 수정">
+            <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-amber-400"></i> 예약 수정
+          </button>
+        ` : ''}
         <button onclick="showForumWriteView('${post.id}')" class="px-3.5 py-1.5 rounded-xl bg-navy-950 hover:bg-cyan-500 hover:text-navy-950 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5">
           <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
         </button>

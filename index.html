@@ -10602,6 +10602,84 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Edit Post Schedule (Admin Only) -->
+  <div id="modal-edit-schedule" class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-navy-950/85 backdrop-blur-sm hidden overflow-y-auto">
+    <div class="bg-navy-900 border border-amber-500/40 rounded-3xl max-w-md w-full flex flex-col shadow-2xl relative my-auto overflow-hidden">
+      <!-- Header -->
+      <div class="p-5 pb-4 border-b border-navy-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-1.5">
+              <span>게시글 예약 시간 수정</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 font-extrabold font-mono">ADMIN</span>
+            </h3>
+            <p class="text-[11px] text-amber-300/80 font-medium">지정된 예약 시각에 맞춰 일반 방문자에게 공개됩니다.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeEditScheduleModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-navy-800 transition cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 space-y-4 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">대상 게시글</label>
+          <div id="edit-schedule-post-title" class="font-bold text-xs text-slate-200 bg-navy-950 p-2.5 rounded-xl border border-navy-800 line-clamp-2 leading-relaxed">
+            -
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="edit-schedule-datetime-input" class="font-bold text-amber-300 flex items-center gap-1">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i> 새 공개 예약 시각 (한국 KST)
+            </label>
+            <span id="edit-schedule-current-badge" class="text-[10px] text-slate-400 font-mono"></span>
+          </div>
+          <input type="datetime-local" id="edit-schedule-datetime-input" class="w-full px-3.5 py-2.5 rounded-xl bg-navy-950 border border-amber-500/50 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono transition" />
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="space-y-1.5">
+          <span class="text-[10.5px] text-slate-400 font-semibold">⚡ 빠른 시간 변경 프리셋</span>
+          <div class="grid grid-cols-4 gap-1.5 text-center">
+            <button type="button" onclick="setEditSchedulePreset(10)" class="px-2 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-amber-500/50 text-[10.5px] text-slate-300 font-semibold transition cursor-pointer">+10분 뒤</button>
+            <button type="button" onclick="setEditSchedulePreset(60)" class="px-2 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-amber-500/50 text-[10.5px] text-slate-300 font-semibold transition cursor-pointer">+1시간 뒤</button>
+            <button type="button" onclick="setEditSchedulePreset(180)" class="px-2 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-amber-500/50 text-[10.5px] text-slate-300 font-semibold transition cursor-pointer">+3시간 뒤</button>
+            <button type="button" onclick="setEditSchedulePreset('tomorrow_morning')" class="px-2 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 border border-navy-800 hover:border-amber-500/50 text-[10.5px] text-slate-300 font-semibold transition cursor-pointer">내일 09:00</button>
+          </div>
+        </div>
+
+        <!-- Immediate Publish Switch -->
+        <div class="p-3 rounded-2xl bg-emerald-950/25 border border-emerald-500/40 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i> 즉시 전체 공개로 전환
+            </div>
+            <p class="text-[10px] text-emerald-400/80 mt-0.5">예약 대기를 해제하고 지금 즉시 모든 방문자에게 노출합니다.</p>
+          </div>
+          <button type="button" onclick="confirmImmediatePublishFromModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition shrink-0 cursor-pointer">
+            지금 공개
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 border-t border-navy-800/80 flex items-center justify-end gap-2 bg-navy-950/40">
+        <button type="button" onclick="closeEditScheduleModal()" class="px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+          취소
+        </button>
+        <button type="button" onclick="saveEditedSchedule()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-navy-950 font-black text-xs shadow-lg shadow-amber-950/30 transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i> 예약 시간 저장
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
   <script>
     // Pre-initialize analyzer if user is already logged in on page load
