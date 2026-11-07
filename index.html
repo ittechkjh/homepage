@@ -1648,15 +1648,15 @@
           <!-- CHART CONTAINER (Responsive Height) -->
           <div class="flex-1 flex flex-col relative min-h-[420px] sm:min-h-[460px] lg:min-h-[620px] border-b lg:border-b-0 lg:border-r border-[#2a2e39]">
             
-            <!-- Floating Top-Left OHLC & MA Legend Overlay (Mobile Compact) -->
-            <div class="absolute top-1.5 left-1.5 z-10 pointer-events-none space-y-0.5 bg-[#131722]/90 backdrop-blur-sm px-2 py-1 rounded-lg border border-[#2a2e39]/80 max-w-[96%]">
-              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] sm:text-xs">
-                <span id="chartTitleBadge" class="font-bold text-white">BTC/USDT</span>
-                <span id="ohlcDisplay" class="mono text-[9px] sm:text-[10px] text-slate-100 font-semibold">
+            <!-- Dedicated Top OHLC & MA Ticker Bar (Fixed above canvas, prevents overlapping with candles) -->
+            <div id="chartOhlcTickerBar" class="bg-[#181c27] border-b border-[#2a2e39] px-2.5 py-1.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
+              <div class="flex items-center gap-2 shrink-0">
+                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs">BTC/USDT</span>
+                <span id="ohlcDisplay" class="mono text-[10px] sm:text-[11px] text-slate-100 font-semibold whitespace-nowrap">
                   시: <b class="text-white">-</b> 고: <b class="text-white">-</b> 저: <b class="text-white">-</b> 종: <b class="text-white">-</b>
                 </span>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 text-[8px] sm:text-[10px] mono font-bold">
+              <div class="flex items-center gap-2 sm:gap-2.5 text-[9px] sm:text-[11px] mono font-bold shrink-0 whitespace-nowrap">
                 <span class="text-[#facc15]">● 20MA: <b id="ma20Val" class="text-white">-</b></span>
                 <span class="text-[#38bdf8]">● 50MA: <b id="ma50Val" class="text-white">-</b></span>
                 <span class="text-[#c084fc] hidden sm:inline">● 200MA: <b id="ma200Val" class="text-white">-</b></span>
@@ -1670,8 +1670,8 @@
               <div class="text-slate-100 text-[10px] sm:text-[11px] leading-relaxed font-medium" id="bannerDesc">설명 텍스트</div>
             </div>
 
-            <!-- Main Canvas -->
-            <div class="flex-1 w-full h-[420px] sm:h-[460px] lg:h-[620px] relative" id="canvasWrapper" style="touch-action: pan-y;">
+            <!-- Main Canvas (100% clean view without blocking overlay) -->
+            <div class="flex-1 w-full h-[390px] sm:h-[440px] lg:h-[590px] relative" id="canvasWrapper" style="touch-action: pan-y;">
               <canvas id="tvCanvas"></canvas>
             </div>
 
@@ -1862,10 +1862,10 @@
                 <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider mb-2.5 flex items-center">
                   <i class="fa-solid fa-check-double mr-1.5 text-cyan-400"></i>실전 매매 3단계 체크리스트
                 </h4>
-                <ol class="text-xs text-slate-100 space-y-2 list-decimal list-inside leading-relaxed font-medium">
-                  <li><b class="text-amber-300 font-bold">구조 확인 (다우 & 이평선):</b> <span class="text-white">200일선 위에서 HH·HL 상승 구조인가?</span></li>
-                  <li><b class="text-amber-300 font-bold">위치 파악 (엘리엇):</b> <span class="text-white">과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</span></li>
-                  <li><b class="text-amber-300 font-bold">방아쇠 당기기 (RSI & 이평선):</b> <span class="text-white">다이버전스 출현 및 20일선 돌파/이탈 확인</span></li>
+                <ol class="text-xs text-slate-700 dark:text-slate-100 space-y-2 list-decimal list-inside leading-relaxed font-medium">
+                  <li><b class="text-amber-600 dark:text-amber-300 font-bold">구조 확인 (다우 & 이평선):</b> <span class="text-slate-900 dark:text-white">200일선 위에서 HH·HL 상승 구조인가?</span></li>
+                  <li><b class="text-amber-600 dark:text-amber-300 font-bold">위치 파악 (엘리엇):</b> <span class="text-slate-900 dark:text-white">과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</span></li>
+                  <li><b class="text-amber-600 dark:text-amber-300 font-bold">방아쇠 당기기 (RSI & 이평선):</b> <span class="text-slate-900 dark:text-white">다이버전스 출현 및 20일선 돌파/이탈 확인</span></li>
                 </ol>
               </div>
             </div>

@@ -578,7 +578,7 @@
         
         // Mobile-responsive canvas height
         const isMobile = window.innerWidth < 640;
-        const defaultHeight = isMobile ? 420 : (window.innerWidth < 1024 ? 460 : 620);
+        const defaultHeight = isMobile ? 390 : (window.innerWidth < 1024 ? 440 : 590);
         canvasHeight = rect.height > 100 ? rect.height : defaultHeight;
 
         const dpr = window.devicePixelRatio || 1;
@@ -587,10 +587,10 @@
         ctx.scale(dpr, dpr);
 
         const isSmallScreen = canvasWidth < 540;
-        priceTop = isSmallScreen ? 34 : 20;
-        priceHeight = Math.round((canvasHeight - priceTop) * (isSmallScreen ? 0.69 : 0.67));
-        rsiTop = priceTop + priceHeight + (isSmallScreen ? 20 : 30);
-        rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 14 : 22), isSmallScreen ? 50 : 70);
+        priceTop = isSmallScreen ? 14 : 16;
+        priceHeight = Math.round((canvasHeight - priceTop) * (isSmallScreen ? 0.70 : 0.68));
+        rsiTop = priceTop + priceHeight + (isSmallScreen ? 18 : 28);
+        rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 14 : 20), isSmallScreen ? 50 : 70);
 
         drawChart();
     }
@@ -771,8 +771,22 @@
 
                     const labelText = isSmallScreen && zone.shortLabel ? zone.shortLabel : zone.label;
                     ctx.font = isSmallScreen ? 'bold 9px "Noto Sans KR", sans-serif' : '10px "Noto Sans KR", sans-serif';
+                    const textW = ctx.measureText(labelText).width;
+                    const pillX = x1 + 6;
+                    const pillY = y1 + (isSmallScreen ? 2 : 3);
+                    const pillH = isSmallScreen ? 14 : 16;
+
+                    // High-contrast badge background to prevent overlapping candle wicks/bodies
+                    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.94)' : 'rgba(15, 23, 42, 0.92)';
+                    ctx.fillRect(pillX - 2, pillY - 1, textW + 6, pillH);
+                    ctx.strokeStyle = zone.borderColor;
+                    ctx.lineWidth = 0.8;
+                    ctx.strokeRect(pillX - 2, pillY - 1, textW + 6, pillH);
+
                     ctx.fillStyle = zone.borderColor;
-                    ctx.fillText(labelText, x1 + 6, y1 + (isSmallScreen ? 11 : 14));
+                    ctx.textBaseline = 'top';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(labelText, pillX + 1, pillY + 1);
                 }
             });
         }
@@ -898,19 +912,22 @@
                     ctx.stroke();
                     ctx.setLineDash([]);
 
-                    // Center Badge
+                    // Center Badge (Offset from the RSI line to prevent collision)
                     const midX = (x1 + x2) / 2;
-                    const midRy = (ry1 + ry2) / 2;
+                    const rawMidRy = (ry1 + ry2) / 2;
+                    const badgeRy = isBull
+                        ? Math.min(rsiTop + rsiHeight - 9, rawMidRy + (isSmallScreen ? 11 : 13))
+                        : Math.max(rsiTop + 9, rawMidRy - (isSmallScreen ? 11 : 13));
                     const divBadgeBg = isLight ? (isBull ? '#ecfdf5' : '#fff1f2') : (isBull ? '#064e3b' : '#881337');
                     const divBadgeText = isLight ? (isBull ? '#065f46' : '#9f1239') : '#ffffff';
                     const divLabelText = isBull
-                        ? (isSmallScreen ? '상승 다이버전스' : '상승 다이버전스 (가격 LL vs RSI HL)')
-                        : (isSmallScreen ? '하락 다이버전스' : '하락 다이버전스 (가격 HH vs RSI LH)');
-                    drawBadge(midX, midRy, divLabelText, divBadgeBg, divCol, divBadgeText);
+                        ? (isSmallScreen ? '▲ 상승 다이버' : '상승 다이버전스 (가격 LL vs RSI HL)')
+                        : (isSmallScreen ? '▼ 하락 다이버' : '하락 다이버전스 (가격 HH vs RSI LH)');
+                    drawBadge(midX, badgeRy, divLabelText, divBadgeBg, divCol, divBadgeText);
 
                     interactiveHotspots.push({
                         x: midX,
-                        y: midRy,
+                        y: badgeRy,
                         r: 18,
                         title: div.label,
                         desc: div.desc
@@ -991,8 +1008,9 @@
                         : (isSmallScreen ? (isAbove ? -18 : 18) : (isAbove ? -24 : 24));
                     const py = getY(isAbove ? b.high : b.low) + dowOffset;
 
+                    const tagTextToRender = isSmallScreen ? tag.text.split(' ')[0] : tag.text;
                     ctx.font = isSmallScreen ? 'bold 9px "JetBrains Mono", monospace' : 'bold 10px "JetBrains Mono", monospace';
-                    const textW = ctx.measureText(tag.text).width;
+                    const textW = ctx.measureText(tagTextToRender).width;
                     const padX = isSmallScreen ? 4 : 6;
                     const badgeW = textW + padX * 2;
                     const badgeH = isSmallScreen ? 14 : 16;
@@ -1008,7 +1026,7 @@
                     ctx.fillStyle = tag.color;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(tag.text, px, py);
+                    ctx.fillText(tagTextToRender, px, py);
 
                     interactiveHotspots.push({
                         x: px,
@@ -1114,15 +1132,17 @@
                 const b = chartData[hoverIdx];
                 updateTopLegend(b);
 
-                // Date Label on bottom of Price Panel
+                // Date Label on bottom of Price Panel (Clamped within visible canvas)
+                const dateBadgeW = 76;
+                const dateBadgeX = Math.max(leftMargin, Math.min(canvasWidth - rightMargin - dateBadgeW, mousePos.x - dateBadgeW / 2));
                 ctx.fillStyle = colors.dateBadgeBg;
-                ctx.fillRect(mousePos.x - 38, priceHeight + 11, 76, 18);
+                ctx.fillRect(dateBadgeX, priceHeight + 11, dateBadgeW, 18);
                 ctx.strokeStyle = colors.dateBadgeBorder;
-                ctx.strokeRect(mousePos.x - 38, priceHeight + 11, 76, 18);
+                ctx.strokeRect(dateBadgeX, priceHeight + 11, dateBadgeW, 18);
                 ctx.fillStyle = colors.dateBadgeText;
                 ctx.font = '10px "JetBrains Mono", monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(b.date, mousePos.x, priceHeight + 20);
+                ctx.fillText(b.date, dateBadgeX + dateBadgeW / 2, priceHeight + 20);
             }
 
             // Price or RSI Label on Right Scale

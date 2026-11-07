@@ -1418,18 +1418,21 @@ html.theme-light #tab-chart-forecast .border-\[\#2a2e39\] {
   border-color: #e2e8f0 !important;
 }
 
-/* Floating Top-Left OHLC Legend Overlay */
-html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
-  background-color: rgba(255, 255, 255, 0.94) !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+/* Top OHLC & MA Ticker Bar in Light Mode */
+html.theme-light #tab-chart-forecast #chartOhlcTickerBar {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
   color: #0f172a !important;
 }
-html.theme-light #tab-chart-forecast #chartTitleBadge {
+html.theme-light #tab-chart-forecast #chartOhlcTickerBar #chartTitleBadge {
   color: #0f172a !important;
+  font-weight: 800 !important;
 }
-html.theme-light #tab-chart-forecast #ohlcDisplay {
+html.theme-light #tab-chart-forecast #chartOhlcTickerBar #ohlcDisplay {
   color: #334155 !important;
+}
+html.theme-light #tab-chart-forecast #chartOhlcTickerBar b {
+  color: #0f172a !important;
 }
 
 /* Interactive Point Callout Banner */
@@ -1587,7 +1590,10 @@ html.theme-light #tab-chart-forecast #forecast-panel-theory .bg-\[\#1e222d\] {
 /* Checklist Panel in Light Mode - Fresh Mint/Emerald High-Contrast Box */
 html.theme-light #tab-chart-forecast #forecast-panel-checklist,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist > div,
-html.theme-light #tab-chart-forecast [class*="forecast-panel-checklist"] {
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist,
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist > div,
+html.theme-light #tab-chart-forecast [class*="forecast-panel-checklist"],
+html:not(.dark) #tab-chart-forecast [class*="forecast-panel-checklist"] {
   background-color: #f0fdf4 !important;
   background-image: none !important;
   border: 1px solid #86efac !important;
@@ -1595,16 +1601,22 @@ html.theme-light #tab-chart-forecast [class*="forecast-panel-checklist"] {
   color: #14532d !important;
 }
 html.theme-light #tab-chart-forecast #forecast-panel-checklist h4,
-html.theme-light #tab-chart-forecast #forecast-panel-checklist h4 * {
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist h4,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist h4 *,
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist h4 * {
   color: #15803d !important;
   font-weight: 800 !important;
 }
 html.theme-light #tab-chart-forecast #forecast-panel-checklist ol,
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist ol,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist li,
-html.theme-light #tab-chart-forecast #forecast-panel-checklist span {
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist li,
+html.theme-light #tab-chart-forecast #forecast-panel-checklist span,
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist span {
   color: #166534 !important;
 }
-html.theme-light #tab-chart-forecast #forecast-panel-checklist b {
+html.theme-light #tab-chart-forecast #forecast-panel-checklist b,
+html:not(.dark) #tab-chart-forecast #forecast-panel-checklist b {
   color: #0f172a !important;
   font-weight: 800 !important;
 }
