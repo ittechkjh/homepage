@@ -574,18 +574,23 @@
         if (!wrapper) return;
 
         const rect = wrapper.getBoundingClientRect();
-        canvasWidth = Math.max(rect.width, 320);
-        canvasHeight = Math.max(rect.height, 460);
+        canvasWidth = Math.max(rect.width, 300);
+        
+        // Mobile-responsive canvas height
+        const isMobile = window.innerWidth < 640;
+        const defaultHeight = isMobile ? 360 : (window.innerWidth < 1024 ? 440 : 620);
+        canvasHeight = rect.height > 100 ? rect.height : defaultHeight;
 
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvasWidth * dpr;
         canvas.height = canvasHeight * dpr;
         ctx.scale(dpr, dpr);
 
-        priceTop = 15;
-        priceHeight = Math.round(canvasHeight * 0.68);
-        rsiTop = priceHeight + 35;
-        rsiHeight = Math.max(canvasHeight - rsiTop - 25, 75);
+        const isSmallScreen = canvasWidth < 540;
+        priceTop = isSmallScreen ? 10 : 15;
+        priceHeight = Math.round(canvasHeight * (isSmallScreen ? 0.70 : 0.68));
+        rsiTop = priceHeight + (isSmallScreen ? 25 : 35);
+        rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 18 : 25), isSmallScreen ? 55 : 75);
 
         drawChart();
     }
@@ -633,11 +638,12 @@
         minP = Math.max(0, minP - pMargin);
         maxP = maxP + pMargin;
 
-        const rightMargin = 72;
-        const leftMargin = 12;
+        const isSmallScreen = canvasWidth < 540;
+        const rightMargin = isSmallScreen ? 48 : 72;
+        const leftMargin = isSmallScreen ? 6 : 12;
         const chartPlotWidth = canvasWidth - rightMargin - leftMargin;
         const barStep = chartPlotWidth / Math.max(count - 1, 1);
-        const candleWidth = Math.max(2, Math.min(barStep * 0.65, 12));
+        const candleWidth = Math.max(1.8, Math.min(barStep * 0.65, isSmallScreen ? 8 : 12));
 
         function getX(idx) {
             return leftMargin + idx * barStep;
@@ -657,12 +663,12 @@
         ctx.lineWidth = 1;
         ctx.strokeStyle = '#1e222d';
         ctx.fillStyle = '#787b86';
-        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.font = isSmallScreen ? '9px "JetBrains Mono", monospace' : '10px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
 
         // 5 Price Grid Lines
-        const priceSteps = 5;
+        const priceSteps = isSmallScreen ? 4 : 5;
         for (let i = 0; i <= priceSteps; i++) {
             const pVal = minP + (maxP - minP) * (i / priceSteps);
             const py = getY(pVal);
@@ -675,15 +681,16 @@
 
             // Right Price Scale
             ctx.setLineDash([]);
-            ctx.fillText('$' + formatPrice(pVal), canvasWidth - rightMargin + 6, py);
+            const formatted = isSmallScreen && pVal >= 1000 ? '$' + Math.round(pVal / 1000) + 'K' : '$' + formatPrice(pVal);
+            ctx.fillText(formatted, canvasWidth - rightMargin + 4, py);
         }
 
         // Horizontal Separator Line between Price and RSI Panel
         ctx.strokeStyle = '#2a2e39';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0, priceHeight + 20);
-        ctx.lineTo(canvasWidth, priceHeight + 20);
+        ctx.moveTo(0, priceHeight + (isSmallScreen ? 14 : 20));
+        ctx.lineTo(canvasWidth, priceHeight + (isSmallScreen ? 14 : 20));
         ctx.stroke();
 
         // RSI Panel Background & Reference Levels
@@ -692,9 +699,9 @@
 
         // RSI 70 (Overbought - Red) & RSI 30 (Oversold - Green) & RSI 50
         const rsiLevels = [
-            { lvl: 70, col: '#f23645', dash: [3, 3], label: '70 (과매수)' },
-            { lvl: 50, col: '#4b5563', dash: [2, 4], label: '50 (중립)' },
-            { lvl: 30, col: '#089981', dash: [3, 3], label: '30 (과매도)' }
+            { lvl: 70, col: '#f23645', dash: [3, 3], label: isSmallScreen ? '70' : '70 (과매수)' },
+            { lvl: 50, col: '#4b5563', dash: [2, 4], label: isSmallScreen ? '50' : '50 (중립)' },
+            { lvl: 30, col: '#089981', dash: [3, 3], label: isSmallScreen ? '30' : '30 (과매도)' }
         ];
 
         rsiLevels.forEach(item => {
@@ -1281,15 +1288,15 @@
         if (!canvas._engineInitialized) {
             canvas._engineInitialized = true;
 
-            canvas.addEventListener('mousemove', (e) => {
+            function handlePointerMove(clientX, clientY) {
                 const rect = canvas.getBoundingClientRect();
-                mousePos.x = e.clientX - rect.left;
-                mousePos.y = e.clientY - rect.top;
+                mousePos.x = clientX - rect.left;
+                mousePos.y = clientY - rect.top;
 
                 // Check hotspot hover
                 let foundSpot = null;
                 for (const spot of interactiveHotspots) {
-                    if (Math.hypot(mousePos.x - spot.x, mousePos.y - spot.y) <= spot.r) {
+                    if (Math.hypot(mousePos.x - spot.x, mousePos.y - spot.y) <= spot.r + 10) {
                         foundSpot = spot;
                         break;
                     }
@@ -1302,8 +1309,8 @@
                         banner.classList.remove('hidden');
                         const bTitle = document.getElementById('bannerTitle');
                         const bDesc = document.getElementById('bannerDesc');
-                        if (bTitle) bTitle.textContent = spot.title;
-                        if (bDesc) bDesc.textContent = spot.desc;
+                        if (bTitle) bTitle.textContent = foundSpot.title;
+                        if (bDesc) bDesc.textContent = foundSpot.desc;
                     }
                     const nBadge = document.getElementById('selectedNodeBadge');
                     const nBody = document.getElementById('selectedNodeBody');
@@ -1315,6 +1322,30 @@
                 }
 
                 drawChart();
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                handlePointerMove(e.clientX, e.clientY);
+            });
+
+            // Touch events for mobile devices
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', () => {
+                setTimeout(() => {
+                    const banner = document.getElementById('hoverAnnotationBanner');
+                    if (banner) banner.classList.add('hidden');
+                }, 3000);
             });
 
             canvas.addEventListener('mouseleave', () => {
@@ -1330,7 +1361,7 @@
                 const cx = e.clientX - rect.left;
                 const cy = e.clientY - rect.top;
                 for (const spot of interactiveHotspots) {
-                    if (Math.hypot(cx - spot.x, cy - spot.y) <= spot.r + 6) {
+                    if (Math.hypot(cx - spot.x, cy - spot.y) <= spot.r + 10) {
                         const nBadge = document.getElementById('selectedNodeBadge');
                         const nBody = document.getElementById('selectedNodeBody');
                         if (nBadge) nBadge.textContent = spot.title;
@@ -1345,6 +1376,34 @@
 
         selectScenario(currentScenarioKey);
         setTimeout(resizeCanvas, 50);
+    }
+
+    // Mobile SubTab Switcher (Summary / Theory / Checklist)
+    function switchForecastSubTab(tabKey) {
+        const tabs = ['summary', 'theory', 'checklist'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`subtab-btn-${t}`);
+            const panel = document.getElementById(`forecast-panel-${t}`);
+            if (t === tabKey) {
+                if (btn) {
+                    btn.classList.add('bg-cyan-500/20', 'text-cyan-300', 'border-cyan-400/50');
+                    btn.classList.remove('text-slate-400', 'border-transparent');
+                }
+                if (panel) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('block');
+                }
+            } else {
+                if (btn) {
+                    btn.classList.remove('bg-cyan-500/20', 'text-cyan-300', 'border-cyan-400/50');
+                    btn.classList.add('text-slate-400', 'border-transparent');
+                }
+                if (panel) {
+                    panel.classList.remove('block');
+                    panel.classList.add('hidden');
+                }
+            }
+        });
     }
 
     // Expose global methods
@@ -1366,6 +1425,7 @@
     window.stopStepReplay = stopStepReplay;
     window.resetView = resetView;
     window.initChartForecastEngine = initChartForecastEngine;
+    window.switchForecastSubTab = switchForecastSubTab;
 
     // Auto-init if tab is currently visible
     document.addEventListener('DOMContentLoaded', () => {
