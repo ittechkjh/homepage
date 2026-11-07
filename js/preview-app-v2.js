@@ -8595,6 +8595,12 @@ function switchTab(tabId, updateHash = true) {
       }
     }
 
+    if (tabId === 'chart-forecast') {
+      if (typeof window.initChartForecastEngine === 'function') {
+        window.initChartForecastEngine();
+      }
+    }
+
     if (tabId === 'market') {
       fetchMarketData();
       fetchMarketAnalysisData();
