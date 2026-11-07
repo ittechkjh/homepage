@@ -661,9 +661,9 @@
         // Grid Lines & Price Scale Axis
         // ==========================================
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '#1e222d';
-        ctx.fillStyle = '#787b86';
-        ctx.font = isSmallScreen ? '9px "JetBrains Mono", monospace' : '10px "JetBrains Mono", monospace';
+        ctx.strokeStyle = '#2a2e39';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = isSmallScreen ? 'bold 9px "JetBrains Mono", monospace' : 'bold 10px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
 
@@ -1158,11 +1158,11 @@
             const btn = document.getElementById(`scen-${key}`);
             if (btn) {
                 if (key === scenKey) {
-                    btn.classList.add('active', 'border-blue-500', 'bg-[#2962ff]/20', 'text-[#64b5f6]');
-                    btn.classList.remove('text-[#9ca3af]');
+                    btn.classList.add('active', 'border-blue-500', 'bg-[#2962ff]/25', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+                    btn.classList.remove('text-slate-300', 'text-[#9ca3af]');
                 } else {
-                    btn.classList.remove('active', 'border-blue-500', 'bg-[#2962ff]/20', 'text-[#64b5f6]');
-                    btn.classList.add('text-[#9ca3af]');
+                    btn.classList.remove('active', 'border-blue-500', 'bg-[#2962ff]/25', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+                    btn.classList.add('text-slate-300');
                 }
             }
         });
@@ -1225,10 +1225,10 @@
             if (btn) {
                 if (layers[k]) {
                     btn.classList.add(activeClassMap[k] || 'bg-cyan-500/20');
-                    btn.classList.remove('opacity-45');
+                    btn.classList.remove('opacity-60', 'text-slate-300');
                 } else {
                     btn.classList.remove(activeClassMap[k] || 'bg-cyan-500/20');
-                    btn.classList.add('opacity-45');
+                    btn.classList.add('opacity-60', 'text-slate-300');
                 }
             }
         });

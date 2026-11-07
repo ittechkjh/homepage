@@ -1319,37 +1319,37 @@
       <nav class="hidden md:flex items-center gap-1 bg-navy-950/70 p-1 rounded-2xl border border-navy-800/90 shrink min-w-0 shadow-inner">
         <!-- 1. 차트 & 퀀트 분석 -->
         <div class="relative group" id="group-nav-chart">
-          <button type="button" id="main-nav-chart" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-navy-900/80 border border-transparent transition-all cursor-pointer">
+          <button type="button" id="main-nav-chart" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-slate-100 hover:text-white hover:bg-navy-900 border border-transparent transition-all cursor-pointer">
             <i data-lucide="line-chart" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
             <span>차트·분석</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 group-hover:rotate-180 transition-transform duration-200"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-cyan-400 group-hover:rotate-180 transition-transform duration-200"></i>
           </button>
-          <!-- Dropdown Menu -->
-          <div class="absolute left-0 top-full pt-1.5 w-60 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
-            <div class="bg-navy-950/95 backdrop-blur-xl border border-navy-700/80 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
-              <button onclick="switchTab('chart-forecast')" id="nav-chart-forecast" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="candlestick-chart" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <!-- Dropdown Menu (High-Contrast & Large Interactive Hover) -->
+          <div class="absolute left-0 top-full pt-1.5 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
+            <div class="bg-navy-950/98 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-black/80 p-2 space-y-1">
+              <button onclick="switchTab('chart-forecast')" id="nav-chart-forecast" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-cyan-200 hover:bg-gradient-to-r hover:from-cyan-500/25 hover:to-blue-600/25 border border-transparent hover:border-cyan-400/70 hover:shadow-lg hover:shadow-cyan-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="candlestick-chart" class="w-4 h-4 text-cyan-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>AI 실전 작도 & 예측</span>
                 </span>
-                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse">NEW</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm animate-pulse">NEW</span>
               </button>
-              <button onclick="switchTab('market')" id="nav-market" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="trending-up" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <button onclick="switchTab('market')" id="nav-market" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-cyan-200 hover:bg-gradient-to-r hover:from-cyan-500/25 hover:to-blue-600/25 border border-transparent hover:border-cyan-400/70 hover:shadow-lg hover:shadow-cyan-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>실시간 시세 & 차트</span>
                 </span>
               </button>
-              <button onclick="switchTab('patterns')" id="nav-patterns" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-emerald-300 hover:bg-emerald-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="scan" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <button onclick="switchTab('patterns')" id="nav-patterns" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-emerald-200 hover:bg-gradient-to-r hover:from-emerald-500/25 hover:to-teal-600/25 border border-transparent hover:border-emerald-400/70 hover:shadow-lg hover:shadow-emerald-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="scan" class="w-4 h-4 text-emerald-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>AI 차트패턴 스캐너</span>
                 </span>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AI</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">AI</span>
               </button>
-              <button onclick="switchTab('onchain')" id="nav-onchain" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <button onclick="switchTab('onchain')" id="nav-onchain" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-cyan-200 hover:bg-gradient-to-r hover:from-cyan-500/25 hover:to-blue-600/25 border border-transparent hover:border-cyan-400/70 hover:shadow-lg hover:shadow-cyan-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="activity" class="w-4 h-4 text-cyan-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>온체인 & 고래 레이더</span>
                 </span>
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
@@ -1360,30 +1360,30 @@
 
         <!-- 2. 커뮤니티 & 정보 -->
         <div class="relative group" id="group-nav-community">
-          <button type="button" id="main-nav-community" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-navy-900/80 border border-transparent transition-all cursor-pointer">
+          <button type="button" id="main-nav-community" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-slate-100 hover:text-white hover:bg-navy-900 border border-transparent transition-all cursor-pointer">
             <i data-lucide="messages-square" class="w-3.5 h-3.5 text-teal-400 group-hover:scale-110 transition-transform"></i>
             <span>커뮤니티·정보</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 group-hover:rotate-180 transition-transform duration-200"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-teal-400 group-hover:rotate-180 transition-transform duration-200"></i>
           </button>
-          <!-- Dropdown Menu -->
-          <div class="absolute left-0 top-full pt-1.5 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
-            <div class="bg-navy-950/95 backdrop-blur-xl border border-navy-700/80 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
-              <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="messages-square" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <!-- Dropdown Menu (High-Contrast & Large Interactive Hover) -->
+          <div class="absolute left-0 top-full pt-1.5 w-68 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
+            <div class="bg-navy-950/98 backdrop-blur-2xl border border-teal-500/30 rounded-2xl shadow-2xl shadow-black/80 p-2 space-y-1">
+              <button onclick="switchTab('forum')" id="nav-forum" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-teal-200 hover:bg-gradient-to-r hover:from-teal-500/25 hover:to-cyan-600/25 border border-transparent hover:border-teal-400/70 hover:shadow-lg hover:shadow-teal-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="messages-square" class="w-4 h-4 text-cyan-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>포럼 & AI 리포트</span>
                 </span>
-                <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm">HOT</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-navy-950 shadow-sm">HOT</span>
               </button>
-              <button onclick="switchTab('news')" id="nav-news" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-slate-100 hover:bg-navy-900 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="newspaper" class="w-3.5 h-3.5 text-blue-400"></i>
+              <button onclick="switchTab('news')" id="nav-news" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-blue-200 hover:bg-gradient-to-r hover:from-blue-500/25 hover:to-indigo-600/25 border border-transparent hover:border-blue-400/70 hover:shadow-lg hover:shadow-blue-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="newspaper" class="w-4 h-4 text-blue-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>암호화폐 실시간 속보</span>
                 </span>
               </button>
-              <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-emerald-300 hover:bg-emerald-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-emerald-200 hover:bg-gradient-to-r hover:from-emerald-500/25 hover:to-teal-600/25 border border-transparent hover:border-emerald-400/70 hover:shadow-lg hover:shadow-emerald-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="calendar" class="w-4 h-4 text-emerald-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>경제 & 코인 캘린더</span>
                 </span>
               </button>
@@ -1393,24 +1393,24 @@
 
         <!-- 3. 투자 분석 & 도구 -->
         <div class="relative group" id="group-nav-tools">
-          <button type="button" id="main-nav-tools" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-navy-900/80 border border-transparent transition-all cursor-pointer">
+          <button type="button" id="main-nav-tools" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-slate-100 hover:text-white hover:bg-navy-900 border border-transparent transition-all cursor-pointer">
             <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform"></i>
             <span>투자·도구</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 group-hover:rotate-180 transition-transform duration-200"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-cyan-400 group-hover:rotate-180 transition-transform duration-200"></i>
           </button>
-          <!-- Dropdown Menu -->
-          <div class="absolute left-0 top-full pt-1.5 w-60 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
-            <div class="bg-navy-950/95 backdrop-blur-xl border border-navy-700/80 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
-              <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="calculator" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <!-- Dropdown Menu (High-Contrast & Large Interactive Hover) -->
+          <div class="absolute left-0 top-full pt-1.5 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
+            <div class="bg-navy-950/98 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-black/80 p-2 space-y-1">
+              <button onclick="switchTab('analyzer')" id="nav-analyzer" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-cyan-200 hover:bg-gradient-to-r hover:from-cyan-500/25 hover:to-blue-600/25 border border-transparent hover:border-cyan-400/70 hover:shadow-lg hover:shadow-cyan-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="calculator" class="w-4 h-4 text-cyan-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>업비트/빗썸 손익분석기</span>
                 </span>
-                <span class="px-1 py-0.2 rounded text-[8px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">PRO</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-cyan-500/25 text-cyan-300 border border-cyan-500/40">PRO</span>
               </button>
-              <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-amber-300 hover:bg-amber-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="coins" class="w-3.5 h-3.5 text-amber-400"></i>
+              <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-amber-200 hover:bg-gradient-to-r hover:from-amber-500/25 hover:to-orange-600/25 border border-transparent hover:border-amber-400/70 hover:shadow-lg hover:shadow-amber-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="coins" class="w-4 h-4 text-amber-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>실전 투자 계산기 6종</span>
                 </span>
               </button>
@@ -1420,29 +1420,31 @@
 
         <!-- 4. 정책 & 재테크 백서 -->
         <div class="relative group" id="group-nav-policy">
-          <button type="button" id="main-nav-policy" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-navy-900/80 border border-transparent transition-all cursor-pointer">
+          <button type="button" id="main-nav-policy" class="main-cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-slate-100 hover:text-white hover:bg-navy-900 border border-transparent transition-all cursor-pointer">
             <i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform"></i>
             <span>정책·재테크</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 group-hover:rotate-180 transition-transform duration-200"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-emerald-400 group-hover:rotate-180 transition-transform duration-200"></i>
           </button>
-          <!-- Dropdown Menu -->
-          <div class="absolute left-0 top-full pt-1.5 w-60 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
-            <div class="bg-navy-950/95 backdrop-blur-xl border border-navy-700/80 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
-              <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-emerald-300 hover:bg-emerald-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <!-- Dropdown Menu (High-Contrast & Large Interactive Hover) -->
+          <div class="absolute left-0 top-full pt-1.5 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-[100]">
+            <div class="bg-navy-950/98 backdrop-blur-2xl border border-emerald-500/30 rounded-2xl shadow-2xl shadow-black/80 p-2 space-y-1">
+              <button onclick="switchTab('policy')" id="nav-policy" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-emerald-200 hover:bg-gradient-to-r hover:from-emerald-500/25 hover:to-teal-600/25 border border-transparent hover:border-emerald-400/70 hover:shadow-lg hover:shadow-emerald-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="landmark" class="w-4 h-4 text-emerald-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>2026 정부지원 정책</span>
                 </span>
-                <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-gradient-to-r from-emerald-400 to-teal-500 text-navy-950 shadow-sm animate-pulse tracking-tight">2026</span>
               </button>
-              <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-teal-300 hover:bg-teal-500/10 transition group/item text-left">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="receipt" class="w-3.5 h-3.5 text-teal-400"></i>
+              <button onclick="switchTab('yearend-tax')" id="nav-yearend-tax" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-white hover:text-teal-200 hover:bg-gradient-to-r hover:from-teal-500/25 hover:to-emerald-600/25 border border-transparent hover:border-teal-400/70 hover:shadow-lg hover:shadow-teal-500/20 hover:translate-x-1 transition-all group/item text-left cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <i data-lucide="receipt" class="w-4 h-4 text-teal-400 group-hover/item:scale-110 transition-transform"></i>
                   <span>연말정산 절세 팁</span>
                 </span>
-                <span class="px-1 py-0.2 rounded text-[8px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-gradient-to-r from-teal-400 to-emerald-500 text-navy-950 shadow-sm animate-pulse tracking-tight">NEW</span>
               </button>
             </div>
+          </div>
+        </div>
           </div>
         </div>
 
@@ -1593,13 +1595,13 @@
             <button onclick="selectScenario('full_cycle')" id="scen-full_cycle" class="tv-btn active text-xs px-2.5 py-1 rounded-lg border border-transparent font-medium whitespace-nowrap shrink-0 cursor-pointer">
               <i class="fa-solid fa-layer-group mr-1"></i>① 표준 풀사이클
             </button>
-            <button onclick="selectScenario('top_2021')" id="scen-top_2021" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-medium whitespace-nowrap text-[#9ca3af] hover:text-white shrink-0 cursor-pointer">
+            <button onclick="selectScenario('top_2021')" id="scen-top_2021" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-bold whitespace-nowrap text-slate-200 hover:text-white shrink-0 cursor-pointer">
               <i class="fa-solid fa-arrow-trend-down mr-1 text-[#f23645]"></i>② 2021년 $69K 고점
             </button>
-            <button onclick="selectScenario('bottom_2023')" id="scen-bottom_2023" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-medium whitespace-nowrap text-[#9ca3af] hover:text-white shrink-0 cursor-pointer">
+            <button onclick="selectScenario('bottom_2023')" id="scen-bottom_2023" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-bold whitespace-nowrap text-slate-200 hover:text-white shrink-0 cursor-pointer">
               <i class="fa-solid fa-arrow-trend-up mr-1 text-[#089981]"></i>③ 2023년 $15.5K 바닥
             </button>
-            <button onclick="selectScenario('etf_2024')" id="scen-etf_2024" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-medium whitespace-nowrap text-[#9ca3af] hover:text-white shrink-0 cursor-pointer">
+            <button onclick="selectScenario('etf_2024')" id="scen-etf_2024" class="tv-btn text-xs px-2.5 py-1 rounded-lg border border-transparent font-bold whitespace-nowrap text-slate-200 hover:text-white shrink-0 cursor-pointer">
               <i class="fa-solid fa-rocket mr-1 text-amber-400"></i>④ 2024~25년 ETF 대세장
             </button>
           </div>
@@ -1607,7 +1609,7 @@
 
         <!-- SECOND TOOLBAR: DRAWING LAYER TOGGLES (Horizontal Scroll for Mobile) -->
         <div class="bg-[#181c27] border-b border-[#2a2e39] px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <span class="text-[10px] sm:text-[11px] font-semibold text-[#787b86] mr-0.5 flex items-center shrink-0">
+          <span class="text-[10px] sm:text-[11px] font-bold text-slate-200 mr-0.5 flex items-center shrink-0">
             <i class="fa-solid fa-pen-ruler mr-1 text-[#64b5f6]"></i>레이어:
           </span>
 
@@ -1664,22 +1666,22 @@
             <div class="absolute top-2 left-2 z-10 pointer-events-none space-y-0.5 bg-[#131722]/90 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-[#2a2e39]/80 max-w-[96%]">
               <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] sm:text-xs">
                 <span id="chartTitleBadge" class="font-bold text-white">BTC / USDT • 1D</span>
-                <span id="ohlcDisplay" class="mono text-[10px] text-[#d1d4dc]">
+                <span id="ohlcDisplay" class="mono text-[10px] text-slate-100 font-semibold">
                   시: <b class="text-white">-</b> 고: <b class="text-white">-</b> 저: <b class="text-white">-</b> 종: <b class="text-white">-</b>
                 </span>
               </div>
-              <div class="flex flex-wrap items-center gap-x-2 text-[9px] sm:text-[11px] mono">
-                <span class="text-[#facc15]">● 20MA: <b id="ma20Val">-</b></span>
-                <span class="text-[#38bdf8]">● 50MA: <b id="ma50Val">-</b></span>
-                <span class="text-[#c084fc] hidden xs:inline sm:inline">● 200MA: <b id="ma200Val">-</b></span>
-                <span class="text-[#f43f5e]">● RSI: <b id="rsiVal">-</b></span>
+              <div class="flex flex-wrap items-center gap-x-2 text-[9px] sm:text-[11px] mono font-bold">
+                <span class="text-[#facc15]">● 20MA: <b id="ma20Val" class="text-white">-</b></span>
+                <span class="text-[#38bdf8]">● 50MA: <b id="ma50Val" class="text-white">-</b></span>
+                <span class="text-[#c084fc] hidden xs:inline sm:inline">● 200MA: <b id="ma200Val" class="text-white">-</b></span>
+                <span class="text-[#f43f5e]">● RSI: <b id="rsiVal" class="text-white">-</b></span>
               </div>
             </div>
 
             <!-- Interactive Point Callout Banner (Bottom of Upper Chart) -->
             <div id="hoverAnnotationBanner" class="hidden absolute bottom-[26%] sm:bottom-[30%] left-2 right-2 sm:right-auto z-10 bg-[#1e222d]/95 border border-[#2962ff] text-xs px-3 py-2 rounded-lg shadow-xl sm:max-w-md pointer-events-none">
               <div class="font-bold text-[#64b5f6] text-[11px] sm:text-xs mb-0.5" id="bannerTitle">포인트 제목</div>
-              <div class="text-[#d1d4dc] text-[10px] sm:text-[11px] leading-relaxed" id="bannerDesc">설명 텍스트</div>
+              <div class="text-slate-100 text-[10px] sm:text-[11px] leading-relaxed font-medium" id="bannerDesc">설명 텍스트</div>
             </div>
 
             <!-- Main Canvas -->
@@ -1688,12 +1690,12 @@
             </div>
 
             <!-- Bottom Status / Interactive Hint Bar -->
-            <div class="bg-[#1e222d] border-t border-[#2a2e39] px-2.5 py-1 flex items-center justify-between text-[10px] text-[#787b86]">
+            <div class="bg-[#1e222d] border-t border-[#2a2e39] px-2.5 py-1.5 flex items-center justify-between text-xs text-slate-200">
               <div class="flex items-center space-x-1.5 truncate">
-                <i class="fa-solid fa-mouse-pointer text-[#64b5f6]"></i>
-                <span class="truncate">차트 위의 <b>파동 번호, HH/HL, 다이버전스, 예측선</b>을 터치해보세요.</span>
+                <i class="fa-solid fa-mouse-pointer text-cyan-400"></i>
+                <span class="truncate font-semibold text-slate-200">차트 위의 <b class="text-white">파동 번호, HH/HL, 다이버전스, 예측선</b>을 터치해보세요.</span>
               </div>
-              <div class="hidden sm:flex items-center space-x-2 mono shrink-0">
+              <div class="hidden sm:flex items-center space-x-2 mono shrink-0 font-bold text-slate-300">
                 <span>RSI(14)</span>
               </div>
             </div>
@@ -1723,26 +1725,26 @@
                   <span id="guideEraTag" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2962ff]/20 text-[#64b5f6]">
                     실전 마스터 가이드
                   </span>
-                  <span class="text-[10px] text-[#787b86]">실시간 AI 분석 & 시나리오</span>
+                  <span class="text-xs font-semibold text-cyan-300">실시간 AI 분석 & 시나리오</span>
                 </div>
                 <h2 id="guideMainTitle" class="text-sm sm:text-base font-bold text-white leading-snug mt-1">
                   표준 비트코인 일봉 풀 사이클 작도 해부
                 </h2>
-                <p id="guideMainSubtitle" class="text-xs text-[#9ca3af] mt-1 leading-relaxed">
-                  하나의 지표만 보면 속임수에 당합니다. 다우 추세 구조 + 엘리엇 파동 위치 + 이평선 배열 + RSI 다이버전스가 한 지점에서 겹치는 <b>'복합 근거(Confluence)'</b> 타점을 확인하세요.
+                <p id="guideMainSubtitle" class="text-xs text-slate-200 mt-1 leading-relaxed font-medium">
+                  하나의 지표만 보면 속임수에 당합니다. 다우 추세 구조 + 엘리엇 파동 위치 + 이평선 배열 + RSI 다이버전스가 한 지점에서 겹치는 <b class="text-amber-300">'복합 근거(Confluence)'</b> 타점을 확인하세요.
                 </p>
               </div>
 
               <!-- Interactive Selected Marker Card -->
               <div class="p-3.5 border-b border-[#2a2e39] bg-gradient-to-r from-[#2962ff]/10 to-transparent">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-[11px] font-semibold text-[#64b5f6] flex items-center">
-                    <i class="fa-solid fa-crosshairs mr-1.5"></i>현재 선택/포커스된 차트 타점 해설
+                  <span class="text-[11px] font-bold text-cyan-300 flex items-center">
+                    <i class="fa-solid fa-crosshairs mr-1.5 text-cyan-400"></i>현재 선택/포커스된 차트 타점 해설
                   </span>
-                  <span id="selectedNodeBadge" class="text-[10px] mono px-1.5 py-0.5 rounded bg-[#2a2e39] text-amber-300">⑤파 고점 + 하락 다이버전스</span>
+                  <span id="selectedNodeBadge" class="text-[10px] mono font-bold px-1.5 py-0.5 rounded bg-[#2a2e39] text-amber-300 border border-amber-400/30">⑤파 고점 + 하락 다이버전스</span>
                 </div>
-                <div id="selectedNodeBody" class="text-xs text-[#d1d4dc] leading-relaxed mt-1">
-                  차트 상단 <b>⑤번 고점</b>을 보세요. 캔들 가격은 ③번 고점보다 높아졌지만(HH), 하단 <b>RSI 고점은 오히려 낮아진(LH) 전형적인 '하락 다이버전스'</b>가 발생했습니다. 이후 20일 이평선(노란선)과 직전 HL(넥라인)이 깨질 때가 확정 매도(숏/현금화) 타점입니다.
+                <div id="selectedNodeBody" class="text-xs text-slate-100 font-medium leading-relaxed mt-1">
+                  차트 상단 <b class="text-amber-300">⑤번 고점</b>을 보세요. 캔들 가격은 ③번 고점보다 높아졌지만(HH), 하단 <b class="text-rose-400">RSI 고점은 오히려 낮아진(LH) 전형적인 '하락 다이버전스'</b>가 발생했습니다. 이후 20일 이평선(노란선)과 직전 HL(넥라인)이 깨질 때가 확정 매도(숏/현금화) 타점입니다.
                 </div>
               </div>
 
@@ -1752,25 +1754,25 @@
                   <i class="fa-solid fa-route text-cyan-400"></i> AI 기술적 분석 3대 향후 전망 시나리오
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-xs">
-                  <div class="p-2 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex items-start gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 mt-1 shrink-0"></span>
+                  <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-start gap-2 shadow-sm">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0 animate-pulse"></span>
                     <div>
-                      <div class="font-bold text-emerald-400 text-[11px]">시나리오 A: 강세 돌파 랠리 (45%)</div>
-                      <div class="text-[10px] text-slate-300 mt-0.5">직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진</div>
+                      <div class="font-bold text-emerald-300 text-xs">시나리오 A: 강세 돌파 랠리 (45%)</div>
+                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진</div>
                     </div>
                   </div>
-                  <div class="p-2 rounded-xl bg-amber-950/20 border border-amber-500/30 flex items-start gap-2">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0"></span>
+                  <div class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-start gap-2 shadow-sm">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 shrink-0 animate-pulse"></span>
                     <div>
-                      <div class="font-bold text-amber-400 text-[11px]">시나리오 B: 박스권 수렴 지지 (35%)</div>
-                      <div class="text-[10px] text-slate-300 mt-0.5">20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정</div>
+                      <div class="font-bold text-amber-300 text-xs">시나리오 B: 박스권 수렴 지지 (35%)</div>
+                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정</div>
                     </div>
                   </div>
-                  <div class="p-2 rounded-xl bg-rose-950/20 border border-rose-500/30 flex items-start gap-2">
-                    <span class="w-2 h-2 rounded-full bg-rose-500 mt-1 shrink-0"></span>
+                  <div class="p-2.5 rounded-xl bg-rose-950/30 border border-rose-500/40 flex items-start gap-2 shadow-sm">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mt-1 shrink-0 animate-pulse"></span>
                     <div>
-                      <div class="font-bold text-rose-400 text-[11px]">시나리오 C: 리스크 지지 이탈 (20%)</div>
-                      <div class="text-[10px] text-slate-300 mt-0.5">직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트</div>
+                      <div class="font-bold text-rose-300 text-xs">시나리오 C: 리스크 지지 이탈 (20%)</div>
+                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트</div>
                     </div>
                   </div>
                 </div>
@@ -1786,19 +1788,19 @@
                     <span class="w-2 h-2 rounded-full bg-sky-400"></span>
                     <h3 class="text-xs sm:text-sm font-bold text-white">1. 다우 이론 (Dow Theory)</h3>
                   </div>
-                  <button onclick="soloLayer('dow')" class="text-[10px] text-sky-400 hover:underline cursor-pointer">강조</button>
+                  <button onclick="soloLayer('dow')" class="text-xs font-bold text-sky-400 hover:text-sky-300 cursor-pointer">강조</button>
                 </div>
-                <p class="text-[11px] text-[#9ca3af] leading-relaxed mb-2">
+                <p class="text-xs text-slate-200 leading-relaxed mb-2 font-medium">
                   일봉의 스윙 고점과 저점을 이어 시장 추세 구조를 정의합니다.
                 </p>
-                <div class="grid grid-cols-2 gap-1.5 text-[10px]">
-                  <div class="bg-[#1e222d] p-1.5 rounded-lg border border-[#2a2e39]">
-                    <div class="font-bold text-[#089981]">상승 추세</div>
-                    <div class="text-[#d1d4dc] mt-0.5">고점(HH)+저점(HL) 연속. 직전 HL 지지 시 매수.</div>
+                <div class="grid grid-cols-2 gap-1.5 text-xs">
+                  <div class="bg-[#1e222d] p-2 rounded-lg border border-[#2a2e39]">
+                    <div class="font-bold text-emerald-400">상승 추세</div>
+                    <div class="text-slate-200 mt-0.5 font-medium leading-snug">고점(HH)+저점(HL) 연속. 직전 HL 지지 시 매수.</div>
                   </div>
-                  <div class="bg-[#1e222d] p-1.5 rounded-lg border border-[#2a2e39]">
-                    <div class="font-bold text-[#f23645]">추세 전환 (BOS)</div>
-                    <div class="text-[#d1d4dc] mt-0.5">HL 넥라인 하향 돌파 후 반등 고점(LH) 하락 확정.</div>
+                  <div class="bg-[#1e222d] p-2 rounded-lg border border-[#2a2e39]">
+                    <div class="font-bold text-rose-400">추세 전환 (BOS)</div>
+                    <div class="text-slate-200 mt-0.5 font-medium leading-snug">HL 넥라인 하향 돌파 후 반등 고점(LH) 하락 확정.</div>
                   </div>
                 </div>
               </div>
@@ -1810,14 +1812,14 @@
                     <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
                     <h3 class="text-xs sm:text-sm font-bold text-white">2. 엘리엇 파동 (5파 상승 · 3파 조정)</h3>
                   </div>
-                  <button onclick="soloLayer('elliott')" class="text-[10px] text-yellow-400 hover:underline cursor-pointer">강조</button>
+                  <button onclick="soloLayer('elliott')" class="text-xs font-bold text-yellow-400 hover:text-yellow-300 cursor-pointer">강조</button>
                 </div>
-                <ul class="text-[11px] text-[#d1d4dc] space-y-1 leading-relaxed">
-                  <li>• <b class="text-yellow-300">①파:</b> 바닥권 매집 후 첫 충격파 반등.</li>
-                  <li>• <b class="text-yellow-300">②파:</b> 0.5~0.618 눌림목. ①파 시점 이탈 금지.</li>
-                  <li>• <b class="text-yellow-300">③파:</b> 1.618배 이상 거래량 폭발 대세 상승.</li>
-                  <li>• <b class="text-yellow-300">④파:</b> 0.382 부근 복합 횡보 조정.</li>
-                  <li>• <b class="text-yellow-300">⑤파:</b> RSI 하락 다이버전스 동반 후 A-B-C 조정.</li>
+                <ul class="text-xs text-slate-200 space-y-1.5 leading-relaxed font-medium">
+                  <li>• <b class="text-yellow-300 font-bold">①파:</b> 바닥권 매집 후 첫 충격파 반등.</li>
+                  <li>• <b class="text-yellow-300 font-bold">②파:</b> 0.5~0.618 눌림목. ①파 시점 이탈 금지.</li>
+                  <li>• <b class="text-yellow-300 font-bold">③파:</b> 1.618배 이상 거래량 폭발 대세 상승.</li>
+                  <li>• <b class="text-yellow-300 font-bold">④파:</b> 0.382 부근 복합 횡보 조정.</li>
+                  <li>• <b class="text-yellow-300 font-bold">⑤파:</b> RSI 하락 다이버전스 동반 후 A-B-C 조정.</li>
                 </ul>
               </div>
 
@@ -1828,16 +1830,16 @@
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                     <h3 class="text-xs sm:text-sm font-bold text-white">3. 일봉 RSI 다이버전스</h3>
                   </div>
-                  <button onclick="soloLayer('div')" class="text-[10px] text-rose-400 hover:underline cursor-pointer">강조</button>
+                  <button onclick="soloLayer('div')" class="text-xs font-bold text-rose-400 hover:text-rose-300 cursor-pointer">강조</button>
                 </div>
-                <div class="space-y-1.5 text-[11px] text-[#d1d4dc]">
-                  <div class="p-1.5 rounded-lg bg-rose-950/30 border border-rose-500/30">
-                    <div class="font-bold text-rose-400 text-[10px]">📉 하락 다이버전스 (천장 신호)</div>
-                    <p class="text-[10px] text-[#d1d4dc] mt-0.5">캔들 고점 상승(HH) vs RSI 고점 하락(LH)</p>
+                <div class="space-y-1.5 text-xs text-slate-200">
+                  <div class="p-2 rounded-lg bg-rose-950/40 border border-rose-500/40">
+                    <div class="font-bold text-rose-300 text-xs">📉 하락 다이버전스 (천장 신호)</div>
+                    <p class="text-xs text-slate-200 mt-0.5 font-medium leading-snug">캔들 고점 상승(HH) vs RSI 고점 하락(LH)</p>
                   </div>
-                  <div class="p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
-                    <div class="font-bold text-emerald-400 text-[10px]">📈 상승 다이버전스 (바닥 반전)</div>
-                    <p class="text-[10px] text-[#d1d4dc] mt-0.5">캔들 저점 하락(LL) vs RSI 저점 상승(HL)</p>
+                  <div class="p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/40">
+                    <div class="font-bold text-emerald-300 text-xs">📈 상승 다이버전스 (바닥 반전)</div>
+                    <p class="text-xs text-slate-200 mt-0.5 font-medium leading-snug">캔들 저점 하락(LL) vs RSI 저점 상승(HL)</p>
                   </div>
                 </div>
               </div>
@@ -1849,9 +1851,9 @@
                     <span class="w-2 h-2 rounded-full bg-purple-400"></span>
                     <h3 class="text-xs sm:text-sm font-bold text-white">4. 3대 이동평균선 (20·50·200MA)</h3>
                   </div>
-                  <button onclick="soloLayer('ma')" class="text-[10px] text-purple-400 hover:underline cursor-pointer">강조</button>
+                  <button onclick="soloLayer('ma')" class="text-xs font-bold text-purple-400 hover:text-purple-300 cursor-pointer">강조</button>
                 </div>
-                <ul class="text-[11px] text-[#d1d4dc] space-y-1 leading-relaxed">
+                <ul class="text-xs text-slate-200 space-y-1.5 leading-relaxed font-medium">
                   <li>• <span class="text-[#facc15] font-bold">20일선:</span> 단기 생명선 (상승 시 눌림목 지지)</li>
                   <li>• <span class="text-[#38bdf8] font-bold">50일선:</span> 중기 스윙 지지선 (④파 방어선)</li>
                   <li>• <span class="text-[#c084fc] font-bold">200일선:</span> 강세/약세장 분기선 (골든크로스)</li>
@@ -1861,14 +1863,14 @@
 
             <!-- Panel 3: Checklist (Hidden on mobile unless selected, always visible on desktop) -->
             <div id="forecast-panel-checklist" class="hidden lg:block p-3.5">
-              <div class="bg-gradient-to-br from-[#1e222d] to-[#131722] border border-[#2962ff]/50 rounded-xl p-3">
+              <div class="bg-gradient-to-br from-[#1e222d] to-[#131722] border border-[#2962ff]/50 rounded-xl p-3 shadow-sm">
                 <h4 class="text-xs font-bold text-[#64b5f6] uppercase tracking-wider mb-2 flex items-center">
-                  <i class="fa-solid fa-check-double mr-1.5"></i>실전 매매 3단계 체크리스트
+                  <i class="fa-solid fa-check-double mr-1.5 text-cyan-400"></i>실전 매매 3단계 체크리스트
                 </h4>
-                <ol class="text-[11px] text-[#d1d4dc] space-y-1.5 list-decimal list-inside leading-relaxed">
-                  <li><b>구조 확인 (다우 & 이평선):</b> 200일선 위에서 HH·HL 상승 구조인가?</li>
-                  <li><b>위치 파악 (엘리엇):</b> 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</li>
-                  <li><b>방아쇠 당기기 (RSI & 이평선):</b> 다이버전스 출현 및 20일선 돌파/이탈 확인</li>
+                <ol class="text-xs text-slate-200 space-y-2 list-decimal list-inside leading-relaxed font-medium">
+                  <li><b class="text-white">구조 확인 (다우 & 이평선):</b> 200일선 위에서 HH·HL 상승 구조인가?</li>
+                  <li><b class="text-white">위치 파악 (엘리엇):</b> 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</li>
+                  <li><b class="text-white">방아쇠 당기기 (RSI & 이평선):</b> 다이버전스 출현 및 20일선 돌파/이탈 확인</li>
                 </ol>
               </div>
             </div>
