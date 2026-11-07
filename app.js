@@ -113,6 +113,10 @@ function applyTheme(theme) {
     if (typeof initChart === 'function') {
       initChart();
     }
+    if (typeof window.renderChartForecastTheme === 'function') {
+      window.renderChartForecastTheme();
+    }
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   } catch(e) {}
 }
 

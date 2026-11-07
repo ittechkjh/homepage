@@ -1277,179 +1277,298 @@ html.theme-light #group-nav-policy .nav-tab:not(.active):hover {
 }
 
 /* ==========================================================================
-   18. AI Chart Forecast & Trading Simulator - Terminal Isolation in Light Mode
-   Keeps the professional TradingView dark station high-contrast in ALL themes
+   18. AI Chart Forecast & Trading Simulator - Full Light/Dark Theme Adaptation
+   Supports clean, high-contrast TradingView Light Mode and Dark Mode
    ========================================================================== */
+
+/* Light Mode: Container & Main Canvas Frame */
 html.theme-light #tab-chart-forecast,
 html.theme-light #chart-forecast-container {
-  background-color: #131722 !important;
-  border-color: #2a2e39 !important;
-  color: #f8fafc !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Chart Header & Layer Toolbars */
-html.theme-light #tab-chart-forecast header,
+/* Light Mode: Top Navbar & Layer Toolbar */
+html.theme-light #tab-chart-forecast header {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast header [class*="bg-\[\#131722\]"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.theme-light #tab-chart-forecast header .fa-bitcoin + div span.font-bold {
+  color: #0f172a !important;
+}
+
+/* Light Mode: Second Toolbar (Drawing Layers) */
+html.theme-light #tab-chart-forecast > div > div.bg-\[\#181c27\],
 html.theme-light #tab-chart-forecast [class*="bg-\[\#181c27\]"] {
-  background-color: #181c27 !important;
-  border-color: #2a2e39 !important;
-  color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
 }
 
-/* Aside / Right Sidebar */
-html.theme-light #tab-chart-forecast aside {
-  background-color: #1e222d !important;
-  border-color: #2a2e39 !important;
-  color: #f8fafc !important;
-}
-
-/* All Headings & Titles in Chart Forecast */
-html.theme-light #tab-chart-forecast h2,
-html.theme-light #tab-chart-forecast h3,
-html.theme-light #tab-chart-forecast h4,
-html.theme-light #tab-chart-forecast #guideMainTitle,
-html.theme-light #tab-chart-forecast strong,
-html.theme-light #tab-chart-forecast b,
-html.theme-light #tab-chart-forecast .font-bold {
-  color: #ffffff !important;
-}
-
-/* Paragraphs & Subtitles */
-html.theme-light #tab-chart-forecast p,
-html.theme-light #tab-chart-forecast #guideMainSubtitle,
-html.theme-light #tab-chart-forecast #selectedNodeBody,
-html.theme-light #tab-chart-forecast li {
-  color: #e2e8f0 !important;
-}
-
-/* High-Contrast Text Classes inside Chart Forecast */
-html.theme-light #tab-chart-forecast .text-white {
-  color: #ffffff !important;
-}
-html.theme-light #tab-chart-forecast .text-slate-100,
-html.theme-light #tab-chart-forecast .text-slate-200 {
-  color: #e2e8f0 !important;
-}
-html.theme-light #tab-chart-forecast .text-slate-300,
-html.theme-light #tab-chart-forecast .text-slate-400 {
-  color: #cbd5e1 !important;
-}
-
-/* Buttons inside Chart Forecast */
+/* Scenario Selector Buttons in Light Mode */
 html.theme-light #tab-chart-forecast .tv-btn:not(.active) {
-  background-color: #131722 !important;
-  border-color: #2a2e39 !important;
-  color: #cbd5e1 !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
 }
 html.theme-light #tab-chart-forecast .tv-btn:not(.active):hover {
-  background-color: #2a2e39 !important;
-  color: #ffffff !important;
+  background-color: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
 }
 html.theme-light #tab-chart-forecast .tv-btn.active {
-  background-color: rgba(41, 98, 255, 0.25) !important;
-  border-color: #2962ff !important;
-  color: #ffffff !important;
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.15) !important;
+}
+html.theme-light #tab-chart-forecast #scen-live_btc {
+  background-color: #f0fdfa !important;
+  border-color: #14b8a6 !important;
+  color: #0f766e !important;
+}
+html.theme-light #tab-chart-forecast #scen-live_btc:hover {
+  background-color: #ccfbf1 !important;
+  color: #115e59 !important;
 }
 
-/* Layer Pills */
+/* Layer Pills in Light Mode */
 html.theme-light #tab-chart-forecast .layer-pill {
-  border-color: #2a2e39 !important;
-  background-color: #1e222d !important;
-  color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-dow {
+  background-color: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-elliott {
+  background-color: #fefce8 !important;
+  border-color: #ca8a04 !important;
+  color: #854d0e !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-ma {
+  background-color: #faf5ff !important;
+  border-color: #9333ea !important;
+  color: #6b21a8 !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-div {
+  background-color: #fff1f2 !important;
+  border-color: #e11d48 !important;
+  color: #9f1239 !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-sr {
+  background-color: #f0fdf4 !important;
+  border-color: #059669 !important;
+  color: #065f46 !important;
+}
+html.theme-light #tab-chart-forecast .layer-pill.active-forecast {
+  background-color: #ecfeff !important;
+  border-color: #0891b2 !important;
+  color: #0e7490 !important;
 }
 
-/* AI 3 Pathways Quick Forecast Cards (Prevent white-out in light mode) */
+/* Solo Layer Chips in Light Mode */
+html.theme-light #tab-chart-forecast [onclick*="soloLayer('all')"] {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast [onclick*="soloLayer('"]:not([onclick*="soloLayer('all')"]) {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Canvas Area Frame & Controls */
+html.theme-light #tab-chart-forecast #canvasWrapper {
+  background-color: #ffffff !important;
+}
+html.theme-light #tab-chart-forecast .border-\[\#2a2e39\] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Floating Top-Left OHLC Legend Overlay */
+html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast #chartTitleBadge {
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast #ohlcDisplay {
+  color: #334155 !important;
+}
+
+/* Interactive Point Callout Banner */
+html.theme-light #tab-chart-forecast #hoverAnnotationBanner {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+}
+html.theme-light #tab-chart-forecast #bannerTitle {
+  color: #1d4ed8 !important;
+}
+html.theme-light #tab-chart-forecast #bannerDesc {
+  color: #334155 !important;
+}
+
+/* Bottom Hint Status Bar */
+html.theme-light #tab-chart-forecast [class*="bg-\[\#1e222d\]"]:not(aside) {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+html.theme-light #tab-chart-forecast [class*="bg-\[\#1e222d\]"]:not(aside) b,
+html.theme-light #tab-chart-forecast [class*="bg-\[\#1e222d\]"]:not(aside) strong {
+  color: #0f172a !important;
+}
+
+/* Right Sidebar in Light Mode */
+html.theme-light #tab-chart-forecast aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Aside SubTab Switcher (Mobile) */
+html.theme-light #tab-chart-forecast aside .lg\:hidden {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Summary Header & Info Cards */
+html.theme-light #tab-chart-forecast #guideMainTitle {
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast #guideMainSubtitle {
+  color: #475569 !important;
+}
+html.theme-light #tab-chart-forecast #guideMainSubtitle b {
+  color: #b45309 !important;
+}
+html.theme-light #tab-chart-forecast #guideEraTag {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+/* Selected Marker Card in Light Mode */
+html.theme-light #tab-chart-forecast [class*="bg-\[\#161d2d\]"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast #selectedNodeBadge {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+html.theme-light #tab-chart-forecast #selectedNodeBody {
+  color: #334155 !important;
+}
+
+/* AI 3 Pathways Quick Forecast Cards in Light Mode */
 html.theme-light #tab-chart-forecast .bg-emerald-950\/30,
 html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] {
-  background-color: rgba(6, 78, 59, 0.5) !important;
-  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  background-color: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
 }
-html.theme-light #tab-chart-forecast .bg-amber-950\/30,
-html.theme-light #tab-chart-forecast [class*="bg-amber-950"] {
-  background-color: rgba(120, 53, 15, 0.5) !important;
-  border: 1px solid rgba(245, 158, 11, 0.5) !important;
-}
-html.theme-light #tab-chart-forecast .bg-rose-950\/30,
-html.theme-light #tab-chart-forecast [class*="bg-rose-950"] {
-  background-color: rgba(136, 19, 55, 0.5) !important;
-  border: 1px solid rgba(244, 63, 94, 0.5) !important;
-}
-
 html.theme-light #tab-chart-forecast .bg-emerald-950\/30 *,
 html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] * {
-  color: #e2e8f0 !important;
+  color: #065f46 !important;
 }
 html.theme-light #tab-chart-forecast .bg-emerald-950\/30 .text-emerald-300,
 html.theme-light #tab-chart-forecast [class*="bg-emerald-950"] .text-emerald-300 {
-  color: #6ee7b7 !important;
+  color: #047857 !important;
   font-weight: 700 !important;
 }
 
+html.theme-light #tab-chart-forecast .bg-amber-950\/30,
+html.theme-light #tab-chart-forecast [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+}
 html.theme-light #tab-chart-forecast .bg-amber-950\/30 *,
 html.theme-light #tab-chart-forecast [class*="bg-amber-950"] * {
-  color: #e2e8f0 !important;
+  color: #92400e !important;
 }
 html.theme-light #tab-chart-forecast .bg-amber-950\/30 .text-amber-300,
 html.theme-light #tab-chart-forecast [class*="bg-amber-950"] .text-amber-300 {
-  color: #fde047 !important;
+  color: #b45309 !important;
   font-weight: 700 !important;
 }
 
+html.theme-light #tab-chart-forecast .bg-rose-950\/30,
+html.theme-light #tab-chart-forecast [class*="bg-rose-950"] {
+  background-color: #fff1f2 !important;
+  border: 1px solid #fecdd3 !important;
+}
 html.theme-light #tab-chart-forecast .bg-rose-950\/30 *,
 html.theme-light #tab-chart-forecast [class*="bg-rose-950"] * {
-  color: #e2e8f0 !important;
+  color: #9f1239 !important;
 }
 html.theme-light #tab-chart-forecast .bg-rose-950\/30 .text-rose-300,
 html.theme-light #tab-chart-forecast [class*="bg-rose-950"] .text-rose-300 {
-  color: #fda4af !important;
+  color: #be123c !important;
   font-weight: 700 !important;
 }
 
-/* Selected Marker Banner */
-html.theme-light #tab-chart-forecast .from-\[\#2962ff\]\/10 {
-  background: linear-gradient(to right, rgba(41, 98, 255, 0.2), transparent) !important;
-}
-
-/* 4 Core Theory Cards & Sub-boxes */
+/* 4 Core Theory Cards & Sub-boxes in Light Mode */
 html.theme-light #tab-chart-forecast #forecast-panel-theory > div {
-  background-color: #131722 !important;
-  border: 1px solid #2a2e39 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+html.theme-light #tab-chart-forecast #forecast-panel-theory h3,
+html.theme-light #tab-chart-forecast #forecast-panel-theory h4,
+html.theme-light #tab-chart-forecast #forecast-panel-theory strong,
+html.theme-light #tab-chart-forecast #forecast-panel-theory b {
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast #forecast-panel-theory p,
+html.theme-light #tab-chart-forecast #forecast-panel-theory li {
+  color: #334155 !important;
 }
 html.theme-light #tab-chart-forecast #forecast-panel-theory .bg-\[\#1e222d\] {
-  background-color: #1e222d !important;
-  border: 1px solid #2a2e39 !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
 }
 
-/* Checklist Panel in Light Mode - Guaranteed Dark Background & High-Contrast Text */
+/* Checklist Panel in Light Mode - Fresh Mint/Emerald High-Contrast Box */
 html.theme-light #tab-chart-forecast #forecast-panel-checklist,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist > div,
 html.theme-light #tab-chart-forecast [class*="forecast-panel-checklist"] {
-  background-color: #181c27 !important;
+  background-color: #f0fdf4 !important;
   background-image: none !important;
-  border: 1px solid rgba(41, 98, 255, 0.6) !important;
-  color: #ffffff !important;
+  border: 1px solid #86efac !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08) !important;
+  color: #14532d !important;
 }
-
 html.theme-light #tab-chart-forecast #forecast-panel-checklist h4,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist h4 * {
-  color: #67e8f9 !important;
+  color: #15803d !important;
+  font-weight: 800 !important;
 }
-
 html.theme-light #tab-chart-forecast #forecast-panel-checklist ol,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist li,
 html.theme-light #tab-chart-forecast #forecast-panel-checklist span {
-  color: #ffffff !important;
+  color: #166534 !important;
 }
-
 html.theme-light #tab-chart-forecast #forecast-panel-checklist b {
-  color: #fde047 !important;
+  color: #0f172a !important;
   font-weight: 800 !important;
-}
-
-/* Floating legend in canvas */
-html.theme-light #tab-chart-forecast .bg-\[\#131722\]\/90 {
-  background-color: rgba(19, 23, 34, 0.95) !important;
-  border-color: #2a2e39 !important;
 }
 
 /* ==========================================================================

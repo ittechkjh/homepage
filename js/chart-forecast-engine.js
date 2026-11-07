@@ -612,6 +612,10 @@
         ctx.closePath();
     }
 
+    function isLightTheme() {
+        return document.documentElement.classList.contains('theme-light') || !document.documentElement.classList.contains('dark');
+    }
+
     function drawChart() {
         if (!ctx || !chartData || chartData.length === 0) return;
 
@@ -620,8 +624,31 @@
 
         interactiveHotspots = [];
 
+        const isLight = isLightTheme();
+        const colors = {
+            bg: isLight ? '#ffffff' : '#131722',
+            grid: isLight ? '#f1f5f9' : '#2a2e39',
+            separator: isLight ? '#e2e8f0' : '#2a2e39',
+            axisText: isLight ? '#475569' : '#e2e8f0',
+            rsiBg: isLight ? '#f8fafc' : '#10141f',
+            rsiNeutral: isLight ? '#94a3b8' : '#4b5563',
+            crosshair: isLight ? 'rgba(71, 85, 105, 0.4)' : 'rgba(209, 212, 220, 0.35)',
+            dateBadgeBg: isLight ? '#ffffff' : '#1e222d',
+            dateBadgeBorder: isLight ? '#3b82f6' : '#2962ff',
+            dateBadgeText: isLight ? '#1d4ed8' : '#64b5f6',
+            badgeBg: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(19, 23, 34, 0.9)',
+            tagBg: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(19, 23, 34, 0.85)',
+            ma20: isLight ? '#d97706' : '#facc15',
+            ma50: isLight ? '#0284c7' : '#38bdf8',
+            ma200: isLight ? '#9333ea' : '#c084fc',
+            candleUp: isLight ? '#059669' : '#089981',
+            candleDown: isLight ? '#e11d48' : '#f23645',
+            volUp: isLight ? 'rgba(5, 150, 105, 0.28)' : 'rgba(8, 153, 129, 0.22)',
+            volDown: isLight ? 'rgba(225, 29, 72, 0.28)' : 'rgba(242, 54, 69, 0.22)'
+        };
+
         // Clear background
-        ctx.fillStyle = '#131722';
+        ctx.fillStyle = colors.bg;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
         // Find min and max price across visible bars
@@ -661,8 +688,8 @@
         // Grid Lines & Price Scale Axis
         // ==========================================
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '#2a2e39';
-        ctx.fillStyle = '#e2e8f0';
+        ctx.strokeStyle = colors.grid;
+        ctx.fillStyle = colors.axisText;
         ctx.font = isSmallScreen ? 'bold 9px "JetBrains Mono", monospace' : 'bold 10px "JetBrains Mono", monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
@@ -686,7 +713,7 @@
         }
 
         // Horizontal Separator Line between Price and RSI Panel
-        ctx.strokeStyle = '#2a2e39';
+        ctx.strokeStyle = colors.separator;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, priceHeight + (isSmallScreen ? 14 : 20));
@@ -694,14 +721,14 @@
         ctx.stroke();
 
         // RSI Panel Background & Reference Levels
-        ctx.fillStyle = '#10141f';
+        ctx.fillStyle = colors.rsiBg;
         ctx.fillRect(leftMargin, rsiTop, chartPlotWidth, rsiHeight);
 
         // RSI 70 (Overbought - Red) & RSI 30 (Oversold - Green) & RSI 50
         const rsiLevels = [
-            { lvl: 70, col: '#f23645', dash: [3, 3], label: isSmallScreen ? '70' : '70 (과매수)' },
-            { lvl: 50, col: '#4b5563', dash: [2, 4], label: isSmallScreen ? '50' : '50 (중립)' },
-            { lvl: 30, col: '#089981', dash: [3, 3], label: isSmallScreen ? '30' : '30 (과매도)' }
+            { lvl: 70, col: isLight ? '#e11d48' : '#f23645', dash: [3, 3], label: isSmallScreen ? '70' : '70 (과매수)' },
+            { lvl: 50, col: colors.rsiNeutral, dash: [2, 4], label: isSmallScreen ? '50' : '50 (중립)' },
+            { lvl: 30, col: isLight ? '#059669' : '#089981', dash: [3, 3], label: isSmallScreen ? '30' : '30 (과매도)' }
         ];
 
         rsiLevels.forEach(item => {
@@ -757,12 +784,12 @@
             const b = chartData[i];
             const x = getX(i);
             const isBull = b.close >= b.open;
-            const barCol = isBull ? '#089981' : '#f23645';
+            const barCol = isBull ? colors.candleUp : colors.candleDown;
 
             // Volume Bar
             const vH = (b.volume / maxVol) * volMaxH;
             const vY = priceTop + priceHeight - vH;
-            ctx.fillStyle = isBull ? 'rgba(8, 153, 129, 0.22)' : 'rgba(242, 54, 69, 0.22)';
+            ctx.fillStyle = isBull ? colors.volUp : colors.volDown;
             ctx.fillRect(x - candleWidth * 0.4, vY, candleWidth * 0.8, vH);
 
             // Candle Wick (High-Low)
@@ -808,9 +835,9 @@
                 ctx.stroke();
             }
 
-            drawMaLine('ma200', '#c084fc', 2.0); // 200 MA (Purple)
-            drawMaLine('ma50', '#38bdf8', 1.8);  // 50 MA (Sky)
-            drawMaLine('ma20', '#facc15', 1.8);  // 20 MA (Yellow)
+            drawMaLine('ma200', colors.ma200, 2.0); // 200 MA
+            drawMaLine('ma50', colors.ma50, 1.8);   // 50 MA
+            drawMaLine('ma20', colors.ma20, 1.8);   // 20 MA
         }
 
         // ==========================================
@@ -871,7 +898,9 @@
                     // Center Badge
                     const midX = (x1 + x2) / 2;
                     const midRy = (ry1 + ry2) / 2;
-                    drawBadge(midX, midRy, isBull ? '상승 다이버전스 (가격 LL vs RSI HL)' : '하락 다이버전스 (가격 HH vs RSI LH)', isBull ? '#064e3b' : '#881337', divCol, '#ffffff');
+                    const divBadgeBg = isLight ? (isBull ? '#ecfdf5' : '#fff1f2') : (isBull ? '#064e3b' : '#881337');
+                    const divBadgeText = isLight ? (isBull ? '#065f46' : '#9f1239') : '#ffffff';
+                    drawBadge(midX, midRy, isBull ? '상승 다이버전스 (가격 LL vs RSI HL)' : '하락 다이버전스 (가격 HH vs RSI LH)', divBadgeBg, divCol, divBadgeText);
 
                     interactiveHotspots.push({
                         x: midX,
@@ -954,7 +983,7 @@
                     const badgeW = textW + padX * 2;
                     const badgeH = 16;
 
-                    ctx.fillStyle = 'rgba(19, 23, 34, 0.85)';
+                    ctx.fillStyle = colors.tagBg;
                     drawRoundedRect(ctx, px - badgeW / 2, py - badgeH / 2, badgeW, badgeH, 4);
                     ctx.fill();
 
@@ -1032,7 +1061,7 @@
                 ctx.arc(endX, endY, 5, 0, Math.PI * 2);
                 ctx.fill();
 
-                drawBadge(endX + 35, endY, `$${formatPrice(p.targetPrice)}`, 'rgba(19, 23, 34, 0.9)', p.color, '#ffffff');
+                drawBadge(endX + 35, endY, `$${formatPrice(p.targetPrice)}`, colors.badgeBg, p.color, isLight ? '#0f172a' : '#ffffff');
 
                 interactiveHotspots.push({
                     x: endX,
@@ -1049,7 +1078,7 @@
         // ==========================================
         if (mousePos.x >= leftMargin && mousePos.x <= canvasWidth - rightMargin && mousePos.y >= priceTop && mousePos.y <= canvasHeight - 20) {
             // Vertical Crosshair Line
-            ctx.strokeStyle = 'rgba(209, 212, 220, 0.35)';
+            ctx.strokeStyle = colors.crosshair;
             ctx.lineWidth = 1;
             ctx.setLineDash([2, 2]);
 
@@ -1072,11 +1101,11 @@
                 updateTopLegend(b);
 
                 // Date Label on bottom of Price Panel
-                ctx.fillStyle = '#1e222d';
+                ctx.fillStyle = colors.dateBadgeBg;
                 ctx.fillRect(mousePos.x - 38, priceHeight + 11, 76, 18);
-                ctx.strokeStyle = '#2962ff';
+                ctx.strokeStyle = colors.dateBadgeBorder;
                 ctx.strokeRect(mousePos.x - 38, priceHeight + 11, 76, 18);
-                ctx.fillStyle = '#64b5f6';
+                ctx.fillStyle = colors.dateBadgeText;
                 ctx.font = '10px "JetBrains Mono", monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(b.date, mousePos.x, priceHeight + 20);
@@ -1372,6 +1401,23 @@
             });
 
             window.addEventListener('resize', resizeCanvas);
+
+            // Re-render chart on theme changes (Light / Dark)
+            window.addEventListener('themeChanged', () => {
+                requestAnimationFrame(drawChart);
+            });
+
+            try {
+                const themeObserver = new MutationObserver((mutations) => {
+                    for (const m of mutations) {
+                        if (m.attributeName === 'class') {
+                            requestAnimationFrame(drawChart);
+                            break;
+                        }
+                    }
+                });
+                themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            } catch (e) {}
         }
 
         selectScenario(currentScenarioKey);
@@ -1426,6 +1472,7 @@
     window.resetView = resetView;
     window.initChartForecastEngine = initChartForecastEngine;
     window.switchForecastSubTab = switchForecastSubTab;
+    window.renderChartForecastTheme = drawChart;
 
     // Auto-init if tab is currently visible
     document.addEventListener('DOMContentLoaded', () => {
