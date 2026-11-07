@@ -1554,8 +1554,13 @@
               </div>
             </div>
 
-            <!-- Right: Playback Controls (Mobile-Compact) -->
+            <!-- Right: Playback Controls (Mobile-Compact) & Update Time -->
             <div class="flex items-center space-x-1.5 shrink-0">
+              <div id="chartLastUpdatedBadge" class="hidden xs:flex items-center gap-1 px-2 py-1 rounded-lg bg-[#131722] border border-[#2a2e39] text-[10px] text-slate-300 font-mono" title="최근 차트 데이터 업데이트 시각">
+                <i class="fa-solid fa-clock text-cyan-400 text-[10px]"></i>
+                <span class="text-slate-400">업데이트:</span>
+                <span id="chartUpdatedTime" class="font-bold text-slate-200">-</span>
+              </div>
               <button onclick="startStepReplay()" id="replayBtn" class="flex items-center space-x-1 bg-[#2962ff] hover:bg-[#1e53e5] text-white text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg shadow transition cursor-pointer">
                 <i class="fa-solid fa-play"></i>
                 <span class="hidden xs:inline sm:inline">단계별 재생</span>
@@ -1702,11 +1707,20 @@
             <div id="forecast-panel-summary" class="block">
               <!-- Scenario Summary Header -->
               <div class="p-3.5 border-b border-[#2a2e39] bg-[#181c27]">
-                <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center justify-between mb-1 gap-1.5 flex-wrap">
                   <span id="guideEraTag" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2962ff]/20 text-[#64b5f6]">
                     실전 마스터 가이드
                   </span>
-                  <span class="text-xs font-semibold text-cyan-300">실시간 AI 분석 & 시나리오</span>
+                  <div class="flex items-center gap-2">
+                    <span id="guideUpdateTime" class="text-[10px] font-mono text-slate-400 flex items-center gap-1" title="실시간 AI 분석 갱신 시각">
+                      <i class="fa-solid fa-clock text-cyan-400 text-[9px]"></i>
+                      <span id="sidebarUpdatedTimeText">-</span>
+                    </span>
+                    <button type="button" onclick="copyForecastForBlog()" class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#2962ff]/20 hover:bg-[#2962ff]/30 text-cyan-300 hover:text-white border border-cyan-400/40 text-[10px] font-bold transition cursor-pointer" title="현재 분석 요약을 블로그 형식으로 복사">
+                      <i class="fa-regular fa-copy text-[10px]"></i>
+                      <span>블로그 글 복사</span>
+                    </button>
+                  </div>
                 </div>
                 <h2 id="guideMainTitle" class="text-sm sm:text-base font-bold text-white leading-snug mt-1">
                   표준 비트코인 일봉 풀 사이클 작도 해부

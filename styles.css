@@ -1300,6 +1300,26 @@ html.theme-light #tab-chart-forecast header [class*="bg-\[\#131722\]"] {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
 }
+html.theme-light #tab-chart-forecast #chartLastUpdatedBadge {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+html.theme-light #tab-chart-forecast #chartUpdatedTime {
+  color: #0f172a !important;
+}
+html.theme-light #tab-chart-forecast #guideUpdateTime {
+  color: #64748b !important;
+}
+html.theme-light #tab-chart-forecast button[onclick*="copyForecastForBlog"] {
+  background-color: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+html.theme-light #tab-chart-forecast button[onclick*="copyForecastForBlog"]:hover {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
 html.theme-light #tab-chart-forecast header .fa-bitcoin + div span.font-bold {
   color: #0f172a !important;
 }

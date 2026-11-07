@@ -1214,12 +1214,119 @@
 
         if (scenKey === 'live_btc') {
             chartData = await loadLiveBtcData();
+            startLiveBtcAutoRefresh();
         } else {
             chartData = buildScenarioData(scenKey);
         }
 
         visibleBarCount = chartData.length;
         drawChart();
+        updateChartTimestamp();
+    }
+
+    let liveBtcRefreshTimer = null;
+    function startLiveBtcAutoRefresh() {
+        if (liveBtcRefreshTimer) clearInterval(liveBtcRefreshTimer);
+        liveBtcRefreshTimer = setInterval(async () => {
+            if (currentScenarioKey === 'live_btc') {
+                const tabEl = document.getElementById('tab-chart-forecast');
+                if (tabEl && !tabEl.classList.contains('hidden')) {
+                    chartData = await loadLiveBtcData();
+                    visibleBarCount = chartData.length;
+                    drawChart();
+                    updateChartTimestamp();
+                }
+            }
+        }, 60000); // 60초 주기 자동 갱신
+    }
+
+    function updateChartTimestamp() {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} KST`;
+        const shortTimeStr = `${pad(now.getHours())}:${pad(now.getMinutes())} KST`;
+
+        const topBadgeTime = document.getElementById('chartUpdatedTime');
+        const sidebarTime = document.getElementById('sidebarUpdatedTimeText');
+
+        if (topBadgeTime) topBadgeTime.textContent = shortTimeStr;
+        if (sidebarTime) sidebarTime.textContent = timeStr;
+    }
+
+    function showChartForecastToast(msg) {
+        let toast = document.getElementById('chartForecastToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'chartForecastToast';
+            toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 text-white text-xs sm:text-sm font-semibold border border-cyan-500/50 shadow-2xl backdrop-blur-md flex items-center gap-2 transition-all duration-300 pointer-events-none opacity-0 translate-y-3';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${msg}</span>`;
+        toast.classList.remove('opacity-0', 'translate-y-3');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-3');
+        }, 2800);
+    }
+
+    function copyForecastForBlog() {
+        const scen = SCENARIOS[currentScenarioKey] || SCENARIOS.full_cycle;
+        const mainTitle = document.getElementById('guideMainTitle')?.textContent?.trim() || scen.title;
+        const subTitle = document.getElementById('guideMainSubtitle')?.textContent?.trim() || scen.subtitle;
+        const nodeBadge = document.getElementById('selectedNodeBadge')?.textContent?.trim() || scen.defaultNodeTitle;
+        const nodeBody = document.getElementById('selectedNodeBody')?.textContent?.trim() || scen.defaultNodeDesc;
+
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} KST`;
+
+        let blogText = `[BTC/USDT 비트코인 기술적 분석 & AI 시장 전망]\n`;
+        blogText += `기준 일시: ${dateStr} (일봉 1D 기준)\n\n`;
+        blogText += `■ 핵심 분석 테마: ${mainTitle}\n`;
+        blogText += `"${subTitle}"\n\n`;
+        blogText += `■ 현재 주요 타점 해설: [${nodeBadge}]\n`;
+        blogText += `${nodeBody}\n\n`;
+        blogText += `■ AI 기술적 분석 3대 향후 전망 시나리오\n`;
+        blogText += `1. 시나리오 A: 강세 돌파 랠리 (45%)\n   - 직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진\n`;
+        blogText += `2. 시나리오 B: 박스권 수렴 지지 (35%)\n   - 20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정\n`;
+        blogText += `3. 시나리오 C: 리스크 지지 이탈 (20%)\n   - 직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트\n\n`;
+        blogText += `■ 4대 이론 핵심 기준선\n`;
+        blogText += `- 다우 이론: HH(신고가 고점) / HL(핵심 지지 저점)\n`;
+        blogText += `- 이동평균선: 20일선(단기 생명선), 50일선(중기 스윙 방어), 200일선(대세 분기점)\n`;
+        blogText += `- 엘리엇 파동 & RSI: 충격 5파와 다이버전스 변곡점 확인\n\n`;
+        blogText += `■ 실전 매매 3단계 체크리스트\n`;
+        blogText += `1. 구조 확인: 200일선 위에서 HH·HL 상승 구조인가?\n`;
+        blogText += `2. 위치 파악: 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?\n`;
+        blogText += `3. 방아쇠 당기기: 다이버전스 출현 및 20일선 돌파/이탈 확인\n\n`;
+        blogText += `출처: CrytoPnL 비트코인 실전 차트 작도 & AI 예측 (cryptopnl.com)`;
+
+        const doCopyFallback = (text) => {
+            const tempTa = document.createElement('textarea');
+            tempTa.value = text;
+            tempTa.style.position = 'fixed';
+            tempTa.style.left = '-9999px';
+            document.body.appendChild(tempTa);
+            tempTa.select();
+            try {
+                document.execCommand('copy');
+                showChartForecastToast('📋 블로그용 분석 글이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
+            } catch (e) {
+                alert('복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
+            }
+            document.body.removeChild(tempTa);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(blogText).then(() => {
+                showChartForecastToast('📋 블로그용 분석 글이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
+            }).catch(() => {
+                doCopyFallback(blogText);
+            });
+        } else {
+            doCopyFallback(blogText);
+        }
     }
 
     function toggleLayer(layerKey) {
@@ -1461,7 +1568,8 @@
         startStepReplay,
         stopStepReplay,
         resetView,
-        resizeCanvas
+        resizeCanvas,
+        copyForecastForBlog
     };
 
     window.selectScenario = selectScenario;
@@ -1473,6 +1581,7 @@
     window.initChartForecastEngine = initChartForecastEngine;
     window.switchForecastSubTab = switchForecastSubTab;
     window.renderChartForecastTheme = drawChart;
+    window.copyForecastForBlog = copyForecastForBlog;
 
     // Auto-init if tab is currently visible
     document.addEventListener('DOMContentLoaded', () => {
