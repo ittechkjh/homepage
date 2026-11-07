@@ -113,8 +113,8 @@
                 }
             ],
             srZones: [
-                { priceTop: 83000, priceBottom: 80000, startIdx: 55, endIdx: 105, label: "핵심 넥라인 (④파 HL 지지 → 붕괴 후 저항 전환)", color: "rgba(16, 185, 129, 0.15)", borderColor: "#10b981" },
-                { priceTop: 60000, priceBottom: 57500, startIdx: 25, endIdx: 109, label: "①파 고점 장기 지지 매물대 ($58.5K)", color: "rgba(56, 189, 248, 0.12)", borderColor: "#38bdf8" }
+                { priceTop: 83000, priceBottom: 80000, startIdx: 55, endIdx: 105, label: "핵심 넥라인 (④파 HL 지지 → 붕괴 후 저항 전환)", shortLabel: "핵심 넥라인 ($83K)", color: "rgba(16, 185, 129, 0.15)", borderColor: "#10b981" },
+                { priceTop: 60000, priceBottom: 57500, startIdx: 25, endIdx: 109, label: "①파 고점 장기 지지 매물대 ($58.5K)", shortLabel: "장기 지지대 ($58.5K)", color: "rgba(56, 189, 248, 0.12)", borderColor: "#38bdf8" }
             ]
         },
 
@@ -578,7 +578,7 @@
         
         // Mobile-responsive canvas height
         const isMobile = window.innerWidth < 640;
-        const defaultHeight = isMobile ? 360 : (window.innerWidth < 1024 ? 440 : 620);
+        const defaultHeight = isMobile ? 420 : (window.innerWidth < 1024 ? 460 : 620);
         canvasHeight = rect.height > 100 ? rect.height : defaultHeight;
 
         const dpr = window.devicePixelRatio || 1;
@@ -587,10 +587,10 @@
         ctx.scale(dpr, dpr);
 
         const isSmallScreen = canvasWidth < 540;
-        priceTop = isSmallScreen ? 10 : 15;
-        priceHeight = Math.round(canvasHeight * (isSmallScreen ? 0.70 : 0.68));
-        rsiTop = priceHeight + (isSmallScreen ? 25 : 35);
-        rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 18 : 25), isSmallScreen ? 55 : 75);
+        priceTop = isSmallScreen ? 34 : 20;
+        priceHeight = Math.round((canvasHeight - priceTop) * (isSmallScreen ? 0.69 : 0.67));
+        rsiTop = priceTop + priceHeight + (isSmallScreen ? 20 : 30);
+        rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 14 : 22), isSmallScreen ? 50 : 70);
 
         drawChart();
     }
@@ -661,11 +661,13 @@
             if (layers.ma && b.ma200 && b.ma200 < minP) minP = b.ma200;
         }
 
-        const pMargin = (maxP - minP) * 0.08 || 1000;
-        minP = Math.max(0, minP - pMargin);
-        maxP = maxP + pMargin;
-
         const isSmallScreen = canvasWidth < 540;
+        const topMarginRatio = isSmallScreen ? 0.20 : 0.12;
+        const bottomMarginRatio = isSmallScreen ? 0.10 : 0.08;
+        const pRange = maxP - minP || 1000;
+        minP = Math.max(0, minP - pRange * bottomMarginRatio);
+        maxP = maxP + pRange * topMarginRatio;
+
         const rightMargin = isSmallScreen ? 48 : 72;
         const leftMargin = isSmallScreen ? 6 : 12;
         const chartPlotWidth = canvasWidth - rightMargin - leftMargin;
@@ -767,9 +769,10 @@
                     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
                     ctx.setLineDash([]);
 
-                    ctx.font = '10px "Noto Sans KR", sans-serif';
+                    const labelText = isSmallScreen && zone.shortLabel ? zone.shortLabel : zone.label;
+                    ctx.font = isSmallScreen ? 'bold 9px "Noto Sans KR", sans-serif' : '10px "Noto Sans KR", sans-serif';
                     ctx.fillStyle = zone.borderColor;
-                    ctx.fillText(zone.label, x1 + 8, y1 + 14);
+                    ctx.fillText(labelText, x1 + 6, y1 + (isSmallScreen ? 11 : 14));
                 }
             });
         }
@@ -900,7 +903,10 @@
                     const midRy = (ry1 + ry2) / 2;
                     const divBadgeBg = isLight ? (isBull ? '#ecfdf5' : '#fff1f2') : (isBull ? '#064e3b' : '#881337');
                     const divBadgeText = isLight ? (isBull ? '#065f46' : '#9f1239') : '#ffffff';
-                    drawBadge(midX, midRy, isBull ? '상승 다이버전스 (가격 LL vs RSI HL)' : '하락 다이버전스 (가격 HH vs RSI LH)', divBadgeBg, divCol, divBadgeText);
+                    const divLabelText = isBull
+                        ? (isSmallScreen ? '상승 다이버전스' : '상승 다이버전스 (가격 LL vs RSI HL)')
+                        : (isSmallScreen ? '하락 다이버전스' : '하락 다이버전스 (가격 HH vs RSI LH)');
+                    drawBadge(midX, midRy, divLabelText, divBadgeBg, divCol, divBadgeText);
 
                     interactiveHotspots.push({
                         x: midX,
@@ -940,10 +946,12 @@
                 const b = chartData[node.idx];
                 const px = getX(node.idx);
                 const isAbove = node.pos === 'above';
-                const py = getY(isAbove ? b.high : b.low) + (isAbove ? -18 : 18);
+                const nodeRadius = isSmallScreen ? 9.5 : 11;
+                const nodeOffset = isSmallScreen ? (isAbove ? -14 : 14) : (isAbove ? -18 : 18);
+                const py = getY(isAbove ? b.high : b.low) + nodeOffset;
 
                 ctx.beginPath();
-                ctx.arc(px, py, 11, 0, Math.PI * 2);
+                ctx.arc(px, py, nodeRadius, 0, Math.PI * 2);
                 ctx.fillStyle = node.type === 'corrective' ? '#ea580c' : '#ca8a04';
                 ctx.fill();
                 ctx.strokeStyle = '#ffffff';
@@ -951,7 +959,7 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px "Inter", sans-serif';
+                ctx.font = isSmallScreen ? 'bold 9px "Inter", sans-serif' : 'bold 11px "Inter", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(node.label, px, py);
@@ -959,7 +967,7 @@
                 interactiveHotspots.push({
                     x: px,
                     y: py,
-                    r: 14,
+                    r: nodeRadius + 3,
                     title: node.title,
                     desc: node.desc
                 });
@@ -975,13 +983,19 @@
                     const b = chartData[tag.idx];
                     const px = getX(tag.idx);
                     const isAbove = tag.pos === 'above';
-                    const py = getY(isAbove ? b.high : b.low) + (isAbove ? -36 : 36);
 
-                    ctx.font = 'bold 10px "JetBrains Mono", monospace';
+                    // 같은 인덱스 또는 인접 인덱스(±2)에 엘리엇 노드가 켜져 있는 경우, 다우 태그를 엘리엇 뱃지 바깥쪽으로 확실하게 분리
+                    const hasElliottNearby = layers.elliott && currentScen.elliottNodes && currentScen.elliottNodes.some(n => Math.abs(n.idx - tag.idx) <= 2 && n.idx < count);
+                    const dowOffset = hasElliottNearby
+                        ? (isSmallScreen ? (isAbove ? -35 : 35) : (isAbove ? -42 : 42))
+                        : (isSmallScreen ? (isAbove ? -18 : 18) : (isAbove ? -24 : 24));
+                    const py = getY(isAbove ? b.high : b.low) + dowOffset;
+
+                    ctx.font = isSmallScreen ? 'bold 9px "JetBrains Mono", monospace' : 'bold 10px "JetBrains Mono", monospace';
                     const textW = ctx.measureText(tag.text).width;
-                    const padX = 6;
+                    const padX = isSmallScreen ? 4 : 6;
                     const badgeW = textW + padX * 2;
-                    const badgeH = 16;
+                    const badgeH = isSmallScreen ? 14 : 16;
 
                     ctx.fillStyle = colors.tagBg;
                     drawRoundedRect(ctx, px - badgeW / 2, py - badgeH / 2, badgeW, badgeH, 4);
