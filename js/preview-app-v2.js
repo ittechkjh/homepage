@@ -277,22 +277,38 @@ function updateAdminNavVisibility() {
   const mDrawerAdmin = document.getElementById('m-drawer-admin');
   const navAdminDot = document.getElementById('nav-admin-dot');
 
-  // Ensure Admin tab/button is always accessible across desktop & mobile
-  [navAdmin, mNavAdmin, mDrawerAdmin].forEach(btn => {
-    if (btn) {
-      btn.classList.remove('hidden');
-      btn.classList.add('flex');
-      if (isAuth) {
-        btn.classList.add('border-purple-400', 'text-purple-100');
-        btn.classList.remove('text-purple-300');
-        btn.title = '관리자 센터 (인증 완료)';
-      } else {
-        btn.classList.remove('border-purple-400', 'text-purple-100');
-        btn.classList.add('text-purple-300');
-        btn.title = '관리자 센터 (로그인 필요)';
-      }
+  // Desktop Admin Nav Tab (Visible ONLY when authenticated as ADMIN)
+  if (navAdmin) {
+    if (isAuth) {
+      navAdmin.classList.remove('hidden');
+      navAdmin.classList.add('flex');
+    } else {
+      navAdmin.classList.add('hidden');
+      navAdmin.classList.remove('flex');
     }
-  });
+  }
+
+  // Mobile Bottom Bar Admin Tab (Visible ONLY when authenticated as ADMIN)
+  if (mNavAdmin) {
+    if (isAuth) {
+      mNavAdmin.classList.remove('hidden');
+      mNavAdmin.classList.add('flex');
+    } else {
+      mNavAdmin.classList.add('hidden');
+      mNavAdmin.classList.remove('flex');
+    }
+  }
+
+  // Mobile Drawer Admin Button (Visible ONLY when authenticated as ADMIN)
+  if (mDrawerAdmin) {
+    if (isAuth) {
+      mDrawerAdmin.classList.remove('hidden');
+      mDrawerAdmin.classList.add('flex');
+    } else {
+      mDrawerAdmin.classList.add('hidden');
+      mDrawerAdmin.classList.remove('flex');
+    }
+  }
 
   if (navAdminDot) {
     if (isAuth) {
@@ -8810,6 +8826,21 @@ function updateMobileSubNav(tabId) {
       }
     }
   });
+
+  const mNavAdmin = document.getElementById('m-nav-admin');
+  if (mNavAdmin) {
+    if (tabId === 'admin') {
+      mNavAdmin.classList.add('text-purple-300', 'font-black');
+      mNavAdmin.classList.remove('text-purple-400');
+      const iconEl = mNavAdmin.querySelector('i, svg');
+      if (iconEl) iconEl.classList.add('scale-110');
+    } else {
+      mNavAdmin.classList.remove('text-purple-300', 'font-black');
+      mNavAdmin.classList.add('text-purple-400');
+      const iconEl = mNavAdmin.querySelector('i, svg');
+      if (iconEl) iconEl.classList.remove('scale-110');
+    }
+  }
 
   // Render Subnav Chips if container exists
   if (bar && container) {
