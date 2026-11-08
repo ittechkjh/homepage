@@ -1449,11 +1449,11 @@
           </div>
         </div>
 
-        <!-- 5. 관리자 버튼 (인증 시 표시) -->
-        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab hidden px-2.5 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10">
+        <!-- 5. 관리자 버튼 -->
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-tab flex px-2.5 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1 whitespace-nowrap shrink-0 text-purple-300 hover:text-purple-100 bg-purple-950/60 border border-purple-500/50 hover:border-purple-400 shadow-md shadow-purple-500/10 cursor-pointer" title="관리자 센터">
           <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i>
           <span>관리자</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
+          <span id="nav-admin-dot" class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
         </button>
       </nav>
 
@@ -9823,6 +9823,10 @@
           <a href="/contact.html" onclick="if(window.openLegalModal){openLegalModal('contact');return false;}" class="hover:text-cyan-400 transition">문의</a>
           <span class="text-slate-700">|</span>
           <a href="/about.html" onclick="if(window.openLegalModal){openLegalModal('about');return false;}" class="hover:text-cyan-400 transition">소개</a>
+          <span class="text-slate-700">|</span>
+          <button type="button" onclick="switchTab('admin')" class="hover:text-purple-300 text-purple-400/80 transition cursor-pointer flex items-center gap-1 font-semibold">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i> 관리자
+          </button>
         </div>
       </div>
     </div>
@@ -10039,9 +10043,9 @@
             <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i>
             <span>홈 화면에 앱 설치</span>
           </button>
-          <button onclick="switchTab('admin'); toggleMobileMenuDrawer(false);" id="m-drawer-admin" class="hidden py-2.5 px-3 rounded-xl bg-purple-950/60 border border-purple-500/50 text-xs font-bold text-purple-300 items-center justify-center gap-1.5 cursor-pointer">
+          <button onclick="switchTab('admin'); toggleMobileMenuDrawer(false);" id="m-drawer-admin" class="flex py-2.5 px-3.5 rounded-xl bg-purple-950/70 border border-purple-500/60 text-xs font-bold text-purple-300 hover:text-purple-100 items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-purple-500/10">
             <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i>
-            <span>관리자</span>
+            <span>관리자 센터</span>
           </button>
         </div>
       </div>

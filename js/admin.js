@@ -1568,11 +1568,13 @@ const AdminApp = {
                 postsCount: 10
             };
             localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+            localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
             if (typeof currentUser !== 'undefined') currentUser = adminUser;
             if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
                 AdminAnalytics.rollbackAdminVisit();
             }
             if (typeof updateAuthUI === 'function') updateAuthUI();
+            if (typeof updateAdminNavVisibility === 'function') updateAdminNavVisibility();
             if (typeof updateAdminNavVisibility === 'function') updateAdminNavVisibility();
             this.checkAdminAccess();
             alert('👑 최고 관리자 인증 완료! 관리자 센터로 이동합니다.');
@@ -1661,11 +1663,13 @@ const AdminApp = {
                 postsCount: 10
             };
             localStorage.setItem('coinhub_user', JSON.stringify(adminUser));
+            localStorage.setItem('crytopnl_user', JSON.stringify(adminUser));
             if (typeof currentUser !== 'undefined') currentUser = adminUser;
             if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.rollbackAdminVisit === 'function') {
                 AdminAnalytics.rollbackAdminVisit();
             }
             if (typeof updateAuthUI === 'function') updateAuthUI();
+            if (typeof updateAdminNavVisibility === 'function') updateAdminNavVisibility();
             
             this.checkAdminAccess();
             alert('👑 최고 관리자(Admin) 인증이 완료되었습니다. 관리자 센터에 오신 것을 환영합니다!');

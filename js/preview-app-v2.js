@@ -274,24 +274,31 @@ function updateAdminNavVisibility() {
 
   const navAdmin = document.getElementById('nav-admin');
   const mNavAdmin = document.getElementById('m-nav-admin');
+  const mDrawerAdmin = document.getElementById('m-drawer-admin');
+  const navAdminDot = document.getElementById('nav-admin-dot');
 
-  if (navAdmin) {
-    if (isAuth) {
-      navAdmin.classList.remove('hidden');
-      navAdmin.classList.add('flex');
-    } else {
-      navAdmin.classList.add('hidden');
-      navAdmin.classList.remove('flex');
+  // Ensure Admin tab/button is always accessible across desktop & mobile
+  [navAdmin, mNavAdmin, mDrawerAdmin].forEach(btn => {
+    if (btn) {
+      btn.classList.remove('hidden');
+      btn.classList.add('flex');
+      if (isAuth) {
+        btn.classList.add('border-purple-400', 'text-purple-100');
+        btn.classList.remove('text-purple-300');
+        btn.title = '관리자 센터 (인증 완료)';
+      } else {
+        btn.classList.remove('border-purple-400', 'text-purple-100');
+        btn.classList.add('text-purple-300');
+        btn.title = '관리자 센터 (로그인 필요)';
+      }
     }
-  }
+  });
 
-  if (mNavAdmin) {
+  if (navAdminDot) {
     if (isAuth) {
-      mNavAdmin.classList.remove('hidden');
-      mNavAdmin.classList.add('flex');
+      navAdminDot.classList.remove('hidden');
     } else {
-      mNavAdmin.classList.add('hidden');
-      mNavAdmin.classList.remove('flex');
+      navAdminDot.classList.add('hidden');
     }
   }
 
