@@ -266,7 +266,7 @@
     // 2. STATE & ENGINE VARIABLES
     // ============================================================================
 
-    let currentScenarioKey = 'full_cycle';
+    let currentScenarioKey = 'live_btc';
     let chartData = [];
     let visibleBarCount = 0;
     let replayInterval = null;
