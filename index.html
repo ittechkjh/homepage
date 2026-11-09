@@ -1656,7 +1656,10 @@
             <!-- Dedicated Top OHLC & MA Ticker Bar (Fixed above canvas, prevents overlapping with candles) -->
             <div id="chartOhlcTickerBar" class="bg-[#181c27] border-b border-[#2a2e39] px-2.5 py-1.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
               <div class="flex items-center gap-2 shrink-0">
-                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs">BTC/USDT</span>
+                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs flex items-center gap-1.5">
+                  <span>BTC/USDT</span>
+                  <span class="text-sky-400 font-semibold text-[10px] sm:text-[11px] px-1.5 py-0.2 rounded bg-sky-950/60 border border-sky-500/30">cryptopnl.com</span>
+                </span>
                 <span id="ohlcDisplay" class="mono text-[10px] sm:text-[11px] text-slate-100 font-semibold whitespace-nowrap">
                   시: <b class="text-white">-</b> 고: <b class="text-white">-</b> 저: <b class="text-white">-</b> 종: <b class="text-white">-</b>
                 </span>
@@ -1686,7 +1689,9 @@
                 <i class="fa-solid fa-mouse-pointer text-cyan-400"></i>
                 <span class="truncate font-semibold text-slate-200">차트 위의 <b class="text-white">파동 번호, HH/HL, 다이버전스, 예측선</b>을 터치해보세요.</span>
               </div>
-              <div class="hidden sm:flex items-center space-x-2 mono shrink-0 font-bold text-slate-300">
+              <div class="hidden sm:flex items-center space-x-2.5 mono shrink-0 font-bold text-slate-300">
+                <span class="text-sky-400 font-semibold text-[11px]">cryptopnl.com</span>
+                <span class="text-slate-600">|</span>
                 <span>RSI(14)</span>
               </div>
             </div>
@@ -1721,9 +1726,9 @@
                       <i class="fa-solid fa-clock text-cyan-400 text-[9px]"></i>
                       <span id="sidebarUpdatedTimeText">-</span>
                     </span>
-                    <button type="button" onclick="copyForecastForBlog()" class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#2962ff]/20 hover:bg-[#2962ff]/30 text-cyan-300 hover:text-white border border-cyan-400/40 text-[10px] font-bold transition cursor-pointer" title="현재 분석 요약을 블로그 형식으로 복사">
+                    <button type="button" onclick="copyForecastForBlog()" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2962ff]/20 hover:bg-[#2962ff]/30 text-cyan-300 hover:text-white border border-cyan-400/40 text-[10px] sm:text-[11px] font-bold transition cursor-pointer" title="네이버 블로그/카페 맞춤 서식(색상·박스 포함) 복사">
                       <i class="fa-regular fa-copy text-[10px]"></i>
-                      <span>블로그 글 복사</span>
+                      <span>네이버 서식 복사</span>
                     </button>
                   </div>
                 </div>

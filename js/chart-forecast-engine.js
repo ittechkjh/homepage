@@ -1063,6 +1063,40 @@
             ctx.fillText(formatted, canvasWidth - rightMargin + 4, py);
         }
 
+        // ==========================================
+        // Website Watermark & Branding (cryptopnl.com)
+        // ==========================================
+        // 1. Subtle Center Background Watermark
+        ctx.save();
+        ctx.font = isSmallScreen ? 'bold 16px "Inter", "Segoe UI", sans-serif' : 'bold 24px "Inter", "Segoe UI", sans-serif';
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CryptoPnL • cryptopnl.com', leftMargin + chartPlotWidth / 2, priceTop + priceHeight * 0.48);
+
+        // 2. Crisp Top-Right Branding Badge (Always visible on chart screenshots)
+        ctx.font = isSmallScreen ? 'bold 10px "JetBrains Mono", monospace' : 'bold 11px "JetBrains Mono", monospace';
+        const brandText = 'cryptopnl.com';
+        const brandTextW = ctx.measureText(brandText).width;
+        const brandW = brandTextW + (isSmallScreen ? 22 : 28);
+        const brandH = isSmallScreen ? 18 : 22;
+        const brandX = canvasWidth - rightMargin - 8;
+        const brandY = priceTop + (isSmallScreen ? 14 : 18);
+
+        ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(19, 23, 34, 0.9)';
+        drawRoundedRect(ctx, brandX - brandW, brandY - brandH / 2, brandW, brandH, 5);
+        ctx.fill();
+
+        ctx.strokeStyle = isLight ? '#0284c7' : '#38bdf8';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = isLight ? '#0284c7' : '#38bdf8';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡ ' + brandText, brandX - 8, brandY);
+        ctx.restore();
+
         // Horizontal Separator Line between Price and RSI Panel
         ctx.strokeStyle = colors.separator;
         ctx.lineWidth = 1;
@@ -1715,44 +1749,239 @@
         const subTitle = document.getElementById('guideMainSubtitle')?.textContent?.trim() || scen.subtitle;
         const nodeBadge = document.getElementById('selectedNodeBadge')?.textContent?.trim() || scen.defaultNodeTitle;
         const nodeBodyEl = document.getElementById('selectedNodeBody');
-        const cleanNodeBody = nodeBodyEl ? nodeBodyEl.textContent.replace(/\n\s*\n/g, '\n').trim() : (scen.defaultNodeDesc || '');
 
         const bPrice = document.getElementById('level-breakout')?.textContent?.trim() || '$81,200';
         const rPrice = document.getElementById('level-range')?.textContent?.trim() || '$74,500 ~ $78,700';
         const dPrice = document.getElementById('level-danger')?.textContent?.trim() || '$73,200';
 
+        const scenA = document.getElementById('scen-card-desc-a')?.textContent?.trim() || '직전 저항 돌파 시 목표가 타진';
+        const scenB = document.getElementById('scen-card-desc-b')?.textContent?.trim() || '20·50일선 사이 횡보 매집';
+        const scenC = document.getElementById('scen-card-desc-c')?.textContent?.trim() || '200일선 붕괴 시 하단 장기 지지 테스트';
+
+        const scenTargetA = document.getElementById('scen-card-target-a')?.textContent?.trim() || '';
+        const scenTargetB = document.getElementById('scen-card-target-b')?.textContent?.trim() || '';
+        const scenTargetC = document.getElementById('scen-card-target-c')?.textContent?.trim() || '';
+
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
         const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} KST`;
 
-        let blogText = `[BTC/USDT 비트코인 기술적 분석 & AI 시장 전망]\n`;
-        blogText += `기준 일시: ${dateStr} (일봉 1D 기준)\n\n`;
-        blogText += `■ 핵심 분석 테마: ${mainTitle}\n`;
-        blogText += `"${subTitle}"\n\n`;
-        blogText += `■ 실전 핵심 매매 기준선 (Trigger Levels)\n`;
-        blogText += `• 🟢 상방 돌파 호재선: ${bPrice} (상방 돌파 시 하락 다우 구조 종결 및 강세 랠리 전환)\n`;
-        blogText += `• 🟡 단기 수렴 박스권: ${rPrice} (20·50MA 수렴 횡보 및 매집 구간)\n`;
-        blogText += `• 🔴 하방 위험 경보선: ${dPrice} (200일선 이탈 시 급락 위험 및 리스크 관리 기준)\n\n`;
-        blogText += `■ 현재 타점 및 다우·엘리엇 종합 진단: [${nodeBadge}]\n`;
-        blogText += `${cleanNodeBody}\n\n`;
-        blogText += `■ AI 기술적 분석 3대 향후 전망 시나리오\n`;
-        const scenA = document.getElementById('scen-card-desc-a')?.textContent?.trim() || '직전 저항 돌파 시 목표가 타진';
-        const scenB = document.getElementById('scen-card-desc-b')?.textContent?.trim() || '20·50일선 사이 횡보 매집';
-        const scenC = document.getElementById('scen-card-desc-c')?.textContent?.trim() || '200일선 붕괴 시 하단 장기 지지 테스트';
-        blogText += `1. 시나리오 A: 강세 돌파 랠리 (45%)\n   - ${scenA}\n`;
-        blogText += `2. 시나리오 B: 박스권 수렴 지지 (35%)\n   - ${scenB}\n`;
-        blogText += `3. 시나리오 C: 리스크 지지 이탈 (20%)\n   - ${scenC}\n\n`;
-        blogText += `■ 4대 이론 핵심 기준선\n`;
-        blogText += `- 다우 이론: HH(신고가 고점) / HL(핵심 지지 저점)\n`;
-        blogText += `- 이동평균선: 20일선(단기 생명선), 50일선(중기 스윙 방어), 200일선(대세 분기점)\n`;
-        blogText += `- 엘리엇 파동 & RSI: 충격 5파와 다이버전스 변곡점 확인\n\n`;
-        blogText += `■ 실전 매매 3단계 체크리스트\n`;
-        blogText += `1. 구조 확인: 200일선 위에서 HH·HL 상승 구조인가?\n`;
-        blogText += `2. 위치 파악: 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?\n`;
-        blogText += `3. 방아쇠 당기기: 다이버전스 출현 및 20일선 돌파/이탈 확인\n\n`;
-        blogText += `출처: CrytoPnL 비트코인 실전 차트 작도 & AI 예측 (cryptopnl.com)`;
+        // -------------------------------------------------------------
+        // 1. Plain Text Version (Fallback & Plain Text Editors)
+        // -------------------------------------------------------------
+        const cleanNodeBody = nodeBodyEl ? nodeBodyEl.textContent.replace(/\n\s*\n/g, '\n').trim() : (scen.defaultNodeDesc || '');
+        let plainText = `[BTC/USDT 비트코인 기술적 분석 & AI 시장 전망]\n`;
+        plainText += `기준 일시: ${dateStr} (일봉 1D 기준)\n\n`;
+        plainText += `■ 핵심 분석 테마: ${mainTitle}\n`;
+        plainText += `"${subTitle}"\n\n`;
+        plainText += `■ 실전 핵심 매매 기준선 (Trigger Levels)\n`;
+        plainText += `• 🟢 상방 돌파 호재선: ${bPrice} (상방 돌파 시 하락 다우 구조 종결 및 강세 랠리 전환)\n`;
+        plainText += `• 🟡 단기 수렴 박스권: ${rPrice} (20·50MA 수렴 횡보 및 매집 구간)\n`;
+        plainText += `• 🔴 하방 위험 경보선: ${dPrice} (200일선 이탈 시 급락 위험 및 리스크 관리 기준)\n\n`;
+        plainText += `■ 현재 타점 및 다우·엘리엇 종합 진단: [${nodeBadge}]\n`;
+        plainText += `${cleanNodeBody}\n\n`;
+        plainText += `■ AI 기술적 분석 3대 향후 전망 시나리오\n`;
+        plainText += `1. 시나리오 A: 강세 돌파 랠리 (45%)\n   - ${scenA} ${scenTargetA ? `[목표: ${scenTargetA}]` : ''}\n`;
+        plainText += `2. 시나리오 B: 박스권 수렴 지지 (35%)\n   - ${scenB} ${scenTargetB ? `[목표: ${scenTargetB}]` : ''}\n`;
+        plainText += `3. 시나리오 C: 리스크 지지 이탈 (20%)\n   - ${scenC} ${scenTargetC ? `[목표: ${scenTargetC}]` : ''}\n\n`;
+        plainText += `■ 4대 이론 핵심 기준선\n`;
+        plainText += `- 다우 이론: HH(신고가 고점) / HL(핵심 지지 저점)\n`;
+        plainText += `- 이동평균선: 20일선(단기 생명선), 50일선(중기 스윙 방어), 200일선(대세 분기점)\n`;
+        plainText += `- 엘리엇 파동 & RSI: 충격 5파와 다이버전스 변곡점 확인\n\n`;
+        plainText += `■ 실전 매매 3단계 체크리스트\n`;
+        plainText += `1. 구조 확인: 200일선 위에서 HH·HL 상승 구조인가?\n`;
+        plainText += `2. 위치 파악: 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?\n`;
+        plainText += `3. 방아쇠 당기기: 다이버전스 출현 및 20일선 돌파/이탈 확인\n\n`;
+        plainText += `출처: CryptoPnL 비트코인 실전 차트 작도 & AI 예측 (https://cryptopnl.com)`;
 
-        const doCopyFallback = (text) => {
+        // -------------------------------------------------------------
+        // 2. Rich HTML Version (For Naver Blog SmartEditor)
+        // -------------------------------------------------------------
+        const convertClassesToInline = (html) => {
+            return html
+                .replace(/class="[^"]*text-emerald-400[^"]*"/g, 'style="color: #059669; font-weight: bold;"')
+                .replace(/class="[^"]*text-rose-400[^"]*"/g, 'style="color: #dc2626; font-weight: bold;"')
+                .replace(/class="[^"]*text-amber-400[^"]*"/g, 'style="color: #d97706; font-weight: bold;"')
+                .replace(/class="[^"]*text-sky-400[^"]*"/g, 'style="color: #0284c7; font-weight: bold;"')
+                .replace(/class="[^"]*text-purple-400[^"]*"/g, 'style="color: #7c3aed; font-weight: bold;"')
+                .replace(/class="[^"]*text-cyan-400[^"]*"/g, 'style="color: #0891b2; font-weight: bold;"');
+        };
+
+        let formattedDiagnosisHtml = '';
+        if (nodeBodyEl) {
+            const rawCards = [
+                { sel: '.forecast-dow-card', title: '1. 다우 이론 (Dow Theory) 추세 판단', border: '#0284c7', bg: '#f0f9ff', titleColor: '#0369a1', badgeBg: '#e0f2fe', badgeColor: '#0284c7' },
+                { sel: '.forecast-elliott-card', title: '2. 엘리엇 파동 (Elliott Wave) 관점', border: '#d97706', bg: '#fffbeb', titleColor: '#b45309', badgeBg: '#fef3c7', badgeColor: '#b45309' },
+                { sel: '.forecast-ma-card', title: '3. 다중 이동평균선 (20·50·200MA)', border: '#7c3aed', bg: '#faf5ff', titleColor: '#6d28d9', badgeBg: '#ede9fe', badgeColor: '#6d28d9' },
+                { sel: '.forecast-rsi-card', title: '4. RSI(14) 모멘텀 & 다이버전스', border: '#059669', bg: '#ecfdf5', titleColor: '#047857', badgeBg: '#d1fae5', badgeColor: '#047857' },
+                { sel: '.forecast-sr-card', title: '5. 핵심 매물대(S/R) & 실전 전략', border: '#0891b2', bg: '#ecfeff', titleColor: '#0e7490', badgeBg: '#cffafe', badgeColor: '#0e7490' }
+            ];
+
+            let hasMatchedCards = false;
+            rawCards.forEach(item => {
+                const cardEl = nodeBodyEl.querySelector(item.sel);
+                if (cardEl) {
+                    hasMatchedCards = true;
+                    const badgeText = cardEl.querySelector('.font-bold span:last-child')?.textContent?.trim() || '';
+                    const descEl = cardEl.querySelector('.text-\\[11px\\], div:last-child');
+                    const descHtml = descEl ? convertClassesToInline(descEl.innerHTML) : '';
+
+                    formattedDiagnosisHtml += `
+                    <div style="background-color: ${item.bg}; border: 1px solid #e2e8f0; border-left: 5px solid ${item.border}; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;">
+                      <div style="font-weight: 800; font-size: 14px; color: ${item.titleColor}; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${item.title}</span>
+                        ${badgeText ? `<span style="font-size: 11px; font-weight: bold; background-color: ${item.badgeBg}; color: ${item.badgeColor}; padding: 2px 8px; border-radius: 4px;">${badgeText}</span>` : ''}
+                      </div>
+                      <div style="font-size: 13px; color: #334155; line-height: 1.7;">
+                        ${descHtml}
+                      </div>
+                    </div>`;
+                }
+            });
+
+            if (!hasMatchedCards) {
+                formattedDiagnosisHtml = `
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #0284c7; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; color: #334155; line-height: 1.7;">
+                  ${convertClassesToInline(nodeBodyEl.innerHTML)}
+                </div>`;
+            }
+        }
+
+        const richHtml = `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; max-width: 760px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
+
+  <!-- Header Box -->
+  <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 22px 24px; border-radius: 12px; margin-bottom: 24px;">
+    <div style="display: inline-block; background-color: #0284c7; color: #ffffff; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 6px; margin-bottom: 10px;">
+      ⚡ BTC/USDT 일봉 기술적 분석 & AI 시장 전망
+    </div>
+    <h2 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #ffffff; line-height: 1.4;">
+      ${mainTitle}
+    </h2>
+    <p style="margin: 0 0 12px 0; font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+      "${subTitle}"
+    </p>
+    <div style="border-top: 1px solid #334155; padding-top: 10px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between;">
+      <span>📅 분석 기준: <b style="color: #ffffff;">${dateStr}</b> (일봉 1D 기준)</span>
+      <span>출처: <b style="color: #38bdf8;">cryptopnl.com</b></span>
+    </div>
+  </div>
+
+  <!-- Trigger Levels 3 Cards Table -->
+  <div style="margin-bottom: 26px;">
+    <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">
+      🎯 실전 핵심 매매 기준선 (Trigger Levels)
+    </div>
+    <table style="width: 100%; border-collapse: separate; border-spacing: 8px; margin: 0 -8px;">
+      <tr>
+        <td style="width: 33.3%; background-color: #ecfdf5; border: 1.5px solid #10b981; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
+          <div style="font-size: 12px; font-weight: 800; color: #047857; margin-bottom: 6px;">🟢 상방 돌파 호재</div>
+          <div style="font-size: 20px; font-weight: 900; color: #065f46; margin-bottom: 6px; font-family: monospace;">${bPrice}</div>
+          <div style="font-size: 11px; color: #047857; line-height: 1.4;">돌파 시 하락 다우 종결<br>숏스퀴즈 강세 랠리</div>
+        </td>
+        <td style="width: 33.3%; background-color: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
+          <div style="font-size: 12px; font-weight: 800; color: #b45309; margin-bottom: 6px;">🟡 단기 수렴 박스권</div>
+          <div style="font-size: 18px; font-weight: 900; color: #92400e; margin-bottom: 6px; font-family: monospace;">${rPrice}</div>
+          <div style="font-size: 11px; color: #b45309; line-height: 1.4;">20·50MA 수렴 횡보<br>스윙 매집 구간</div>
+        </td>
+        <td style="width: 33.3%; background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
+          <div style="font-size: 12px; font-weight: 800; color: #b91c1c; margin-bottom: 6px;">🔴 하방 위험 경보</div>
+          <div style="font-size: 20px; font-weight: 900; color: #991b1b; margin-bottom: 6px; font-family: monospace;">${dPrice}</div>
+          <div style="font-size: 11px; color: #b91c1c; line-height: 1.4;">200일선 이탈 시 급락<br>리스크 관리 기준</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Diagnosis Section -->
+  <div style="margin-bottom: 26px;">
+    <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">
+      📊 현재 타점 및 다우·엘리엇 종합 진단: <span style="color: #0284c7;">[${nodeBadge}]</span>
+    </div>
+    ${formattedDiagnosisHtml}
+  </div>
+
+  <!-- AI Scenarios -->
+  <div style="margin-bottom: 26px;">
+    <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">
+      🚀 AI 기술적 분석 3대 향후 전망 시나리오
+    </div>
+    <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: 800; font-size: 14px; color: #047857;">시나리오 A: 강세 돌파 랠리 (45%)</span>
+        ${scenTargetA ? `<span style="background-color: #059669; color: #ffffff; font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 6px;">${scenTargetA}</span>` : ''}
+      </div>
+      <div style="font-size: 13px; color: #065f46;">${scenA}</div>
+    </div>
+    <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: 800; font-size: 14px; color: #b45309;">시나리오 B: 박스권 수렴 지지 (35%)</span>
+        ${scenTargetB ? `<span style="background-color: #d97706; color: #ffffff; font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 6px;">${scenTargetB}</span>` : ''}
+      </div>
+      <div style="font-size: 13px; color: #92400e;">${scenB}</div>
+    </div>
+    <div style="background-color: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: 800; font-size: 14px; color: #b91c1c;">시나리오 C: 리스크 지지 이탈 (20%)</span>
+        ${scenTargetC ? `<span style="background-color: #dc2626; color: #ffffff; font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 6px;">${scenTargetC}</span>` : ''}
+      </div>
+      <div style="font-size: 13px; color: #991b1b;">${scenC}</div>
+    </div>
+  </div>
+
+  <!-- Theory & Checklist Box -->
+  <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">📚 4대 이론 핵심 기준선 요약</div>
+    <ul style="margin: 0 0 14px 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.7;">
+      <li><b>다우 이론:</b> HH(신고가 고점) / HL(핵심 지지 저점) 구조 지속 여부</li>
+      <li><b>이동평균선:</b> 20일선(단기 생명선), 50일선(중기 스윙 방어), 200일선(대세 분기점)</li>
+      <li><b>엘리엇 파동 & RSI:</b> 충격 5파와 다이버전스 변곡점 확인</li>
+    </ul>
+    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">📋 실전 매매 3단계 체크리스트</div>
+    <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.7;">
+      <li><b>구조 확인:</b> 200일선 위에서 HH·HL 상승 구조인가?</li>
+      <li><b>위치 파악:</b> 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</li>
+      <li><b>방아쇠 당기기:</b> 다이버전스 출현 및 20일선 돌파/이탈 확인</li>
+    </ol>
+  </div>
+
+  <!-- Website Promotion & Link Footer -->
+  <div style="background-color: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin-top: 24px;">
+    <div style="font-size: 16px; font-weight: 800; color: #0369a1; margin-bottom: 6px;">
+      🌐 실시간 비트코인 일봉 차트 & AI 향후 전망 보러가기
+    </div>
+    <div style="font-size: 13px; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+      다우 이론, 엘리엇 파동 5파, 20·50·200MA 정/역배열, RSI 다이버전스를 실시간 캔버스에서 직접 확인하세요!
+    </div>
+    <a href="https://cryptopnl.com" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-weight: 800; font-size: 14px; padding: 10px 24px; border-radius: 8px; text-decoration: none;">
+      👉 cryptopnl.com 바로가기
+    </a>
+  </div>
+
+</div>`;
+
+        // -------------------------------------------------------------
+        // 3. Robust Clipboard Copy Execution (Rich HTML + Plain Fallback)
+        // -------------------------------------------------------------
+        const doRichCopyFallback = (html, text) => {
+            const listener = (e) => {
+                e.clipboardData.setData('text/html', html);
+                e.clipboardData.setData('text/plain', text);
+                e.preventDefault();
+            };
+            document.addEventListener('copy', listener);
+            try {
+                const successful = document.execCommand('copy');
+                document.removeEventListener('copy', listener);
+                if (successful) {
+                    showChartForecastToast('🎨 네이버 블로그 서식(색상·박스 포함)이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
+                    return;
+                }
+            } catch (e) {
+                document.removeEventListener('copy', listener);
+            }
+
+            // Final fallback to pure plain text textarea
             const tempTa = document.createElement('textarea');
             tempTa.value = text;
             tempTa.style.position = 'fixed';
@@ -1761,21 +1990,28 @@
             tempTa.select();
             try {
                 document.execCommand('copy');
-                showChartForecastToast('📋 블로그용 분석 글이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
-            } catch (e) {
+                showChartForecastToast('📋 분석 글이 복사되었습니다! (텍스트 전용)');
+            } catch (err) {
                 alert('복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
             }
             document.body.removeChild(tempTa);
         };
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(blogText).then(() => {
-                showChartForecastToast('📋 블로그용 분석 글이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
+        if (navigator.clipboard && window.ClipboardItem && navigator.clipboard.write) {
+            const htmlBlob = new Blob([richHtml], { type: 'text/html' });
+            const textBlob = new Blob([plainText], { type: 'text/plain' });
+            navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/html': htmlBlob,
+                    'text/plain': textBlob
+                })
+            ]).then(() => {
+                showChartForecastToast('🎨 네이버 블로그 서식(색상·박스 포함)이 복사되었습니다! Ctrl+V로 붙여넣으세요.');
             }).catch(() => {
-                doCopyFallback(blogText);
+                doRichCopyFallback(richHtml, plainText);
             });
         } else {
-            doCopyFallback(blogText);
+            doRichCopyFallback(richHtml, plainText);
         }
     }
 
