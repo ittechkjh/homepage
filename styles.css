@@ -1556,6 +1556,90 @@ html.theme-light #tab-chart-forecast .forecast-elliott-card b.text-rose-400 {
   color: #be123c !important;
 }
 
+/* 3. 이동평균선 카드 in Light Mode */
+html.theme-light #tab-chart-forecast .forecast-ma-card,
+html.theme-light #tab-chart-forecast [class*="forecast-ma-card"] {
+  background-color: #faf5ff !important;
+  border: 1px solid #e9d5ff !important;
+  box-shadow: 0 1px 3px rgba(126, 34, 206, 0.08) !important;
+}
+html.theme-light #tab-chart-forecast .forecast-ma-card .text-purple-300,
+html.theme-light #tab-chart-forecast .forecast-ma-card .text-purple-400 {
+  color: #7e22ce !important;
+}
+html.theme-light #tab-chart-forecast .forecast-ma-card .bg-purple-950 {
+  background-color: #f3e8ff !important;
+  border-color: #d8b4fe !important;
+  color: #7e22ce !important;
+}
+html.theme-light #tab-chart-forecast .forecast-ma-card .text-slate-200,
+html.theme-light #tab-chart-forecast .forecast-ma-card p,
+html.theme-light #tab-chart-forecast .forecast-ma-card div {
+  color: #1e293b !important;
+}
+html.theme-light #tab-chart-forecast .forecast-ma-card b.text-emerald-400 {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-ma-card b.text-rose-400 {
+  color: #be123c !important;
+}
+
+/* 4. RSI 다이버전스 & 모멘텀 카드 in Light Mode */
+html.theme-light #tab-chart-forecast .forecast-rsi-card,
+html.theme-light #tab-chart-forecast [class*="forecast-rsi-card"] {
+  background-color: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  box-shadow: 0 1px 3px rgba(21, 128, 61, 0.08) !important;
+}
+html.theme-light #tab-chart-forecast .forecast-rsi-card .text-emerald-300,
+html.theme-light #tab-chart-forecast .forecast-rsi-card .text-emerald-400 {
+  color: #15803d !important;
+}
+html.theme-light #tab-chart-forecast .forecast-rsi-card .bg-emerald-950 {
+  background-color: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #15803d !important;
+}
+html.theme-light #tab-chart-forecast .forecast-rsi-card .text-slate-200,
+html.theme-light #tab-chart-forecast .forecast-rsi-card p,
+html.theme-light #tab-chart-forecast .forecast-rsi-card div {
+  color: #1e293b !important;
+}
+html.theme-light #tab-chart-forecast .forecast-rsi-card b.text-emerald-400 {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-rsi-card b.text-rose-400 {
+  color: #be123c !important;
+}
+
+/* 5. 핵심 지지·저항 매물대 카드 in Light Mode */
+html.theme-light #tab-chart-forecast .forecast-sr-card,
+html.theme-light #tab-chart-forecast [class*="forecast-sr-card"] {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+html.theme-light #tab-chart-forecast .forecast-sr-card .text-cyan-300,
+html.theme-light #tab-chart-forecast .forecast-sr-card .text-cyan-400 {
+  color: #0284c7 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-sr-card .bg-cyan-950 {
+  background-color: #e0f2fe !important;
+  border-color: #7dd3fc !important;
+  color: #0284c7 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-sr-card .text-slate-200,
+html.theme-light #tab-chart-forecast .forecast-sr-card p,
+html.theme-light #tab-chart-forecast .forecast-sr-card div {
+  color: #1e293b !important;
+}
+html.theme-light #tab-chart-forecast .forecast-sr-card b.text-emerald-400 {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-sr-card b.text-rose-400 {
+  color: #be123c !important;
+}
+
 /* Actionable Key Price Levels (Trigger Levels) Container & Text in Light Mode */
 html.theme-light #tab-chart-forecast #forecast-key-levels,
 html.theme-light #tab-chart-forecast [class*="forecast-key-levels"] {
@@ -1642,6 +1726,42 @@ html.theme-light #tab-chart-forecast .bg-rose-950\/30 .text-rose-300,
 html.theme-light #tab-chart-forecast [class*="bg-rose-950"] .text-rose-300 {
   color: #be123c !important;
   font-weight: 700 !important;
+}
+
+/* Scenario Target Badges in Light Mode - Crisp White Background, Distinct Colored Border & Font */
+html.theme-light #tab-chart-forecast #scen-card-target-a,
+html.theme-light #tab-chart-forecast [id*="scen-card-target-a"],
+html.theme-light #tab-chart-forecast .scen-badge-a {
+  background-color: #ffffff !important;
+  border: 1.5px solid #10b981 !important;
+  color: #047857 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15) !important;
+}
+html.theme-light #tab-chart-forecast #scen-card-target-b,
+html.theme-light #tab-chart-forecast [id*="scen-card-target-b"],
+html.theme-light #tab-chart-forecast .scen-badge-b {
+  background-color: #ffffff !important;
+  border: 1.5px solid #f59e0b !important;
+  color: #b45309 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15) !important;
+}
+html.theme-light #tab-chart-forecast #scen-card-target-c,
+html.theme-light #tab-chart-forecast [id*="scen-card-target-c"],
+html.theme-light #tab-chart-forecast .scen-badge-c {
+  background-color: #ffffff !important;
+  border: 1.5px solid #f43f5e !important;
+  color: #be123c !important;
+  font-weight: 800 !important;
+  box-shadow: 0 1px 3px rgba(244, 63, 94, 0.15) !important;
+}
+
+html.theme-light #tab-chart-forecast #scen-card-desc-a,
+html.theme-light #tab-chart-forecast #scen-card-desc-b,
+html.theme-light #tab-chart-forecast #scen-card-desc-c {
+  color: #1e293b !important;
+  font-weight: 600 !important;
 }
 
 /* 4 Core Theory Cards & Sub-boxes in Light Mode */

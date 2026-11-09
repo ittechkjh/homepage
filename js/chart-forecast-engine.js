@@ -759,10 +759,18 @@
             const deepDownside = Math.round(minLow * 1.04);
 
             const trendBadge = lastBar.close > breakoutPrice ? "상승 돌파 진행" : (lastBar.close < dangerPrice ? "대세 하락 경보" : "단기 조정/수렴");
+            const ma20Str = lastBar.ma20 ? formatPrice(lastBar.ma20) : '-';
+            const ma50Str = lastBar.ma50 ? formatPrice(lastBar.ma50) : '-';
+            const ma200Str = lastBar.ma200 ? formatPrice(lastBar.ma200) : '-';
+            const maStatus = lastBar.close > (lastBar.ma20 || 0) ? "20일선 안착 단기 반등" : "20일선 하회 단기 저항";
+            const rsiVal = lastBar.rsi !== undefined ? lastBar.rsi : 50;
+            const rsiBadge = rsiVal <= 35 ? "과매도 반등 변곡" : (rsiVal >= 65 ? "과매수 과열 경계" : "중립 모멘텀 수렴");
+            const divText = divergences.length > 0 ? divergences[0].desc : `일봉 RSI가 30 부근에서 가격 저점을 테스트 후 반등할 때 쌍바닥 '상승 다이버전스' 매수 타점이 형성됩니다.`;
 
-            SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 다우 & 엘리엇 종합 진단`;
+            SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 5대 핵심 지표 종합 진단`;
             SCENARIOS.live_btc.defaultNodeDesc = `
 <div class="space-y-2 text-left">
+  <!-- 1. 다우 이론 -->
   <div class="forecast-dow-card p-2.5 rounded-xl bg-[#141b2b] border border-sky-500/30">
     <div class="font-bold text-sky-300 text-xs flex items-center justify-between mb-1">
       <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-sky-400"></i>1. 다우 이론 (Dow Theory) 추세 판단</span>
@@ -774,6 +782,8 @@
       • <b class="text-rose-400">하방 이탈 위험:</b> 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 및 200일선 <b>$${formatPrice(dangerPrice)}</b> 밑으로 하락 시 하락 추세가 가속화되며 $${formatPrice(deepDownside)} 부근까지 추가 급락 위험이 매우 커집니다.
     </div>
   </div>
+
+  <!-- 2. 엘리엇 파동 -->
   <div class="forecast-elliott-card p-2.5 rounded-xl bg-[#141b2b] border border-amber-500/30">
     <div class="font-bold text-amber-300 text-xs flex items-center justify-between mb-1">
       <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-amber-400"></i>2. 엘리엇 파동 (Elliott Wave) 관점</span>
@@ -783,6 +793,44 @@
       상승 5파동 완성 후 진행되는 <b>A-B-C 조정 국면에서 마지막 C파의 바닥 지지력을 테스트</b>하는 변곡점입니다.<br/>
       • <b class="text-emerald-400">반등 지지선:</b> 200일선($${formatPrice(dangerPrice)}) 지지에 성공할 경우 C파 조정 종결 후 <b>신규 상승 1파 개시</b>가 유력합니다.<br/>
       • <b class="text-rose-400">연장 하락 리스크:</b> $${formatPrice(dangerPrice)} 붕괴 시 C파가 연장 파동(Extended Wave)으로 변모하여 $${formatPrice(deepDownside)} 매물대까지 급락할 수 있어 분할 매수 및 손절 기준선으로 삼아야 합니다.
+    </div>
+  </div>
+
+  <!-- 3. 이동평균선 배열 -->
+  <div class="forecast-ma-card p-2.5 rounded-xl bg-[#141b2b] border border-purple-500/30">
+    <div class="font-bold text-purple-300 text-xs flex items-center justify-between mb-1">
+      <span class="flex items-center gap-1.5"><i class="fa-solid fa-bars-staggered text-purple-400"></i>3. 다중 이동평균선 (20·50·200MA)</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-500/40">${maStatus}</span>
+    </div>
+    <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
+      • <b class="text-amber-400">20일선 ($${ma20Str} • 단기 생명선):</b> 캔들이 20일선 아래에 위치해 단기 저항으로 작용합니다. 일봉 종가로 20일선 안착 시 단기 랠리 전환 탄력이 붙습니다.<br/>
+      • <b class="text-sky-400">50일선 ($${ma50Str} • 중기 방어선):</b> 직전 고점($${formatPrice(breakoutPrice)})과 맞물린 중기 저항선으로, 이 선을 돌파해야 중기 추세가 반전됩니다.<br/>
+      • <b class="text-purple-400">200일선 ($${ma200Str} • 장기 대세선):</b> 기관 매매의 기준이 되는 최후의 보루입니다. 200일선 위에서는 대세 상승 사이클이 유효합니다.
+    </div>
+  </div>
+
+  <!-- 4. RSI 모멘텀 & 다이버전스 -->
+  <div class="forecast-rsi-card p-2.5 rounded-xl bg-[#141b2b] border border-emerald-500/30">
+    <div class="font-bold text-emerald-300 text-xs flex items-center justify-between mb-1">
+      <span class="flex items-center gap-1.5"><i class="fa-solid fa-wave-square text-emerald-400"></i>4. RSI(14) 모멘텀 & 다이버전스</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40">RSI ${rsiVal} (${rsiBadge})</span>
+    </div>
+    <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
+      ${divText}<br/>
+      • <b class="text-emerald-400">실전 매수 타점:</b> 일봉 RSI가 30 과매도 구간에서 저점을 다진 후 50 중립선을 상향 돌파할 때가 가장 손익비 높은 추세 추종 매수 타점입니다.
+    </div>
+  </div>
+
+  <!-- 5. 핵심 매물대 -->
+  <div class="forecast-sr-card p-2.5 rounded-xl bg-[#141b2b] border border-cyan-500/30">
+    <div class="font-bold text-cyan-300 text-xs flex items-center justify-between mb-1">
+      <span class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-cyan-400"></i>5. 핵심 매물대(S/R) & 실전 전략</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40">매물대 구간</span>
+    </div>
+    <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
+      • <b class="text-rose-400">상단 핵심 저항대 ($${formatPrice(maxHigh)}):</b> 전고점 매도 압력이 집중된 차익 실현 구간입니다.<br/>
+      • <b class="text-amber-400">중심 넥라인 지지대 ($${formatPrice(necklinePrice)}):</b> 돌파 시 지지로 전환되는 핵심 분기점입니다.<br/>
+      • <b class="text-emerald-400">장기 바닥 매물대 ($${formatPrice(minLow)}):</b> 시장 최후의 매집 지지 구간입니다.
     </div>
   </div>
 </div>`;
