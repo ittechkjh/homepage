@@ -8501,7 +8501,7 @@ async function handleUnifiedLoginSubmit(e) {
       }
     }
 
-    if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+    if (id.toLowerCase() !== 'admin' && typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
       AdminAnalytics.recordVisit(null, true);
     }
 
@@ -8608,7 +8608,7 @@ async function handleUnifiedLoginSubmit(e) {
     }
   }
 
-  if (typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
+  if (id.toLowerCase() !== 'admin' && typeof AdminAnalytics !== 'undefined' && typeof AdminAnalytics.recordVisit === 'function') {
     AdminAnalytics.recordVisit(null, true);
   }
 

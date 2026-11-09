@@ -15,10 +15,11 @@ const AdminAnalytics = {
     lastVisitPromise: null,
 
     PAGE_DEFINITIONS: [
+        { key: 'chart-forecast', name: '실시간 차트 분석 & 향후 전망', path: '#/chart-forecast', icon: 'line-chart', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
         { key: 'analyzer', name: '거래내역 손익 분석기', path: '#/analyzer', icon: 'file-spreadsheet', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
         { key: 'market', name: '가상자산 실시간 시세 & 차트', path: '#/market', icon: 'trending-up', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
         { key: 'onchain', name: '온체인 & 고래 레이더', path: '#/onchain', icon: 'radar', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
-        { key: 'patterns', name: 'AI 차트패턴 실시간 스캐너', path: '#/patterns', icon: 'scan', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+        { key: 'patterns', name: '차트패턴 실시간 스캐너', path: '#/patterns', icon: 'scan', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
         { key: 'calculators', name: '실전 투자 보조 계산기', path: '#/calculators', icon: 'calculator', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
         { key: 'news', name: '글로벌 암호화폐 실시간 속보', path: '#/news', icon: 'zap', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
         { key: 'policy', name: '2026 정부지원 & 청년 정책', path: '#/policy', icon: 'landmark', color: 'text-emerald-300', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
@@ -212,10 +213,10 @@ const AdminAnalytics = {
             history: history14,
             devices: { mobile: 0, desktop: 0 },
             browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            features: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            features: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
             todayDevices: { mobile: 0, desktop: 0 },
             todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            todayFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
+            todayFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
         };
     },
 
@@ -413,7 +414,7 @@ const AdminAnalytics = {
         }
         if (firestore) {
             try {
-                // 1. Fetch live page_access_summary document
+                // 1. Fetch live page_access_summary document for persistent metadata
                 const docSnap = await firestore.collection('site_analytics').doc('page_access_summary').get();
                 if (docSnap.exists) {
                     const data = docSnap.data();
@@ -424,7 +425,6 @@ const AdminAnalytics = {
                                 result[k] = {
                                     ...(result[k] || this.getPageInfo(k)),
                                     ...pData,
-                                    todayCount: Number(pData.todayCount || 0),
                                     totalCount: Number(pData.totalCount || pData.todayCount || 0)
                                 };
                             }
@@ -432,31 +432,34 @@ const AdminAnalytics = {
                     }
                 }
 
-                // 2. Fallback to real measured feature counts in site_analytics/{todayStr} if page_access_summary has missing or 0 counts
+                // 2. Fetch authoritative today's feature counts from site_analytics/{todayStr}
                 const todaySnap = await firestore.collection('site_analytics').doc(todayStr).get();
-                if (todaySnap.exists) {
-                    const tData = todaySnap.data();
-                    const feats = tData?.features || {};
-                    const lastVisitAt = tData?.lastVisitAt ? this.formatKstTime(new Date(tData.lastVisitAt)) : '-';
-                    const lastVisitTs = tData?.lastVisitAt ? new Date(tData.lastVisitAt).getTime() : 0;
+                const tData = todaySnap.exists ? todaySnap.data() : null;
+                const feats = tData?.features || {};
+                const lastVisitAt = tData?.lastVisitAt ? this.formatKstTime(new Date(tData.lastVisitAt)) : '-';
+                const lastVisitTs = tData?.lastVisitAt ? new Date(tData.lastVisitAt).getTime() : 0;
 
-                    this.PAGE_DEFINITIONS.forEach(p => {
-                        const featKey = (p.key === 'forum' || p.key === 'chat' || p.key === 'guides') ? 'community' : (p.key === 'yearend-tax' ? 'calculators' : p.key);
-                        const cloudCount = Number(feats[featKey] || feats[p.key] || 0);
-                        if (cloudCount > 0 && (result[p.key].todayCount === 0 || !result[p.key].lastAccessedAt || result[p.key].lastAccessedAt === '-')) {
-                            result[p.key].todayCount = Math.max(result[p.key].todayCount, cloudCount);
-                            result[p.key].totalCount = Math.max(result[p.key].totalCount, cloudCount);
-                            if (result[p.key].lastAccessedAt === '-') {
-                                result[p.key].lastAccessedAt = lastVisitAt;
-                                result[p.key].lastTimestamp = lastVisitTs;
-                                result[p.key].todayFirstAccess = lastVisitAt;
-                                result[p.key].lastDevice = 'mobile';
-                                result[p.key].lastBrowser = 'Safari';
-                                result[p.key].lastUser = '비회원 (게스트)';
-                            }
+                this.PAGE_DEFINITIONS.forEach(p => {
+                    const featKey = (p.key === 'forum' || p.key === 'chat' || p.key === 'guides') ? 'community' : (p.key === 'yearend-tax' ? 'calculators' : p.key);
+                    const cloudCount = Number(feats[p.key] !== undefined ? feats[p.key] : (feats[featKey] !== undefined ? feats[featKey] : 0));
+
+                    // 오늘 접속 횟수는 오늘 날짜(todayStr) 문서의 실측치만 정확히 반영
+                    result[p.key].todayCount = cloudCount;
+                    result[p.key].totalCount = Math.max(Number(result[p.key].totalCount || 0), cloudCount);
+
+                    if (cloudCount > 0) {
+                        if (!result[p.key].lastAccessedAt || result[p.key].lastAccessedAt === '-') {
+                            result[p.key].lastAccessedAt = lastVisitAt;
+                            result[p.key].lastTimestamp = lastVisitTs;
                         }
-                    });
-                }
+                        if (!result[p.key].todayFirstAccess || result[p.key].todayFirstAccess === '-') {
+                            result[p.key].todayFirstAccess = result[p.key].lastAccessedAt || lastVisitAt;
+                        }
+                    } else {
+                        // 오늘 접속 기록이 없는 페이지는 오늘 최초 접속을 '-'로 표기
+                        result[p.key].todayFirstAccess = '-';
+                    }
+                });
             } catch(e) {
                 console.warn('Firestore fetchPageAccessData note:', e.message);
             }
@@ -513,35 +516,7 @@ const AdminAnalytics = {
                 }
             }
 
-            // 실측된 오늘 방문자(site_analytics) 연동: visitor_access_logs 컬렉션이 비어있는 경우 클라우드 실측 방문을 첫 로그로 안전 브릿지
-            if (logs.length === 0) {
-                try {
-                    const todaySnap = await firestore.collection('site_analytics').doc(todayStr).get();
-                    if (todaySnap.exists) {
-                        const tData = todaySnap.data();
-                        if (tData && (tData.visitors > 0 || tData.pageviews > 0)) {
-                            const lastVisitAt = tData.lastVisitAt ? this.formatKstTime(new Date(tData.lastVisitAt)) : this.formatKstTime();
-                            const lastVisitTs = tData.lastVisitAt ? new Date(tData.lastVisitAt).getTime() : Date.now();
-                            const seedLog = {
-                                id: 'log_real_' + lastVisitTs,
-                                sessionId: 'v_live_safari',
-                                time: lastVisitAt,
-                                timestamp: lastVisitTs,
-                                firstVisitTime: lastVisitAt,
-                                page: 'calculators',
-                                pageName: '실전 투자 보조 계산기',
-                                path: '#/calculators',
-                                device: 'mobile',
-                                browser: 'Safari',
-                                user: '비회원 (게스트)',
-                                date: todayStr
-                            };
-                            logs.push(seedLog);
-                            firestore.collection('visitor_access_logs').add(seedLog).catch(e => {});
-                        }
-                    }
-                } catch(e) {}
-            }
+            // logs array contains 100% real measured access logs from visitor_access_logs
         }
 
         return logs;
@@ -592,6 +567,7 @@ const AdminAnalytics = {
             const todayBrowsers = { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 };
 
             const aggFeatures = {
+                'chart-forecast': 0,
                 analyzer: 0,
                 market: 0,
                 onchain: 0,
@@ -603,6 +579,7 @@ const AdminAnalytics = {
                 calendar: 0
             };
             const todayFeatures = {
+                'chart-forecast': 0,
                 analyzer: 0,
                 market: 0,
                 onchain: 0,
@@ -739,18 +716,39 @@ const AdminAnalytics = {
 
             let realLiveCount = 0;
             try {
-                const presenceSnap = await firestore.collection('chat_presence').get();
                 const nowTime = Date.now();
-                let pCount = 0;
-                presenceSnap.forEach(p => {
-                    const pd = p.data();
-                    if (pd && pd.lastSeen && Number(pd.lastSeen) >= nowTime - 60000) {
-                        const uName = (pd.username || '').toLowerCase();
-                        if (uName === 'admin') return;
-                        pCount++;
-                    }
-                });
-                realLiveCount = pCount;
+                const activeSessionSet = new Set();
+
+                // 1. Chat presence (active within last 60 seconds)
+                try {
+                    const presenceSnap = await firestore.collection('chat_presence').get();
+                    presenceSnap.forEach(p => {
+                        const pd = p.data();
+                        if (pd && pd.lastSeen && Number(pd.lastSeen) >= nowTime - 60000) {
+                            const uName = (pd.username || '').toLowerCase();
+                            if (uName === 'admin' || uName.includes('관리자')) return;
+                            activeSessionSet.add(pd.id || pd.username || p.id);
+                        }
+                    });
+                } catch (eChat) {}
+
+                // 2. Active site visitors (access logs within last 5 minutes)
+                try {
+                    const cutoff5m = nowTime - 5 * 60 * 1000;
+                    const recentLogsSnap = await firestore.collection('visitor_access_logs')
+                        .where('timestamp', '>=', cutoff5m)
+                        .get();
+                    recentLogsSnap.forEach(l => {
+                        const ld = l.data();
+                        if (ld) {
+                            const u = String(ld.user || '').toLowerCase();
+                            if (u === 'admin' || u.includes('관리자')) return;
+                            activeSessionSet.add(ld.sessionId || l.id);
+                        }
+                    });
+                } catch (eLogs) {}
+
+                realLiveCount = activeSessionSet.size;
             } catch (e) {
                 realLiveCount = 0;
             }
@@ -827,14 +825,14 @@ const AdminAnalytics = {
             cumDesktopPct: 0,
             cumDevices: { mobile: 0, desktop: 0 },
             browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            features: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            features: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
             cumBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            cumFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            cumFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
             todayMobilePct: 0,
             todayDesktopPct: 0,
             todayDevices: { mobile: 0, desktop: 0 },
             todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            todayFeatures: { analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
+            todayFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
         };
     }
 };
@@ -1733,17 +1731,23 @@ const AdminApp = {
             const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
             setVal('admin-today-visitors', (stats.todayVisitors || 0).toLocaleString() + '명');
             const growthText = (stats.growthRate || '0.0%') + ' vs 어제 (' + (stats.yesterdayVisitors || 0).toLocaleString() + '명)';
-            setVal('admin-today-growth', growthText);
             const growthEl = document.getElementById('admin-today-growth');
             if (growthEl) {
                 const gr = stats.growthRate || '0.0%';
                 const grNum = parseFloat(gr.replace('%', '').replace('+', ''));
+                const iconName = grNum > 0 ? 'trending-up' : grNum < 0 ? 'trending-down' : 'minus';
                 growthEl.className = 'text-[11px] font-semibold mt-1 flex items-center gap-1 ' +
                     (grNum > 0 ? 'text-emerald-400' : grNum < 0 ? 'text-rose-400' : 'text-slate-400');
+                growthEl.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5"></i> <span>${growthText}</span> <span class="text-slate-500 font-normal ml-1">· 오늘 ${(stats.todayPageviews || 0).toLocaleString()} PV</span>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
             setVal('admin-live-users', (stats.liveUsers !== undefined ? stats.liveUsers : 0) + '명 (실제 접속자)');
             setVal('admin-weekly-visitors', (stats.weeklyVisitors || 0).toLocaleString() + '명');
             setVal('admin-total-pageviews', (stats.totalPageviewsAllTime || 0).toLocaleString() + ' PV');
+            const totalSubEl = document.getElementById('admin-total-pageviews-sub');
+            if (totalSubEl) {
+                totalSubEl.innerText = `전체 순 방문자: ${(stats.totalVisitorsAllTime || 0).toLocaleString()}명 | 총 ${(stats.totalPageviewsAllTime || 0).toLocaleString()} PV`;
+            }
 
             // 2. Real 14-Day Visitor Bar Chart
             const chartContainer = document.getElementById('admin-visitor-chart');
@@ -1767,8 +1771,9 @@ const AdminApp = {
                 }).join('');
             }
 
-            // 3. Update Feature Distribution (9 Core Platform Features)
+            // 3. Update Feature Distribution (10 Core Platform Features)
             const featKeys = [
+                { key: 'chart-forecast', id: 'admin-feat-chart-forecast' },
                 { key: 'analyzer', id: 'admin-feat-analyzer' },
                 { key: 'market', id: 'admin-feat-market' },
                 { key: 'onchain', id: 'admin-feat-onchain' },
