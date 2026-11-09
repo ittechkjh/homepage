@@ -1066,35 +1066,18 @@
         // ==========================================
         // Website Watermark & Branding (cryptopnl.com)
         // ==========================================
-        // 1. Subtle Center Background Watermark
+        // 1. High-Contrast Center Background Watermark (Bold & Clearly Visible)
         ctx.save();
-        ctx.font = isSmallScreen ? 'bold 16px "Inter", "Segoe UI", sans-serif' : 'bold 24px "Inter", "Segoe UI", sans-serif';
-        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+        ctx.font = isSmallScreen ? 'bold 22px "Inter", "Segoe UI", sans-serif' : 'bold 34px "Inter", "Segoe UI", sans-serif';
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.13)';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('CryptoPnL • cryptopnl.com', leftMargin + chartPlotWidth / 2, priceTop + priceHeight * 0.48);
+        const centerWatermarkY = priceTop + priceHeight * 0.38;
+        ctx.fillText('CryptoPnL • cryptopnl.com', leftMargin + chartPlotWidth / 2, centerWatermarkY);
 
-        // 2. Crisp Top-Right Branding Badge (Always visible on chart screenshots)
-        ctx.font = isSmallScreen ? 'bold 10px "JetBrains Mono", monospace' : 'bold 11px "JetBrains Mono", monospace';
-        const brandText = 'cryptopnl.com';
-        const brandTextW = ctx.measureText(brandText).width;
-        const brandW = brandTextW + (isSmallScreen ? 22 : 28);
-        const brandH = isSmallScreen ? 18 : 22;
-        const brandX = canvasWidth - rightMargin - 8;
-        const brandY = priceTop + (isSmallScreen ? 14 : 18);
-
-        ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(19, 23, 34, 0.9)';
-        drawRoundedRect(ctx, brandX - brandW, brandY - brandH / 2, brandW, brandH, 5);
-        ctx.fill();
-
-        ctx.strokeStyle = isLight ? '#0284c7' : '#38bdf8';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.fillStyle = isLight ? '#0284c7' : '#38bdf8';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡ ' + brandText, brandX - 8, brandY);
+        ctx.font = isSmallScreen ? 'bold 10px "Inter", sans-serif' : 'bold 13px "Inter", sans-serif';
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.10)';
+        ctx.fillText('실시간 AI 비트코인 차트 분석 & 시나리오 예측', leftMargin + chartPlotWidth / 2, centerWatermarkY + (isSmallScreen ? 18 : 26));
         ctx.restore();
 
         // Horizontal Separator Line between Price and RSI Panel
@@ -1570,6 +1553,39 @@
             // Default top legend to last bar
             updateTopLegend(chartData[count - 1]);
         }
+
+        // ==========================================
+        // Top-Right High-Contrast Brand Stamp (Always on top for screenshots)
+        // ==========================================
+        ctx.save();
+        const brandFont = isSmallScreen ? 'bold 10px "JetBrains Mono", monospace' : 'bold 12px "JetBrains Mono", monospace';
+        ctx.font = brandFont;
+        const brandLabel = '⚡ CryptoPnL • cryptopnl.com';
+        const brandTextW = ctx.measureText(brandLabel).width;
+        const brandW = brandTextW + (isSmallScreen ? 18 : 26);
+        const brandH = isSmallScreen ? 22 : 26;
+        const brandX = canvasWidth - rightMargin - 8;
+        const brandY = priceTop + (isSmallScreen ? 14 : 18);
+
+        // High-contrast solid dark navy card with drop shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+
+        ctx.fillStyle = '#0f172a'; // Deep obsidian navy for ultra-high contrast in both light & dark
+        drawRoundedRect(ctx, brandX - brandW, brandY - brandH / 2, brandW, brandH, 6);
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = '#38bdf8'; // Glowing cyan outline
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(brandLabel, brandX - (isSmallScreen ? 8 : 12), brandY);
+        ctx.restore();
     }
 
     function drawBadge(x, y, text, bg, border, textCol) {

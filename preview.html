@@ -1656,9 +1656,11 @@
             <!-- Dedicated Top OHLC & MA Ticker Bar (Fixed above canvas, prevents overlapping with candles) -->
             <div id="chartOhlcTickerBar" class="bg-[#181c27] border-b border-[#2a2e39] px-2.5 py-1.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
               <div class="flex items-center gap-2 shrink-0">
-                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs flex items-center gap-1.5">
-                  <span>BTC/USDT</span>
-                  <span class="text-sky-400 font-semibold text-[10px] sm:text-[11px] px-1.5 py-0.2 rounded bg-sky-950/60 border border-sky-500/30">cryptopnl.com</span>
+                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs flex items-center gap-1.5 sm:gap-2">
+                  <span class="bg-[#2962ff] text-white px-2 py-0.5 rounded font-black text-[11px] sm:text-xs shadow-sm">BTC/USDT</span>
+                  <span class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white font-extrabold text-[11px] sm:text-xs px-2.5 py-0.5 rounded shadow-md border border-sky-300/40 flex items-center gap-1 tracking-wide">
+                    <i class="fa-solid fa-chart-line text-[10px] text-sky-200"></i> cryptopnl.com
+                  </span>
                 </span>
                 <span id="ohlcDisplay" class="mono text-[10px] sm:text-[11px] text-slate-100 font-semibold whitespace-nowrap">
                   시: <b class="text-white">-</b> 고: <b class="text-white">-</b> 저: <b class="text-white">-</b> 종: <b class="text-white">-</b>
@@ -1690,7 +1692,9 @@
                 <span class="truncate font-semibold text-slate-200">차트 위의 <b class="text-white">파동 번호, HH/HL, 다이버전스, 예측선</b>을 터치해보세요.</span>
               </div>
               <div class="hidden sm:flex items-center space-x-2.5 mono shrink-0 font-bold text-slate-300">
-                <span class="text-sky-400 font-semibold text-[11px]">cryptopnl.com</span>
+                <span class="bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2 py-0.5 rounded font-extrabold text-[11px] flex items-center gap-1 shadow-sm">
+                  <i class="fa-solid fa-globe text-[10px] text-sky-300"></i> cryptopnl.com
+                </span>
                 <span class="text-slate-600">|</span>
                 <span>RSI(14)</span>
               </div>
