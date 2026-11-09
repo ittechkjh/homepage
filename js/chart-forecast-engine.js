@@ -835,6 +835,11 @@
   </div>
 </div>`;
 
+            const diagContainer = document.getElementById('forecastDiagnosisCardsContainer');
+            if (diagContainer) {
+                diagContainer.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
+            }
+
             const targetBull = Math.round(breakoutPrice * 1.08);
             const targetNeutral = Math.round(lastBar.close * 1.01);
             const targetBear = Math.round(dangerPrice * 0.92);
@@ -1069,14 +1074,14 @@
         // 1. High-Contrast Center Background Watermark (Bold & Clearly Visible)
         ctx.save();
         ctx.font = isSmallScreen ? 'bold 22px "Inter", "Segoe UI", sans-serif' : 'bold 34px "Inter", "Segoe UI", sans-serif';
-        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.13)';
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.09)' : 'rgba(255, 255, 255, 0.08)';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const centerWatermarkY = priceTop + priceHeight * 0.38;
         ctx.fillText('CryptoPnL • cryptopnl.com', leftMargin + chartPlotWidth / 2, centerWatermarkY);
 
-        ctx.font = isSmallScreen ? 'bold 10px "Inter", sans-serif' : 'bold 13px "Inter", sans-serif';
-        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.10)';
+        ctx.font = isSmallScreen ? 'bold 10px "Inter", sans-serif' : 'bold 12px "Inter", sans-serif';
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
         ctx.fillText('실시간 AI 비트코인 차트 분석 & 시나리오 예측', leftMargin + chartPlotWidth / 2, centerWatermarkY + (isSmallScreen ? 18 : 26));
         ctx.restore();
 
@@ -1553,39 +1558,6 @@
             // Default top legend to last bar
             updateTopLegend(chartData[count - 1]);
         }
-
-        // ==========================================
-        // Top-Right High-Contrast Brand Stamp (Always on top for screenshots)
-        // ==========================================
-        ctx.save();
-        const brandFont = isSmallScreen ? 'bold 11px "JetBrains Mono", monospace' : 'bold 13px "JetBrains Mono", monospace';
-        ctx.font = brandFont;
-        const brandLabel = '⚡ CryptoPnL • cryptopnl.com';
-        const brandTextW = ctx.measureText(brandLabel).width;
-        const brandW = brandTextW + (isSmallScreen ? 20 : 28);
-        const brandH = isSmallScreen ? 24 : 28;
-        const brandX = canvasWidth - rightMargin - 8;
-        const brandY = priceTop + (isSmallScreen ? 15 : 20);
-
-        // Ultra high-contrast solid dark navy card with drop shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 3;
-
-        ctx.fillStyle = '#0f172a'; // Deep obsidian navy
-        drawRoundedRect(ctx, brandX - brandW, brandY - brandH / 2, brandW, brandH, 7);
-        ctx.fill();
-
-        ctx.shadowColor = 'transparent';
-        ctx.strokeStyle = '#00f0ff'; // Ultra-bright neon cyan
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(brandLabel, brandX - (isSmallScreen ? 10 : 14), brandY);
-        ctx.restore();
     }
 
     function drawBadge(x, y, text, bg, border, textCol) {
@@ -1662,15 +1634,21 @@
         if (eraTag) eraTag.textContent = scen.eraTag;
         if (mainTitle) mainTitle.textContent = scen.title;
         if (subTitle) subTitle.textContent = scen.subtitle;
-        if (nodeBadge) nodeBadge.textContent = scen.defaultNodeTitle;
-        if (nodeBody) nodeBody.innerHTML = scen.defaultNodeDesc;
+
+        const liveDiagSection = document.getElementById('forecast-live-diagnosis-section');
 
         if (scenKey === 'live_btc') {
+            if (liveDiagSection) liveDiagSection.classList.remove('hidden');
+            if (nodeBadge) nodeBadge.textContent = "실시간 타점 해설";
+            if (nodeBody) nodeBody.innerHTML = "차트 위의 파동 번호(①~⑤), HH/HL 태그, 다이버전스를 터치하면 해당 타점의 실전 매매 근거가 여기에 표시됩니다.";
+
             chartData = await loadLiveBtcData();
-            if (nodeBadge) nodeBadge.textContent = SCENARIOS.live_btc.defaultNodeTitle;
-            if (nodeBody) nodeBody.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
             startLiveBtcAutoRefresh();
         } else {
+            if (liveDiagSection) liveDiagSection.classList.add('hidden');
+            if (nodeBadge) nodeBadge.textContent = scen.defaultNodeTitle;
+            if (nodeBody) nodeBody.innerHTML = scen.defaultNodeDesc;
+
             chartData = buildScenarioData(scenKey);
             if (scenKey === 'full_cycle') {
                 updateTriggerLevelsDOM(108500, 81500, 89500, 76000);
@@ -1716,10 +1694,6 @@
                 const tabEl = document.getElementById('tab-chart-forecast');
                 if (tabEl && !tabEl.classList.contains('hidden')) {
                     chartData = await loadLiveBtcData();
-                    const nb = document.getElementById('selectedNodeBadge');
-                    const nbody = document.getElementById('selectedNodeBody');
-                    if (nb) nb.textContent = SCENARIOS.live_btc.defaultNodeTitle;
-                    if (nbody) nbody.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
                     visibleBarCount = chartData.length;
                     drawChart();
                     updateChartTimestamp();
@@ -1798,8 +1772,9 @@
         // -------------------------------------------------------------
         // Diagnosis Cards Extraction (Live 5 Core Indicators)
         // -------------------------------------------------------------
-        const sourceHtmlForCards = (nodeBodyEl && nodeBodyEl.querySelector('.forecast-dow-card'))
-            ? nodeBodyEl.innerHTML
+        const diagCardsContainer = document.getElementById('forecastDiagnosisCardsContainer');
+        const sourceHtmlForCards = (diagCardsContainer && diagCardsContainer.innerHTML.trim().length > 10)
+            ? diagCardsContainer.innerHTML
             : (SCENARIOS.live_btc && SCENARIOS.live_btc.defaultNodeDesc ? SCENARIOS.live_btc.defaultNodeDesc : '');
 
         let formattedDiagnosisHtml = '';
@@ -1828,18 +1803,11 @@
                     plainDiagnosisText += `[${item.title} - ${badgeText}]\n${descCleanText}\n\n`;
 
                     formattedDiagnosisHtml += `
-                    <div style="background-color: ${item.bg}; border: 1.5px solid #e2e8f0; border-left: 6px solid ${item.border}; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;">
-                      <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
-                        <tr>
-                          <td style="font-weight: 800; font-size: 14px; color: ${item.titleColor}; vertical-align: middle;">
-                            ${item.title}
-                          </td>
-                          <td style="text-align: right; vertical-align: middle;">
-                            ${badgeText ? `<span style="font-size: 11px; font-weight: 900; background-color: ${item.badgeBg}; color: #ffffff; padding: 4px 12px; border-radius: 20px; display: inline-block;">${badgeText}</span>` : ''}
-                          </td>
-                        </tr>
-                      </table>
-                      <div style="font-size: 13px; color: #334155; line-height: 1.7;">
+                    <div style="background-color: ${item.bg}; border: 1px solid #e2e8f0; border-left: 5px solid ${item.border}; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;">
+                      <div style="font-weight: bold; font-size: 13px; color: ${item.titleColor}; margin-bottom: 4px;">
+                        ${item.title} ${badgeText ? `<span style="font-size: 11px; font-weight: bold; background-color: ${item.badgeBg}; color: #ffffff; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">${badgeText}</span>` : ''}
+                      </div>
+                      <div style="font-size: 12px; color: #334155; line-height: 1.5;">
                         ${descHtml}
                       </div>
                     </div>`;
@@ -1851,22 +1819,16 @@
         let focusedSpotHtml = '';
         let focusedSpotPlain = '';
         const currentSpotDesc = nodeBodyEl ? nodeBodyEl.textContent.replace(/\n\s*\n/g, '\n').trim() : '';
-        const isDefaultDesc = currentSpotDesc.includes('다우 이론') && currentSpotDesc.includes('엘리엇');
-        if (!isDefaultDesc && currentSpotDesc) {
+        const isDefaultPlaceholder = currentSpotDesc.includes('차트 위의 파동 번호') || currentSpotDesc.includes('터치하면 해당 타점');
+        if (!isDefaultPlaceholder && currentSpotDesc) {
             focusedSpotPlain = `■ 현재 선택된 차트 타점 해설: [${nodeBadge}]\n${currentSpotDesc}\n\n`;
             focusedSpotHtml = `
-            <div style="background-color: #f0fdf4; border: 1.5px solid #86efac; border-left: 6px solid #16a34a; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
-                <tr>
-                  <td style="font-weight: 800; font-size: 14px; color: #15803d; vertical-align: middle;">
-                    🎯 현재 선택된 차트 타점 해설
-                  </td>
-                  <td style="text-align: right; vertical-align: middle;">
-                    <span style="background-color: #16a34a; color: #ffffff; font-size: 12px; font-weight: 900; padding: 4px 12px; border-radius: 20px; display: inline-block;">${nodeBadge}</span>
-                  </td>
-                </tr>
-              </table>
-              <div style="font-size: 13px; color: #166534; line-height: 1.7;">
+            <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-left: 5px solid #16a34a; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;">
+              <div style="font-weight: bold; font-size: 13px; color: #15803d; margin-bottom: 4px;">
+                🎯 현재 선택된 차트 타점 해설
+                <span style="background-color: #16a34a; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">${nodeBadge}</span>
+              </div>
+              <div style="font-size: 12px; color: #166534; line-height: 1.5;">
                 ${convertClassesToInline(nodeBodyEl.innerHTML)}
               </div>
             </div>`;
@@ -1913,60 +1875,53 @@
         plainText += `출처: CryptoPnL 비트코인 실전 차트 작도 & AI 예측 (https://cryptopnl.com)`;
 
         // -------------------------------------------------------------
-        // 2. Rich HTML Version (For Naver Blog SmartEditor)
+        // 2. Rich HTML Version (For Naver Blog SmartEditor - Zero Clutter)
         // -------------------------------------------------------------
         const richHtml = `
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; max-width: 760px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; max-width: 760px; margin: 0 auto; color: #1e293b; line-height: 1.5;">
 
-  <!-- Header Box: 100% Solid Background & Dark Contrast Text for Naver Blog -->
-  <div style="background-color: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 22px 24px; margin-bottom: 24px;">
-    <div style="margin-bottom: 12px;">
-      <span style="background-color: #0284c7; color: #ffffff; font-size: 12px; font-weight: 900; padding: 5px 14px; border-radius: 20px; display: inline-block;">
+  <!-- Header Box: Solid Pastel Background & High Contrast Dark Text -->
+  <div style="background-color: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;">
+    <div style="margin-bottom: 8px;">
+      <span style="background-color: #0284c7; color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; display: inline-block;">
         ⚡ BTC/USDT 일봉 분석 & AI 시장 전망
       </span>
-      <span style="background-color: #0f172a; color: #38bdf8; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px; display: inline-block; border: 1.5px solid #38bdf8; margin-left: 6px;">
+      <span style="background-color: #0f172a; color: #38bdf8; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; display: inline-block; border: 1px solid #38bdf8; margin-left: 4px;">
         🌐 cryptopnl.com
       </span>
     </div>
-    <h2 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 900; color: #0f172a; line-height: 1.4;">
+    <div style="margin: 0 0 6px 0; font-size: 18px; font-weight: 900; color: #0f172a; line-height: 1.3;">
       ${mainTitle}
-    </h2>
-    <p style="margin: 0 0 14px 0; font-size: 14px; color: #334155; line-height: 1.6; font-weight: 500;">
+    </div>
+    <div style="margin: 0 0 8px 0; font-size: 13px; color: #334155; line-height: 1.4; font-weight: 500;">
       "${subTitle}"
-    </p>
-    <div style="border-top: 1px solid #bae6fd; padding-top: 10px; font-size: 12px; color: #0284c7; font-weight: bold; display: flex; justify-content: space-between;">
-      <span>📅 분석 기준: <b style="color: #0f172a;">${dateStr}</b> (일봉 1D 기준)</span>
-      <span>공식 출처: <b style="color: #0369a1;">cryptopnl.com</b></span>
+    </div>
+    <div style="border-top: 1px solid #bae6fd; padding-top: 6px; font-size: 11px; color: #0284c7; font-weight: bold;">
+      📅 분석 기준: <span style="color: #0f172a;">${dateStr}</span> (일봉 1D 기준) | 공식 출처: <span style="color: #0369a1;">cryptopnl.com</span>
     </div>
   </div>
 
-  <!-- Trigger Levels 3 Cards Table with Prominent Solid Badges -->
-  <div style="margin-bottom: 26px;">
-    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 12px;">
+  <!-- Trigger Levels: Single Clean Table (No nested tables) -->
+  <div style="margin-bottom: 10px;">
+    <div style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">
       🎯 실전 핵심 매매 기준선 (Trigger Levels)
     </div>
-    <table style="width: 100%; border-collapse: separate; border-spacing: 8px; margin: 0 -8px;">
+    <table border="0" cellpadding="8" cellspacing="4" style="width: 100%; border-collapse: separate; margin: 0;">
       <tr>
-        <td style="width: 33.3%; background-color: #ecfdf5; border: 1.5px solid #10b981; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
-          <div style="background-color: #059669; color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(5,150,105,0.25);">
-            🟢 상방 돌파 호재
-          </div>
-          <div style="font-size: 22px; font-weight: 900; color: #065f46; margin-bottom: 6px; font-family: monospace;">${bPrice}</div>
-          <div style="font-size: 11px; color: #047857; line-height: 1.4;">돌파 시 하락 다우 종결<br>숏스퀴즈 강세 랠리</div>
+        <td style="width: 33%; background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; text-align: center; vertical-align: top;">
+          <div style="font-size: 11px; font-weight: bold; color: #047857;">🟢 상방 돌파 호재</div>
+          <div style="font-size: 18px; font-weight: 900; color: #065f46; margin: 3px 0; font-family: monospace;">${bPrice}</div>
+          <div style="font-size: 11px; color: #047857; line-height: 1.3;">돌파 시 하락 다우 종결<br>숏스퀴즈 강세 랠리</div>
         </td>
-        <td style="width: 33.3%; background-color: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
-          <div style="background-color: #d97706; color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(217,119,6,0.25);">
-            🟡 단기 수렴 박스
-          </div>
-          <div style="font-size: 20px; font-weight: 900; color: #92400e; margin-bottom: 6px; font-family: monospace;">${rPrice}</div>
-          <div style="font-size: 11px; color: #b45309; line-height: 1.4;">20·50MA 수렴 횡보<br>스윙 매집 구간</div>
+        <td style="width: 33%; background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; text-align: center; vertical-align: top;">
+          <div style="font-size: 11px; font-weight: bold; color: #b45309;">🟡 단기 수렴 박스</div>
+          <div style="font-size: 18px; font-weight: 900; color: #92400e; margin: 3px 0; font-family: monospace;">${rPrice}</div>
+          <div style="font-size: 11px; color: #b45309; line-height: 1.3;">20·50MA 수렴 횡보<br>스윙 매집 구간</div>
         </td>
-        <td style="width: 33.3%; background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 10px; padding: 14px 10px; text-align: center; vertical-align: top;">
-          <div style="background-color: #dc2626; color: #ffffff; font-size: 11px; font-weight: 900; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(220,38,38,0.25);">
-            🔴 하방 위험 경보
-          </div>
-          <div style="font-size: 22px; font-weight: 900; color: #991b1b; margin-bottom: 6px; font-family: monospace;">${dPrice}</div>
-          <div style="font-size: 11px; color: #b91c1c; line-height: 1.4;">200일선 이탈 시 급락<br>리스크 관리 기준</div>
+        <td style="width: 33%; background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; text-align: center; vertical-align: top;">
+          <div style="font-size: 11px; font-weight: bold; color: #b91c1c;">🔴 하방 위험 경보</div>
+          <div style="font-size: 18px; font-weight: 900; color: #991b1b; margin: 3px 0; font-family: monospace;">${dPrice}</div>
+          <div style="font-size: 11px; color: #b91c1c; line-height: 1.3;">200일선 이탈 시 급락<br>리스크 관리 기준</div>
         </td>
       </tr>
     </table>
@@ -1975,159 +1930,115 @@
   ${focusedSpotHtml}
 
   <!-- 5 Indicators Comprehensive Diagnosis -->
-  <div style="margin-bottom: 26px;">
-    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 12px;">
+  <div style="margin-bottom: 10px;">
+    <div style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">
       📊 실시간 5대 핵심 기술적 지표 종합 진단
     </div>
     ${formattedDiagnosisHtml}
   </div>
 
-  <!-- AI Scenarios with Prominent Large Badges -->
-  <div style="margin-bottom: 26px;">
-    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 12px;">
+  <!-- AI Scenarios (Zero nested tables) -->
+  <div style="margin-bottom: 10px;">
+    <div style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">
       🚀 AI 기술적 분석 3대 향후 전망 시나리오
     </div>
     <!-- Scenario A -->
-    <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;">
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
-        <tr>
-          <td style="font-weight: 800; font-size: 14px; color: #047857; vertical-align: middle;">
-            시나리오 A: 강세 돌파 랠리 (45%)
-          </td>
-          <td style="text-align: right; vertical-align: middle;">
-            <span style="background-color: #059669; color: #ffffff; font-size: 13px; font-weight: 900; padding: 5px 14px; border-radius: 20px; display: inline-block; box-shadow: 0 2px 5px rgba(5,150,105,0.35);">
-              🎯 목표가 ${scenTargetA}
-            </span>
-          </td>
-        </tr>
-      </table>
-      <div style="font-size: 13px; color: #065f46; line-height: 1.5;">${scenA}</div>
+    <div style="background-color: #ecfdf5; border-left: 5px solid #059669; border-top: 1px solid #a7f3d0; border-right: 1px solid #a7f3d0; border-bottom: 1px solid #a7f3d0; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-size: 13px; font-weight: bold; color: #047857; margin-bottom: 3px;">
+        시나리오 A: 강세 돌파 랠리 (45%)
+        <span style="background-color: #059669; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">🎯 목표가 ${scenTargetA}</span>
+      </div>
+      <div style="font-size: 12px; color: #065f46; line-height: 1.4;">${scenA}</div>
     </div>
     <!-- Scenario B -->
-    <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;">
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
-        <tr>
-          <td style="font-weight: 800; font-size: 14px; color: #b45309; vertical-align: middle;">
-            시나리오 B: 박스권 수렴 지지 (35%)
-          </td>
-          <td style="text-align: right; vertical-align: middle;">
-            <span style="background-color: #d97706; color: #ffffff; font-size: 13px; font-weight: 900; padding: 5px 14px; border-radius: 20px; display: inline-block; box-shadow: 0 2px 5px rgba(217,119,6,0.35);">
-              🎯 목표가 ${scenTargetB}
-            </span>
-          </td>
-        </tr>
-      </table>
-      <div style="font-size: 13px; color: #92400e; line-height: 1.5;">${scenB}</div>
+    <div style="background-color: #fffbeb; border-left: 5px solid #d97706; border-top: 1px solid #fde68a; border-right: 1px solid #fde68a; border-bottom: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-size: 13px; font-weight: bold; color: #b45309; margin-bottom: 3px;">
+        시나리오 B: 박스권 수렴 지지 (35%)
+        <span style="background-color: #d97706; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">🎯 목표가 ${scenTargetB}</span>
+      </div>
+      <div style="font-size: 12px; color: #92400e; line-height: 1.4;">${scenB}</div>
     </div>
     <!-- Scenario C -->
-    <div style="background-color: #fef2f2; border: 1.5px solid #fecaca; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;">
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
-        <tr>
-          <td style="font-weight: 800; font-size: 14px; color: #b91c1c; vertical-align: middle;">
-            시나리오 C: 리스크 지지 이탈 (20%)
-          </td>
-          <td style="text-align: right; vertical-align: middle;">
-            <span style="background-color: #dc2626; color: #ffffff; font-size: 13px; font-weight: 900; padding: 5px 14px; border-radius: 20px; display: inline-block; box-shadow: 0 2px 5px rgba(220,38,38,0.35);">
-              ⚠️ 위험선 ${scenTargetC}
-            </span>
-          </td>
-        </tr>
-      </table>
-      <div style="font-size: 13px; color: #991b1b; line-height: 1.5;">${scenC}</div>
+    <div style="background-color: #fef2f2; border-left: 5px solid #dc2626; border-top: 1px solid #fecaca; border-right: 1px solid #fecaca; border-bottom: 1px solid #fecaca; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-size: 13px; font-weight: bold; color: #b91c1c; margin-bottom: 3px;">
+        시나리오 C: 리스크 지지 이탈 (20%)
+        <span style="background-color: #dc2626; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-left: 6px;">⚠️ 위험선 ${scenTargetC}</span>
+      </div>
+      <div style="font-size: 12px; color: #991b1b; line-height: 1.4;">${scenC}</div>
     </div>
   </div>
 
-  <!-- 4 Core Theories Educational Guide (Complete Detail) -->
-  <div style="margin-bottom: 26px;">
-    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 12px;">
+  <!-- 4 Core Theories Educational Guide (Zero nested tables) -->
+  <div style="margin-bottom: 10px;">
+    <div style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">
       📚 4대 실전 이론 마스터 교본
     </div>
     <!-- 1. 다우 이론 -->
-    <div style="background-color: #f0f9ff; border: 1.5px solid #bae6fd; border-left: 6px solid #0284c7; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
-      <div style="font-weight: 800; font-size: 14px; color: #0369a1; margin-bottom: 6px;">
+    <div style="background-color: #f0f9ff; border-left: 5px solid #0284c7; border-top: 1px solid #bae6fd; border-right: 1px solid #bae6fd; border-bottom: 1px solid #bae6fd; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-weight: bold; font-size: 13px; color: #0369a1; margin-bottom: 3px;">
         1. 다우 이론 (Dow Theory) 추세 판단 기준
       </div>
-      <p style="font-size: 13px; color: #334155; margin: 0 0 10px 0;">
-        일봉의 스윙 고점과 저점을 이어 시장 추세 구조를 정의합니다.
-      </p>
-      <table style="width: 100%; border-collapse: separate; border-spacing: 6px; margin: 0 -6px;">
-        <tr>
-          <td style="width: 50%; background-color: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 10px;">
-            <div style="font-weight: bold; color: #059669; font-size: 12px; margin-bottom: 4px;">📈 상승 추세 조건</div>
-            <div style="font-size: 12px; color: #334155; line-height: 1.5;">고점(HH)+저점(HL) 연속. 직전 HL 지지 시 매수 타점.</div>
-          </td>
-          <td style="width: 50%; background-color: #ffffff; border: 1px solid #fecaca; border-radius: 6px; padding: 10px;">
-            <div style="font-weight: bold; color: #dc2626; font-size: 12px; margin-bottom: 4px;">📉 추세 전환 (BOS)</div>
-            <div style="font-size: 12px; color: #334155; line-height: 1.5;">HL 넥라인 하향 돌파 후 반등 고점(LH) 하락 확정.</div>
-          </td>
-        </tr>
-      </table>
+      <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+        일봉의 스윙 고점과 저점을 이어 시장 추세 구조를 정의합니다.<br>
+        • <b>상승 추세:</b> 고점(HH)+저점(HL) 연속 형성. 직전 HL 지지 시 매수 타점.<br>
+        • <b>추세 전환(BOS):</b> 직전 HL 넥라인 하향 이탈 후 반등 고점(LH)에서 하락 확정.
+      </div>
     </div>
     <!-- 2. 엘리엇 파동 -->
-    <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-left: 6px solid #d97706; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
-      <div style="font-weight: 800; font-size: 14px; color: #b45309; margin-bottom: 6px;">
+    <div style="background-color: #fffbeb; border-left: 5px solid #d97706; border-top: 1px solid #fde68a; border-right: 1px solid #fde68a; border-bottom: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-weight: bold; font-size: 13px; color: #b45309; margin-bottom: 3px;">
         2. 엘리엇 파동 (5파 상승 · 3파 조정)
       </div>
-      <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #334155; line-height: 1.7;">
-        <li><b style="color: #b45309;">①파:</b> 바닥권 매집 후 첫 충격파 반등.</li>
-        <li><b style="color: #b45309;">②파:</b> 0.5~0.618 눌림목. ①파 시점 이탈 금지.</li>
-        <li><b style="color: #b45309;">③파:</b> 1.618배 이상 거래량 폭발 대세 상승.</li>
-        <li><b style="color: #b45309;">④파:</b> 0.382 부근 복합 횡보 조정.</li>
-        <li><b style="color: #b45309;">⑤파:</b> RSI 하락 다이버전스 동반 후 A-B-C 조정.</li>
-      </ul>
+      <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+        • <b>①파:</b> 바닥권 매집 후 첫 충격파 반등 | <b>②파:</b> 0.5~0.618 눌림목<br>
+        • <b>③파:</b> 1.618배 이상 거래량 폭발 대세 상승 | <b>④파:</b> 0.382 부근 횡보 조정<br>
+        • <b>⑤파:</b> RSI 하락 다이버전스 동반 후 A-B-C 조정 국면 진입
+      </div>
     </div>
     <!-- 3. RSI 다이버전스 -->
-    <div style="background-color: #fdf2f8; border: 1.5px solid #fbcfe8; border-left: 6px solid #db2777; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
-      <div style="font-weight: 800; font-size: 14px; color: #be185d; margin-bottom: 6px;">
+    <div style="background-color: #fdf2f8; border-left: 5px solid #db2777; border-top: 1px solid #fbcfe8; border-right: 1px solid #fbcfe8; border-bottom: 1px solid #fbcfe8; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-weight: bold; font-size: 13px; color: #be185d; margin-bottom: 3px;">
         3. 일봉 RSI 다이버전스 (추세 반전 신호)
       </div>
-      <table style="width: 100%; border-collapse: separate; border-spacing: 6px; margin: 0 -6px;">
-        <tr>
-          <td style="width: 50%; background-color: #ffffff; border: 1px solid #fecaca; border-radius: 6px; padding: 10px;">
-            <div style="font-weight: bold; color: #dc2626; font-size: 12px; margin-bottom: 4px;">📉 하락 다이버전스 (천장 신호)</div>
-            <div style="font-size: 12px; color: #334155; line-height: 1.5;">캔들 고점 상승(HH) vs RSI 고점 하락(LH)</div>
-          </td>
-          <td style="width: 50%; background-color: #ffffff; border: 1px solid #a7f3d0; border-radius: 6px; padding: 10px;">
-            <div style="font-weight: bold; color: #059669; font-size: 12px; margin-bottom: 4px;">📈 상승 다이버전스 (바닥 반전)</div>
-            <div style="font-size: 12px; color: #334155; line-height: 1.5;">캔들 저점 하락(LL) vs RSI 저점 상승(HL)</div>
-          </td>
-        </tr>
-      </table>
+      <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+        • <b>📉 하락 다이버전스 (천장 신호):</b> 캔들 고점 상승(HH) vs RSI 고점 하락(LH) → 분할 매도<br>
+        • <b>📈 상승 다이버전스 (바닥 반전):</b> 캔들 저점 하락(LL) vs RSI 저점 상승(HL) → 분할 매수
+      </div>
     </div>
     <!-- 4. 이동평균선 -->
-    <div style="background-color: #faf5ff; border: 1.5px solid #f3e8ff; border-left: 6px solid #7c3aed; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
-      <div style="font-weight: 800; font-size: 14px; color: #6d28d9; margin-bottom: 6px;">
+    <div style="background-color: #faf5ff; border-left: 5px solid #7c3aed; border-top: 1px solid #f3e8ff; border-right: 1px solid #f3e8ff; border-bottom: 1px solid #f3e8ff; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
+      <div style="font-weight: bold; font-size: 13px; color: #6d28d9; margin-bottom: 3px;">
         4. 3대 이동평균선 (20·50·200MA) 역할
       </div>
-      <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #334155; line-height: 1.7;">
-        <li><b style="color: #d97706;">20일선:</b> 단기 생명선 (상승 시 눌림목 지지)</li>
-        <li><b style="color: #0284c7;">50일선:</b> 중기 스윙 지지선 (④파 방어선)</li>
-        <li><b style="color: #7c3aed;">200일선:</b> 강세/약세장 분기선 (대세 판단 기준)</li>
-      </ul>
+      <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+        • <b>20일선:</b> 단기 생명선 (상승 시 눌림목 지지선)<br>
+        • <b>50일선:</b> 중기 스윙 지지선 (④파 넥라인 방어선)<br>
+        • <b>200일선:</b> 강세장/약세장 분기선 (골든크로스 / 데드크로스)
+      </div>
     </div>
   </div>
 
   <!-- Checklist Box -->
-  <div style="background-color: #f8fafc; border: 2px solid #0284c7; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
-    <div style="font-weight: 900; font-size: 15px; color: #0284c7; margin-bottom: 10px;">
+  <div style="background-color: #f8fafc; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+    <div style="font-weight: bold; font-size: 13px; color: #0284c7; margin-bottom: 4px;">
       📋 실전 매매 3단계 체크리스트
     </div>
-    <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #1e293b; line-height: 1.8;">
-      <li><b>구조 확인 (다우 & 이평선):</b> 200일선 위에서 HH·HL 상승 구조인가?</li>
-      <li><b>위치 파악 (엘리엇 파동):</b> 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?</li>
-      <li><b>방아쇠 당기기 (RSI & 이평선):</b> 다이버전스 출현 및 20일선 돌파/이탈 확인</li>
-    </ol>
+    <div style="font-size: 12px; color: #1e293b; line-height: 1.6;">
+      1. <b>구조 확인:</b> 200일선 위에서 HH·HL 상승 다우 구조 유지 중인가?<br>
+      2. <b>위치 파악:</b> 과열된 ⑤파 끝자락인가, 손익비 우수한 ②·④파 눌림목인가?<br>
+      3. <b>트리거 확인:</b> RSI 다이버전스 확인 및 20일선 상/하향 돌파 시 진입/탈출
+    </div>
   </div>
 
-  <!-- Website Promotion & Link Footer -->
-  <div style="background-color: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center; margin-top: 24px;">
-    <div style="font-size: 16px; font-weight: 900; color: #0369a1; margin-bottom: 6px;">
+  <!-- Promotion Button -->
+  <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; text-align: center;">
+    <div style="font-size: 13px; font-weight: bold; color: #0369a1; margin-bottom: 4px;">
       🌐 실시간 비트코인 일봉 차트 & AI 향후 전망 보러가기
     </div>
-    <div style="font-size: 13px; color: #475569; margin-bottom: 12px; line-height: 1.5;">
-      다우 이론, 엘리엇 파동 5파, 20·50·200MA 정/역배열, RSI 다이버전스를 실시간 캔버스에서 직접 확인하세요!
+    <div style="font-size: 11px; color: #475569; margin-bottom: 8px;">
+      다우 이론, 엘리엇 파동 5파, 20·50·200MA, RSI 다이버전스를 실시간 인터랙티브 차트에서 직접 확인하세요!
     </div>
-    <a href="https://cryptopnl.com" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-weight: 900; font-size: 14px; padding: 10px 24px; border-radius: 20px; text-decoration: none; box-shadow: 0 4px 6px rgba(2,132,199,0.3);">
+    <a href="https://cryptopnl.com" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-weight: bold; font-size: 12px; padding: 6px 18px; border-radius: 16px; text-decoration: none;">
       👉 cryptopnl.com 바로가기
     </a>
   </div>
@@ -2369,10 +2280,15 @@
                     if (nBadge) nBadge.textContent = clickedSpot.title;
                     if (nBody) nBody.innerHTML = clickedSpot.desc;
                 } else {
-                    const scen = SCENARIOS[currentScenarioKey];
-                    if (scen) {
-                        if (nBadge) nBadge.textContent = scen.defaultNodeTitle;
-                        if (nBody) nBody.innerHTML = scen.defaultNodeDesc;
+                    if (currentScenarioKey === 'live_btc') {
+                        if (nBadge) nBadge.textContent = "실시간 타점 해설";
+                        if (nBody) nBody.innerHTML = "차트 위의 파동 번호(①~⑤), HH/HL 태그, 다이버전스를 터치하면 해당 타점의 실전 매매 근거가 여기에 표시됩니다.";
+                    } else {
+                        const scen = SCENARIOS[currentScenarioKey];
+                        if (scen) {
+                            if (nBadge) nBadge.textContent = scen.defaultNodeTitle;
+                            if (nBody) nBody.innerHTML = scen.defaultNodeDesc;
+                        }
                     }
                 }
             });

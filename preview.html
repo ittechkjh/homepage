@@ -1750,10 +1750,10 @@
                   <span class="text-[11px] font-bold text-cyan-300 flex items-center">
                     <i class="fa-solid fa-crosshairs mr-1.5 text-cyan-400"></i>현재 선택/포커스된 차트 타점 해설
                   </span>
-                  <span id="selectedNodeBadge" class="text-[10px] mono font-bold px-1.5 py-0.5 rounded bg-[#2a2e39] text-amber-300 border border-amber-400/30">⑤파 고점 + 하락 다이버전스</span>
+                  <span id="selectedNodeBadge" class="text-[10px] mono font-bold px-1.5 py-0.5 rounded bg-[#2a2e39] text-amber-300 border border-amber-400/30">실시간 타점 해설</span>
                 </div>
                 <div id="selectedNodeBody" class="text-xs text-slate-100 font-medium leading-relaxed mt-1">
-                  차트 상단 <b class="text-amber-300">⑤번 고점</b>을 보세요. 캔들 가격은 ③번 고점보다 높아졌지만(HH), 하단 <b class="text-rose-400">RSI 고점은 오히려 낮아진(LH) 전형적인 '하락 다이버전스'</b>가 발생했습니다. 이후 20일 이평선(노란선)과 직전 HL(넥라인)이 깨질 때가 확정 매도(숏/현금화) 타점입니다.
+                  차트 위의 파동 번호(①~⑤), HH/HL 태그, 다이버전스를 터치하면 해당 타점의 실전 매매 근거가 여기에 표시됩니다.
                 </div>
               </div>
 
@@ -1781,6 +1781,19 @@
                     <div id="level-danger" class="font-extrabold text-white text-xs sm:text-sm mono mt-0.5">$73,200</div>
                     <div class="text-[9px] text-rose-200/80 mt-0.5 leading-tight">200MA 이탈 시 위험</div>
                   </div>
+                </div>
+              </div>
+
+              <!-- Permanent 5-Indicators Diagnosis Section (Never disappears on hover/click) -->
+              <div id="forecast-live-diagnosis-section" class="p-3.5 border-b border-[#2a2e39] bg-[#141b2b] space-y-2">
+                <div class="text-[11px] font-bold text-cyan-300 flex items-center justify-between">
+                  <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-line text-cyan-400"></i> 실시간 5대 핵심 기술적 지표 종합 진단
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono font-bold">5 CORE INDICATORS</span>
+                </div>
+                <div id="forecastDiagnosisCardsContainer" class="space-y-2">
+                  <!-- Dynamic 5 cards will be injected here and NEVER wiped by hover -->
                 </div>
               </div>
 
