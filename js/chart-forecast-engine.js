@@ -1,11 +1,11 @@
 /**
- * CrytoPnL - BTC/USDT 실전 차트 작도 & AI 기술적 분석 시뮬레이터 & 향후 전망 예측 엔진
+ * CrytoPnL - BTC/USDT 실전 차트 작도 & 기술적 분석 시뮬레이터 & 향후 전망 예측 엔진
  * - 다우 이론 (HH/HL 구조)
  * - 엘리엇 파동 (1~5파 충격 + A-B-C 조정)
  * - 이동평균선 (20·50·200일선 골든/데드크로스)
  * - RSI 다이버전스 (일반 상승/하락 다이버전스)
  * - 핵심 지지/저항 매물대 및 넥라인
- * - 실시간 BTC/USDT 일봉 연동 및 AI 3단계 향후 전망 예측 궤적 (상승/중립/하락 시나리오)
+ * - 실시간 BTC/USDT 일봉 연동 및 3단계 향후 전망 예측 궤적 (상승/중립/하락 시나리오)
  */
 
 (function () {
@@ -15,10 +15,10 @@
 
     const SCENARIOS = {
         live_btc: {
-            title: "BTC/USDT 1D • 실시간 비트코인 일봉 & AI 향후 전망 예측",
-            eraTag: "⚡ 실시간 AI 예측",
+            title: "BTC/USDT 1D • 실시간 비트코인 일봉 & 향후 전망 예측",
+            eraTag: "⚡ 실시간 시장 예측",
             subtitle: "현재 실제 바이낸스/업비트 비트코인 일봉 데이터를 분석하여 실시간 다우 구조, 이평선 정/역배열, RSI 다이버전스 및 향후 3대 시나리오 궤적을 예측합니다.",
-            defaultNodeTitle: "현재 비트코인 실시간 차트 & AI 향후 시나리오",
+            defaultNodeTitle: "현재 비트코인 실시간 차트 & 향후 시나리오",
             defaultNodeDesc: "실시간 비트코인 캔들을 기반으로 20/50/200 이평선 지지력과 RSI 모멘텀을 결합한 3가지 예측 경로(돌파 랠리 / 박스권 지지 / 리스크 이탈)를 캔버스에 점선으로 투영합니다.",
             isLive: true,
             totalBars: 100,
@@ -881,7 +881,7 @@
             const fallbackScen = JSON.parse(JSON.stringify(SCENARIOS.etf_2024));
             return buildScenarioData('etf_2024');
         } finally {
-            if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1 text-cyan-400"></i>⚡ 실시간 비트코인 일봉 & AI 향후 전망`;
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt mr-1 text-cyan-400"></i>⚡ 실시간 비트코인 일봉 & 향후 전망`;
         }
     }
 
@@ -1082,7 +1082,7 @@
 
         ctx.font = isSmallScreen ? 'bold 10px "Inter", sans-serif' : 'bold 12px "Inter", sans-serif';
         ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.07)';
-        ctx.fillText('실시간 AI 비트코인 차트 분석 & 시나리오 예측', leftMargin + chartPlotWidth / 2, centerWatermarkY + (isSmallScreen ? 18 : 26));
+        ctx.fillText('실시간 비트코인 차트 분석 & 시나리오 예측', leftMargin + chartPlotWidth / 2, centerWatermarkY + (isSmallScreen ? 18 : 26));
         ctx.restore();
 
         // Horizontal Separator Line between Price and RSI Panel
@@ -1403,7 +1403,7 @@
                     let spotDesc = isAbove ? "스윙 고점 (HH: 신고가 돌파 / LH: 반등 한계)" : "스윙 저점 (HL: 핵심 지지 / LL: 구조 붕괴 이탈)";
 
                     if (tag.text === 'NOW') {
-                        spotTitle = currentScen.defaultNodeTitle || "현재 비트코인 실시간 차트 & AI 향후 시나리오";
+                        spotTitle = currentScen.defaultNodeTitle || "현재 비트코인 실시간 차트 & 향후 시나리오";
                         spotDesc = currentScen.defaultNodeDesc;
                     } else if (tag.text.includes('LH')) {
                         spotTitle = `스윙 고점 저항 (LH • 반등한계)`;
@@ -1431,7 +1431,7 @@
         }
 
         // ==========================================
-        // AI Future Forecast Pathways (For Live / Prediction Mode)
+        // Future Forecast Pathways (For Live / Prediction Mode)
         // ==========================================
         if (layers.forecast && currentScen && currentScen.forecastPathways && count >= chartData.length - 1) {
             const lastBar = chartData[count - 1];
@@ -1837,7 +1837,7 @@
         // -------------------------------------------------------------
         // 1. Plain Text Version (Exhaustive & Complete)
         // -------------------------------------------------------------
-        let plainText = `[BTC/USDT 비트코인 기술적 분석 & AI 시장 전망]\n`;
+        let plainText = `[BTC/USDT 비트코인 기술적 분석 & 시장 전망]\n`;
         plainText += `기준 일시: ${dateStr} (일봉 1D 기준)\n\n`;
         plainText += `■ 핵심 분석 테마: ${mainTitle}\n`;
         plainText += `"${subTitle}"\n\n`;
@@ -1847,7 +1847,7 @@
         plainText += `• 🔴 하방 위험 경보선: ${dPrice} (200일선 이탈 시 급락 위험 및 리스크 관리 기준)\n\n`;
         if (focusedSpotPlain) plainText += focusedSpotPlain;
         plainText += `■ 실시간 5대 핵심 기술적 지표 종합 진단\n${plainDiagnosisText}`;
-        plainText += `■ AI 기술적 분석 3대 향후 전망 시나리오\n`;
+        plainText += `■ 기술적 분석 3대 향후 전망 시나리오\n`;
         plainText += `1. 시나리오 A: 강세 돌파 랠리 (45%) [목표: ${scenTargetA}]\n   - ${scenA}\n`;
         plainText += `2. 시나리오 B: 박스권 수렴 지지 (35%) [목표: ${scenTargetB}]\n   - ${scenB}\n`;
         plainText += `3. 시나리오 C: 리스크 지지 이탈 (20%) [위험: ${scenTargetC}]\n   - ${scenC}\n\n`;
@@ -1872,7 +1872,7 @@
         plainText += `1. 구조 확인: 200일선 위에서 HH·HL 상승 구조인가?\n`;
         plainText += `2. 위치 파악: 과열된 ⑤파 끝자락인가, 손익비 좋은 ②·④파인가?\n`;
         plainText += `3. 방아쇠 당기기: 다이버전스 출현 및 20일선 돌파/이탈 확인\n\n`;
-        plainText += `출처: CryptoPnL 비트코인 실전 차트 작도 & AI 예측 (https://cryptopnl.com)`;
+        plainText += `출처: CryptoPnL 비트코인 실전 차트 작도 & 예측 (https://cryptopnl.com)`;
 
         // -------------------------------------------------------------
         // 2. Rich HTML Version (For Naver Blog SmartEditor - Zero Clutter)
@@ -1884,7 +1884,7 @@
   <div style="background-color: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;">
     <div style="margin-bottom: 8px;">
       <span style="background-color: #0284c7; color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; display: inline-block;">
-        ⚡ BTC/USDT 일봉 분석 & AI 시장 전망
+        ⚡ BTC/USDT 일봉 분석 & 시장 전망
       </span>
       <span style="background-color: #0f172a; color: #38bdf8; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 12px; display: inline-block; border: 1px solid #38bdf8; margin-left: 4px;">
         🌐 cryptopnl.com
@@ -1937,10 +1937,10 @@
     ${formattedDiagnosisHtml}
   </div>
 
-  <!-- AI Scenarios (Zero nested tables) -->
+  <!-- Technical Scenarios (Zero nested tables) -->
   <div style="margin-bottom: 10px;">
     <div style="font-size: 14px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">
-      🚀 AI 기술적 분석 3대 향후 전망 시나리오
+      🚀 기술적 분석 3대 향후 전망 시나리오
     </div>
     <!-- Scenario A -->
     <div style="background-color: #ecfdf5; border-left: 5px solid #059669; border-top: 1px solid #a7f3d0; border-right: 1px solid #a7f3d0; border-bottom: 1px solid #a7f3d0; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">
@@ -2033,8 +2033,17 @@
   <!-- Promotion Button -->
   <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; text-align: center;">
     <div style="font-size: 13px; font-weight: bold; color: #0369a1; margin-bottom: 4px;">
-      🌐 실시간 비트코인 일봉 차트 & AI 향후 전망 보러가기
+      🌐 실시간 비트코인 일봉 차트 & 향후 전망 보러가기
     </div>
+    <div style="font-size: 11px; color: #475569; margin-bottom: 8px;">
+      다우 이론, 엘리엇 파동 5파, 20·50·200MA, RSI 다이버전스를 실시간 인터랙티브 차트에서 직접 확인하세요!
+    </div>
+    <a href="https://cryptopnl.com" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; font-weight: bold; font-size: 12px; padding: 6px 18px; border-radius: 16px; text-decoration: none;">
+      👉 cryptopnl.com 바로가기
+    </a>
+  </div>
+
+</div>
     <div style="font-size: 11px; color: #475569; margin-bottom: 8px;">
       다우 이론, 엘리엇 파동 5파, 20·50·200MA, RSI 다이버전스를 실시간 인터랙티브 차트에서 직접 확인하세요!
     </div>
