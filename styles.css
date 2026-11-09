@@ -1501,6 +1501,85 @@ html.theme-light #tab-chart-forecast #selectedNodeBody {
   color: #334155 !important;
 }
 
+/* Dow & Elliott Trend Opinion Cards in Light Mode */
+html.theme-light #tab-chart-forecast .forecast-dow-card,
+html.theme-light #tab-chart-forecast [class*="forecast-dow-card"] {
+  background-color: #f0f9ff !important;
+  border: 1px solid #bae6fd !important;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08) !important;
+}
+html.theme-light #tab-chart-forecast .forecast-dow-card .text-sky-300,
+html.theme-light #tab-chart-forecast .forecast-dow-card .text-sky-400 {
+  color: #0369a1 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-dow-card .bg-sky-950 {
+  background-color: #e0f2fe !important;
+  border-color: #7dd3fc !important;
+  color: #0284c7 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-dow-card .text-slate-200,
+html.theme-light #tab-chart-forecast .forecast-dow-card p,
+html.theme-light #tab-chart-forecast .forecast-dow-card div {
+  color: #1e293b !important;
+}
+html.theme-light #tab-chart-forecast .forecast-dow-card b.text-emerald-400 {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-dow-card b.text-rose-400 {
+  color: #be123c !important;
+}
+
+html.theme-light #tab-chart-forecast .forecast-elliott-card,
+html.theme-light #tab-chart-forecast [class*="forecast-elliott-card"] {
+  background-color: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.08) !important;
+}
+html.theme-light #tab-chart-forecast .forecast-elliott-card .text-amber-300,
+html.theme-light #tab-chart-forecast .forecast-elliott-card .text-amber-400 {
+  color: #b45309 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-elliott-card .bg-amber-950 {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #b45309 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-elliott-card .text-slate-200,
+html.theme-light #tab-chart-forecast .forecast-elliott-card p,
+html.theme-light #tab-chart-forecast .forecast-elliott-card div {
+  color: #1e293b !important;
+}
+html.theme-light #tab-chart-forecast .forecast-elliott-card b.text-emerald-400 {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast .forecast-elliott-card b.text-rose-400 {
+  color: #be123c !important;
+}
+
+/* Actionable Key Price Levels (Trigger Levels) Container & Text in Light Mode */
+html.theme-light #tab-chart-forecast #forecast-key-levels,
+html.theme-light #tab-chart-forecast [class*="forecast-key-levels"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-key-levels .text-slate-200,
+html.theme-light #tab-chart-forecast #forecast-key-levels .text-cyan-300 {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-key-levels .text-slate-400 {
+  color: #64748b !important;
+}
+html.theme-light #tab-chart-forecast #forecast-key-levels #level-breakout {
+  color: #047857 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-key-levels #level-range {
+  color: #b45309 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-key-levels #level-danger {
+  color: #be123c !important;
+}
+
 /* AI 3 Pathways Container & Title in Light Mode */
 html.theme-light #tab-chart-forecast .forecast-scenarios-box,
 html.theme-light #tab-chart-forecast #forecast-scenarios-section,

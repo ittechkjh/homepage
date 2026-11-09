@@ -763,7 +763,7 @@
             SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 다우 & 엘리엇 종합 진단`;
             SCENARIOS.live_btc.defaultNodeDesc = `
 <div class="space-y-2 text-left">
-  <div class="p-2.5 rounded-xl bg-[#141b2b] border border-sky-500/30">
+  <div class="forecast-dow-card p-2.5 rounded-xl bg-[#141b2b] border border-sky-500/30">
     <div class="font-bold text-sky-300 text-xs flex items-center justify-between mb-1">
       <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-sky-400"></i>1. 다우 이론 (Dow Theory) 추세 판단</span>
       <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-500/40">${trendBadge}</span>
@@ -774,7 +774,7 @@
       • <b class="text-rose-400">하방 이탈 위험:</b> 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 및 200일선 <b>$${formatPrice(dangerPrice)}</b> 밑으로 하락 시 하락 추세가 가속화되며 $${formatPrice(deepDownside)} 부근까지 추가 급락 위험이 매우 커집니다.
     </div>
   </div>
-  <div class="p-2.5 rounded-xl bg-[#141b2b] border border-amber-500/30">
+  <div class="forecast-elliott-card p-2.5 rounded-xl bg-[#141b2b] border border-amber-500/30">
     <div class="font-bold text-amber-300 text-xs flex items-center justify-between mb-1">
       <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-amber-400"></i>2. 엘리엇 파동 (Elliott Wave) 관점</span>
       <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/40">C파 저점 테스트</span>
