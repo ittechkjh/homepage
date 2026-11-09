@@ -16,22 +16,23 @@ const AdminAnalytics = {
 
     PAGE_DEFINITIONS: [
         { key: 'chart-forecast', name: '실시간 차트 분석 & 향후 전망', path: '#/chart-forecast', icon: 'line-chart', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-        { key: 'analyzer', name: '거래내역 손익 분석기', path: '#/analyzer', icon: 'file-spreadsheet', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
         { key: 'market', name: '가상자산 실시간 시세 & 차트', path: '#/market', icon: 'trending-up', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
-        { key: 'onchain', name: '온체인 & 고래 레이더', path: '#/onchain', icon: 'radar', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
         { key: 'patterns', name: '차트패턴 실시간 스캐너', path: '#/patterns', icon: 'scan', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+        { key: 'analyzer', name: '거래내역 손익 분석기', path: '#/analyzer', icon: 'file-spreadsheet', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
         { key: 'calculators', name: '실전 투자 보조 계산기', path: '#/calculators', icon: 'calculator', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
+        { key: 'yearend-tax', name: '2026 연말정산 절세 계산기', path: '#/yearend-tax', icon: 'receipt', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
+        { key: 'onchain', name: '온체인 & 고래 레이더', path: '#/onchain', icon: 'radar', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
         { key: 'news', name: '글로벌 암호화폐 실시간 속보', path: '#/news', icon: 'zap', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+        { key: 'calendar', name: '코인 일정 & 거시경제 캘린더', path: '#/calendar', icon: 'calendar', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
         { key: 'policy', name: '2026 정부지원 & 청년 정책', path: '#/policy', icon: 'landmark', color: 'text-emerald-300', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
         { key: 'forum', name: '커뮤니티 투자 포럼', path: '#/forum', icon: 'messages-square', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/30' },
-        { key: 'guides', name: '실전 투자 지식 백서', path: '#/guides', icon: 'book-open', color: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/30' },
         { key: 'chat', name: '실시간 투자자 익명 채팅', path: '#/chat', icon: 'message-circle', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
-        { key: 'calendar', name: '코인 일정 & 거시경제 캘린더', path: '#/calendar', icon: 'calendar', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' }
+        { key: 'guides', name: '실전 투자 지식 백서', path: '#/guides', icon: 'book-open', color: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/30' }
     ],
 
     getPageInfo: function (pageKey) {
         if (!pageKey) return this.PAGE_DEFINITIONS[0];
-        const norm = (pageKey === 'community' ? 'forum' : (pageKey === 'yearend-tax' ? 'calculators' : pageKey));
+        const norm = (pageKey === 'community' ? 'forum' : pageKey);
         const found = this.PAGE_DEFINITIONS.find(p => p.key === norm || p.key === pageKey);
         return found || { key: pageKey, name: pageKey, path: '#/' + pageKey, icon: 'layout', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' };
     },
@@ -213,10 +214,10 @@ const AdminAnalytics = {
             history: history14,
             devices: { mobile: 0, desktop: 0 },
             browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            features: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            features: { 'chart-forecast': 0, market: 0, patterns: 0, analyzer: 0, calculators: 0, 'yearend-tax': 0, onchain: 0, news: 0, calendar: 0, policy: 0, forum: 0, chat: 0, guides: 0, community: 0 },
             todayDevices: { mobile: 0, desktop: 0 },
             todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            todayFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
+            todayFeatures: { 'chart-forecast': 0, market: 0, patterns: 0, analyzer: 0, calculators: 0, 'yearend-tax': 0, onchain: 0, news: 0, calendar: 0, policy: 0, forum: 0, chat: 0, guides: 0, community: 0 }
         };
     },
 
@@ -228,18 +229,12 @@ const AdminAnalytics = {
             const devKey = isMobile ? 'mobile' : 'desktop';
             const browserName = this.getBrowserName();
 
-            // Normalize feature name across all 9 functional areas
+            // Normalize feature name across all 13 distinct platform features
             let targetFeature = null;
             if (featureName) {
                 targetFeature = featureName;
                 if (targetFeature === 'admin') {
                     return Promise.resolve();
-                }
-                if (targetFeature === 'forum' || targetFeature === 'chat' || targetFeature === 'guides') {
-                    targetFeature = 'community';
-                }
-                if (targetFeature === 'yearend-tax') {
-                    targetFeature = 'calculators';
                 }
             }
 
@@ -568,27 +563,35 @@ const AdminAnalytics = {
 
             const aggFeatures = {
                 'chart-forecast': 0,
-                analyzer: 0,
                 market: 0,
-                onchain: 0,
                 patterns: 0,
+                analyzer: 0,
                 calculators: 0,
+                'yearend-tax': 0,
+                onchain: 0,
                 news: 0,
+                calendar: 0,
                 policy: 0,
-                community: 0,
-                calendar: 0
+                forum: 0,
+                chat: 0,
+                guides: 0,
+                community: 0
             };
             const todayFeatures = {
                 'chart-forecast': 0,
-                analyzer: 0,
                 market: 0,
-                onchain: 0,
                 patterns: 0,
+                analyzer: 0,
                 calculators: 0,
+                'yearend-tax': 0,
+                onchain: 0,
                 news: 0,
+                calendar: 0,
                 policy: 0,
-                community: 0,
-                calendar: 0
+                forum: 0,
+                chat: 0,
+                guides: 0,
+                community: 0
             };
 
             let sumDailyVisitors = 0;
@@ -644,15 +647,16 @@ const AdminAnalytics = {
                     const docFeatures = {};
                     if (d.features && typeof d.features === 'object') {
                         Object.keys(d.features).forEach(f => {
-                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
-                            docFeatures[targetKey] = Math.max(docFeatures[targetKey] || 0, Number(d.features[f] || 0));
+                            docFeatures[f] = Math.max(docFeatures[f] || 0, Number(d.features[f] || 0));
                         });
+                        if (d.features.community && !d.features.forum && !d.features.chat && !d.features.guides) {
+                            docFeatures.forum = Math.max(docFeatures.forum || 0, Number(d.features.community || 0));
+                        }
                     }
                     Object.keys(d).forEach(k => {
                         if (k.startsWith('features.')) {
                             const f = k.slice(9);
-                            const targetKey = (f === 'yearend-tax') ? 'calculators' : f;
-                            docFeatures[targetKey] = Math.max(docFeatures[targetKey] || 0, Number(d[k] || 0));
+                            docFeatures[f] = Math.max(docFeatures[f] || 0, Number(d[k] || 0));
                         }
                     });
                     Object.keys(docFeatures).forEach(f => {
@@ -825,14 +829,14 @@ const AdminAnalytics = {
             cumDesktopPct: 0,
             cumDevices: { mobile: 0, desktop: 0 },
             browsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            features: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            features: { 'chart-forecast': 0, market: 0, patterns: 0, analyzer: 0, calculators: 0, 'yearend-tax': 0, onchain: 0, news: 0, calendar: 0, policy: 0, forum: 0, chat: 0, guides: 0, community: 0 },
             cumBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            cumFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 },
+            cumFeatures: { 'chart-forecast': 0, market: 0, patterns: 0, analyzer: 0, calculators: 0, 'yearend-tax': 0, onchain: 0, news: 0, calendar: 0, policy: 0, forum: 0, chat: 0, guides: 0, community: 0 },
             todayMobilePct: 0,
             todayDesktopPct: 0,
             todayDevices: { mobile: 0, desktop: 0 },
             todayBrowsers: { Chrome: 0, Safari: 0, Samsung: 0, Edge: 0, Whale: 0, Firefox: 0, Other: 0 },
-            todayFeatures: { 'chart-forecast': 0, analyzer: 0, market: 0, onchain: 0, patterns: 0, calculators: 0, news: 0, policy: 0, community: 0, calendar: 0 }
+            todayFeatures: { 'chart-forecast': 0, market: 0, patterns: 0, analyzer: 0, calculators: 0, 'yearend-tax': 0, onchain: 0, news: 0, calendar: 0, policy: 0, forum: 0, chat: 0, guides: 0, community: 0 }
         };
     }
 };
@@ -1771,24 +1775,35 @@ const AdminApp = {
                 }).join('');
             }
 
-            // 3. Update Feature Distribution (10 Core Platform Features)
+            // 3. Update Feature Distribution (13 Core Platform Features)
             const featKeys = [
                 { key: 'chart-forecast', id: 'admin-feat-chart-forecast' },
-                { key: 'analyzer', id: 'admin-feat-analyzer' },
                 { key: 'market', id: 'admin-feat-market' },
-                { key: 'onchain', id: 'admin-feat-onchain' },
                 { key: 'patterns', id: 'admin-feat-patterns' },
+                { key: 'analyzer', id: 'admin-feat-analyzer' },
                 { key: 'calculators', id: 'admin-feat-calculators' },
+                { key: 'yearend-tax', id: 'admin-feat-yearend-tax' },
+                { key: 'onchain', id: 'admin-feat-onchain' },
                 { key: 'news', id: 'admin-feat-news' },
+                { key: 'calendar', id: 'admin-feat-calendar' },
                 { key: 'policy', id: 'admin-feat-policy' },
-                { key: 'community', id: 'admin-feat-community' },
-                { key: 'calendar', id: 'admin-feat-calendar' }
+                { key: 'forum', id: 'admin-feat-forum' },
+                { key: 'chat', id: 'admin-feat-chat' },
+                { key: 'guides', id: 'admin-feat-guides' }
             ];
 
             const todayF = stats.todayFeatures || stats.features || {};
             const cumF = stats.cumFeatures || stats.features || {};
-            const todayTotalF = featKeys.reduce((sum, item) => sum + (Number(todayF[item.key]) || 0), 0);
-            const cumTotalF = featKeys.reduce((sum, item) => sum + (Number(cumF[item.key]) || 0), 0);
+            const getFeatCount = (map, k) => {
+                let v = Number(map[k]) || 0;
+                if (v === 0 && k === 'forum' && map.community) {
+                    v = Number(map.community) || 0;
+                }
+                return v;
+            };
+
+            const todayTotalF = featKeys.reduce((sum, item) => sum + getFeatCount(todayF, item.key), 0);
+            const cumTotalF = featKeys.reduce((sum, item) => sum + getFeatCount(cumF, item.key), 0);
 
             const isFeatToday = (this.featureScope === 'today');
             const activeF = isFeatToday ? todayF : cumF;
@@ -1815,8 +1830,8 @@ const AdminApp = {
             }
 
             featKeys.forEach(item => {
-                const activeCnt = Number(activeF[item.key]) || 0;
-                const altCnt = Number(altF[item.key]) || 0;
+                const activeCnt = getFeatCount(activeF, item.key);
+                const altCnt = getFeatCount(altF, item.key);
                 const barWidth = activeTotalF > 0 ? Math.round((activeCnt / activeTotalF) * 100) : 0;
                 const elPct = document.getElementById(item.id + '-pct');
                 const elBar = document.getElementById(item.id + '-bar');
