@@ -1664,6 +1664,22 @@ html.theme-light #tab-chart-forecast #forecast-key-levels #level-danger {
   color: #be123c !important;
 }
 
+/* 5 Indicators Diagnosis Section Container & Header in Light Mode */
+html.theme-light #tab-chart-forecast #forecast-live-diagnosis-section {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-live-diagnosis-section .text-cyan-300 {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-live-diagnosis-section .fa-chart-line {
+  color: #0284c7 !important;
+}
+html.theme-light #tab-chart-forecast #forecast-live-diagnosis-section .text-slate-400 {
+  color: #64748b !important;
+}
+
 /* AI 3 Pathways Container & Title in Light Mode */
 html.theme-light #tab-chart-forecast .forecast-scenarios-box,
 html.theme-light #tab-chart-forecast #forecast-scenarios-section,
