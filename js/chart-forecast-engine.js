@@ -747,41 +747,79 @@
             SCENARIOS.live_btc.srZones = srZones;
             SCENARIOS.live_btc.divergences = divergences;
 
-            // Dynamic Commentary & Targets
-            const trendStatus = lastBar.close > lastBar.ma20 ? "20일선 상회 단기 강세" : "20일선 하회 단기 조정";
-            const rsiStatus = lastBar.rsi >= 70 ? "과매수 과열" : (lastBar.rsi <= 30 ? "과매도 반등 대기" : "중립 모멘텀");
-            SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 다우 & 엘리엇 종합 진단`;
-            SCENARIOS.live_btc.defaultNodeDesc = `현재 비트코인은 일봉 200일선($${formatPrice(lastBar.ma200 || 0)}) 및 50일선($${formatPrice(lastBar.ma50 || 0)}) 상단에서 장기 상승 추세를 유지 중이며, 단기적으로는 ${trendStatus} 및 RSI ${lastBar.rsi} (${rsiStatus}) 구간에서 넥라인($${formatPrice(necklinePrice)}) 지지력을 테스트하고 있습니다.`;
+            // Dynamic Commentary & Targets with Actionable Dow & Elliott Perspective
+            const highSwings = swings.filter(s => s.type === 'high');
+            const lowSwings = swings.filter(s => s.type === 'low');
+            const lastHighSwing = highSwings.length > 0 ? highSwings[highSwings.length - 1] : null;
+            const lastLowSwing = lowSwings.length > 0 ? lowSwings[lowSwings.length - 1] : null;
 
-            const targetBull = Math.round(lastBar.close * 1.12);
-            const targetNeutral = Math.round(lastBar.close * 1.02);
-            const targetBear = Math.round(lastBar.close * 0.88);
+            const breakoutPrice = Math.round(lastHighSwing ? lastHighSwing.price : (lastBar.ma50 ? Math.max(lastBar.ma50, lastBar.close * 1.05) : lastBar.close * 1.08));
+            const immediateSupport = Math.round(lastLowSwing ? lastLowSwing.price : lastBar.close * 0.97);
+            const dangerPrice = Math.round(lastBar.ma200 ? lastBar.ma200 : immediateSupport * 0.98);
+            const deepDownside = Math.round(minLow * 1.04);
+
+            const trendBadge = lastBar.close > breakoutPrice ? "상승 돌파 진행" : (lastBar.close < dangerPrice ? "대세 하락 경보" : "단기 조정/수렴");
+
+            SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 다우 & 엘리엇 종합 진단`;
+            SCENARIOS.live_btc.defaultNodeDesc = `
+<div class="space-y-2 text-left">
+  <div class="p-2.5 rounded-xl bg-[#141b2b] border border-sky-500/30">
+    <div class="font-bold text-sky-300 text-xs flex items-center justify-between mb-1">
+      <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-sky-400"></i>1. 다우 이론 (Dow Theory) 추세 판단</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-500/40">${trendBadge}</span>
+    </div>
+    <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
+      현재 일봉은 최고점($${formatPrice(maxHigh)}) 이후 고점(LH)과 저점을 낮추는 <b>단기 하락/조정 파동</b> 내에 있습니다.<br/>
+      • <b class="text-emerald-400">상방 돌파 호재:</b> 직전 반등 고점인 <b>$${formatPrice(breakoutPrice)}</b> 상방 돌파 시 하락 다우 구조가 종료되고 본격적인 숏스퀴즈 및 강세 랠리로 전환됩니다.<br/>
+      • <b class="text-rose-400">하방 이탈 위험:</b> 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 및 200일선 <b>$${formatPrice(dangerPrice)}</b> 밑으로 하락 시 하락 추세가 가속화되며 $${formatPrice(deepDownside)} 부근까지 추가 급락 위험이 매우 커집니다.
+    </div>
+  </div>
+  <div class="p-2.5 rounded-xl bg-[#141b2b] border border-amber-500/30">
+    <div class="font-bold text-amber-300 text-xs flex items-center justify-between mb-1">
+      <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-amber-400"></i>2. 엘리엇 파동 (Elliott Wave) 관점</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/40">C파 저점 테스트</span>
+    </div>
+    <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
+      상승 5파동 완성 후 진행되는 <b>A-B-C 조정 국면에서 마지막 C파의 바닥 지지력을 테스트</b>하는 변곡점입니다.<br/>
+      • <b class="text-emerald-400">반등 지지선:</b> 200일선($${formatPrice(dangerPrice)}) 지지에 성공할 경우 C파 조정 종결 후 <b>신규 상승 1파 개시</b>가 유력합니다.<br/>
+      • <b class="text-rose-400">연장 하락 리스크:</b> $${formatPrice(dangerPrice)} 붕괴 시 C파가 연장 파동(Extended Wave)으로 변모하여 $${formatPrice(deepDownside)} 매물대까지 급락할 수 있어 분할 매수 및 손절 기준선으로 삼아야 합니다.
+    </div>
+  </div>
+</div>`;
+
+            const targetBull = Math.round(breakoutPrice * 1.08);
+            const targetNeutral = Math.round(lastBar.close * 1.01);
+            const targetBear = Math.round(dangerPrice * 0.92);
             SCENARIOS.live_btc.forecastPathways = [
                 {
                     id: "bull",
-                    name: "시나리오 A (상승 돌파 랠리)",
+                    name: "시나리오 A: 강세 돌파 랠리 (45%)",
                     color: "#089981",
                     targetPrice: targetBull,
-                    targetDesc: `직전 저항대 돌파 시 피보나치 확장 목표 $${formatPrice(targetBull)} 도달 타진`,
+                    targetDesc: `직전 저항($${formatPrice(breakoutPrice)}) 돌파 시 20일선 지지 기반 목표가 $${formatPrice(targetBull)} 도달 타진`,
                     prob: "45%"
                 },
                 {
                     id: "neutral",
-                    name: "시나리오 B (박스권 횡보 지지)",
+                    name: "시나리오 B: 박스권 수렴 지지 (35%)",
                     color: "#facc15",
                     targetPrice: targetNeutral,
-                    targetDesc: `20일선($${formatPrice(lastBar.ma20)}) 및 50일선($${formatPrice(lastBar.ma50)}) 사이 수렴 횡보 ($${formatPrice(targetNeutral)})`,
+                    targetDesc: `20일선($${formatPrice(lastBar.ma20 || 0)}) 및 50일선($${formatPrice(lastBar.ma50 || 0)}) 사이 횡보 수렴 후 방향성 결정`,
                     prob: "35%"
                 },
                 {
                     id: "bear",
-                    name: "시나리오 C (지지 이탈 조정)",
+                    name: "시나리오 C: 리스크 지지 이탈 (20%)",
                     color: "#f23645",
                     targetPrice: targetBear,
-                    targetDesc: `핵심 넥라인($${formatPrice(necklinePrice)}) 이탈 시 하단 200일선($${formatPrice(lastBar.ma200 || targetBear)}) 지지 테스트`,
+                    targetDesc: `200일선($${formatPrice(dangerPrice)}) 붕괴 시 C파 연장 하락 및 하단 지지대($${formatPrice(deepDownside)}) 테스트`,
                     prob: "20%"
                 }
             ];
+
+            // Update DOM Elements for live_btc
+            updateTriggerLevelsDOM(breakoutPrice, immediateSupport, lastBar.ma20 || breakoutPrice, dangerPrice);
+            updateScenarioCardsDOM(SCENARIOS.live_btc.forecastPathways, targetBull, immediateSupport, lastBar.ma20 || breakoutPrice, dangerPrice, deepDownside);
 
             return bars;
         } catch (err) {
@@ -828,6 +866,34 @@
         rsiHeight = Math.max(canvasHeight - rsiTop - (isSmallScreen ? 14 : 20), isSmallScreen ? 50 : 70);
 
         drawChart();
+    }
+
+    function updateTriggerLevelsDOM(breakoutPrice, rangeLow, rangeHigh, dangerPrice) {
+        const elBreakout = document.getElementById('level-breakout');
+        const elRange = document.getElementById('level-range');
+        const elDanger = document.getElementById('level-danger');
+        if (elBreakout) elBreakout.textContent = `$${formatPrice(breakoutPrice)}`;
+        if (elRange) elRange.textContent = `$${Math.round(rangeLow / 1000)}K~$${Math.round(rangeHigh / 1000)}K`;
+        if (elDanger) elDanger.textContent = `$${formatPrice(dangerPrice)}`;
+    }
+
+    function updateScenarioCardsDOM(pathways, targetBull, rangeLow, rangeHigh, dangerPrice, deepDownside) {
+        if (!pathways || pathways.length < 3) return;
+        const scenCardTargetA = document.getElementById('scen-card-target-a');
+        const scenCardDescA = document.getElementById('scen-card-desc-a');
+        const scenCardTargetB = document.getElementById('scen-card-target-b');
+        const scenCardDescB = document.getElementById('scen-card-desc-b');
+        const scenCardTargetC = document.getElementById('scen-card-target-c');
+        const scenCardDescC = document.getElementById('scen-card-desc-c');
+
+        if (scenCardTargetA) scenCardTargetA.textContent = `$${formatPrice(targetBull)}`;
+        if (scenCardDescA) scenCardDescA.textContent = pathways[0].targetDesc;
+
+        if (scenCardTargetB) scenCardTargetB.textContent = `$${Math.round(rangeLow / 1000)}K~$${Math.round(rangeHigh / 1000)}K`;
+        if (scenCardDescB) scenCardDescB.textContent = pathways[1].targetDesc;
+
+        if (scenCardTargetC) scenCardTargetC.textContent = `$${formatPrice(dangerPrice)}`;
+        if (scenCardDescC) scenCardDescC.textContent = pathways[2].targetDesc;
     }
 
     function formatPrice(val) {
@@ -1263,12 +1329,32 @@
                     ctx.textBaseline = 'middle';
                     ctx.fillText(tagTextToRender, px, py);
 
+                    let spotTitle = `다우 이론 구조: ${tag.text}`;
+                    let spotDesc = isAbove ? "스윙 고점 (HH: 신고가 돌파 / LH: 반등 한계)" : "스윙 저점 (HL: 핵심 지지 / LL: 구조 붕괴 이탈)";
+
+                    if (tag.text === 'NOW') {
+                        spotTitle = currentScen.defaultNodeTitle || "현재 비트코인 실시간 차트 & AI 향후 시나리오";
+                        spotDesc = currentScen.defaultNodeDesc;
+                    } else if (tag.text.includes('LH')) {
+                        spotTitle = `스윙 고점 저항 (LH • 반등한계)`;
+                        spotDesc = `이전 고점을 넘지 못하고 꺾인 저항 고점입니다. 다우 이론상 이 가격대를 상방 돌파해야 단기 하락 추세가 무효화되고 상승 전환됩니다.`;
+                    } else if (tag.text.includes('HL')) {
+                        spotTitle = `스윙 저점 지지 (HL • 핵심지지)`;
+                        spotDesc = `이전 저점보다 높은 가격에서 형성된 지지 저점입니다. 다우 이론상 이 넥라인이 지켜져야 상승 추세가 유지됩니다.`;
+                    } else if (tag.text.includes('LL')) {
+                        spotTitle = `구조 붕괴 저점 (LL • 이탈주의)`;
+                        spotDesc = `직전 저점을 하향 돌파(BOS)하며 발생한 저점입니다. 다우 이론상 하락 추세 지속 신호이므로 하단 200일선 지지 확인이 필수입니다.`;
+                    } else if (tag.text.includes('HH')) {
+                        spotTitle = `신고가 돌파 고점 (HH • 과열주의)`;
+                        spotDesc = `직전 고점을 상회한 신고가 고점입니다. 하단 RSI 다이버전스 발생 여부를 확인하여 분할 익절 타점을 잡아야 합니다.`;
+                    }
+
                     interactiveHotspots.push({
                         x: px,
                         y: py,
                         r: 12,
-                        title: `다우 이론 구조: ${tag.text}`,
-                        desc: isAbove ? "스윙 고점 (HH: 신고가 돌파 / LH: 반등 한계)" : "스윙 저점 (HL: 핵심 지지 / LL: 구조 붕괴 이탈)"
+                        title: spotTitle,
+                        desc: spotDesc
                     });
                 }
             });
@@ -1479,15 +1565,44 @@
         if (mainTitle) mainTitle.textContent = scen.title;
         if (subTitle) subTitle.textContent = scen.subtitle;
         if (nodeBadge) nodeBadge.textContent = scen.defaultNodeTitle;
-        if (nodeBody) nodeBody.textContent = scen.defaultNodeDesc;
+        if (nodeBody) nodeBody.innerHTML = scen.defaultNodeDesc;
 
         if (scenKey === 'live_btc') {
             chartData = await loadLiveBtcData();
             if (nodeBadge) nodeBadge.textContent = SCENARIOS.live_btc.defaultNodeTitle;
-            if (nodeBody) nodeBody.textContent = SCENARIOS.live_btc.defaultNodeDesc;
+            if (nodeBody) nodeBody.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
             startLiveBtcAutoRefresh();
         } else {
             chartData = buildScenarioData(scenKey);
+            if (scenKey === 'full_cycle') {
+                updateTriggerLevelsDOM(108500, 81500, 89500, 76000);
+                updateScenarioCardsDOM([
+                    { targetDesc: "⑤파 고점 돌파 시 피보나치 확장 신규 목표 타진" },
+                    { targetDesc: "④파 넥라인 지지 및 B파 데드캣 바운스 수렴" },
+                    { targetDesc: "④파 넥라인 붕괴 시 C파 투매($64,500) 하락" }
+                ], 108500, 81500, 89500, 76000, 64500);
+            } else if (scenKey === 'top_2021') {
+                updateTriggerLevelsDOM(69000, 60000, 65000, 58000);
+                updateScenarioCardsDOM([
+                    { targetDesc: "신고가 $69K 돌파 시 대세 상승 랠리 지속" },
+                    { targetDesc: "20일선 및 50일선 사이 고점 박스권 수렴" },
+                    { targetDesc: "직전 스윙 저점 붕괴 시 중장기 하락장 진입" }
+                ], 69000, 60000, 65000, 58000, 42000);
+            } else if (scenKey === 'bottom_2023') {
+                updateTriggerLevelsDOM(25000, 16000, 18000, 15500);
+                updateScenarioCardsDOM([
+                    { targetDesc: "상승 다이버전스 확인 후 20일선 상방 돌파 랠리" },
+                    { targetDesc: "장기 바닥 매물대($16K~$18K) 횡보 매집" },
+                    { targetDesc: "신저가 이탈 시 추가 침체 리스크 발생" }
+                ], 25000, 16000, 18000, 15500, 13000);
+            } else if (scenKey === 'etf_2024') {
+                updateTriggerLevelsDOM(73700, 62000, 68000, 59000);
+                updateScenarioCardsDOM([
+                    { targetDesc: "ETF 승인 모멘텀으로 전고점($73.7K) 돌파" },
+                    { targetDesc: "기관 매집 박스권($62K~$68K) 수렴 횡보" },
+                    { targetDesc: "핵심 넥라인($59K) 이탈 시 단기 변동성 확대" }
+                ], 73700, 62000, 68000, 59000, 52000);
+            }
         }
 
         visibleBarCount = chartData.length;
@@ -1506,7 +1621,7 @@
                     const nb = document.getElementById('selectedNodeBadge');
                     const nbody = document.getElementById('selectedNodeBody');
                     if (nb) nb.textContent = SCENARIOS.live_btc.defaultNodeTitle;
-                    if (nbody) nbody.textContent = SCENARIOS.live_btc.defaultNodeDesc;
+                    if (nbody) nbody.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
                     visibleBarCount = chartData.length;
                     drawChart();
                     updateChartTimestamp();
@@ -1551,7 +1666,12 @@
         const mainTitle = document.getElementById('guideMainTitle')?.textContent?.trim() || scen.title;
         const subTitle = document.getElementById('guideMainSubtitle')?.textContent?.trim() || scen.subtitle;
         const nodeBadge = document.getElementById('selectedNodeBadge')?.textContent?.trim() || scen.defaultNodeTitle;
-        const nodeBody = document.getElementById('selectedNodeBody')?.textContent?.trim() || scen.defaultNodeDesc;
+        const nodeBodyEl = document.getElementById('selectedNodeBody');
+        const cleanNodeBody = nodeBodyEl ? nodeBodyEl.textContent.replace(/\n\s*\n/g, '\n').trim() : (scen.defaultNodeDesc || '');
+
+        const bPrice = document.getElementById('level-breakout')?.textContent?.trim() || '$81,200';
+        const rPrice = document.getElementById('level-range')?.textContent?.trim() || '$74,500 ~ $78,700';
+        const dPrice = document.getElementById('level-danger')?.textContent?.trim() || '$73,200';
 
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -1561,12 +1681,19 @@
         blogText += `기준 일시: ${dateStr} (일봉 1D 기준)\n\n`;
         blogText += `■ 핵심 분석 테마: ${mainTitle}\n`;
         blogText += `"${subTitle}"\n\n`;
-        blogText += `■ 현재 주요 타점 해설: [${nodeBadge}]\n`;
-        blogText += `${nodeBody}\n\n`;
+        blogText += `■ 실전 핵심 매매 기준선 (Trigger Levels)\n`;
+        blogText += `• 🟢 상방 돌파 호재선: ${bPrice} (상방 돌파 시 하락 다우 구조 종결 및 강세 랠리 전환)\n`;
+        blogText += `• 🟡 단기 수렴 박스권: ${rPrice} (20·50MA 수렴 횡보 및 매집 구간)\n`;
+        blogText += `• 🔴 하방 위험 경보선: ${dPrice} (200일선 이탈 시 급락 위험 및 리스크 관리 기준)\n\n`;
+        blogText += `■ 현재 타점 및 다우·엘리엇 종합 진단: [${nodeBadge}]\n`;
+        blogText += `${cleanNodeBody}\n\n`;
         blogText += `■ AI 기술적 분석 3대 향후 전망 시나리오\n`;
-        blogText += `1. 시나리오 A: 강세 돌파 랠리 (45%)\n   - 직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진\n`;
-        blogText += `2. 시나리오 B: 박스권 수렴 지지 (35%)\n   - 20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정\n`;
-        blogText += `3. 시나리오 C: 리스크 지지 이탈 (20%)\n   - 직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트\n\n`;
+        const scenA = document.getElementById('scen-card-desc-a')?.textContent?.trim() || '직전 저항 돌파 시 목표가 타진';
+        const scenB = document.getElementById('scen-card-desc-b')?.textContent?.trim() || '20·50일선 사이 횡보 매집';
+        const scenC = document.getElementById('scen-card-desc-c')?.textContent?.trim() || '200일선 붕괴 시 하단 장기 지지 테스트';
+        blogText += `1. 시나리오 A: 강세 돌파 랠리 (45%)\n   - ${scenA}\n`;
+        blogText += `2. 시나리오 B: 박스권 수렴 지지 (35%)\n   - ${scenB}\n`;
+        blogText += `3. 시나리오 C: 리스크 지지 이탈 (20%)\n   - ${scenC}\n\n`;
         blogText += `■ 4대 이론 핵심 기준선\n`;
         blogText += `- 다우 이론: HH(신고가 고점) / HL(핵심 지지 저점)\n`;
         blogText += `- 이동평균선: 20일선(단기 생명선), 50일선(중기 스윙 방어), 200일선(대세 분기점)\n`;
@@ -1726,7 +1853,7 @@
                     const nBadge = document.getElementById('selectedNodeBadge');
                     const nBody = document.getElementById('selectedNodeBody');
                     if (nBadge) nBadge.textContent = foundSpot.title;
-                    if (nBody) nBody.textContent = foundSpot.desc;
+                    if (nBody) nBody.innerHTML = foundSpot.desc;
                 } else {
                     canvas.style.cursor = 'crosshair';
                     if (banner) banner.classList.add('hidden');
@@ -1771,13 +1898,23 @@
                 const rect = canvas.getBoundingClientRect();
                 const cx = e.clientX - rect.left;
                 const cy = e.clientY - rect.top;
+                let clickedSpot = null;
                 for (const spot of interactiveHotspots) {
                     if (Math.hypot(cx - spot.x, cy - spot.y) <= spot.r + 10) {
-                        const nBadge = document.getElementById('selectedNodeBadge');
-                        const nBody = document.getElementById('selectedNodeBody');
-                        if (nBadge) nBadge.textContent = spot.title;
-                        if (nBody) nBody.textContent = spot.desc;
+                        clickedSpot = spot;
                         break;
+                    }
+                }
+                const nBadge = document.getElementById('selectedNodeBadge');
+                const nBody = document.getElementById('selectedNodeBody');
+                if (clickedSpot) {
+                    if (nBadge) nBadge.textContent = clickedSpot.title;
+                    if (nBody) nBody.innerHTML = clickedSpot.desc;
+                } else {
+                    const scen = SCENARIOS[currentScenarioKey];
+                    if (scen) {
+                        if (nBadge) nBadge.textContent = scen.defaultNodeTitle;
+                        if (nBody) nBody.innerHTML = scen.defaultNodeDesc;
                     }
                 }
             });

@@ -1737,7 +1737,7 @@
 
               <!-- Interactive Selected Marker Card -->
               <div class="p-3.5 border-b border-[#2a2e39] bg-[#161d2d]">
-                <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
                   <span class="text-[11px] font-bold text-cyan-300 flex items-center">
                     <i class="fa-solid fa-crosshairs mr-1.5 text-cyan-400"></i>현재 선택/포커스된 차트 타점 해설
                   </span>
@@ -1745,6 +1745,33 @@
                 </div>
                 <div id="selectedNodeBody" class="text-xs text-slate-100 font-medium leading-relaxed mt-1">
                   차트 상단 <b class="text-amber-300">⑤번 고점</b>을 보세요. 캔들 가격은 ③번 고점보다 높아졌지만(HH), 하단 <b class="text-rose-400">RSI 고점은 오히려 낮아진(LH) 전형적인 '하락 다이버전스'</b>가 발생했습니다. 이후 20일 이평선(노란선)과 직전 HL(넥라인)이 깨질 때가 확정 매도(숏/현금화) 타점입니다.
+                </div>
+              </div>
+
+              <!-- Actionable Key Price Levels (실전 핵심 매매 기준 가격) -->
+              <div id="forecast-key-levels" class="p-3 border-b border-[#2a2e39] bg-[#10141e] space-y-2">
+                <div class="text-[11px] font-bold text-slate-200 flex items-center justify-between">
+                  <span class="flex items-center gap-1.5 text-cyan-300">
+                    <i class="fa-solid fa-bullseye text-cyan-400"></i> 실전 핵심 매매 기준선 (Trigger Levels)
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-normal">터치 시 추세 변곡</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 text-center text-xs">
+                  <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 flex flex-col justify-between">
+                    <div class="text-[10px] font-bold text-emerald-400">🟢 상방 돌파 호재</div>
+                    <div id="level-breakout" class="font-extrabold text-white text-xs sm:text-sm mono mt-0.5">$81,200</div>
+                    <div class="text-[9px] text-emerald-200/80 mt-0.5 leading-tight">돌파 시 강세 전환</div>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/40 flex flex-col justify-between">
+                    <div class="text-[10px] font-bold text-amber-400">🟡 단기 수렴 박스</div>
+                    <div id="level-range" class="font-extrabold text-white text-xs sm:text-sm mono mt-0.5">$74.5K~$78.7K</div>
+                    <div class="text-[9px] text-amber-200/80 mt-0.5 leading-tight">20·50MA 수렴 횡보</div>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 flex flex-col justify-between">
+                    <div class="text-[10px] font-bold text-rose-400">🔴 하방 위험 경보</div>
+                    <div id="level-danger" class="font-extrabold text-white text-xs sm:text-sm mono mt-0.5">$73,200</div>
+                    <div class="text-[9px] text-rose-200/80 mt-0.5 leading-tight">200MA 이탈 시 위험</div>
+                  </div>
                 </div>
               </div>
 
@@ -1756,23 +1783,32 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-xs">
                   <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-start gap-2 shadow-sm">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0 animate-pulse"></span>
-                    <div>
-                      <div class="font-bold text-emerald-300 text-xs">시나리오 A: 강세 돌파 랠리 (45%)</div>
-                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진</div>
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between">
+                        <div id="scen-card-title-a" class="font-bold text-emerald-300 text-xs">시나리오 A: 강세 돌파 랠리 (45%)</div>
+                        <span id="scen-card-target-a" class="text-[10px] mono font-bold text-emerald-300 bg-emerald-900/60 px-1.5 py-0.5 rounded border border-emerald-500/30">$84,500</span>
+                      </div>
+                      <div id="scen-card-desc-a" class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 저항 돌파 시 20일선 지지 기반 피보나치 확장 목표 타진</div>
                     </div>
                   </div>
                   <div class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-start gap-2 shadow-sm">
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 shrink-0 animate-pulse"></span>
-                    <div>
-                      <div class="font-bold text-amber-300 text-xs">시나리오 B: 박스권 수렴 지지 (35%)</div>
-                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정</div>
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between">
+                        <div id="scen-card-title-b" class="font-bold text-amber-300 text-xs">시나리오 B: 박스권 수렴 지지 (35%)</div>
+                        <span id="scen-card-target-b" class="text-[10px] mono font-bold text-amber-300 bg-amber-900/60 px-1.5 py-0.5 rounded border border-amber-500/30">$75K~$78K</span>
+                      </div>
+                      <div id="scen-card-desc-b" class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">20·50일선 사이 횡보 매집 및 거래량 수렴 후 방향성 결정</div>
                     </div>
                   </div>
                   <div class="p-2.5 rounded-xl bg-rose-950/30 border border-rose-500/40 flex items-start gap-2 shadow-sm">
                     <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mt-1 shrink-0 animate-pulse"></span>
-                    <div>
-                      <div class="font-bold text-rose-300 text-xs">시나리오 C: 리스크 지지 이탈 (20%)</div>
-                      <div class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트</div>
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between">
+                        <div id="scen-card-title-c" class="font-bold text-rose-300 text-xs">시나리오 C: 리스크 지지 이탈 (20%)</div>
+                        <span id="scen-card-target-c" class="text-[10px] mono font-bold text-rose-300 bg-rose-900/60 px-1.5 py-0.5 rounded border border-rose-500/30">$73,200</span>
+                      </div>
+                      <div id="scen-card-desc-c" class="text-[11px] text-slate-200 mt-0.5 font-medium leading-snug">직전 HL 넥라인 붕괴 시 하단 장기 200일선 지지 테스트</div>
                     </div>
                   </div>
                 </div>
