@@ -1656,10 +1656,10 @@
             <!-- Dedicated Top OHLC & MA Ticker Bar (Fixed above canvas, prevents overlapping with candles) -->
             <div id="chartOhlcTickerBar" class="bg-[#181c27] border-b border-[#2a2e39] px-2.5 py-1.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
               <div class="flex items-center gap-2 shrink-0">
-                <span id="chartTitleBadge" class="font-bold text-white text-[11px] sm:text-xs flex items-center gap-1.5 sm:gap-2">
-                  <span class="bg-[#2962ff] text-white px-2 py-0.5 rounded font-black text-[11px] sm:text-xs shadow-sm">BTC/USDT</span>
-                  <span class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white font-extrabold text-[11px] sm:text-xs px-2.5 py-0.5 rounded shadow-md border border-sky-300/40 flex items-center gap-1 tracking-wide">
-                    <i class="fa-solid fa-chart-line text-[10px] text-sky-200"></i> cryptopnl.com
+                <span id="chartTitleBadge" class="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                  <span class="bg-[#2962ff] text-white px-2.5 py-0.5 rounded font-black text-xs shadow-md">BTC/USDT</span>
+                  <span class="bg-gradient-to-r from-cyan-400 via-blue-600 to-indigo-600 text-white font-black text-xs px-3 py-0.5 rounded-full shadow-lg border border-cyan-200/60 flex items-center gap-1.5 tracking-wider">
+                    <i class="fa-solid fa-bolt text-yellow-300 text-xs"></i> cryptopnl.com
                   </span>
                 </span>
                 <span id="ohlcDisplay" class="mono text-[10px] sm:text-[11px] text-slate-100 font-semibold whitespace-nowrap">
@@ -1730,9 +1730,9 @@
                       <i class="fa-solid fa-clock text-cyan-400 text-[9px]"></i>
                       <span id="sidebarUpdatedTimeText">-</span>
                     </span>
-                    <button type="button" onclick="copyForecastForBlog()" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2962ff]/20 hover:bg-[#2962ff]/30 text-cyan-300 hover:text-white border border-cyan-400/40 text-[10px] sm:text-[11px] font-bold transition cursor-pointer" title="네이버 블로그/카페 맞춤 서식(색상·박스 포함) 복사">
-                      <i class="fa-regular fa-copy text-[10px]"></i>
-                      <span>네이버 서식 복사</span>
+                    <button type="button" onclick="copyForecastForBlog()" class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-md border border-cyan-300/40 text-[10px] sm:text-[11px] font-black transition cursor-pointer" title="네이버 블로그/카페 맞춤 서식(전체 내용·색상·박스 포함) 복사">
+                      <i class="fa-regular fa-copy text-[11px]"></i>
+                      <span>네이버 전체 서식 복사</span>
                     </button>
                   </div>
                 </div>
