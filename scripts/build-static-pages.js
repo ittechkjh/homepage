@@ -21,6 +21,7 @@ const templatePath = path.join(rootDir, 'scripts', 'page-template.html');
 const seoArticlesPath = path.join(rootDir, 'data', 'static-seo-articles.json');
 const reportsPath = path.join(rootDir, 'data', 'daily-market-reports.json');
 const sitemapPath = path.join(rootDir, 'sitemap.xml');
+const rssPath = path.join(rootDir, 'rss.xml');
 
 // Ensure output directories
 ['calculators', 'guides', 'posts'].forEach(dir => {
@@ -327,6 +328,7 @@ async function main() {
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="CrytoPnL 정식 분석 리포트 원본 페이지로 자동 이동합니다.">
   <meta http-equiv="refresh" content="0; url=${canonical}">
   <link rel="canonical" href="${canonical}">
   <title>CrytoPnL — 페이지 이동 중</title>
@@ -369,6 +371,7 @@ async function main() {
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="CrytoPnL 정식 분석 리포트 원본 페이지로 자동 이동합니다.">
   <meta http-equiv="refresh" content="0; url=${canonicalUrl}">
   <link rel="canonical" href="${canonicalUrl}">
   <title>CrytoPnL — 페이지 이동 중</title>
@@ -400,6 +403,43 @@ async function main() {
 
   fs.writeFileSync(sitemapPath, xml, 'utf8');
   console.log(`sitemap.xml generated with ${sitemapUrls.length} URLs`);
+
+  // 5. RSS.xml (Naver Search Advisor & Feed Readers)
+  const rssItems = mergedReports.slice(0, 50).map(rep => {
+    const plain = stripHtml(rep.content || '');
+    const desc = plain.length > 200 ? plain.substring(0, 200) + '...' : plain;
+    let pubDate = new Date().toUTCString();
+    if (rep.timestamp) {
+      const ts = rep.timestamp > 1000000000000 ? rep.timestamp : rep.timestamp * 1000;
+      try { pubDate = new Date(ts).toUTCString(); } catch(e) {}
+    }
+    const itemUrl = `https://crytopnl.com/posts/${rep.id}.html`;
+    return `    <item>
+      <title><![CDATA[${rep.title || 'CrytoPnL 분석 리포트'}]]></title>
+      <link>${itemUrl}</link>
+      <description><![CDATA[${desc}]]></description>
+      <category><![CDATA[${rep.categoryName || '시장 분석 리포트'}]]></category>
+      <author><![CDATA[${rep.author || 'CrytoPnL'}]]></author>
+      <pubDate>${pubDate}</pubDate>
+      <guid isPermaLink="true">${itemUrl}</guid>
+    </item>`;
+  }).join('\n');
+
+  const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CrytoPnL — 가상자산 퀀트 분석 &amp; 실전 포럼</title>
+    <link>https://crytopnl.com/</link>
+    <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
+    <language>ko-KR</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+${rssItems}
+  </channel>
+</rss>`;
+
+  fs.writeFileSync(rssPath, rssXml, 'utf8');
+  console.log(`rss.xml generated with ${Math.min(mergedReports.length, 50)} items`);
 }
 
 main().catch(err => {
