@@ -319,13 +319,24 @@ async function main() {
     });
     fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
 
-    // Also ensure base date-only alias exists (e.g. report-20260913.html, perspective-20260913.html)
+    // Ensure base date-only alias redirects to canonical URL (eliminates duplicate content & GSC alternate page exclusions)
     const baseDateMatch = String(rep.id).match(/^((?:report|perspective)-\d{8})-\d{4}$/);
     if (baseDateMatch) {
       const baseFile = path.join(rootDir, 'posts', `${baseDateMatch[1]}.html`);
-      if (!fs.existsSync(baseFile)) {
-        fs.writeFileSync(baseFile, html, 'utf8');
-      }
+      const redirectHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=${canonical}">
+  <link rel="canonical" href="${canonical}">
+  <title>CrytoPnL — 페이지 이동 중</title>
+</head>
+<body>
+  <script>window.location.replace("${canonical}");</script>
+  <p><a href="${canonical}">여기를 클릭하시면 원본 분석 리포트로 바로 이동합니다.</a></p>
+</body>
+</html>`;
+      fs.writeFileSync(baseFile, redirectHtml, 'utf8');
     }
 
     // Only include in sitemap if already published (exclude future reserved posts)
@@ -340,6 +351,39 @@ async function main() {
     }
   });
   console.log(`Posts generated: ${mergedReports.length}`);
+
+  // Ensure all existing & future date-only alias files redirect to their canonical post
+  const postsDir = path.join(rootDir, 'posts');
+  if (fs.existsSync(postsDir)) {
+    const postFiles = fs.readdirSync(postsDir);
+    postFiles.forEach(file => {
+      const match = file.match(/^((?:report|perspective)-\d{8})\.html$/);
+      if (match) {
+        const filePath = path.join(postsDir, file);
+        const content = fs.readFileSync(filePath, 'utf8');
+        if (!content.includes('http-equiv="refresh"')) {
+          const canonicalMatch = content.match(/<link rel="canonical" href="([^"]+)">/);
+          if (canonicalMatch && canonicalMatch[1] && !canonicalMatch[1].endsWith(`/${file}`)) {
+            const canonicalUrl = canonicalMatch[1];
+            const redirectHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=${canonicalUrl}">
+  <link rel="canonical" href="${canonicalUrl}">
+  <title>CrytoPnL — 페이지 이동 중</title>
+</head>
+<body>
+  <script>window.location.replace("${canonicalUrl}");</script>
+  <p><a href="${canonicalUrl}">여기를 클릭하시면 원본 분석 리포트로 바로 이동합니다.</a></p>
+</body>
+</html>`;
+            fs.writeFileSync(filePath, redirectHtml, 'utf8');
+          }
+        }
+      }
+    });
+  }
 
   // 4. Sitemap.xml
   const xml = [
