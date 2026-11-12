@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Thu, 12 Nov 2026 03:23:11 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Nov 2026 03:50:59 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[🔭 [코인 전망] 비트코인 7.4만 달러 등락 속 현물 수요 위축 및 스트래티지 MSCI 편출 리스크 진단]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261112-1248.html</link>
+      <description><![CDATA[### 1. 도입부: 흔들리는 크립토 시장, 퀀트 관점의 냉철한 국면 진단 현재 암호화폐 시장은 비트코인이 7만 4천 달러 선에서 팽팽한 등락을 거듭하며 새로운 변곡점에 직면해 있습니다. 뉴욕 증시가 AI 관련 기술주 반등에 힘입어 상승 흐름을 보이는 것과 달리, 코인 시장은 현물 수요의 위축과 주요 기관들의 자금 유입 둔화로 인해 상대적으로 소강상태 또는...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Sat, 14 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261112-1248.html</guid>
+    </item>
     <item>
       <title><![CDATA[🔭 [코인 전망] 비트코인 100만 달러 도달 가능성과 RWA·스테이블코인 패러다임 전환 퀀트 리포트]]></title>
       <link>https://crytopnl.com/posts/forecast-20261112-1220.html</link>
@@ -447,15 +456,6 @@
       <author><![CDATA[AI 퀀트 애널리스트]]></author>
       <pubDate>Sun, 18 Oct 2026 11:03:56 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/perspective-20261018-2003.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[[재테크 팁] 월급쟁이가 자산가로 도약하는 자본주의 절대 원칙 5가지]]></title>
-      <link>https://crytopnl.com/posts/finance-20261017-1754.html</link>
-      <description><![CDATA["매달 열심히 일해서 월급을 받는데, 왜 통장 잔고는 늘 제자리일까?" "투자를 시작하긴 해야겠는데 급등주나 가상자산에 섣불리 들어갔다가 손실만 볼까 두렵다." 재테크 상담을 진행하며 20~40대 직장인들에게 가장 자주 듣는 하소연입니다. 우리는 학교나 사회에서 돈을 버는 기술(근로)은 배우지만, 정작 돈을 어떻게 대하고, 어떻게 지키며, 어떻게 불려야 하...]]></description>
-      <category><![CDATA[💰 재테크 팁]]></category>
-      <author><![CDATA[10년차 재테크 에디터]]></author>
-      <pubDate>Sat, 17 Oct 2026 08:54:59 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261017-1754.html</guid>
     </item>
   </channel>
 </rss>
