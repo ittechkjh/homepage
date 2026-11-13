@@ -1,7 +1,7 @@
 {
-  "lastUpdated": "2026-11-12",
-  "lastUpdatedTimeKst": "11. 12. 11:40",
-  "timestamp": 1794451212547,
+  "lastUpdated": "2026-11-13",
+  "lastUpdatedTimeKst": "11. 13. 11:21",
+  "timestamp": 1794536482379,
   "indicators": {
     "globalM2": {
       "value": "$108.5조",
@@ -10,7 +10,7 @@
       "text": "확장 국면",
       "source": "글로벌 주요국 중앙은행 M2 집계",
       "cycle": "월간 공시",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "fedFundsRate": {
       "value": 3.88,
@@ -19,7 +19,7 @@
       "text": "인하 사이클",
       "source": "미국 뉴욕 연방준비은행 (NY Fed 공식 공시)",
       "cycle": "공식 일일 공시",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "rrp": {
       "value": "$285.4B",
@@ -27,7 +27,7 @@
       "text": "유동성 방출",
       "source": "뉴욕 연방준비은행 일일 공시",
       "cycle": "뉴욕연은 일일",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "realYieldTIPS": {
       "value": 2.5,
@@ -35,71 +35,71 @@
       "text": "긴축적 유지",
       "source": "미국 재무부 실질 국채 금리",
       "cycle": "재무부 공시",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "yieldCurveSpread": {
-      "value": 0.17,
+      "value": 0.16,
       "badge": "정상화",
       "text": "침체 우려 완화",
       "source": "미국 재무부 국채 수익률 곡선",
       "cycle": "국채 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "dxy": {
-      "value": 102.93,
-      "change": 0.62,
+      "value": 103.15,
+      "change": 1.48,
       "text": "달러 강세 (긴축 부담)",
       "source": "ICE U.S. Dollar Index (DX-Y)",
       "cycle": "외환 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "highYieldSpread": {
-      "value": 3.26,
+      "value": 3.28,
       "badge": "위험선호",
       "text": "글로벌 유동성 안정",
       "source": "ICE BofA US High Yield Spread",
       "cycle": "신용 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "nasdaqSpot": {
-      "value": 28374.3,
-      "change": -0.22,
-      "text": "기술주 숨고르기",
+      "value": 28289.2,
+      "change": 6.23,
+      "text": "기술주 상승 모멘텀",
       "source": "NASDAQ-100 (^NDX)",
       "cycle": "증시 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "sox": {
-      "value": 10564.1,
-      "change": 2.88,
+      "value": 10506.7,
+      "change": 16.6,
       "text": "반도체 강세 주도",
       "source": "PHLX Semiconductor Index (^SOX)",
       "cycle": "증시 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "vix": {
-      "value": 17.49,
+      "value": 18.7,
       "badge": "안정권",
       "text": "시장 심리 안정",
       "source": "CBOE Volatility Index (^VIX)",
       "cycle": "옵션 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "goldFut": {
-      "value": 3993.3,
-      "change": -2,
+      "value": 3912.2,
+      "change": -4.92,
       "text": "금값 조정",
       "source": "COMEX Gold Futures (GC=F)",
       "cycle": "원자재 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "wti": {
-      "value": 85.93,
-      "change": -5.39,
+      "value": 88.23,
+      "change": 1.59,
       "text": "고유가 인플레 우려",
       "source": "NYMEX Crude Oil Futures (CL=F)",
       "cycle": "원자재 벤치마크",
-      "lastUpdated": "2026-11-12"
+      "lastUpdated": "2026-11-13"
     },
     "onchain": {
       "realizedPrice": 52824.63,
@@ -109,54 +109,54 @@
     },
     "cryptoSnapshot": {
       "BTC": {
-        "price": 99840000,
-        "change24h": -0.49632243000000004,
-        "timestamp": 1794451212391
+        "price": 95320000,
+        "change24h": -1.3148359,
+        "timestamp": 1794536482172
       },
       "ETH": {
-        "price": 2783000,
-        "change24h": -0.17934003,
-        "timestamp": 1794451210804
+        "price": 2705000,
+        "change24h": -0.98828697,
+        "timestamp": 1794536481775
       },
       "XRP": {
-        "price": 1422,
-        "change24h": -0.28050491,
-        "timestamp": 1794451212070
+        "price": 1386,
+        "change24h": -1.49253731,
+        "timestamp": 1794536481776
       },
       "SOL": {
-        "price": 112700,
-        "change24h": -0.17714792,
-        "timestamp": 1794451212074
+        "price": 109300,
+        "change24h": -1.17540687,
+        "timestamp": 1794536478162
       },
       "DOGE": {
-        "price": 91.4,
-        "change24h": -0.10928961999999999,
-        "timestamp": 1794451202758
+        "price": 89,
+        "change24h": -1.00111235,
+        "timestamp": 1794536474522
       },
       "ADA": {
-        "price": 235,
-        "change24h": -0.42372881,
-        "timestamp": 1794451195929
+        "price": 233,
+        "change24h": -0.85106383,
+        "timestamp": 1794536476865
       },
       "AVAX": {
-        "price": 11620,
-        "change24h": 0.60606061,
-        "timestamp": 1794451207594
+        "price": 11220,
+        "change24h": -0.6200177099999999,
+        "timestamp": 1794536480813
       },
       "SUI": {
-        "price": 1109,
-        "change24h": -0.53811659,
-        "timestamp": 1794451201787
+        "price": 1078,
+        "change24h": -1.01010101,
+        "timestamp": 1794536460268
       },
       "LINK": {
-        "price": 13750,
-        "change24h": -0.5065123,
-        "timestamp": 1794451177616
+        "price": 13560,
+        "change24h": -1.0940919,
+        "timestamp": 1794536452989
       },
       "DOT": {
-        "price": 1149,
-        "change24h": 0.70113935,
-        "timestamp": 1794451177300
+        "price": 1115,
+        "change24h": -1.15248227,
+        "timestamp": 1794536466956
       }
     }
   }
