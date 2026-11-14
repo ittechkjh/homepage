@@ -2453,7 +2453,7 @@ function ensureDailyMarketReportPost(posts) {
   if (Array.isArray(inMemoryForumPosts)) {
     inMemoryForumPosts.forEach(p => {
       if (p && p.id && !deletedIds.includes(String(p.id)) && !postMap.has(String(p.id))) {
-        const isReport = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        const isReport = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('finance-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
         if (isReport) {
           postMap.set(String(p.id), p);
         }
@@ -2546,7 +2546,7 @@ function ensureDailyMarketReportPost(posts) {
         } else if (!localStorage.getItem('voted_post_' + p.id)) {
           p.upvotes = 0;
         }
-        const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
+        const isAuto = String(p.id).startsWith('report-') || String(p.id).startsWith('perspective-') || String(p.id).startsWith('forecast-') || String(p.id).startsWith('finance-') || String(p.id).startsWith('profit-') || String(p.id).startsWith('general-') || String(p.id).startsWith('trading-') || String(p.id).startsWith('feature-');
         if (isAuto) {
           if (viewsMap[p.id] !== undefined && viewsMap[p.id] >= 50) {
             delete viewsMap[p.id];
@@ -3395,6 +3395,15 @@ async function executeManualReportTrigger() {
       const triggerTime = Date.now();
       const isYoutubeVideo = (selectedType === 'finance' || selectedType === 'forecast') && Boolean(youtubeUrl);
       
+      // Capture currently known report IDs before polling to prevent false-positive early finish on future scheduled posts
+      const knownReportIds = new Set();
+      try {
+        const curReports = window._dailyMarketReportsCache || JSON.parse(localStorage.getItem('crytopnl_daily_market_reports_cache') || '[]');
+        if (Array.isArray(curReports)) {
+          curReports.forEach(r => { if (r && r.id) knownReportIds.add(String(r.id)); });
+        }
+      } catch(e) {}
+      
       // Permanently record into local used-youtube list so it is immediately blocked even before page refresh
       if (isYoutubeVideo && youtubeUrl) {
         const vid = extractYouTubeVideoId(youtubeUrl);
@@ -3503,15 +3512,34 @@ async function executeManualReportTrigger() {
             const list = Array.isArray(data) ? data : (Array.isArray(data.reports) ? data.reports : []);
             if (list.length > 0) {
               const matched = list.some(r => {
-                if (!r) return false;
-                const rTime = r.timestamp || (r.time ? new Date(r.time).getTime() : 0);
-                const isRecent = rTime >= (triggerTime - 30000);
-                if (!isRecent) return false;
-                if (selectedType === 'perspective') return r.category === 'perspective';
-                if (selectedType === 'market') return r.category === 'market' || r.category === 'altcoin';
-                if (selectedType === 'finance') return r.category === 'finance';
-                if (selectedType === 'forecast') return r.category === 'forecast';
-                return true;
+                if (!r || !r.id) return false;
+                // Category match check
+                let catMatch = true;
+                if (selectedType === 'perspective') catMatch = (r.category === 'perspective');
+                else if (selectedType === 'market') catMatch = (r.category === 'market' || r.category === 'altcoin');
+                else if (selectedType === 'finance') catMatch = (r.category === 'finance');
+                else if (selectedType === 'forecast') catMatch = (r.category === 'forecast');
+                if (!catMatch) return false;
+
+                // 1. Newly introduced report ID check (Most accurate, works for scheduled posts too)
+                if (knownReportIds.size > 0 && !knownReportIds.has(String(r.id))) {
+                  return true;
+                }
+
+                // 2. Fallback: Check if report was created around or after triggerTime (not scheduled publishAt)
+                // r.id usually contains YYYYMMDD-HHmm timestamp e.g. finance-20261114-1017
+                const idMatch = String(r.id).match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/);
+                if (idMatch) {
+                  const idDate = new Date(`${idMatch[1]}-${idMatch[2]}-${idMatch[3]}T${idMatch[4]}:${idMatch[5]}:00+09:00`).getTime();
+                  if (idDate >= (triggerTime - 90000)) return true;
+                }
+
+                // Standard fallback for immediate non-scheduled posts
+                if (!publishAtStr) {
+                  const rTime = r.timestamp || (r.time ? new Date(r.time).getTime() : 0);
+                  if (rTime >= (triggerTime - 30000) && rTime <= (triggerTime + 300000)) return true;
+                }
+                return false;
               });
               if (matched) return true;
             }
@@ -3564,7 +3592,7 @@ async function executeManualReportTrigger() {
           }
 
           // Timeout safety: for YouTube 180 + 60 = 240s total; for standard reports 80 + 35 = 115s total
-          const timeoutBuffer = isYoutubeFinance ? -60 : -35;
+          const timeoutBuffer = isYoutubeVideo ? -60 : -35;
           if (secondsLeft <= timeoutBuffer) {
             clearInterval(_manualReportTimer);
             if (progressBar) progressBar.style.width = '100%';
