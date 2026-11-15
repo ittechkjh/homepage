@@ -753,19 +753,82 @@
             const lastHighSwing = highSwings.length > 0 ? highSwings[highSwings.length - 1] : null;
             const lastLowSwing = lowSwings.length > 0 ? lowSwings[lowSwings.length - 1] : null;
 
-            const breakoutPrice = Math.round(lastHighSwing ? lastHighSwing.price : (lastBar.ma50 ? Math.max(lastBar.ma50, lastBar.close * 1.05) : lastBar.close * 1.08));
-            const immediateSupport = Math.round(lastLowSwing ? lastLowSwing.price : lastBar.close * 0.97);
-            const dangerPrice = Math.round(lastBar.ma200 ? lastBar.ma200 : immediateSupport * 0.98);
-            const deepDownside = Math.round(minLow * 1.04);
+            const isAboveMa200 = Boolean(lastBar.ma200 && lastBar.close >= lastBar.ma200);
+            const isAboveMa20 = Boolean(lastBar.ma20 && lastBar.close >= lastBar.ma20);
+
+            // Resistance / Breakout Level: Must be strictly above current close
+            let breakoutPrice;
+            if (lastHighSwing && lastHighSwing.price > lastBar.close * 1.015) {
+                breakoutPrice = Math.round(lastHighSwing.price);
+            } else if (lastBar.ma20 && lastBar.ma20 > lastBar.close * 1.015) {
+                breakoutPrice = Math.round(lastBar.ma20);
+            } else if (lastBar.ma50 && lastBar.ma50 > lastBar.close * 1.015) {
+                breakoutPrice = Math.round(lastBar.ma50);
+            } else {
+                breakoutPrice = Math.round(lastBar.close * 1.06);
+            }
+
+            // Immediate Support Level: Must be strictly at or below current close
+            let immediateSupport;
+            const validLowSwings = lowSwings.filter(s => s.price <= lastBar.close * 1.01);
+            if (validLowSwings.length > 0) {
+                immediateSupport = Math.round(validLowSwings[validLowSwings.length - 1].price);
+            } else {
+                immediateSupport = Math.round(lastBar.low ? lastBar.low : lastBar.close * 0.96);
+            }
+
+            // Deep Downside Level: Must be strictly below immediateSupport
+            let deepDownside;
+            if (minLow < immediateSupport * 0.98) {
+                deepDownside = Math.round(minLow);
+            } else {
+                deepDownside = Math.round(immediateSupport * 0.94);
+            }
+
+            // Danger Price for downward alert: Must be <= current close
+            // If already below 200MA, danger level is immediateSupport, not 200MA!
+            const dangerPrice = isAboveMa200 && lastBar.ma200
+                ? Math.round(lastBar.ma200)
+                : immediateSupport;
 
             const trendBadge = lastBar.close > breakoutPrice ? "상승 돌파 진행" : (lastBar.close < dangerPrice ? "대세 하락 경보" : "단기 조정/수렴");
             const ma20Str = lastBar.ma20 ? formatPrice(lastBar.ma20) : '-';
             const ma50Str = lastBar.ma50 ? formatPrice(lastBar.ma50) : '-';
             const ma200Str = lastBar.ma200 ? formatPrice(lastBar.ma200) : '-';
-            const maStatus = lastBar.close > (lastBar.ma20 || 0) ? "20일선 안착 단기 반등" : "20일선 하회 단기 저항";
+            const maStatus = isAboveMa20 ? "20일선 안착 단기 반등" : "20일선 하회 단기 저항";
             const rsiVal = lastBar.rsi !== undefined ? lastBar.rsi : 50;
             const rsiBadge = rsiVal <= 35 ? "과매도 반등 변곡" : (rsiVal >= 65 ? "과매수 과열 경계" : "중립 모멘텀 수렴");
             const divText = divergences.length > 0 ? divergences[0].desc : `일봉 RSI가 30 부근에서 가격 저점을 테스트 후 반등할 때 쌍바닥 '상승 다이버전스' 매수 타점이 형성됩니다.`;
+
+            // Dynamic Narrative Texts Based on Position Relative to 200MA
+            let dowDescription = '';
+            if (isAboveMa200) {
+                dowDescription = `현재 일봉은 최고점($${formatPrice(maxHigh)}) 이후 고점(LH)과 저점을 낮추는 <b>단기 하락/조정 파동</b> 내에 있습니다.<br/>
+• <b class="text-emerald-400">상방 돌파 호재:</b> 직전 반등 고점인 <b>$${formatPrice(breakoutPrice)}</b> 상방 돌파 시 하락 다우 구조가 종료되고 본격적인 숏스퀴즈 및 강세 랠리로 전환됩니다.<br/>
+• <b class="text-rose-400">하방 이탈 위험:</b> 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 및 200일선 <b>$${formatPrice(dangerPrice)}</b> 밑으로 하락 시 하락 추세가 가속화되며 $${formatPrice(deepDownside)} 부근까지 추가 급락 위험이 매우 커집니다.`;
+            } else {
+                dowDescription = `현재 일봉은 최고점($${formatPrice(maxHigh)}) 이후 지속적인 저점 하락(LL)으로 <b>장기 200일선($${formatPrice(lastBar.ma200)})을 하회한 하락/조정 국면</b>입니다.<br/>
+• <b class="text-emerald-400">상방 돌파 호재:</b> 1차 저항인 <b>$${formatPrice(breakoutPrice)}</b> 및 200일선($${formatPrice(lastBar.ma200)})을 일봉 종가로 상향 돌파·안착해야 하락 다우 구조가 무효화되고 추세 반전이 시작됩니다.<br/>
+• <b class="text-rose-400">하방 이탈 위험:</b> 최근 형성된 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 붕괴 시 하락 추세가 연장되며 하단 주요 매물대인 <b>$${formatPrice(deepDownside)}</b> 부근까지 추가 낙폭이 확대될 위험이 있습니다.`;
+            }
+
+            let elliottDescription = '';
+            if (isAboveMa200) {
+                elliottDescription = `상승 5파동 완성 후 진행되는 <b>A-B-C 조정 국면에서 마지막 C파의 바닥 지지력을 테스트</b>하는 변곡점입니다.<br/>
+• <b class="text-emerald-400">반등 지지선:</b> 200일선($${formatPrice(dangerPrice)}) 지지에 성공할 경우 C파 조정 종결 후 <b>신규 상승 1파 개시</b>가 유력합니다.<br/>
+• <b class="text-rose-400">연장 하락 리스크:</b> $${formatPrice(dangerPrice)} 붕괴 시 C파가 연장 파동(Extended Wave)으로 변모하여 $${formatPrice(deepDownside)} 매물대까지 급락할 수 있어 분할 매수 및 손절 기준선으로 삼아야 합니다.`;
+            } else {
+                elliottDescription = `상승 5파동 완성 후 진행되는 <b>A-B-C 하락 파동의 C파 저점 확인 및 연장 파동 테스트 국면</b>입니다.<br/>
+• <b class="text-emerald-400">반등 지지선:</b> 단기 바닥 지지선인 <b>$${formatPrice(immediateSupport)}</b> 사수에 성공하고 저점을 높이는 다중 바닥(W패턴) 형성 시 C파 조정 종결 및 <b>신규 기술적 반등 파동 개시</b>가 유력합니다.<br/>
+• <b class="text-rose-400">연장 하락 리스크:</b> $${formatPrice(immediateSupport)} 지지선이 무너질 경우 C파가 <b>연장 하락 파동(Extended Wave)</b>으로 이어져 $${formatPrice(deepDownside)} 매물대까지 추가 투매가 출회될 수 있습니다.`;
+            }
+
+            let ma200Description = '';
+            if (isAboveMa200) {
+                ma200Description = `• <b class="text-purple-400">200일선 ($${ma200Str} • 장기 대세선):</b> 기관 매매의 기준이 되는 최후의 보루입니다. 200일선 위에서는 대세 상승 사이클이 유효합니다.`;
+            } else {
+                ma200Description = `• <b class="text-purple-400">200일선 ($${ma200Str} • 장기 대세선):</b> 현재 캔들이 200일선을 하회하여 <b>강력한 중장기 상방 저항선</b>으로 전환되었습니다. 200일선 탈환 여부가 대세 상승 복귀의 최대 분수령입니다.`;
+            }
 
             SCENARIOS.live_btc.defaultNodeTitle = `실시간 BTC $${formatPrice(lastBar.close)} • 5대 핵심 지표 종합 진단`;
             SCENARIOS.live_btc.defaultNodeDesc = `
@@ -777,9 +840,7 @@
       <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-500/40">${trendBadge}</span>
     </div>
     <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
-      현재 일봉은 최고점($${formatPrice(maxHigh)}) 이후 고점(LH)과 저점을 낮추는 <b>단기 하락/조정 파동</b> 내에 있습니다.<br/>
-      • <b class="text-emerald-400">상방 돌파 호재:</b> 직전 반등 고점인 <b>$${formatPrice(breakoutPrice)}</b> 상방 돌파 시 하락 다우 구조가 종료되고 본격적인 숏스퀴즈 및 강세 랠리로 전환됩니다.<br/>
-      • <b class="text-rose-400">하방 이탈 위험:</b> 단기 지지선 <b>$${formatPrice(immediateSupport)}</b> 및 200일선 <b>$${formatPrice(dangerPrice)}</b> 밑으로 하락 시 하락 추세가 가속화되며 $${formatPrice(deepDownside)} 부근까지 추가 급락 위험이 매우 커집니다.
+      ${dowDescription}
     </div>
   </div>
 
@@ -787,12 +848,10 @@
   <div class="forecast-elliott-card p-2.5 rounded-xl bg-[#141b2b] border border-amber-500/30">
     <div class="font-bold text-amber-300 text-xs flex items-center justify-between mb-1">
       <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-amber-400"></i>2. 엘리엇 파동 (Elliott Wave) 관점</span>
-      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/40">C파 저점 테스트</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/40">${isAboveMa200 ? 'C파 저점 테스트' : 'C파 연장선 탐색'}</span>
     </div>
     <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
-      상승 5파동 완성 후 진행되는 <b>A-B-C 조정 국면에서 마지막 C파의 바닥 지지력을 테스트</b>하는 변곡점입니다.<br/>
-      • <b class="text-emerald-400">반등 지지선:</b> 200일선($${formatPrice(dangerPrice)}) 지지에 성공할 경우 C파 조정 종결 후 <b>신규 상승 1파 개시</b>가 유력합니다.<br/>
-      • <b class="text-rose-400">연장 하락 리스크:</b> $${formatPrice(dangerPrice)} 붕괴 시 C파가 연장 파동(Extended Wave)으로 변모하여 $${formatPrice(deepDownside)} 매물대까지 급락할 수 있어 분할 매수 및 손절 기준선으로 삼아야 합니다.
+      ${elliottDescription}
     </div>
   </div>
 
@@ -805,7 +864,7 @@
     <div class="text-[11px] text-slate-200 leading-relaxed font-medium">
       • <b class="text-amber-400">20일선 ($${ma20Str} • 단기 생명선):</b> 캔들이 20일선 아래에 위치해 단기 저항으로 작용합니다. 일봉 종가로 20일선 안착 시 단기 랠리 전환 탄력이 붙습니다.<br/>
       • <b class="text-sky-400">50일선 ($${ma50Str} • 중기 방어선):</b> 직전 고점($${formatPrice(breakoutPrice)})과 맞물린 중기 저항선으로, 이 선을 돌파해야 중기 추세가 반전됩니다.<br/>
-      • <b class="text-purple-400">200일선 ($${ma200Str} • 장기 대세선):</b> 기관 매매의 기준이 되는 최후의 보루입니다. 200일선 위에서는 대세 상승 사이클이 유효합니다.
+      ${ma200Description}
     </div>
   </div>
 
@@ -840,16 +899,29 @@
                 diagContainer.innerHTML = SCENARIOS.live_btc.defaultNodeDesc;
             }
 
-            const targetBull = Math.round(breakoutPrice * 1.08);
+            const targetBull = Math.round(breakoutPrice * (isAboveMa200 ? 1.08 : 1.05));
             const targetNeutral = Math.round(lastBar.close * 1.01);
-            const targetBear = Math.round(dangerPrice * 0.92);
+            const targetBear = Math.round(deepDownside * 0.98);
+
+            const bullDesc = isAboveMa200
+                ? `직전 저항($${formatPrice(breakoutPrice)}) 돌파 시 20일선 지지 기반 목표가 $${formatPrice(targetBull)} 도달 타진`
+                : `단기 저항($${formatPrice(breakoutPrice)}) 및 200일선($${ma200Str}) 돌파 시 단기 목표가 $${formatPrice(targetBull)} 회복 타진`;
+
+            const neutralDesc = isAboveMa200
+                ? `20일선($${ma20Str}) 및 50일선($${ma50Str}) 사이 횡보 수렴 후 방향성 결정`
+                : `단기 지지선($${formatPrice(immediateSupport)})과 20일선($${ma20Str}) 사이 횡보 수렴 후 방향성 탐색`;
+
+            const bearDesc = isAboveMa200
+                ? `200일선($${formatPrice(dangerPrice)}) 붕괴 시 C파 연장 하락 및 하단 지지대($${formatPrice(deepDownside)}) 테스트`
+                : `단기 지지선($${formatPrice(immediateSupport)}) 붕괴 시 C파 연장 하락 및 하단 지지대($${formatPrice(deepDownside)}) 테스트`;
+
             SCENARIOS.live_btc.forecastPathways = [
                 {
                     id: "bull",
                     name: "시나리오 A: 강세 돌파 랠리 (45%)",
                     color: "#089981",
                     targetPrice: targetBull,
-                    targetDesc: `직전 저항($${formatPrice(breakoutPrice)}) 돌파 시 20일선 지지 기반 목표가 $${formatPrice(targetBull)} 도달 타진`,
+                    targetDesc: bullDesc,
                     prob: "45%"
                 },
                 {
@@ -857,7 +929,7 @@
                     name: "시나리오 B: 박스권 수렴 지지 (35%)",
                     color: "#facc15",
                     targetPrice: targetNeutral,
-                    targetDesc: `20일선($${formatPrice(lastBar.ma20 || 0)}) 및 50일선($${formatPrice(lastBar.ma50 || 0)}) 사이 횡보 수렴 후 방향성 결정`,
+                    targetDesc: neutralDesc,
                     prob: "35%"
                 },
                 {
@@ -865,14 +937,15 @@
                     name: "시나리오 C: 리스크 지지 이탈 (20%)",
                     color: "#f23645",
                     targetPrice: targetBear,
-                    targetDesc: `200일선($${formatPrice(dangerPrice)}) 붕괴 시 C파 연장 하락 및 하단 지지대($${formatPrice(deepDownside)}) 테스트`,
+                    targetDesc: bearDesc,
                     prob: "20%"
                 }
             ];
 
             // Update DOM Elements for live_btc
-            updateTriggerLevelsDOM(breakoutPrice, immediateSupport, lastBar.ma20 || breakoutPrice, dangerPrice);
-            updateScenarioCardsDOM(SCENARIOS.live_btc.forecastPathways, targetBull, immediateSupport, lastBar.ma20 || breakoutPrice, dangerPrice, deepDownside);
+            const rangeHigh = lastBar.ma20 ? Math.max(lastBar.ma20, breakoutPrice) : breakoutPrice;
+            updateTriggerLevelsDOM(breakoutPrice, immediateSupport, rangeHigh, dangerPrice, isAboveMa200);
+            updateScenarioCardsDOM(SCENARIOS.live_btc.forecastPathways, targetBull, immediateSupport, rangeHigh, dangerPrice, deepDownside);
 
             return bars;
         } catch (err) {
@@ -921,13 +994,22 @@
         drawChart();
     }
 
-    function updateTriggerLevelsDOM(breakoutPrice, rangeLow, rangeHigh, dangerPrice) {
+    function updateTriggerLevelsDOM(breakoutPrice, rangeLow, rangeHigh, dangerPrice, isAboveMa200) {
         const elBreakout = document.getElementById('level-breakout');
         const elRange = document.getElementById('level-range');
         const elDanger = document.getElementById('level-danger');
         if (elBreakout) elBreakout.textContent = `$${formatPrice(breakoutPrice)}`;
         if (elRange) elRange.textContent = `$${Math.round(rangeLow / 1000)}K~$${Math.round(rangeHigh / 1000)}K`;
         if (elDanger) elDanger.textContent = `$${formatPrice(dangerPrice)}`;
+
+        // Dynamic subtitle for danger trigger based on 200MA status
+        const dangerCard = elDanger ? elDanger.closest('div') : null;
+        if (dangerCard) {
+            const subText = dangerCard.querySelector('div:last-child');
+            if (subText) {
+                subText.textContent = (isAboveMa200 === false) ? '단기 지지 이탈 시 위험' : '200MA 이탈 시 위험';
+            }
+        }
     }
 
     function updateScenarioCardsDOM(pathways, targetBull, rangeLow, rangeHigh, dangerPrice, deepDownside) {
