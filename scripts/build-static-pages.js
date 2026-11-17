@@ -288,6 +288,32 @@ async function main() {
   });
 
   const mergedReports = Array.from(postMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  const publishedReports = mergedReports.filter(rep => !(rep.publishAt && Number(rep.publishAt) > Date.now()));
+
+  function buildPostRelatedHtml(currentRep) {
+    const recentOthers = publishedReports.filter(r => String(r.id) !== String(currentRep.id)).slice(0, 6);
+    if (recentOthers.length === 0) return postRelatedHtml;
+    const cardsHtml = recentOthers.map(r => {
+      const cat = escapeHtmlAttr(r.categoryName || '분석 리포트');
+      const rTitle = escapeHtmlAttr(r.title || 'CrytoPnL 리포트');
+      return `        <a href="https://crytopnl.com/posts/${r.id}.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+          <span class="text-xs text-cyan-400 font-bold mb-1">${cat}</span>
+          <h4 class="text-xs font-bold text-white line-clamp-2">${rTitle}</h4>
+          <span class="text-[11px] text-slate-500 mt-2">리포트 읽기 &rarr;</span>
+        </a>`;
+    }).join('\n');
+
+    return `${postRelatedHtml}
+    <section class="related-section-border mt-8 pt-6 border-t border-navy-800">
+      <h3 class="related-title text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i data-lucide="newspaper" class="w-4 h-4 text-cyan-400"></i>
+        최신 AI 시황 &amp; 재테크 리포트
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+${cardsHtml}
+      </div>
+    </section>`;
+  }
 
   mergedReports.forEach(rep => {
     const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
@@ -316,7 +342,7 @@ async function main() {
       ctaText: '실시간 지표 & 포럼 참여하기',
       category: rep.categoryName || '시장 분석 리포트',
       contentHtml: rep.content || '',
-      relatedHtml: postRelatedHtml
+      relatedHtml: buildPostRelatedHtml(rep)
     });
     fs.writeFileSync(path.join(rootDir, 'posts', `${rep.id}.html`), html, 'utf8');
 
@@ -388,6 +414,30 @@ async function main() {
     });
   }
 
+  // 3.5. Update static internal forum links in index.html & preview.html for SEO crawlability
+  const top15Published = publishedReports.slice(0, 15);
+  if (top15Published.length > 0) {
+    const linksBlock = top15Published.map(r => {
+      const safeTitle = escapeHtmlAttr(r.title || '분석 리포트');
+      return `            <li><a href="/posts/${r.id}.html" class="hover:text-cyan-400 transition line-clamp-1">${safeTitle}</a></li>`;
+    }).join('\n');
+
+    ['index.html', 'preview.html'].forEach(filename => {
+      const targetFile = path.join(rootDir, filename);
+      if (fs.existsSync(targetFile)) {
+        const fileContent = fs.readFileSync(targetFile, 'utf8');
+        const markerRegex = /(<!-- AUTO_STATIC_FORUM_LINKS_START -->)[\s\S]*?(<!-- AUTO_STATIC_FORUM_LINKS_END -->)/;
+        if (markerRegex.test(fileContent)) {
+          const updated = fileContent.replace(markerRegex, `$1\n${linksBlock}\n            $2`);
+          if (updated !== fileContent) {
+            fs.writeFileSync(targetFile, updated, 'utf8');
+            console.log(`Updated static forum links in ${filename} (${top15Published.length} links)`);
+          }
+        }
+      }
+    });
+  }
+
   // 4. Sitemap.xml
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -405,7 +455,7 @@ async function main() {
   console.log(`sitemap.xml generated with ${sitemapUrls.length} URLs`);
 
   // 5. RSS.xml (Naver Search Advisor & Feed Readers)
-  const rssItems = mergedReports.slice(0, 50).map(rep => {
+  const rssItems = publishedReports.slice(0, 50).map(rep => {
     const plain = stripHtml(rep.content || '');
     const desc = plain.length > 200 ? plain.substring(0, 200) + '...' : plain;
     let pubDate = new Date().toUTCString();
@@ -439,7 +489,7 @@ ${rssItems}
 </rss>`;
 
   fs.writeFileSync(rssPath, rssXml, 'utf8');
-  console.log(`rss.xml generated with ${Math.min(mergedReports.length, 50)} items`);
+  console.log(`rss.xml generated with ${Math.min(publishedReports.length, 50)} items`);
 }
 
 main().catch(err => {
