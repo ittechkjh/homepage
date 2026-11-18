@@ -4818,7 +4818,6 @@ async function copySingleImageToClipboard(btn) {
         btn.classList.add('from-emerald-600', 'to-teal-600');
         if (typeof lucide !== 'undefined') lucide.createIcons();
       }, 3500);
-      alert('✅ [사진 복사 완료!]\n\n고화질 인포그래픽 이미지가 클립보드에 복사되었습니다.\n네이버 블로그/카페 글쓰기 화면에서 [Ctrl + V]를 누르면 네이버 정식 사진으로 즉시 첨부됩니다.');
     } else {
       throw new Error('ClipboardItem not supported');
     }
