@@ -5,7 +5,7 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Wed, 18 Nov 2026 03:38:44 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2026 05:06:54 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title><![CDATA[[재테크 팁] 계좌 반토막 장세 속 5천만 원 실전 포트폴리오 재편 전략]]></title>
@@ -431,15 +431,6 @@
       <guid isPermaLink="true">https://crytopnl.com/posts/report-20261027-0723.html</guid>
     </item>
     <item>
-      <title><![CDATA[[재테크 팁] 토허제 규제 완화와 세기말 매매, 무주택자가 꼭 알아야 할 10월 대응 전략]]></title>
-      <link>https://crytopnl.com/posts/finance-20261026-1734.html</link>
-      <description><![CDATA[내 집 마련을 꿈꾸는 무주택자라면 최근 급변하는 부동산 시장 소식에 혼란을 느끼실 겁니다. 특히 전세 시장의 불안과 매매 규제 변화가 맞물리면서, '지금 집을 사야 할까, 아니면 더 기다려야 할까' 하는 깊은 고민에 빠지게 됩니다. 부동산 사이클과 정책의 흐름을 정확히 읽지 못하면 자칫 섣부른 판단으로 큰 기회를 놓치거나 리스크를 떠안을 수 있습니다. 오늘...]]></description>
-      <category><![CDATA[💰 재테크 팁]]></category>
-      <author><![CDATA[10년차 재테크 에디터]]></author>
-      <pubDate>Mon, 26 Oct 2026 08:34:07 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261026-1734.html</guid>
-    </item>
-    <item>
       <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
       <link>https://crytopnl.com/posts/1788484987748.html</link>
       <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
@@ -456,6 +447,15 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
+    </item>
+    <item>
+      <title><![CDATA[2강 1단원 가상자산 투자의 첫걸음, 비트코인과 알트코인의 연결고리]]></title>
+      <link>https://crytopnl.com/posts/1788349801462.html</link>
+      <description><![CDATA[1. 초보 투자자의 흔한 착각과 현실 착각: 비트코인은 비싸 보여서 저렴한 알트코인을 매수해 수십 배의 수익(대박)을 노림. 현실: 알트코인은 높은 변동성으로 급등할 수도 있지만, 순식간에 원금을 잃을 위험이 매우 큼. 2. 비트코인과 알트코인의 핵심 관계 기축통화이자 맏형: 비트코인은 가상자산 시장 전체의 흐름을 좌우하는 나침반 역할을 함. 유기적 상관관...]]></description>
+      <category><![CDATA[📈 트레이딩자료]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462.html</guid>
     </item>
   </channel>
 </rss>
