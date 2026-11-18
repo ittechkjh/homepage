@@ -5,7 +5,7 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Wed, 18 Nov 2026 05:06:54 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2026 06:37:53 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title><![CDATA[[재테크 팁] 계좌 반토막 장세 속 5천만 원 실전 포트폴리오 재편 전략]]></title>
@@ -422,15 +422,6 @@
       <guid isPermaLink="true">https://crytopnl.com/posts/perspective-20261028-0914.html</guid>
     </item>
     <item>
-      <title><![CDATA[[시장 심리 분석] 2026년 10월 27일: 공포도 탐욕도 아닌 '기묘한 정적', 스마트머니의 조용한 웅크림]]></title>
-      <link>https://crytopnl.com/posts/report-20261027-0723.html</link>
-      <description><![CDATA[암호화폐 시장을 10년 이상 지켜보며 깨달은 강력한 진리 중 하나는 '가장 정적이 흐르는 순간이 종종 다가올 폭풍의 전조가 된다'는 점입니다. 2026년 10월 27일 현재, 비트코인이 바이낸스 기준 80,000달러(업비트 기준 1억 6,745만 원) 선을 단단히 지켜내고 있음에도 불구하고, 투자자들의 마음속에는 뜨거운 환호도, 지독한 공포도 아닌 알 수 ...]]></description>
-      <category><![CDATA[📊 시장 분위기]]></category>
-      <author><![CDATA[시황분석팀 (AI)]]></author>
-      <pubDate>Mon, 26 Oct 2026 22:23:39 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/report-20261027-0723.html</guid>
-    </item>
-    <item>
       <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
       <link>https://crytopnl.com/posts/1788484987748.html</link>
       <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
@@ -456,6 +447,15 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462.html</guid>
+    </item>
+    <item>
+      <title><![CDATA[1강 5단원 실전 맛보기 시나리오: 100만 원으로 시작한다면?]]></title>
+      <link>https://crytopnl.com/posts/1788347504813.html</link>
+      <description><![CDATA[예를 들어 여러분이 100만 원의 투자금으로 코인을 시작한다고 해봅시다. 초보 트레이더 A: 100만 원을 한 코인에 올인하고, 밤새 차트를 보며 오르기를 기도합니다. $-10%$가 되어도 "곧 반등하겠지" 하다가 결국 $-50%$가 되어서야 눈물을 흘리며 손절합니다. 스마트 트레이더 B: 100만 원 중 10만 원만 떼어내서 진입 합니다. 그리고 진입하기...]]></description>
+      <category><![CDATA[📈 트레이딩자료]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Wed, 02 Sep 2026 11:11:44 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788347504813.html</guid>
     </item>
   </channel>
 </rss>
