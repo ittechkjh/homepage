@@ -5,8 +5,35 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Wed, 18 Nov 2026 06:37:53 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2026 17:57:45 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[🔭 [코인 전망] SOL 기관 채택 잔혹사와 단기 하방 리스크: 2027년 토큰증권 변곡점 대응 전략]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261118-1537.html</link>
+      <description><![CDATA[비트코인이 $64,000 수준으로 조정을 받으며 가상자산 시장 전반의 유동성이 위축되는 국면입니다. 최근 솔라나(SOL)를 둘러싸고 세계 주요 금융기관(ICE, DTCC, NYSE 등)의 채택 및 인프라 연계 소식이 잇따라 발표되고 있으나, 시장 가격은 이에 직접적으로 반응하지 않고 답답한 흐름을 이어가고 있습니다. 단기적인 자금 유출 및 매크로 불확실성과...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Wed, 18 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261118-1537.html</guid>
+    </item>
+    <item>
+      <title><![CDATA[[재테크 팁] 미국 국채의 구원투수? 스테이블코인으로 재편되는 달러 패권의 미래]]></title>
+      <link>https://crytopnl.com/posts/finance-20261118-1219.html</link>
+      <description><![CDATA[안녕하세요. 10년 차 재테크 에디터입니다. 최근 글로벌 금융 시장의 가장 뜨거운 화두는 단연 '미국 국채의 수요'와 '달러의 패권 유지 전략'입니다. 눈덩이처럼 불어나는 미국의 국가 부채 속에서, 미국 정부와 월가가 왜 가상자산 시장의 '스테이블코인'에 이토록 목을 매고 있는지 그 이면을 들여다본 적 있으신가요? 단순히 가상자산 투자의 수단을 넘어, 글로...]]></description>
+      <category><![CDATA[💰 재테크 팁]]></category>
+      <author><![CDATA[10년차 재테크 에디터]]></author>
+      <pubDate>Wed, 18 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261118-1219.html</guid>
+    </item>
+    <item>
+      <title><![CDATA[🔭 [코인 전망] 비트코인 4년 반감기 사이클과 이더리움 부가가치 전환: 2027~2029년 퀀트 로드맵]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261117-1517.html</link>
+      <description><![CDATA[### 1. 도입부: 디지털 희소성과 글로벌 금융 체제 개편의 변곡점 가상자산 시장이 거시 매크로 금리 부담과 규제 불확실성이라는 짙은 안개 속에서 새로운 4년 반감기 국면을 통과하고 있습니다. 단기 가격 변동성에 흔들리는 시장 참여자들과 달리, 퀀트 모델 관점에서 현재 비트코인의 가격 궤적은 지난 10여 년간 누적된 과거 데이터와 역사적 예측 범위를 단 ...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Wed, 18 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261117-1517.html</guid>
+    </item>
     <item>
       <title><![CDATA[[재테크 팁] 계좌 반토막 장세 속 5천만 원 실전 포트폴리오 재편 전략]]></title>
       <link>https://crytopnl.com/posts/finance-20261117-1510.html</link>
@@ -429,33 +456,6 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:23:07 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788484987748.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[[공지] 손익 계산 프로세스 플로우차트]]></title>
-      <link>https://crytopnl.com/posts/1788483904960.html</link>
-      <description><![CDATA[[전체 프로세스] 1. 업비트/빗썸에서 엑셀 다운로드 2. CrytoPnL에 업로드 3. FIFO 기준으로 자동 계산 4. 종목별 실현손익 확인 5. 세금 예상액 확인 + 결과 공유 [핵심 공식 다시 정리] 1. 총수입금액(매도대금) – 필요경비(취득가액+수수료) – 기본공제 250만 원 2. 여기에 22%를 곱하면 납부할 세금이 나옵니다. 3. 2026년...]]></description>
-      <category><![CDATA[💬 자유 토론]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[2강 1단원 가상자산 투자의 첫걸음, 비트코인과 알트코인의 연결고리]]></title>
-      <link>https://crytopnl.com/posts/1788349801462.html</link>
-      <description><![CDATA[1. 초보 투자자의 흔한 착각과 현실 착각: 비트코인은 비싸 보여서 저렴한 알트코인을 매수해 수십 배의 수익(대박)을 노림. 현실: 알트코인은 높은 변동성으로 급등할 수도 있지만, 순식간에 원금을 잃을 위험이 매우 큼. 2. 비트코인과 알트코인의 핵심 관계 기축통화이자 맏형: 비트코인은 가상자산 시장 전체의 흐름을 좌우하는 나침반 역할을 함. 유기적 상관관...]]></description>
-      <category><![CDATA[📈 트레이딩자료]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[1강 5단원 실전 맛보기 시나리오: 100만 원으로 시작한다면?]]></title>
-      <link>https://crytopnl.com/posts/1788347504813.html</link>
-      <description><![CDATA[예를 들어 여러분이 100만 원의 투자금으로 코인을 시작한다고 해봅시다. 초보 트레이더 A: 100만 원을 한 코인에 올인하고, 밤새 차트를 보며 오르기를 기도합니다. $-10%$가 되어도 "곧 반등하겠지" 하다가 결국 $-50%$가 되어서야 눈물을 흘리며 손절합니다. 스마트 트레이더 B: 100만 원 중 10만 원만 떼어내서 진입 합니다. 그리고 진입하기...]]></description>
-      <category><![CDATA[📈 트레이딩자료]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Wed, 02 Sep 2026 11:11:44 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788347504813.html</guid>
     </item>
   </channel>
 </rss>
