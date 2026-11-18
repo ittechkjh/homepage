@@ -28,6 +28,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: repo-write-main
+  cancel-in-progress: false
+
 jobs:
   daily-market-report:
     runs-on: ubuntu-latest
@@ -50,18 +54,28 @@ jobs:
           PUBLISH_AT: ${{ github.event.inputs.publish_at || '' }}
         run: node scripts/generate-daily-market-report.js
 
+      - name: Sync latest repository state before static build
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash origin main || true
+
       - name: Build static SEO pages and update sitemap
         run: node scripts/build-static-pages.js
 
       - name: Commit and push if changed
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --staged --quiet; then
             echo "No market report changes to commit."
           else
             git commit -m "chore(report): auto-publish daily crypto market report & static pages"
-            git pull --rebase --autostash origin main
-            git push origin main
+            if ! git push origin main; then
+              git pull --rebase --autostash -X ours origin main || git rebase --abort || true
+              git pull --no-rebase -X ours origin main || true
+              node scripts/build-static-pages.js
+              git add -A
+              git diff --staged --quiet || git commit -m "chore(report): sync static pages after merge"
+              git push origin main
+            fi
           fi
