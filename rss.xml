@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Sat, 21 Nov 2026 03:08:05 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 21 Nov 2026 16:44:24 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[[재테크 팁] 강남 하락과 외곽 상승의 디커플링, 부동산 시장을 바라보는 거시적 관점과 실전 대응 전략]]></title>
+      <link>https://crytopnl.com/posts/finance-20261121-1018.html</link>
+      <description><![CDATA[안녕하세요, 10년 차 재테크 에디터입니다. 최근 수도권 및 서울 부동산 시장을 둘러싸고 여러 언론과 시장 지표에서 혼조세가 나타나면서, 내 집 마련을 준비하는 실수요자나 상급지 갈아타기를 고려하는 투자자분들의 고민이 깊어지고 있습니다. 단기적인 가격 변동성에 흔들리지 않고 자산 시장을 제대로 바라보기 위해서는 현재 시장에서 나타나는 지역별·권역별 차별화 ...]]></description>
+      <category><![CDATA[💰 재테크 팁]]></category>
+      <author><![CDATA[10년차 재테크 에디터]]></author>
+      <pubDate>Sat, 21 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261121-1018.html</guid>
+    </item>
     <item>
       <title><![CDATA[[BTC/USDT 10:03 관점] $58.9K의 에너지 축적, 4H 대칭 삼각수렴 분출 직전의 길목]]></title>
       <link>https://crytopnl.com/posts/perspective-20261121-1003.html</link>
@@ -447,15 +456,6 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[2강 1단원 가상자산 투자의 첫걸음, 비트코인과 알트코인의 연결고리]]></title>
-      <link>https://crytopnl.com/posts/1788349801462.html</link>
-      <description><![CDATA[1. 초보 투자자의 흔한 착각과 현실 착각: 비트코인은 비싸 보여서 저렴한 알트코인을 매수해 수십 배의 수익(대박)을 노림. 현실: 알트코인은 높은 변동성으로 급등할 수도 있지만, 순식간에 원금을 잃을 위험이 매우 큼. 2. 비트코인과 알트코인의 핵심 관계 기축통화이자 맏형: 비트코인은 가상자산 시장 전체의 흐름을 좌우하는 나침반 역할을 함. 유기적 상관관...]]></description>
-      <category><![CDATA[📈 트레이딩자료]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462.html</guid>
     </item>
   </channel>
 </rss>
