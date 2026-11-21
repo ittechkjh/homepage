@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-11-20T01:15:59.531Z",
+  "updatedAt": "2026-11-21T00:47:25.275Z",
   "source": "행정안전부 대한민국 공공서비스(혜택) 정보 API (data.go.kr)",
-  "totalCount": 853,
+  "totalCount": 852,
   "policies": [
     {
       "id": "traffic-curated-01",
@@ -18270,34 +18270,6 @@
       "tags": [
         "대중교통",
         "traffic",
-        "정부지원"
-      ]
-    },
-    {
-      "id": "gov-359000000450",
-      "category": "family",
-      "categoryName": "👨‍👩‍👧‍👦 다자녀/가족",
-      "title": "무료 법률·세무 상담서비스",
-      "benefitBadge": "기타(상담)",
-      "target": "○ 구에 주소 및 거소를 둔 주민 또는 구 소속 공무원\r\n○ 「국민기초생활 보장법」에 따른 수급권자, 장애인 및 소년·소녀가장, 국가보훈대상자, 다문화가정, 다자녀가정, 그 밖의 취약계층 주민에게는 법률상담을 우선적으로 실시",
-      "summary": "주민생활에서 각종 법률·세무 문제에 있어 주민을 보호하기 위하여 무료 법률·세무 상담운영",
-      "details": [
-        "무료 법률·세무 상담서비스",
-        "상담대상 : 구에 주소 및 거소를 둔 주민 또는 구 소속 공무원",
-        "상담의 범위",
-        "·주민생활과 관련된 행정·민사·형사·가사사건에 관한 사항"
-      ],
-      "agency": "전남광주통합특별시 동구",
-      "applyUrl": "https://plus.gov.kr/portal/benefitV2/benefitTotalSrvcList/benefitSrvcDtl?svcSeq=2162417&bnefType=all&svcId=359000000450",
-      "applyName": "정부24 바로가기",
-      "docs": [
-        "신분증",
-        "주민등록등본",
-        "자격확인서류"
-      ],
-      "tags": [
-        "다자녀",
-        "family",
         "정부지원"
       ]
     },
