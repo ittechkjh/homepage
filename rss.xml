@@ -5,7 +5,7 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Mon, 23 Nov 2026 04:19:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2026 04:38:12 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title><![CDATA[[재테크 팁] 빈곤의 악순환을 자르는 단호한 결단: 가난의 고리를 끊는 실전 자산 독립법]]></title>
@@ -440,15 +440,6 @@
       <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261030-1407.html</guid>
     </item>
     <item>
-      <title><![CDATA[[재테크 팁] 월 75만 원으로 10억 자산 만들기: 연금저축·IRP·ISA를 활용한 절세 복리 로드맵]]></title>
-      <link>https://crytopnl.com/posts/finance-20261030-1348.html</link>
-      <description><![CDATA[서울 아파트 중위가격이 10억 원을 훌쩍 넘어서는 현실 속에서, 평범한 월급을 받는 직장인들은 흔히 "부모님의 지원 없이는 평생 내 집 마련이 불가능하다"는 좌절감에 빠지곤 합니다. 월급 300만 원 안팎을 받는 상황에서 대출 규제와 치솟은 집값의 벽은 너무나 높아 보입니다. 하지만 외부의 도움 없이도 같은 월급으로 목돈과 내 집 마련의 기반을 다지는 이들...]]></description>
-      <category><![CDATA[💰 재테크 팁]]></category>
-      <author><![CDATA[10년차 재테크 에디터]]></author>
-      <pubDate>Fri, 30 Oct 2026 04:48:06 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261030-1348.html</guid>
-    </item>
-    <item>
       <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
       <link>https://crytopnl.com/posts/1788484987748.html</link>
       <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
@@ -456,6 +447,15 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:23:07 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788484987748.html</guid>
+    </item>
+    <item>
+      <title><![CDATA[[공지] 손익 계산 프로세스 플로우차트]]></title>
+      <link>https://crytopnl.com/posts/1788483904960.html</link>
+      <description><![CDATA[[전체 프로세스] 1. 업비트/빗썸에서 엑셀 다운로드 2. CrytoPnL에 업로드 3. FIFO 기준으로 자동 계산 4. 종목별 실현손익 확인 5. 세금 예상액 확인 + 결과 공유 [핵심 공식 다시 정리] 1. 총수입금액(매도대금) – 필요경비(취득가액+수수료) – 기본공제 250만 원 2. 여기에 22%를 곱하면 납부할 세금이 나옵니다. 3. 2026년...]]></description>
+      <category><![CDATA[💬 자유 토론]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
     </item>
   </channel>
 </rss>
