@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Tue, 24 Nov 2026 05:56:17 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 24 Nov 2026 20:06:29 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[[재테크 팁] S&P500 투자, 적립식 vs 거치식 승자는? 5천만 원 목돈 굴리는 최적의 포트폴리오 전략]]></title>
+      <link>https://crytopnl.com/posts/finance-20261123-1704.html</link>
+      <description><![CDATA[열심히 일하며 차곡차곡 모아둔 목돈 5,000만 원 . 통장에 그냥 묵혀두기엔 물가상승률이 무섭고, 막상 투자를 시작하려니 "지금 시점에 한 번에 넣어야 할까, 아니면 매달 나눠서 적립해야 할까?"라는 깊은 고민에 빠지게 됩니다. 특히 미국 대표 지수인 S&P500 ETF 는 초보 투자자부터 베테랑까지 필수 재테크 수단으로 꼽히지만, 투자의 방식(거치식 v...]]></description>
+      <category><![CDATA[💰 재테크 팁]]></category>
+      <author><![CDATA[10년차 재테크 에디터]]></author>
+      <pubDate>Tue, 24 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261123-1704.html</guid>
+    </item>
     <item>
       <title><![CDATA[[재테크 팁] "멋있어서 샀다가 큰코깝니다" 초고층 아파트의 숨겨진 수리비 폭탄과 실전 대처법]]></title>
       <link>https://crytopnl.com/posts/finance-20261123-1336.html</link>
@@ -447,15 +456,6 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[2강 1단원 가상자산 투자의 첫걸음, 비트코인과 알트코인의 연결고리]]></title>
-      <link>https://crytopnl.com/posts/1788349801462.html</link>
-      <description><![CDATA[1. 초보 투자자의 흔한 착각과 현실 착각: 비트코인은 비싸 보여서 저렴한 알트코인을 매수해 수십 배의 수익(대박)을 노림. 현실: 알트코인은 높은 변동성으로 급등할 수도 있지만, 순식간에 원금을 잃을 위험이 매우 큼. 2. 비트코인과 알트코인의 핵심 관계 기축통화이자 맏형: 비트코인은 가상자산 시장 전체의 흐름을 좌우하는 나침반 역할을 함. 유기적 상관관...]]></description>
-      <category><![CDATA[📈 트레이딩자료]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462.html</guid>
     </item>
   </channel>
 </rss>
