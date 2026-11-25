@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Tue, 24 Nov 2026 20:06:29 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Nov 2026 04:52:11 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[🔭 [코인 전망] 비트코인 4년 주기설의 균열: AI 연산 인프라 기회비용과 매크로 금리 경로에 따른 정밀 퀀트 시나리오]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261124-1254.html</link>
+      <description><![CDATA[### 1. 도입부: 전통적 주기설의 변곡점과 비트코인 Valuation의 재정의 비트코인(BTC) 시장이 과거 반복되던 '4년 반향/반감기 주기설'의 단순 패턴에서 벗어나 거시 경제 매크로(Macro) 변수 및 AI 산업 연산 자원(Computing Power)과의 극심한 기회비용 경쟁이라는 새로운 변곡점에 직면했습니다. 비트코인이 $55,000 레벨까지...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Tue, 24 Nov 2026 22:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261124-1254.html</guid>
+    </item>
     <item>
       <title><![CDATA[[재테크 팁] S&P500 투자, 적립식 vs 거치식 승자는? 5천만 원 목돈 굴리는 최적의 포트폴리오 전략]]></title>
       <link>https://crytopnl.com/posts/finance-20261123-1704.html</link>
@@ -447,15 +456,6 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Fri, 04 Sep 2026 01:23:07 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788484987748.html</guid>
-    </item>
-    <item>
-      <title><![CDATA[[공지] 손익 계산 프로세스 플로우차트]]></title>
-      <link>https://crytopnl.com/posts/1788483904960.html</link>
-      <description><![CDATA[[전체 프로세스] 1. 업비트/빗썸에서 엑셀 다운로드 2. CrytoPnL에 업로드 3. FIFO 기준으로 자동 계산 4. 종목별 실현손익 확인 5. 세금 예상액 확인 + 결과 공유 [핵심 공식 다시 정리] 1. 총수입금액(매도대금) – 필요경비(취득가액+수수료) – 기본공제 250만 원 2. 여기에 22%를 곱하면 납부할 세금이 나옵니다. 3. 2026년...]]></description>
-      <category><![CDATA[💬 자유 토론]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Fri, 04 Sep 2026 01:05:04 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788483904960.html</guid>
     </item>
   </channel>
 </rss>
