@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-11-25T03:02:06.321Z",
+  "updatedAt": "2026-11-26T02:12:28.981Z",
   "source": "행정안전부 대한민국 공공서비스(혜택) 정보 API (data.go.kr)",
-  "totalCount": 852,
+  "totalCount": 853,
   "policies": [
     {
       "id": "traffic-curated-01",
@@ -21912,6 +21912,34 @@
       "tags": [
         "가족",
         "family",
+        "정부지원"
+      ]
+    },
+    {
+      "id": "gov-383000000554",
+      "category": "traffic",
+      "categoryName": "🚗 교통/차량",
+      "title": "경기도 안양시 시민안전보험",
+      "benefitBadge": "기타",
+      "target": "지역 주민 모두",
+      "summary": "재난이나 그밖의 각종 사고로 피해가 발생한 경우 그 피해를 보상",
+      "details": [
+        "상해사망(교통상해 제외) 1000",
+        "자연재해(일사병,열사병, 저체온증 등 포함)로 사망한 경우 1000",
+        "자연재해(일사병,열사병, 저체온증 등 포함)로 3~100%의 상해후유장해가 발생한 경우 1000",
+        "화재․붕괴․폭발로 사망한 경우 1500"
+      ],
+      "agency": "경기도 안양시",
+      "applyUrl": "https://plus.gov.kr/portal/benefitV2/benefitTotalSrvcList/benefitSrvcDtl?svcSeq=2128487&bnefType=all&svcId=383000000554",
+      "applyName": "정부24 바로가기",
+      "docs": [
+        "신분증",
+        "주민등록등본",
+        "자격확인서류"
+      ],
+      "tags": [
+        "대중교통",
+        "traffic",
         "정부지원"
       ]
     },
