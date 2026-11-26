@@ -72,8 +72,8 @@ sitemapUrls.push({
   priority: '1.0'
 });
 
-// Add Standalone Legal & Policy pages
-const legalPages = ['privacy.html', 'terms.html', 'about.html', 'contact.html'];
+// Add Standalone Legal & Policy pages (Clean URLs matching Cloudflare Pages)
+const legalPages = ['privacy', 'terms', 'about', 'contact'];
 legalPages.forEach(lp => {
   sitemapUrls.push({
     loc: `https://crytopnl.com/${lp}`,
@@ -90,17 +90,17 @@ const calcRelatedHtml = `
         함께 읽으면 좋은 추천 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/guides/crypto-tax-deduction.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/crypto-tax-deduction" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 가이드</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 소득세 22% & 기본공제 5,000만원 절세 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/kimchi-premium-arbitrage" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">차익거래 전략</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">김치프리미엄(김프) 매매 기법과 실전 헤징 가이드</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/water-drop-break-even.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/water-drop-break-even" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">매매 전략</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">물타기 & 불타기(DCA) 평단가 탈출 전략 및 분할 매도 원칙</h4>
           <span class="text-[11px] text-slate-500 mt-2">자세히 보기 &rarr;</span>
@@ -116,17 +116,17 @@ const guideRelatedHtml = `
         직접 계산해보기: 추천 실전 계산기
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/crypto-tax.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/crypto-tax" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">세무 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">2026 가상자산 양도소득세 정밀 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/average-down.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/average-down" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">물타기 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">코인 물타기 & 탈출 평단가 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/calculators/liquidation-price.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/liquidation-price" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">선물 청산가</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">코인 선물 레버리지 격리/교차 강제청산가 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
@@ -142,12 +142,12 @@ const postRelatedHtml = `
         실전 트레이딩 유용한 도구 & 가이드
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a href="https://crytopnl.com/calculators/kimchi-premium.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/calculators/kimchi-premium" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">실시간 계산기</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">실시간 김치프리미엄 차익 계산기</h4>
           <span class="text-[11px] text-slate-500 mt-2">계산기 실행 &rarr;</span>
         </a>
-        <a href="https://crytopnl.com/guides/trading-fees-slippage.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+        <a href="https://crytopnl.com/guides/trading-fees-slippage" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">주문 분석</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">암호화폐 거래 수수료와 슬리피지 관리 전략</h4>
           <span class="text-[11px] text-slate-500 mt-2">가이드 보기 &rarr;</span>
@@ -220,7 +220,7 @@ async function fetchFirestorePosts() {
 async function main() {
   // 1. Calculators
   (seoData.calculators || []).forEach(calc => {
-    const canonical = `https://crytopnl.com/calculators/${calc.slug}.html`;
+    const canonical = `https://crytopnl.com/calculators/${calc.slug}`;
     const html = renderPage(template, {
       fullTitle: `${calc.title} | CrytoPnL 실전 계산기`,
       desc: calc.description,
@@ -247,7 +247,7 @@ async function main() {
 
   // 2. Guides
   (seoData.guides || []).forEach(guide => {
-    const canonical = `https://crytopnl.com/guides/${guide.slug}.html`;
+    const canonical = `https://crytopnl.com/guides/${guide.slug}`;
     const html = renderPage(template, {
       fullTitle: `${guide.title} | CrytoPnL 백서`,
       desc: guide.description,
@@ -290,13 +290,28 @@ async function main() {
   const mergedReports = Array.from(postMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   const publishedReports = mergedReports.filter(rep => !(rep.publishAt && Number(rep.publishAt) > Date.now()));
 
+  function buildDynamicKeywords(rep) {
+    const titleWords = String(rep.title || '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/[^\w가-힣\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length >= 2)
+      .slice(0, 6);
+    const baseKw = rep.category === 'finance'
+      ? ['재테크 팁', '자산 배분', '투자 전략', '절세 가이드']
+      : rep.category === 'forecast'
+        ? ['코인 전망', '비트코인 시세', '암호화폐 투자', '온체인 분석']
+        : ['비트코인 시황', '차트 분석', '가상자산 퀀트', 'BTC USDT'];
+    return [...new Set([...titleWords, ...baseKw, 'CrytoPnL'])].join(', ');
+  }
+
   function buildPostRelatedHtml(currentRep) {
     const recentOthers = publishedReports.filter(r => String(r.id) !== String(currentRep.id)).slice(0, 6);
     if (recentOthers.length === 0) return postRelatedHtml;
     const cardsHtml = recentOthers.map(r => {
       const cat = escapeHtmlAttr(r.categoryName || '분석 리포트');
       const rTitle = escapeHtmlAttr(r.title || 'CrytoPnL 리포트');
-      return `        <a href="https://crytopnl.com/posts/${r.id}.html" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
+      return `        <a href="https://crytopnl.com/posts/${r.id}" class="related-card p-4 rounded-2xl bg-navy-900/80 border border-navy-800 hover:border-cyan-500/50 transition flex flex-col justify-between">
           <span class="text-xs text-cyan-400 font-bold mb-1">${cat}</span>
           <h4 class="text-xs font-bold text-white line-clamp-2">${rTitle}</h4>
           <span class="text-[11px] text-slate-500 mt-2">리포트 읽기 &rarr;</span>
@@ -316,7 +331,7 @@ ${cardsHtml}
   }
 
   mergedReports.forEach(rep => {
-    const canonical = `https://crytopnl.com/posts/${rep.id}.html`;
+    const canonical = `https://crytopnl.com/posts/${rep.id}`;
     const plain = stripHtml(rep.content || '');
     const desc = plain.length > 150 ? plain.substring(0, 150) + '...' : `${rep.title} - CrytoPnL 실시간 퀀트 분석 및 온체인 마켓 리포트`;
     
@@ -333,7 +348,7 @@ ${cardsHtml}
     const html = renderPage(template, {
       fullTitle: `${rep.title} | CrytoPnL 포럼`,
       desc,
-      keywords: '비트코인 시황, 암호화폐 퀀트 분석, 온체인 데이터, 시장 전망, CrytoPnL, BTC USDT',
+      keywords: buildDynamicKeywords(rep),
       author: rep.author || 'AI 퀀트 애널리스트',
       canonical,
       title: rep.title,
@@ -419,7 +434,7 @@ ${cardsHtml}
   if (top15Published.length > 0) {
     const linksBlock = top15Published.map(r => {
       const safeTitle = escapeHtmlAttr(r.title || '분석 리포트');
-      return `            <li><a href="/posts/${r.id}.html" class="hover:text-cyan-400 transition line-clamp-1">${safeTitle}</a></li>`;
+      return `            <li><a href="/posts/${r.id}" class="hover:text-cyan-400 transition line-clamp-1">${safeTitle}</a></li>`;
     }).join('\n');
 
     ['index.html', 'preview.html'].forEach(filename => {
@@ -463,7 +478,7 @@ ${cardsHtml}
       const ts = rep.timestamp > 1000000000000 ? rep.timestamp : rep.timestamp * 1000;
       try { pubDate = new Date(ts).toUTCString(); } catch(e) {}
     }
-    const itemUrl = `https://crytopnl.com/posts/${rep.id}.html`;
+    const itemUrl = `https://crytopnl.com/posts/${rep.id}`;
     return `    <item>
       <title><![CDATA[${rep.title || 'CrytoPnL 분석 리포트'}]]></title>
       <link>${itemUrl}</link>

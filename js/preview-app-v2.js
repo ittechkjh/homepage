@@ -4219,7 +4219,7 @@ function renderForumPosts() {
               <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-amber-400"></i> 예약 수정
             </button>
           ` : ''}
-          <a href="/posts/${post.id}.html" target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1" title="새 창에서 정적 웹문서(SEO)로 열기">
+          <a href="/posts/${post.id}" target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1.5 rounded-xl bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-cyan-400 border border-navy-700 text-xs font-semibold transition flex items-center gap-1" title="새 창에서 정적 웹문서(SEO)로 열기">
             <i data-lucide="external-link" class="w-3.5 h-3.5 text-cyan-400"></i> 웹문서
           </a>
           <button type="button" onclick="event.stopPropagation(); copyPostForNaverBlog('${post.id}', this)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-950/30 transition flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer" title="네이버 블로그/카페 스마트에디터에 바로 붙여넣을 수 있도록 고해상도 PNG 이미지와 함께 복사합니다.">
@@ -4581,7 +4581,7 @@ function openPostDetailModal(postId, updateHistory = true) {
   if (modalUpvotesEl) modalUpvotesEl.innerText = post.upvotes || 0;
   const staticLinkEl = document.getElementById('cafe-post-static-link');
   if (staticLinkEl) {
-    staticLinkEl.href = `/posts/${post.id}.html`;
+    staticLinkEl.href = `/posts/${post.id}`;
   }
 
   const controlsEl = document.getElementById('cafe-post-author-controls');
