@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Fri, 27 Nov 2026 05:43:41 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 27 Nov 2026 18:52:06 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[🔭 [코인 전망] 비트코인 61K 반등과 온체인 손절매 지표: 2027 사이클을 향한 바닥 다지기]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261127-1438</link>
+      <description><![CDATA[현재 글로벌 암호화폐 시장은 극심한 변동성과 매크로 불확실성 속에서 중요한 구조적 변곡점을 통과하고 있습니다. 비트코인이 전고점 대비 조정을 거치며 장기 지지선을 시험하는 가운데, 기관 수급의 핵심 지표인 현물 ETF 자금 유출입과 파생상품 시장의 레버리지 청산이 연쇄적으로 발생했습니다. 단기적인 가격 충격 속에서 시장 참여자들의 불안감이 극에 달하고 있으...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Fri, 27 Nov 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261127-1438</guid>
+    </item>
     <item>
       <title><![CDATA[🔭 [코인 전망] 위험 자산 랠리 속 심리적 디커플링 분석: 비트코인 퀀트 매물대와 유동성 변곡점 대응 전략]]></title>
       <link>https://crytopnl.com/posts/forecast-20261126-1558</link>
@@ -438,6 +447,15 @@
       <author><![CDATA[10년차 재테크 에디터]]></author>
       <pubDate>Tue, 03 Nov 2026 03:49:54 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261103-1249</guid>
+    </item>
+    <item>
+      <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
+      <link>https://crytopnl.com/posts/1788484987748</link>
+      <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
+      <category><![CDATA[💬 자유 토론]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Fri, 04 Sep 2026 01:23:07 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788484987748</guid>
     </item>
   </channel>
 </rss>
