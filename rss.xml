@@ -5,8 +5,17 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Thu, 26 Nov 2026 18:57:29 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 27 Nov 2026 04:08:14 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[🔭 [코인 전망] 위험 자산 랠리 속 심리적 디커플링 분석: 비트코인 퀀트 매물대와 유동성 변곡점 대응 전략]]></title>
+      <link>https://crytopnl.com/posts/forecast-20261126-1558</link>
+      <description><![CDATA[### 1. 도입부: 자산 상승과 시장 불확실성의 역설적 국면 최근 암호화폐 시장은 비트코인을 필두로 한 주요 자산 가격의 상승세에도 불구하고, 투자자들의 심리 지표는 지극히 위축된 역설적 국면을 지나고 있습니다. 자산 가격이 신고가를 향해 재차 상승하고 있음에도 불구하고 시장 참여자들이 불안을 느끼는 핵심 원인은 '유동성의 질적 변화'와 '수급 편중 현상...]]></description>
+      <category><![CDATA[🔭 코인 전망]]></category>
+      <author><![CDATA[크립토 퀀트 전망팀]]></author>
+      <pubDate>Thu, 26 Nov 2026 22:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261126-1558</guid>
+    </item>
     <item>
       <title><![CDATA[[재테크 팁] 통장 잔고 1억 원 돌파 후, 부자가 되는 사람과 평생 멈추는 사람의 결정적 차이]]></title>
       <link>https://crytopnl.com/posts/finance-20261125-1557</link>
@@ -447,15 +456,6 @@
       <author><![CDATA[10년차 재테크 에디터]]></author>
       <pubDate>Tue, 03 Nov 2026 02:30:08 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/finance-20261103-1130</guid>
-    </item>
-    <item>
-      <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
-      <link>https://crytopnl.com/posts/1788484987748</link>
-      <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
-      <category><![CDATA[💬 자유 토론]]></category>
-      <author><![CDATA[admin]]></author>
-      <pubDate>Fri, 04 Sep 2026 01:23:07 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/1788484987748</guid>
     </item>
   </channel>
 </rss>
