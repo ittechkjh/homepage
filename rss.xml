@@ -5,7 +5,7 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Sat, 28 Nov 2026 02:23:37 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Nov 2026 03:14:14 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title><![CDATA[[재테크 팁] 수십억 자산가도 무너뜨리는 '레버리지의 덫', 침체기 부동산 대출 리스크와 상급지 갈아타기 실전 전략]]></title>
@@ -413,15 +413,6 @@
       <guid isPermaLink="true">https://crytopnl.com/posts/forecast-20261106-1039</guid>
     </item>
     <item>
-      <title><![CDATA[[BTC/USDT 09:24 관점] $76K 변곡점 진입: 대칭 삼각수렴 돌파와 엘리엇 5파 분출의 기로]]></title>
-      <link>https://crytopnl.com/posts/perspective-20261106-0924</link>
-      <description><![CDATA[1. 팽팽한 긴장감 속의 비트코인: 폭발 직전의 에너지 비트코인(BTC)이 $76,000선 근처에서 매수세와 매도세의 팽팽한 힘겨루기를 이어가며, 조만간 방향성을 분출할 강력한 기술적 변곡점에 진입했습니다. 최근 최고가인 $80,794를 기록한 이후 단기 조정을 거쳐 현재 $76,182선에 위치해 있으며, 차트는 폭발적인 변동성을 앞두고 에너지를 응축하는 ...]]></description>
-      <category><![CDATA[🎯 차트 관점]]></category>
-      <author><![CDATA[AI 퀀트 애널리스트]]></author>
-      <pubDate>Fri, 06 Nov 2026 00:24:47 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/perspective-20261106-0924</guid>
-    </item>
-    <item>
       <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
       <link>https://crytopnl.com/posts/1788484987748</link>
       <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
@@ -456,6 +447,15 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Wed, 02 Sep 2026 11:11:44 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788347504813</guid>
+    </item>
+    <item>
+      <title><![CDATA[1강 4단원 초보자가 가장 흔히 하는 3가지 실수 (주의사항)]]></title>
+      <link>https://crytopnl.com/posts/1788347142299</link>
+      <description><![CDATA[코인 판에 처음 들어온 초보자들이 돈을 잃는 패턴은 거의 100% 똑같습니다. 아래 3가지만 피해도 여러분은 이미 하위 80%의 초보자들을 앞서가게 됩니다. 24시간 차트만 쳐다보다 일상이 피폐해짐 (FOMO 중독) "내가 잠든 사이에 떨어지면 어쩌지?" 하는 불안감에 새벽 2시, 3시에도 스마트폰을 들여다봅니다. 트레이딩은 건강한 일상과 자동 손절 예약(...]]></description>
+      <category><![CDATA[📈 트레이딩자료]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Wed, 02 Sep 2026 11:05:42 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788347142299</guid>
     </item>
   </channel>
 </rss>
