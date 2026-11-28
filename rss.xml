@@ -5,7 +5,7 @@
     <link>https://crytopnl.com/</link>
     <description>국내 1위 무서버 브라우저 로컬 암호화 코인 손익분석기 및 실시간 퀀트 시황 리포트</description>
     <language>ko-KR</language>
-    <lastBuildDate>Sat, 28 Nov 2026 02:05:55 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Nov 2026 02:23:37 GMT</lastBuildDate>
     <atom:link href="https://crytopnl.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
       <title><![CDATA[[재테크 팁] 수십억 자산가도 무너뜨리는 '레버리지의 덫', 침체기 부동산 대출 리스크와 상급지 갈아타기 실전 전략]]></title>
@@ -422,15 +422,6 @@
       <guid isPermaLink="true">https://crytopnl.com/posts/perspective-20261106-0924</guid>
     </item>
     <item>
-      <title><![CDATA[[BTC/USDT 11:21 관점] 4시간봉 삼각수렴 돌파 임박: 엘리엇 5파 분출인가, 페이크아웃인가?]]></title>
-      <link>https://crytopnl.com/posts/perspective-20261105-1121</link>
-      <description><![CDATA[1. 팽팽한 변곡점의 중심에 선 비트코인 현재 비트코인(BTC/USDT) 4시간 차트는 매수세와 매도세가 극도로 팽팽하게 맞서는 전형적인 기술적 변곡점에 도달했습니다. 최근 $76,435 영역에서 강력한 하단 지지력을 확인한 비트코인은 급격한 반등을 통해 현재 $80,734선에 안착했으며, 단기 삼각수렴 상단 라인을 강력하게 위협하고 있습니다. 단순한 반등...]]></description>
-      <category><![CDATA[🎯 차트 관점]]></category>
-      <author><![CDATA[AI 퀀트 애널리스트]]></author>
-      <pubDate>Thu, 05 Nov 2026 02:21:33 GMT</pubDate>
-      <guid isPermaLink="true">https://crytopnl.com/posts/perspective-20261105-1121</guid>
-    </item>
-    <item>
       <title><![CDATA[[공지] 업비트 거래내역 → 엑셀로 가져오는 방법]]></title>
       <link>https://crytopnl.com/posts/1788484987748</link>
       <description><![CDATA[[단계별 상세 가이드] PC 웹 으로 업비트에 로그인(모바일 앱에서는 복사가 불편하므로 PC를 강력 추천합니다) 1. 상단 또는 메뉴에서 마이페이지 클릭 2. 왼쪽 메뉴에서 거래내역 선택 → 체결내역 탭 확인 3. 기간을 설정하고 조회 버튼 클릭 4. 화면에 나온 거래내역을 마우스로 드래그하거나 Ctrl + A로 전체 선택 Ctrl + C로 복사 5. 엑셀...]]></description>
@@ -456,6 +447,15 @@
       <author><![CDATA[admin]]></author>
       <pubDate>Wed, 02 Sep 2026 11:50:01 GMT</pubDate>
       <guid isPermaLink="true">https://crytopnl.com/posts/1788349801462</guid>
+    </item>
+    <item>
+      <title><![CDATA[1강 5단원 실전 맛보기 시나리오: 100만 원으로 시작한다면?]]></title>
+      <link>https://crytopnl.com/posts/1788347504813</link>
+      <description><![CDATA[예를 들어 여러분이 100만 원의 투자금으로 코인을 시작한다고 해봅시다. 초보 트레이더 A: 100만 원을 한 코인에 올인하고, 밤새 차트를 보며 오르기를 기도합니다. $-10%$가 되어도 "곧 반등하겠지" 하다가 결국 $-50%$가 되어서야 눈물을 흘리며 손절합니다. 스마트 트레이더 B: 100만 원 중 10만 원만 떼어내서 진입 합니다. 그리고 진입하기...]]></description>
+      <category><![CDATA[📈 트레이딩자료]]></category>
+      <author><![CDATA[admin]]></author>
+      <pubDate>Wed, 02 Sep 2026 11:11:44 GMT</pubDate>
+      <guid isPermaLink="true">https://crytopnl.com/posts/1788347504813</guid>
     </item>
   </channel>
 </rss>
