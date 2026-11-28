@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-27T02:10:08.374Z",
+  "updatedAt": "2026-11-28T01:59:15.177Z",
   "source": "행정안전부 대한민국 공공서비스(혜택) 정보 API (data.go.kr)",
   "totalCount": 853,
   "policies": [
@@ -12563,32 +12563,6 @@
       ]
     },
     {
-      "id": "gov-324000000101",
-      "category": "tax",
-      "categoryName": "💼 세제/장려금",
-      "title": "지역화폐(강동사랑상품권)",
-      "benefitBadge": "이용권",
-      "target": "○ 만 14세 이상의 은행과 금융거래가 가능한 본인 명의의 스마트폰 소지자",
-      "summary": "소비자에게 할인 및 소득공제 혜택, 가맹점에 수수료 절감 혜택 등 제공",
-      "details": [
-        "구입 충전 시 할인 5%, 연말정산 시 소득공제 30%",
-        "가맹점 결제수수료 0%, 가맹점 매출증대"
-      ],
-      "agency": "서울특별시 강동구",
-      "applyUrl": "https://plus.gov.kr/portal/benefitV2/benefitTotalSrvcList/benefitSrvcDtl?svcSeq=1000838&bnefType=all&svcId=324000000101",
-      "applyName": "정부24 바로가기",
-      "docs": [
-        "신분증",
-        "주민등록등본",
-        "자격확인서류"
-      ],
-      "tags": [
-        "소득공제",
-        "tax",
-        "정부지원"
-      ]
-    },
-    {
       "id": "gov-324000000106",
       "category": "family",
       "categoryName": "👨‍👩‍👧‍👦 다자녀/가족",
@@ -22872,6 +22846,32 @@
       "tags": [
         "청년",
         "youth",
+        "정부지원"
+      ]
+    },
+    {
+      "id": "gov-393000000104",
+      "category": "family",
+      "categoryName": "👨‍👩‍👧‍👦 다자녀/가족",
+      "title": "다자녀 학자금 지원",
+      "benefitBadge": "현금",
+      "target": "○ 안산시에 부 또는 모와 함께 계속 5년 이상 거주한 다자녀 가정의 넷째아 이상 고등학생 및 다섯째아 이상 대학생",
+      "summary": "다자녀가구의 넷째 이상에게 고등학교 공납금 및 다섯째이상에게 대학교 학자금 지원",
+      "details": [
+        "넷째 자녀 이상 고등학교 공납금 전액(특목고, 자사고 등 재학생)",
+        "다섯째 자녀 이상 대학교 학자금 전액(1세대 1인만 지원, 총 8회)"
+      ],
+      "agency": "경기도 안산시",
+      "applyUrl": "https://plus.gov.kr/portal/benefitV2/benefitTotalSrvcList/benefitSrvcDtl?svcSeq=1000665&bnefType=all&svcId=393000000104",
+      "applyName": "정부24 바로가기",
+      "docs": [
+        "신분증",
+        "주민등록등본",
+        "자격확인서류"
+      ],
+      "tags": [
+        "다자녀",
+        "family",
         "정부지원"
       ]
     }
